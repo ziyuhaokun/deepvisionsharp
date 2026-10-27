@@ -131,4 +131,20 @@ public sealed class TorchSharpClassifierTests
             }
         }
     }
+
+    [Fact]
+    public void ImageTensor_CropTile_slices_correct_region()
+    {
+        using var source = new OpenCvSharp.Mat(100, 100, OpenCvSharp.MatType.CV_8UC3, new OpenCvSharp.Scalar(10, 20, 30));
+        var tileWindow = new DeepVisionSharp.Tiling.TileWindow(
+            Index: 0,
+            Source: new DeepVisionSharp.Tiling.PixelRect(10, 20, 30, 40),
+            Canvas: new DeepVisionSharp.Tiling.PixelSize(30, 40),
+            Dest: new DeepVisionSharp.Tiling.PixelRect(0, 0, 30, 40));
+
+        using var cropped = DeepVisionSharp.TorchSharp.Tensors.TorchSharpImageTensor.CropTile(source, tileWindow);
+
+        Assert.Equal(30, cropped.Width);
+        Assert.Equal(40, cropped.Height);
+    }
 }

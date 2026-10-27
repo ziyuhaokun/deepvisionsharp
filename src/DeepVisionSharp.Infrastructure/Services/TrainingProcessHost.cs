@@ -11,6 +11,7 @@ public sealed class TrainingProcessHost : ITrainingProcessHost, IDisposable
     private readonly ConcurrentDictionary<Guid, ConcurrentQueue<string>> _recentLogs = new();
 
     public event Action<Guid, string>? LogReceived;
+    public event Action<Guid, string>? PreviewUpdated;
 
     public bool IsActive(Guid jobId) => _activeSessions.ContainsKey(jobId);
 
@@ -28,6 +29,12 @@ public sealed class TrainingProcessHost : ITrainingProcessHost, IDisposable
     public void PublishLog(Guid jobId, string line)
     {
         RecordLog(jobId, line, fromError: false);
+    }
+
+    public void PublishPreviewUpdated(Guid jobId, string previewImagePath)
+    {
+        if (string.IsNullOrWhiteSpace(previewImagePath)) return;
+        PreviewUpdated?.Invoke(jobId, previewImagePath);
     }
 
     public IReadOnlyList<string> GetRecentLogLines(Guid jobId)

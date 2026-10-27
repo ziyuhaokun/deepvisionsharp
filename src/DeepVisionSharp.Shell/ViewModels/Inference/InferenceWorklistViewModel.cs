@@ -16,6 +16,7 @@ namespace DeepVisionSharp.Shell.ViewModels.Inference;
 public sealed partial class InferenceWorklistViewModel : ObservableObject
 {
     private const int GalleryFetchPageSize = 200;
+    private const int WorklistThumbnailDecodeWidth = 160;
 
     /// <summary>Bumped by every new load and by <see cref="ClearAllImages"/>; a paged append stops when it changes.</summary>
     private int _loadGeneration;
@@ -230,7 +231,7 @@ public sealed partial class InferenceWorklistViewModel : ObservableObject
                 ImagePath = fullPath,
                 DisplayName = Path.GetFileName(file),
                 SourceMode = InferenceImageSourceMode.ExternalFiles,
-                Preview = _imageSources.FromFile(fullPath)
+                Preview = _imageSources.FromFileThumbnail(fullPath, WorklistThumbnailDecodeWidth) ?? _imageSources.FromFile(fullPath)
             };
             Images.Add(item);
             lastAdded = item;
@@ -341,7 +342,7 @@ public sealed partial class InferenceWorklistViewModel : ObservableObject
                         SampleId = sample.Id,
                         GalleryId = galleryId,
                         GalleryName = galleryName,
-                        Preview = _imageSources.FromFile(fullPath),
+                        Preview = _imageSources.FromFileThumbnail(fullPath, WorklistThumbnailDecodeWidth) ?? _imageSources.FromFile(fullPath),
                         ExpectedClass = expected
                     };
                     Images.Add(item);

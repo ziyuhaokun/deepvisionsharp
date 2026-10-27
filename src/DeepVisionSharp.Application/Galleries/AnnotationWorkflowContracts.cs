@@ -2,6 +2,12 @@ using DeepVisionSharp.Domain.ValueObjects;
 
 namespace DeepVisionSharp.Application.Galleries;
 
+public sealed record AnnotationSaveItem(
+    string FileName,
+    double ImageWidth,
+    double ImageHeight,
+    string? ImageClass = null);
+
 /// <summary>
 /// Labeling workspace port (channel B): high-frequency load/save/path per sample.
 /// Optional CQRS wrappers (<c>SaveAnnotationsCommand</c>, etc.) thin-delegate here.
@@ -25,6 +31,11 @@ public interface IAnnotationWorkflowService
         double imageWidth,
         double imageHeight,
         string? imageClass = null,
+        CancellationToken cancellationToken = default);
+
+    Task SaveBatchAsync(
+        Guid galleryId,
+        IReadOnlyList<AnnotationSaveItem> items,
         CancellationToken cancellationToken = default);
 
     Task DeleteSampleAsync(Guid galleryId, string fileName, CancellationToken cancellationToken = default);

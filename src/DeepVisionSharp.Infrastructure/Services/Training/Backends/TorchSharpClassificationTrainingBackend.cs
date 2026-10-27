@@ -294,7 +294,8 @@ internal sealed class TorchSharpClassificationTrainingBackend : ITrainingBackend
                                     : Math.Clamp((int)Math.Round(current * 100.0 / total), 0, 100);
                                 Log(
                                     $"DV_PROGRESS {{\"stage\":\"training\",\"current\":{current},\"total\":{total},\"percent\":{percent},\"message\":{System.Text.Json.JsonSerializer.Serialize(message)}}}");
-                            }),
+                            },
+                            PreviewGenerated: path => _processHost.PublishPreviewUpdated(job.Id, path)),
                         runToken),
                     runToken).ConfigureAwait(false);
             }

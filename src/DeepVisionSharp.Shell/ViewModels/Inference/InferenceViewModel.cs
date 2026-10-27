@@ -29,6 +29,7 @@ public sealed partial class InferenceViewModel : ObservableObject, IDisposable
     private readonly WorkspaceSessionService _workspaceSession;
     private readonly ITaskCapabilityResolver _taskCapabilities;
     private readonly IAppDialogService _appDialogService;
+    private readonly IImageSourceFactory _imageSources;
     private readonly IUiDispatcher _uiDispatcher;
     private readonly ShellSnackbarNotifier _snackbar;
     private readonly ILogger<InferenceViewModel> _logger;
@@ -57,6 +58,7 @@ public sealed partial class InferenceViewModel : ObservableObject, IDisposable
         _workspaceSession = workspaceSession;
         _taskCapabilities = taskCapabilities;
         _appDialogService = appDialogService;
+        _imageSources = imageSources;
         _uiDispatcher = uiDispatcher;
         _snackbar = snackbar;
         _logger = logger;
@@ -431,8 +433,10 @@ public sealed partial class InferenceViewModel : ObservableObject, IDisposable
 
     private void OnSelectedImageChanged(InferenceImageItem? value)
     {
-        // Prefer item preview; if missing but file exists, keep null (decode failed) rather than inventing fallback.
-        PreviewImage = value?.Preview;
+        // Decode full-resolution image on demand for the canvas; worklist items keep lightweight thumbnails.
+        PreviewImage = value is not null && !string.IsNullOrWhiteSpace(value.ImagePath) && File.Exists(value.ImagePath)
+            ? (_imageSources.FromFile(value.ImagePath) ?? value.Preview)
+            : value?.Preview;
         ActiveFileName = value?.DisplayName ?? string.Empty;
         ImageSizeText = FormatImageSize(PreviewImage);
 

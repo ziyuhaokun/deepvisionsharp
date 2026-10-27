@@ -156,6 +156,8 @@ public sealed class RunGalleryBatchInferenceCommandHandler
             Device = device
         };
 
+        const int BatchPersistSize = 50;
+        var batchBuffer = new List<AnnotationSaveItem>(BatchPersistSize);
         var written = 0;
         var skipped = 0;
         var failed = 0;
@@ -197,8 +199,12 @@ public sealed class RunGalleryBatchInferenceCommandHandler
                     cancellationToken);
                 switch (processed.Outcome)
                 {
-                    case SampleOutcome.Written:
-                        written++;
+                    case SampleOutcome.Written when processed.ItemToSave is not null:
+                        batchBuffer.Add(processed.ItemToSave);
+                        if (batchBuffer.Count >= BatchPersistSize)
+                        {
+                            await FlushBatchAsync(batchBuffer, cancellationToken).ConfigureAwait(false);
+                        }
                         break;
                     case SampleOutcome.Skipped:
                         skipped++;
@@ -230,6 +236,33 @@ public sealed class RunGalleryBatchInferenceCommandHandler
                     "Gallery batch inference failed for gallery {GalleryId}, file {FileName}",
                     request.GalleryId,
                     fileName);
+            }
+        }
+
+        if (batchBuffer.Count > 0)
+        {
+            await FlushBatchAsync(batchBuffer, cancellationToken).ConfigureAwait(false);
+        }
+
+        async Task FlushBatchAsync(List<AnnotationSaveItem> buffer, CancellationToken token)
+        {
+            try
+            {
+                await _annotations.SaveBatchAsync(request.GalleryId, buffer, token).ConfigureAwait(false);
+                written += buffer.Count;
+            }
+            catch (Exception ex)
+            {
+                failed += buffer.Count;
+                if (errors.Count < 20)
+                {
+                    errors.Add($"批量保存标注异常：{ex.Message}");
+                }
+                _logger.LogError(ex, "Failed to batch save {Count} annotations for gallery {GalleryId}", buffer.Count, request.GalleryId);
+            }
+            finally
+            {
+                buffer.Clear();
             }
         }
 
@@ -267,7 +300,7 @@ public sealed class RunGalleryBatchInferenceCommandHandler
         var imagePath = _annotations.GetImagePath(request.ProjectId, request.GalleryId, fileName);
         if (string.IsNullOrWhiteSpace(imagePath))
         {
-            return new SampleProcessResult(SampleOutcome.Failed, null);
+            return new SampleProcessResult(SampleOutcome.Failed, $"{fileName}: 样本图片路径未找到");
         }
 
         var inferenceResult = await _mediator.Send(
@@ -279,7 +312,8 @@ public sealed class RunGalleryBatchInferenceCommandHandler
             cancellationToken);
         if (inferenceResult.IsFailure || inferenceResult.Value is null || !inferenceResult.Value.Success)
         {
-            return new SampleProcessResult(SampleOutcome.Failed, null);
+            var err = inferenceResult.Error ?? inferenceResult.Value?.Error ?? "推理失败";
+            return new SampleProcessResult(SampleOutcome.Failed, $"{fileName}: {err}");
         }
 
         var merge = GalleryBatchInferenceAnnotationMerger.TryMerge(
@@ -294,21 +328,20 @@ public sealed class RunGalleryBatchInferenceCommandHandler
             return new SampleProcessResult(merge.Outcome, merge.Error);
         }
 
-        var save = await _mediator.Send(
-            new SaveAnnotationsCommand(
-                request.GalleryId,
+        return new SampleProcessResult(
+            SampleOutcome.Written,
+            null,
+            new AnnotationSaveItem(
                 fileName,
                 merge.Document.ImageWidth,
                 merge.Document.ImageHeight,
-                merge.Document.ImageClass),
-            cancellationToken);
-
-        return save.IsSuccess
-            ? new SampleProcessResult(SampleOutcome.Written, null)
-            : new SampleProcessResult(SampleOutcome.Failed, null);
+                merge.Document.ImageClass));
     }
 
-    private readonly record struct SampleProcessResult(SampleOutcome Outcome, string? Error);
+    private readonly record struct SampleProcessResult(
+        SampleOutcome Outcome,
+        string? Error,
+        AnnotationSaveItem? ItemToSave = null);
 
     private enum SampleOutcome
     {

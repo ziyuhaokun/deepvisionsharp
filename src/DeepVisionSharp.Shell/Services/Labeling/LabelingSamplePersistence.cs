@@ -130,7 +130,7 @@ public sealed class LabelingSamplePersistence : IDisposable
         }
     }
 
-    public async Task SaveCurrentSampleAsync(bool refreshGallery, bool notifyUser = false)
+    public async Task<bool> SaveCurrentSampleAsync(bool refreshGallery, bool notifyUser = false)
     {
         await _saveGate.WaitAsync();
         try
@@ -144,7 +144,7 @@ public sealed class LabelingSamplePersistence : IDisposable
                     _snackbar.ShowWarning("请先选择图库和样本。", "保存");
                 }
 
-                return;
+                return false;
             }
 
             // Capture identity and payload under the gate so a concurrent open cannot retarget this write.
@@ -164,7 +164,7 @@ public sealed class LabelingSamplePersistence : IDisposable
                 _logger.LogWarning(
                     "Skipping annotation save for {FileName}: active sample changed during save",
                     fileName);
-                return;
+                return false;
             }
 
             await _annotations.SaveAsync(
@@ -186,11 +186,14 @@ public sealed class LabelingSamplePersistence : IDisposable
                     : $"分类 {imageClass}";
                 _snackbar.ShowSuccess($"已保存「{fileName}」：{detail}。", "保存");
             }
+
+            return true;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to save annotations for {FileName}", _host.Context.ActiveFileName);
             _snackbar.ShowError($"保存失败：{ex.Message}", "保存");
+            return false;
         }
         finally
         {

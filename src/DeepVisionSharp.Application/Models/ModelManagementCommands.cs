@@ -192,6 +192,7 @@ public sealed class UpdateModelCommandHandler : ICommandHandler<UpdateModelComma
         }
 
         var checkpointPath = request.CheckpointPath ?? model.CheckpointPath;
+        string? originalCheckpointPath = null;
         if (!string.IsNullOrWhiteSpace(trimmedName)
             && !string.Equals(trimmedName, model.Name, StringComparison.OrdinalIgnoreCase)
             && !string.IsNullOrWhiteSpace(model.CheckpointPath)
@@ -203,6 +204,7 @@ public sealed class UpdateModelCommandHandler : ICommandHandler<UpdateModelComma
                 return Result.Failure(renameResult.Error ?? "重命名模型文件失败");
             }
 
+            originalCheckpointPath = model.CheckpointPath;
             checkpointPath = renameResult.Value;
         }
 
@@ -216,8 +218,28 @@ public sealed class UpdateModelCommandHandler : ICommandHandler<UpdateModelComma
             checkpointPath: string.IsNullOrWhiteSpace(checkpointPath) ? null : checkpointPath,
             maxDetections: request.MaxDetections);
 
-        await _models.SaveAsync(request.ProjectId, updated, cancellationToken);
-        return Result.Success();
+        try
+        {
+            await _models.SaveAsync(request.ProjectId, updated, cancellationToken);
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            // Compensating rollback: restore disk file names if database save fails
+            if (originalCheckpointPath is not null && checkpointPath != originalCheckpointPath)
+            {
+                try
+                {
+                    _artifactService.TryRenameCheckpointFiles(checkpointPath, model.Name);
+                }
+                catch
+                {
+                    // Suppress rollback error to return root save failure
+                }
+            }
+
+            return Result.Failure($"保存模型元数据失败：{ex.Message}");
+        }
     }
 }
 

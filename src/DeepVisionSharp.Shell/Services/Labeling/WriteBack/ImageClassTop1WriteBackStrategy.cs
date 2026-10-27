@@ -34,9 +34,12 @@ internal sealed class ImageClassTop1WriteBackStrategy : ILabelingInferenceWriteB
             return;
         }
 
-        await context.Editor.ApplyImageClassAndSaveAsync(projectLabel.Name).ConfigureAwait(true);
-        context.Snackbar.ShowSuccess(
-            $"推理完成：图像分类为 {projectLabel.Name}（置信度 {prediction.Confidence:F2}） | {context.Inference.Performance?.GetSummary()}",
-            "推理");
+        var saved = await context.Editor.ApplyImageClassAndSaveAsync(projectLabel.Name).ConfigureAwait(true);
+        if (saved)
+        {
+            context.Snackbar.ShowSuccess(
+                $"推理完成：图像分类为 {projectLabel.Name}（置信度 {prediction.Confidence:F2}） | {context.Inference.Performance?.GetSummary()}",
+                "推理");
+        }
     }
 }

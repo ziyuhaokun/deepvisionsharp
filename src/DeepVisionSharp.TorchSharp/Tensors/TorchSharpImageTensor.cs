@@ -197,4 +197,14 @@ public static class TorchSharpImageTensor
             ArrayPool<float>.Shared.Return(rentedBuffer);
         }
     }
+
+    /// <summary>Crops a sub-region from a source image using geometry defined by a <see cref="DeepVisionSharp.Tiling.TileWindow"/>.</summary>
+    public static Mat CropTile(Mat sourceMat, DeepVisionSharp.Tiling.TileWindow window)
+    {
+        ArgumentNullException.ThrowIfNull(sourceMat);
+        ArgumentNullException.ThrowIfNull(window);
+
+        var rect = new Rect(window.Source.X, window.Source.Y, window.Source.Width, window.Source.Height);
+        return new Mat(sourceMat, rect);
+    }
 }

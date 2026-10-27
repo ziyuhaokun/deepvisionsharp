@@ -17,8 +17,14 @@ public interface ITrainingProcessHost
     /// <summary>Push a log line to Shell monitors for an active job.</summary>
     void PublishLog(Guid jobId, string line);
 
+    /// <summary>Notify subscribers that a new validation preview image has been generated.</summary>
+    void PublishPreviewUpdated(Guid jobId, string previewImagePath);
+
     /// <summary>返回该任务自本次启动以来的最近日志行，供训练页重新进入后回放。</summary>
     IReadOnlyList<string> GetRecentLogLines(Guid jobId);
 
     event Action<Guid, string>? LogReceived;
+
+    /// <summary>Event-driven push notification when a preview image has been generated/updated.</summary>
+    event Action<Guid, string>? PreviewUpdated;
 }

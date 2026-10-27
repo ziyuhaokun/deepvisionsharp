@@ -28,6 +28,7 @@ public static class DependencyInjection
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(PerformanceBehavior<,>));
         services.AddSingleton<ITaskCapabilityResolver, TaskCapabilityResolver>();
+        services.AddSingleton<Ports.ITilingService, Services.TilingService>();
         services.Configure<PerformanceBehaviorOptions>(options =>
         {
             options.WarningThresholdMilliseconds = 500;

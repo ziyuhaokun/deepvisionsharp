@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DeepVisionSharp.Domain\DeepVisionSharp.Domain.csproj" />
+    <ProjectReference Include="..\DeepVisionSharp.Tiling\DeepVisionSharp.Tiling.csproj" />
   </ItemGroup>
 
   <ItemGroup>

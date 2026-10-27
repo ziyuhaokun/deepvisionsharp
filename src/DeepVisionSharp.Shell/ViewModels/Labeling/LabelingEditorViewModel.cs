@@ -112,7 +112,7 @@ public sealed partial class LabelingEditorViewModel : ObservableObject,
         await _persistence.SaveCurrentSampleAsync(refreshGallery: true, notifyUser: true);
     }
 
-    public Task SaveCurrentSampleAsync(bool refreshGallery, bool notifyUser = false) =>
+    public Task<bool> SaveCurrentSampleAsync(bool refreshGallery, bool notifyUser = false) =>
         _persistence.SaveCurrentSampleAsync(refreshGallery, notifyUser);
 
     public Task RequestSaveAsync() => _persistence.RequestSaveAsync();
@@ -120,16 +120,16 @@ public sealed partial class LabelingEditorViewModel : ObservableObject,
     /// <summary>
     /// Immediately apply image class and flush save (no debounce/snackbar). Used by label selection and inference write-back.
     /// </summary>
-    public async Task ApplyImageClassAndSaveAsync(string imageClass)
+    public async Task<bool> ApplyImageClassAndSaveAsync(string imageClass)
     {
         if (_context.ActiveSampleId is null || string.IsNullOrWhiteSpace(_context.ActiveFileName))
         {
-            return;
+            return false;
         }
 
         ImageClass = imageClass;
         _persistence.CancelPendingSave();
-        await _persistence.SaveCurrentSampleAsync(refreshGallery: false, notifyUser: false);
+        return await _persistence.SaveCurrentSampleAsync(refreshGallery: false, notifyUser: false);
     }
 
     partial void OnImageClassChanged(string? value)

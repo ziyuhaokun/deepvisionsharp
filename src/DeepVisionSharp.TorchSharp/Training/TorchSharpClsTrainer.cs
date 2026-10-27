@@ -48,7 +48,8 @@ public static class TorchSharpClsTrainer
         string? PretrainedDirectory = null,
         int EarlyStoppingPatience = 0,
         Action<string>? Log = null,
-        Action<int, int, string>? Progress = null);
+        Action<int, int, string>? Progress = null,
+        Action<string>? PreviewGenerated = null);
 
     public sealed record Result(
         string BestModelPath,
@@ -185,8 +186,7 @@ public static class TorchSharpClsTrainer
                             ["f1"] = metric.F1,
                             ["support"] = metric.Support
                         })
-                        .ToArray(),
-                    ["confusion"] = evaluation.ConfusionMatrix()
+                        .ToArray()
                 }));
             options.Progress?.Invoke(epoch, options.Epochs, $"TorchSharp CLS epoch {epoch}/{options.Epochs}");
 
@@ -204,6 +204,7 @@ public static class TorchSharpClsTrainer
                         inputHeight,
                         device,
                         options.Preprocessing,
+                        options.PreviewGenerated,
                         cancellationToken);
                 }
                 catch (OperationCanceledException)
@@ -496,6 +497,7 @@ public static class TorchSharpClsTrainer
         int inputHeight,
         TorchDevice device,
         PreprocessingVersion preprocessing,
+        Action<string>? previewGenerated,
         CancellationToken cancellationToken)
     {
         var previewDir = Path.Combine(outputRoot, "preview");
@@ -591,6 +593,7 @@ public static class TorchSharpClsTrainer
         {
             var previewPath = Path.Combine(previewDir, "preview_0.jpg");
             File.WriteAllBytes(previewPath, jpgBytes);
+            previewGenerated?.Invoke(previewPath);
         }
     }
 
