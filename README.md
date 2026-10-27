@@ -93,7 +93,7 @@ flowchart LR
   Torch --> LibTorch[LibTorch 2.10]
 ```
 
-产品 solution：`DeepVisionSharp.slnx`（6 个 project）。安装器工具在 `packaging/installer/Installer.slnx`，不进产品 solution。
+产品 solution：`DeepVisionSharp.slnx`（7 个 product project + 切图测试）。安装器工具在 `packaging/installer/Installer.slnx`，不进产品 solution。
 
 | Project | 职责 |
 | --- | --- |
@@ -101,6 +101,7 @@ flowchart LR
 | `Application` | CQRS、校验、Ports |
 | `Domain` | 实体与值对象 |
 | `Infrastructure` | SQLite、训练 / 推理调度 |
+| `Tiling` | 切图几何（规划窗口；分类 1.0 不调用） |
 | `TorchSharp` | 进程内训练与推理 |
 | `Bootstrap` | 依赖注入装配 |
 

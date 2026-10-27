@@ -73,7 +73,7 @@
     </Style>
 
     <DataTemplate x:Key="TrainingPreviewImageTemplate">
-        <!-- Larger tile so classification 3×3 grids and detection val batches stay readable -->
+        <!-- Larger tile so classification 3×3 preview grids stay readable -->
         <Border
             Width="720"
             Height="720"

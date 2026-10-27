@@ -1,8 +1,6 @@
 using OpenCvSharp;
 using TorchSharp;
-using DeepVisionSharp.Domain.ValueObjects;
 using DeepVisionSharp.TorchSharp.Models;
-using CvScalar = OpenCvSharp.Scalar;
 
 namespace DeepVisionSharp.TorchSharp.Tensors;
 
@@ -84,52 +82,6 @@ public static class TorchSharpImageTensor
         }
 
         return MatToNormalizedTensor(preparedMat, targetDevice, preprocessing);
-    }
-
-    public static torch.Tensor ToLetterboxTensor(
-        Mat sourceMat,
-        int targetWidth,
-        int targetHeight,
-        torch.Device device,
-        out float gain,
-        out float padX,
-        out float padY,
-        byte padValue = 114)
-    {
-        var originalWidth = sourceMat.Width;
-        var originalHeight = sourceMat.Height;
-
-        var scaleRatio = Math.Min((float)targetWidth / originalWidth, (float)targetHeight / originalHeight);
-        var unpaddedWidth = (int)Math.Round(originalWidth * scaleRatio);
-        var unpaddedHeight = (int)Math.Round(originalHeight * scaleRatio);
-
-        var deltaWidth = (targetWidth - unpaddedWidth) / 2f;
-        var deltaHeight = (targetHeight - unpaddedHeight) / 2f;
-
-        gain = scaleRatio;
-        padX = deltaWidth;
-        padY = deltaHeight;
-
-        using var resizedMat = new Mat();
-        if (originalWidth != unpaddedWidth || originalHeight != unpaddedHeight)
-        {
-            Cv2.Resize(sourceMat, resizedMat, new Size(unpaddedWidth, unpaddedHeight), 0, 0, InterpolationFlags.Linear);
-        }
-        else
-        {
-            sourceMat.CopyTo(resizedMat);
-        }
-
-        var topPad = (int)Math.Floor(deltaHeight);
-        var bottomPad = (int)Math.Ceiling(deltaHeight);
-        var leftPad = (int)Math.Floor(deltaWidth);
-        var rightPad = (int)Math.Ceiling(deltaWidth);
-
-        var scalar = sourceMat.Channels() == 1 ? new CvScalar(padValue) : new CvScalar(padValue, padValue, padValue);
-        using var borderedMat = new Mat();
-        Cv2.CopyMakeBorder(resizedMat, borderedMat, topPad, bottomPad, leftPad, rightPad, BorderTypes.Constant, scalar);
-
-        return MatToNormalizedTensor(borderedMat, device, PreprocessingVersion.UnitScaleV1);
     }
 
     private static readonly float[] ImageNetMean = [0.485f, 0.456f, 0.406f];

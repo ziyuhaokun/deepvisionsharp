@@ -8,8 +8,12 @@
     <Project Path="src/DeepVisionSharp.Application/DeepVisionSharp.Application.csproj" />
     <Project Path="src/DeepVisionSharp.Domain/DeepVisionSharp.Domain.csproj" />
     <Project Path="src/DeepVisionSharp.Infrastructure/DeepVisionSharp.Infrastructure.csproj" />
+    <Project Path="src/DeepVisionSharp.Tiling/DeepVisionSharp.Tiling.csproj" />
     <Project Path="src/DeepVisionSharp.TorchSharp/DeepVisionSharp.TorchSharp.csproj" />
     <Project Path="src/DeepVisionSharp.Bootstrap/DeepVisionSharp.Bootstrap.csproj" />
     <Project Path="src/DeepVisionSharp.Shell/DeepVisionSharp.Shell.csproj" DefaultStartup="true" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/DeepVisionSharp.Tiling.Tests/DeepVisionSharp.Tiling.Tests.csproj" />
   </Folder>
 </Solution>

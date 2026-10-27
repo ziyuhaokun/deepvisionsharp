@@ -8,6 +8,7 @@
 
 tags: refactor / classification-only
 
+- 切图从分类热路径拆出：新增 `DeepVisionSharp.Tiling`（`TilePlanner` / `ImageFits` / `CoordinateMaps`，纯几何、无 OpenCV）。`TileRequest` 覆盖 WholeImage / SlidingWindow（EdgeAlign·Drop·Pad） / Grid / Crop；`ImageFitKind` 覆盖 Stretch / Letterbox / Cover / Pad / ShortEdge（含 maxLongEdge） / LongEdge，外加 `PixelSizes.AlignUp`。分类训练与推理仍只走 `ToClassificationTensor` 线性拉伸。删除无调用方的 `ToLetterboxTensor`；推理性能字段去掉 crops / NMS / 切块摘要。
 - 崩溃弹窗、批量推理 HTML 报告与安装测试产物统一为 DeepVisionSharp 产品名；训练后端 key 记录与代码对齐为 torchsharp:classification-train / torchsharp:classification。
 - DEBUG 推理报告复制改为进程内剪贴板（`copy: false`），进程退出后不残留。
 - 崩溃弹窗默认不复制报告到剪贴板，复制时使用进程内剪贴板（退出后不残留）；DEBUG 推理日志只记文件名与摘要，不再写入绝对路径或完整报告；维护密码长度不同时不再抛 FixedTimeEquals 异常。

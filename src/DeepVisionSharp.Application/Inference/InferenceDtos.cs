@@ -118,21 +118,9 @@ public sealed class InferencePerformanceMetrics
 
     public double ReadImageMilliseconds { get; set; }
 
-    public double CalculateCropsMilliseconds { get; set; }
-
-    public double CropImagesMilliseconds { get; set; }
-
     public double InferenceMilliseconds { get; set; }
 
-    public double PostprocessMilliseconds { get; set; }
-
-    public double NmsMilliseconds { get; set; }
-
-    public int DetectionCount { get; set; }
-
-    public int TotalCrops { get; set; }
-
-    public int BatchSize { get; set; }
+    public int ResultCount { get; set; }
 
     public int ImageWidth { get; set; }
 
@@ -178,18 +166,9 @@ public sealed class InferencePerformanceMetrics
             parts.Add($"推理 {InferenceMilliseconds:F1}ms");
         }
 
-        if (TotalCrops > 1)
+        if (ResultCount > 0)
         {
-            parts.Add($"切块 {TotalCrops}");
-        }
-        else if (TotalCrops == 1)
-        {
-            parts.Add("整图 1");
-        }
-
-        if (DetectionCount > 0)
-        {
-            parts.Add($"目标 {DetectionCount}");
+            parts.Add($"结果 {ResultCount}");
         }
 
         if (!string.IsNullOrWhiteSpace(Device))

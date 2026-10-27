@@ -253,12 +253,11 @@ public sealed class LabelingInferenceDebug
         {
             sb.AppendLine(
                 $"耗时明细 ms: total={perf.TotalMilliseconds:F1} read={perf.ReadImageMilliseconds:F1} " +
-                $"plan={perf.CalculateCropsMilliseconds:F1} crop={perf.CropImagesMilliseconds:F1} " +
-                $"infer={perf.InferenceMilliseconds:F1} post={perf.PostprocessMilliseconds:F1} nms={perf.NmsMilliseconds:F1}");
+                $"infer={perf.InferenceMilliseconds:F1}");
             sb.AppendLine(
-                $"图像: {perf.ImageWidth}x{perf.ImageHeight} · crops={perf.TotalCrops} · batch={perf.BatchSize} · " +
+                $"图像: {perf.ImageWidth}x{perf.ImageHeight} · " +
                 $"device={perf.Device} · cuda={perf.CudaAvailable} · gpu={perf.GpuDeviceName ?? "-"}");
-            sb.AppendLine($"Performance.DetectionCount={perf.DetectionCount}");
+            sb.AppendLine($"Performance.ResultCount={perf.ResultCount}");
         }
 
 
