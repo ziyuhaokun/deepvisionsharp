@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -84,8 +85,8 @@ public static class TorchSharpClsTrainer
         var watch = Stopwatch.StartNew();
         var archName = TorchSharpClassifierFactory.ResolveArch(options.ModelType);
         using var model = TorchSharpClassifierFactory.Create(archName, channels, dataset.Classes.Count, imageSize);
-        model.to(device);
         TryApplyPretrainedWeights(model, options, archName);
+        model.to(device);
 
         using optim.Optimizer optimizer = options.Optimizer switch
         {
@@ -443,7 +444,9 @@ public static class TorchSharpClsTrainer
         for (var offset = 0; offset < order.Length; offset += batchSize)
         {
             var batchCount = Math.Min(batchSize, order.Length - offset);
-            var tensors = new List<Tensor>(batchCount);
+            var sampleElements = channels * inputHeight * inputWidth;
+            var totalBatchElements = batchCount * sampleElements;
+            var batchBuffer = ArrayPool<float>.Shared.Rent(totalBatchElements);
             var labels = new long[batchCount];
             Tensor? images = null;
             Tensor? labelTensor = null;
@@ -457,27 +460,28 @@ public static class TorchSharpClsTrainer
                     var horizontalFlip = augment && augmentRng!.NextDouble() < normalizedAugmentation.FlipLeftRight;
                     var verticalFlip = augment && augmentRng!.NextDouble() < normalizedAugmentation.FlipUpDown;
 
-                    tensors.Add(TorchSharpImageTensor.ToClassificationTensor(
+                    using var preparedMat = TorchSharpImageTensor.PrepareMat(
                         mat,
                         inputWidth,
                         inputHeight,
-                        device,
                         enableHorizontalFlip: horizontalFlip,
-                        enableVerticalFlip: verticalFlip,
-                        preprocessing: preprocessing));
+                        enableVerticalFlip: verticalFlip);
+
+                    var sampleSpan = batchBuffer.AsSpan(index * sampleElements, sampleElements);
+                    TorchSharpImageTensor.FillNormalizedData(preparedMat, sampleSpan, preprocessing);
                 }
 
-                images = cat(tensors.ToArray(), dim: 0);
-                // Allocate on the target device directly; `.to(device)` would leave the CPU source
-                // tensor undisposed on every batch.
+                images = tensor(
+                    batchBuffer.AsMemory(0, totalBatchElements),
+                    [batchCount, channels, inputHeight, inputWidth],
+                    dtype: ScalarType.Float32,
+                    device: device);
+
                 labelTensor = tensor(labels, [batchCount], ScalarType.Int64, device);
             }
             finally
             {
-                foreach (var tensorItem in tensors)
-                {
-                    tensorItem.Dispose();
-                }
+                ArrayPool<float>.Shared.Return(batchBuffer);
             }
 
             yield return (images!, labelTensor!);

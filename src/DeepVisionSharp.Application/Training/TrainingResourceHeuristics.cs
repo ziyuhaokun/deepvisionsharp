@@ -60,6 +60,11 @@ public static class TrainingResourceHeuristics
             ModelTypeNames.ResNetTiny => 16,
             ModelTypeNames.ResNet18 => 64,
             ModelTypeNames.ResNet34 => 128,
+            ModelTypeNames.Yolo26NCls => 16,
+            ModelTypeNames.Yolo26SCls => 32,
+            ModelTypeNames.Yolo26MCls => 64,
+            ModelTypeNames.Yolo26LCls => 64,
+            ModelTypeNames.Yolo26XCls => 96,
             _ => 0
         };
     }

@@ -1,20 +1,31 @@
 namespace DeepVisionSharp.Application.Models;
 
 /// <summary>
-/// Product model-type keys. 1.0 exposes three ResNet classification sizes.
+/// Product model-type keys. Exposes ResNet and YOLO26 classification sizes.
 /// </summary>
 public static class ModelTypeNames
 {
     public const string ResNetTiny = "resnet-tiny";
     public const string ResNet18 = "resnet18";
     public const string ResNet34 = "resnet34";
+    public const string Yolo26NCls = "yolo26n-cls";
+    public const string Yolo26SCls = "yolo26s-cls";
+    public const string Yolo26MCls = "yolo26m-cls";
+    public const string Yolo26LCls = "yolo26l-cls";
+    public const string Yolo26XCls = "yolo26x-cls";
+
     public const string Default = ResNet18;
 
     private static readonly string[] ClassificationModelTypes =
     [
         ResNetTiny,
         ResNet18,
-        ResNet34
+        ResNet34,
+        Yolo26NCls,
+        Yolo26SCls,
+        Yolo26MCls,
+        Yolo26LCls,
+        Yolo26XCls
     ];
 
     /// <summary>All creatable product keys.</summary>
@@ -33,6 +44,25 @@ public static class ModelTypeNames
         if (ClassificationModelTypes.Contains(lower, StringComparer.Ordinal))
         {
             normalized = lower;
+            return true;
+        }
+
+        var mapped = lower switch
+        {
+            "resnet-18" or "resnet_18" or "resnet18_v2" => ResNet18,
+            "resnettiny" or "resnet_tiny" or "resnet_tiny_v2" => ResNetTiny,
+            "resnet-34" or "resnet_34" or "resnet34_v2" => ResNet34,
+            "yolo26n" or "yolo26-n" or "yolo26_n" or "yolo26n_cls" => Yolo26NCls,
+            "yolo26s" or "yolo26-s" or "yolo26_s" or "yolo26s_cls" => Yolo26SCls,
+            "yolo26m" or "yolo26-m" or "yolo26_m" or "yolo26m_cls" => Yolo26MCls,
+            "yolo26l" or "yolo26-l" or "yolo26_l" or "yolo26l_cls" => Yolo26LCls,
+            "yolo26x" or "yolo26-x" or "yolo26_x" or "yolo26x_cls" => Yolo26XCls,
+            _ => null
+        };
+
+        if (mapped is not null)
+        {
+            normalized = mapped;
             return true;
         }
 
@@ -60,7 +90,14 @@ public static class ModelTypeNames
             ResNetTiny => "ResNet-Tiny",
             ResNet18 => "ResNet-18",
             ResNet34 => "ResNet-34",
+            Yolo26NCls => "YOLO26-N",
+            Yolo26SCls => "YOLO26-S",
+            Yolo26MCls => "YOLO26-M",
+            Yolo26LCls => "YOLO26-L",
+            Yolo26XCls => "YOLO26-X",
             _ => normalized
         };
     }
 }
+
+public sealed record ModelTypeOption(string Value, string Label);

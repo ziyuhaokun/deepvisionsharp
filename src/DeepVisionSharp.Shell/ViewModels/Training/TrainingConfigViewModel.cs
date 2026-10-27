@@ -76,6 +76,11 @@ public sealed partial class TrainingConfigViewModel : ObservableObject,
 
     public ObservableCollection<string> OptimizerOptions { get; } = new(["sgd", "adam", "adamw"]);
 
+    public IReadOnlyList<ModelTypeOption> AvailableModelTypes { get; } =
+        ModelTypeNames.AllProductKeys
+            .Select(key => new ModelTypeOption(key, ModelTypeNames.GetDisplayLabel(key)))
+            .ToList();
+
     [ObservableProperty]
     private string _modelName = string.Empty;
 

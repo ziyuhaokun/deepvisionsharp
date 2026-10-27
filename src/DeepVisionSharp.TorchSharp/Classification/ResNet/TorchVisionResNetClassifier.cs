@@ -133,6 +133,18 @@ public sealed class TorchVisionResNetClassifier : Module<Tensor, Tensor>
                     break;
             }
         }
+
+        // torchvision zero-initializes the last BN of each block so the residual branch starts at 0.
+        // This must run after the default BatchNorm ones-initialization so bn2 is not overwritten.
+        foreach (var namedModule in named_modules())
+        {
+            if ((namedModule.name.EndsWith(".bn2", StringComparison.Ordinal) || namedModule.name == "bn2")
+                && namedModule.module is BatchNorm2d bn2
+                && bn2.weight is not null)
+            {
+                init.zeros_(bn2.weight);
+            }
+        }
     }
 }
 

@@ -25,27 +25,30 @@ public static class TorchSharpClassifierFactory
         }
 
         var normalized = modelType.Trim().ToLowerInvariant();
-        if (normalized is ArchResNetTiny or ArchResNet18 or ArchResNet34)
+        if (normalized is ArchResNetTiny or ArchResNet18 or ArchResNet34
+            or ArchYolo26NCls or ArchYolo26SCls or ArchYolo26MCls or ArchYolo26LCls or ArchYolo26XCls)
         {
             return normalized;
         }
 
-        if (normalized is "resnet-tiny" or "resnettiny")
+        var canonical = normalized.Replace('_', '-');
+        if (canonical.EndsWith("-v2", StringComparison.Ordinal))
         {
-            return ArchResNetTiny;
+            canonical = canonical[..^"-v2".Length];
         }
 
-        if (normalized is "resnet34" or "resnet-34")
+        return canonical switch
         {
-            return ArchResNet34;
-        }
-
-        if (normalized is ArchYolo26NCls or ArchYolo26SCls or ArchYolo26MCls or ArchYolo26LCls or ArchYolo26XCls)
-        {
-            return normalized;
-        }
-
-        return ArchResNet18;
+            "resnet-tiny" or "resnettiny" => ArchResNetTiny,
+            "resnet18" or "resnet-18" => ArchResNet18,
+            "resnet34" or "resnet-34" => ArchResNet34,
+            "yolo26n" or "yolo26-n" or "yolo26n-cls" or "yolo26-n-cls" => ArchYolo26NCls,
+            "yolo26s" or "yolo26-s" or "yolo26s-cls" or "yolo26-s-cls" => ArchYolo26SCls,
+            "yolo26m" or "yolo26-m" or "yolo26m-cls" or "yolo26-m-cls" => ArchYolo26MCls,
+            "yolo26l" or "yolo26-l" or "yolo26l-cls" or "yolo26-l-cls" => ArchYolo26LCls,
+            "yolo26x" or "yolo26-x" or "yolo26x-cls" or "yolo26-x-cls" => ArchYolo26XCls,
+            _ => ArchResNet18
+        };
     }
 
     public static torch.nn.Module<torch.Tensor, torch.Tensor> Create(

@@ -30,7 +30,23 @@
                                                         <controls:ParamHelpButton Title="实验名称" HelpText="用于输出目录命名，不可与其他任务重复" />
                                                     </StackPanel>
                                                     <ui:TextBox Text="{Binding Config.ModelName, UpdateSourceTrigger=PropertyChanged}" />
-                                                    
+                                                </StackPanel>
+
+                                                <StackPanel Margin="0,12,0,0">
+                                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                                        <TextBlock
+                                                            VerticalAlignment="Center"
+                                                            Style="{StaticResource FieldLabelStyle}"
+                                                            Margin="0"
+                                                            Text="模型架构" />
+                                                        <controls:ParamHelpButton Title="模型架构" HelpText="选择分类网络架构，支持 ResNet 系列与 YOLO26-cls 系列" />
+                                                    </StackPanel>
+                                                    <ComboBox
+                                                        ItemsSource="{Binding Config.AvailableModelTypes}"
+                                                        SelectedValue="{Binding Config.SelectedModelType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                        SelectedValuePath="Value"
+                                                        DisplayMemberPath="Label"
+                                                        IsEnabled="{Binding Config.IsFormEditable}" />
                                                 </StackPanel>
                                             </StackPanel>
                                         </Border>

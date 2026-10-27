@@ -1,3 +1,4 @@
+using System.Buffers;
 using OpenCvSharp;
 using TorchSharp;
 using DeepVisionSharp.TorchSharp.Models;
@@ -6,6 +7,9 @@ namespace DeepVisionSharp.TorchSharp.Tensors;
 
 public static class TorchSharpImageTensor
 {
+    private static readonly float[] ImageNetMean = [0.485f, 0.456f, 0.406f];
+    private static readonly float[] ImageNetStd = [0.229f, 0.224f, 0.225f];
+
     public static Mat LoadMat(string imagePath, int expectedChannels = 3)
     {
         if (!File.Exists(imagePath))
@@ -42,18 +46,16 @@ public static class TorchSharpImageTensor
         return mat;
     }
 
-    public static torch.Tensor ToClassificationTensor(
+    public static Mat PrepareMat(
         Mat sourceMat,
         int targetWidth,
         int targetHeight,
-        torch.Device targetDevice,
         bool enableHorizontalFlip = false,
         bool enableVerticalFlip = false,
         float contrastScale = 1.0f,
-        float brightnessDelta = 0.0f,
-        PreprocessingVersion preprocessing = PreprocessingVersion.UnitScaleV1)
+        float brightnessDelta = 0.0f)
     {
-        using var preparedMat = new Mat();
+        var preparedMat = new Mat();
         if (sourceMat.Width != targetWidth || sourceMat.Height != targetHeight)
         {
             Cv2.Resize(sourceMat, preparedMat, new Size(targetWidth, targetHeight), 0, 0, InterpolationFlags.Linear);
@@ -81,17 +83,25 @@ public static class TorchSharpImageTensor
             Cv2.Flip(preparedMat, preparedMat, FlipMode.X);
         }
 
-        return MatToNormalizedTensor(preparedMat, targetDevice, preprocessing);
+        return preparedMat;
     }
 
-    private static readonly float[] ImageNetMean = [0.485f, 0.456f, 0.406f];
-    private static readonly float[] ImageNetStd = [0.229f, 0.224f, 0.225f];
-
-    private static unsafe torch.Tensor MatToNormalizedTensor(Mat mat, torch.Device device, PreprocessingVersion preprocessing)
+    public static unsafe void FillNormalizedData(
+        Mat mat,
+        Span<float> destination,
+        PreprocessingVersion preprocessing)
     {
         var channels = mat.Channels();
         var height = mat.Height;
         var width = mat.Width;
+        var totalPixels = height * width;
+        var totalElements = totalPixels * channels;
+        if (destination.Length < totalElements)
+        {
+            throw new ArgumentException(
+                $"目标缓冲区大小不足：需要 {totalElements}，实际为 {destination.Length}",
+                nameof(destination));
+        }
 
         using var rgbMat = new Mat();
         if (channels == 3)
@@ -103,17 +113,13 @@ public static class TorchSharpImageTensor
             mat.CopyTo(rgbMat);
         }
 
-        var totalPixels = height * width;
-        var totalElements = totalPixels * channels;
-        var floatBuffer = new float[totalElements];
-
         var matData = (byte*)rgbMat.Data.ToPointer();
 
         if (channels == 1)
         {
             for (var pixelIndex = 0; pixelIndex < totalPixels; pixelIndex++)
             {
-                floatBuffer[pixelIndex] = matData[pixelIndex] / 255.0f;
+                destination[pixelIndex] = matData[pixelIndex] / 255.0f;
             }
         }
         else if (channels == 3)
@@ -127,9 +133,9 @@ public static class TorchSharpImageTensor
                 {
                     var pixelOffset = columnIndex * 3;
                     var bufferOffset = rowOffset + columnIndex;
-                    floatBuffer[bufferOffset] = rowPointer[pixelOffset] / 255.0f;
-                    floatBuffer[channelSize + bufferOffset] = rowPointer[pixelOffset + 1] / 255.0f;
-                    floatBuffer[(channelSize * 2) + bufferOffset] = rowPointer[pixelOffset + 2] / 255.0f;
+                    destination[bufferOffset] = rowPointer[pixelOffset] / 255.0f;
+                    destination[channelSize + bufferOffset] = rowPointer[pixelOffset + 1] / 255.0f;
+                    destination[(channelSize * 2) + bufferOffset] = rowPointer[pixelOffset + 2] / 255.0f;
                 }
             }
         }
@@ -144,15 +150,51 @@ public static class TorchSharpImageTensor
                 var offset = channel * totalPixels;
                 for (var pixel = 0; pixel < totalPixels; pixel++)
                 {
-                    floatBuffer[offset + pixel] = (floatBuffer[offset + pixel] - mean) / std;
+                    destination[offset + pixel] = (destination[offset + pixel] - mean) / std;
                 }
             }
         }
+    }
 
-        // Build straight into the requested shape and device. `from_array(...).reshape(...)` would
-        // allocate a second tensor that is never disposed, and a later `.to(device)` would leak the
-        // CPU source as well; this path is called once per sample per epoch, so either leak grows
-        // without bound over a training run.
-        return torch.tensor(floatBuffer, [1, channels, height, width], device: device);
+    public static torch.Tensor ToClassificationTensor(
+        Mat sourceMat,
+        int targetWidth,
+        int targetHeight,
+        torch.Device targetDevice,
+        bool enableHorizontalFlip = false,
+        bool enableVerticalFlip = false,
+        float contrastScale = 1.0f,
+        float brightnessDelta = 0.0f,
+        PreprocessingVersion preprocessing = PreprocessingVersion.UnitScaleV1)
+    {
+        using var preparedMat = PrepareMat(
+            sourceMat,
+            targetWidth,
+            targetHeight,
+            enableHorizontalFlip,
+            enableVerticalFlip,
+            contrastScale,
+            brightnessDelta);
+
+        var channels = preparedMat.Channels();
+        var height = preparedMat.Height;
+        var width = preparedMat.Width;
+        var totalElements = channels * height * width;
+
+        // Use ArrayPool to avoid LOH allocations (>85KB) on high-resolution image samples.
+        var rentedBuffer = ArrayPool<float>.Shared.Rent(totalElements);
+        try
+        {
+            FillNormalizedData(preparedMat, rentedBuffer.AsSpan(0, totalElements), preprocessing);
+            return torch.tensor(
+                rentedBuffer.AsMemory(0, totalElements),
+                [1, channels, height, width],
+                dtype: torch.ScalarType.Float32,
+                device: targetDevice);
+        }
+        finally
+        {
+            ArrayPool<float>.Shared.Return(rentedBuffer);
+        }
     }
 }
