@@ -1,0 +1,15 @@
+<Project>
+  <PropertyGroup>
+    <!-- 依赖审计保持开启（含传递依赖）；漏洞告警不得再用全局 NoWarn 屏蔽。 -->
+    <NuGetAudit>true</NuGetAudit>
+    <NuGetAuditMode>all</NuGetAuditMode>
+
+    <!-- 语言版本显式固定：此前取 SDK 默认，升级 SDK 会静默改变语言版本。 -->
+    <LangVersion>14.0</LangVersion>
+
+    <!-- 警告即错误：当前基线为 0 warning（339 份历史 build log 一致），此开关不产生新债。 -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- NuGet 审计告警仍以告警呈现：新增 CVE 必须可见，但不阻断紧急构建。 -->
+    <WarningsNotAsErrors>NU1901;NU1902;NU1903;NU1904</WarningsNotAsErrors>
+  </PropertyGroup>
+</Project>

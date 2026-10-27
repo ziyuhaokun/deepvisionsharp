@@ -1,0 +1,343 @@
+<UserControl
+    x:Class="DeepVisionSharp.Shell.Views.Controls.TaskCenterPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:DeepVisionSharp.Shell.ViewModels"
+    d:DesignHeight="420"
+    d:DesignWidth="400"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+
+        <Style x:Key="TaskStatusDotStyle" TargetType="{x:Type Border}">
+            <Setter Property="Width" Value="8" />
+            <Setter Property="Height" Value="8" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Margin" Value="0,0,8,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Background" Value="{DynamicResource TextFillColorTertiaryBrush}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource SystemAccentColorPrimaryBrush}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsSucceeded}" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource SystemFillColorSuccessBrush}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsFailed}" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="TaskStatusBadgeStyle" TargetType="{x:Type Border}">
+            <Setter Property="Padding" Value="8,3" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource StatusRunningTintBrush}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsSucceeded}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource StatusSucceededTintBrush}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsFailed}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource StatusFailedTintBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="TaskStatusBadgeTextStyle" TargetType="{x:Type TextBlock}">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource SystemAccentColorPrimaryBrush}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsSucceeded}" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource SystemFillColorSuccessBrush}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsFailed}" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style
+            x:Key="TaskIconButtonStyle"
+            BasedOn="{StaticResource {x:Type ui:Button}}"
+            TargetType="{x:Type ui:Button}">
+            <Setter Property="Width" Value="30" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="MinWidth" Value="30" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Appearance" Value="Transparent" />
+        </Style>
+    </UserControl.Resources>
+
+    <Grid
+        Margin="0,0,18,18"
+        HorizontalAlignment="Right"
+        VerticalAlignment="Bottom"
+        Visibility="{Binding HasVisibleTasks, Converter={StaticResource BooleanToVisibilityConverter}}">
+        <Border
+            MinWidth="300"
+            MaxWidth="380"
+            Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="12"
+            SnapsToDevicePixels="True">
+            <Border.Effect>
+                <DropShadowEffect
+                    BlurRadius="20"
+                    Direction="270"
+                    Opacity="0.35"
+                    ShadowDepth="6"
+                    Color="#000000" />
+            </Border.Effect>
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- Header bar (always visible when tasks exist) -->
+                <Border
+                    Grid.Row="0"
+                    Padding="12,10"
+                    Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                    CornerRadius="12,12,0,0">
+                    <Border.Style>
+                        <Style TargetType="{x:Type Border}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsExpanded}" Value="False">
+                                    <Setter Property="CornerRadius" Value="12" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <Button
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Command="{Binding ToggleExpandedCommand}"
+                            Cursor="Hand"
+                            Focusable="False"
+                            HorizontalContentAlignment="Left"
+                            Padding="0">
+                            <StackPanel Orientation="Horizontal">
+                                <Border
+                                    Width="28"
+                                    Height="28"
+                                    Margin="0,0,10,0"
+                                    Background="{DynamicResource ControlFillColorDefaultBrush}"
+                                    CornerRadius="8">
+                                    <ui:SymbolIcon
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontSize="15"
+                                        Symbol="TaskListSquareLtr24" />
+                                </Border>
+
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock
+                                        FontSize="13"
+                                        FontWeight="SemiBold"
+                                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                        Text="后台任务" />
+                                    <TextBlock
+                                        Margin="0,2,0,0"
+                                        FontSize="11"
+                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                        Text="{Binding HeaderSummary}" />
+                                </StackPanel>
+
+                                <Border
+                                    Margin="10,0,0,0"
+                                    Padding="7,2"
+                                    VerticalAlignment="Center"
+                                    Background="{StaticResource StatusRunningTintBrush}"
+                                    CornerRadius="10"
+                                    Visibility="{Binding HasRunningTasks, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse
+                                            Width="6"
+                                            Height="6"
+                                            Margin="0,0,5,0"
+                                            VerticalAlignment="Center"
+                                            Fill="{DynamicResource SystemAccentColorPrimaryBrush}" />
+                                        <TextBlock
+                                            FontSize="11"
+                                            FontWeight="SemiBold"
+                                            Foreground="{DynamicResource SystemAccentColorPrimaryBrush}"
+                                            Text="{Binding RunningTaskCount, StringFormat={}{0} 运行中}" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Button>
+
+                        <ui:Button
+                            Grid.Column="1"
+                            VerticalAlignment="Center"
+                            Command="{Binding ToggleExpandedCommand}"
+                            Style="{StaticResource TaskIconButtonStyle}"
+                            ToolTip="{Binding ExpandToggleToolTip}">
+                            <ui:Button.Icon>
+                                <ui:SymbolIcon>
+                                    <ui:SymbolIcon.Style>
+                                        <Style TargetType="{x:Type ui:SymbolIcon}">
+                                            <Setter Property="Symbol" Value="ChevronUp24" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsExpanded}" Value="False">
+                                                    <Setter Property="Symbol" Value="ChevronDown24" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ui:SymbolIcon.Style>
+                                </ui:SymbolIcon>
+                            </ui:Button.Icon>
+                        </ui:Button>
+                    </Grid>
+                </Border>
+
+                <!-- Task list -->
+                <Border
+                    Grid.Row="1"
+                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                    BorderThickness="0,1,0,0"
+                    Visibility="{Binding IsExpanded, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <ScrollViewer
+                        MaxHeight="300"
+                        HorizontalScrollBarVisibility="Disabled"
+                        VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding Tasks}">
+                            <ItemsControl.ItemContainerStyle>
+                                <Style TargetType="{x:Type ContentPresenter}">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsVisible}" Value="False">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ItemsControl.ItemContainerStyle>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:BackgroundTaskRowViewModel}">
+                                    <Border
+                                        Padding="12,10"
+                                        BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                        BorderThickness="0,0,0,1">
+                                        <StackPanel>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <DockPanel LastChildFill="True" Margin="0,0,8,0">
+                                                    <Border
+                                                        DockPanel.Dock="Left"
+                                                        Style="{StaticResource TaskStatusDotStyle}" />
+                                                    <TextBlock
+                                                        VerticalAlignment="Center"
+                                                        FontSize="13"
+                                                        FontWeight="SemiBold"
+                                                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                        Text="{Binding Title}"
+                                                        TextTrimming="CharacterEllipsis"
+                                                        ToolTip="{Binding Title}" />
+                                                </DockPanel>
+
+                                                <Border
+                                                    Grid.Column="1"
+                                                    Margin="0,0,6,0"
+                                                    Style="{StaticResource TaskStatusBadgeStyle}">
+                                                    <TextBlock
+                                                        Style="{StaticResource TaskStatusBadgeTextStyle}"
+                                                        Text="{Binding StatusText}" />
+                                                </Border>
+
+                                                <StackPanel
+                                                    Grid.Column="2"
+                                                    Orientation="Horizontal">
+                                                    <ui:Button
+                                                        Command="{Binding DataContext.ToggleTaskExpandedCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
+                                                        CommandParameter="{Binding Id}"
+                                                        Style="{StaticResource TaskIconButtonStyle}"
+                                                        ToolTip="查看日志">
+                                                        <ui:Button.Icon>
+                                                            <ui:SymbolIcon>
+                                                                <ui:SymbolIcon.Style>
+                                                                    <Style TargetType="{x:Type ui:SymbolIcon}">
+                                                                        <Setter Property="Symbol" Value="ChevronDown24" />
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding IsExpanded}" Value="True">
+                                                                                <Setter Property="Symbol" Value="ChevronUp24" />
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </ui:SymbolIcon.Style>
+                                                            </ui:SymbolIcon>
+                                                        </ui:Button.Icon>
+                                                    </ui:Button>
+                                                    <ui:Button
+                                                        Command="{Binding DataContext.DismissTaskCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
+                                                        CommandParameter="{Binding Id}"
+                                                        Icon="{ui:SymbolIcon Dismiss24}"
+                                                        Style="{StaticResource TaskIconButtonStyle}"
+                                                        ToolTip="关闭" />
+                                                </StackPanel>
+                                            </Grid>
+
+                                            <Border
+                                                Margin="16,8,0,0"
+                                                Padding="10,8"
+                                                Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                                                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="8"
+                                                Visibility="{Binding IsExpanded, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                                <ScrollViewer
+                                                    MaxHeight="160"
+                                                    HorizontalScrollBarVisibility="Disabled"
+                                                    VerticalScrollBarVisibility="Auto">
+                                                    <ItemsControl ItemsSource="{Binding LogLines}">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <TextBlock
+                                                                    Margin="0,1"
+                                                                    FontFamily="Consolas, Cascadia Mono, Courier New"
+                                                                    FontSize="11"
+                                                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                                    Text="{Binding}"
+                                                                    TextWrapping="Wrap" />
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </ScrollViewer>
+                                            </Border>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

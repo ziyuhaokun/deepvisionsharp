@@ -1,0 +1,170 @@
+<UserControl
+    x:Class="DeepVisionSharp.Shell.Views.Labeling.Cards.LabelingClassListCard"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    d:DesignHeight="400"
+    d:DesignWidth="280"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Views/Labeling/LabelingWorkbenchResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <StackPanel Visibility="{Binding Workspace.IsClassificationProject, Converter={StaticResource BooleanToVisibilityConverter}}">
+        <Grid Margin="0,0,0,6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock
+                    VerticalAlignment="Center"
+                    Style="{StaticResource SectionTitleStyle}"
+                    Text="类别" />
+                <ui:Button
+                    Margin="6,0,0,0"
+                    Appearance="Secondary"
+                    AutomationProperties.AutomationId="dv.labeling.label.add"
+                    Command="{Binding Labels.ShowAddLabelDialogCommand}"
+                    Icon="{ui:SymbolIcon Add24}"
+                    Padding="6,3"
+                    ToolTip="添加类别"
+                    Visibility="{Binding ShowAddButton, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    添加
+                </ui:Button>
+            </StackPanel>
+            <Border
+                Grid.Column="1"
+                Padding="6,2"
+                Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                CornerRadius="6">
+                <StackPanel Orientation="Horizontal">
+                    <Border
+                        Width="12"
+                        Height="12"
+                        VerticalAlignment="Center"
+                        Background="{Binding Labels.ActiveLabelColor}"
+                        BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="6" />
+                    <TextBlock
+                        Margin="6,0,0,0"
+                        VerticalAlignment="Center"
+                        AutomationProperties.AutomationId="dv.labeling.label.active"
+                        FontSize="12"
+                        FontWeight="SemiBold"
+                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                        Text="{Binding Labels.ActiveLabelName}" />
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <ScrollViewer
+            MaxHeight="260"
+            HorizontalScrollBarVisibility="Disabled"
+            VerticalScrollBarVisibility="Auto">
+            <ItemsControl
+                AutomationProperties.AutomationId="dv.labeling.labels"
+                ItemsSource="{Binding Labels.LabelOptions}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border
+                            Margin="0,0,0,4"
+                            Padding="6"
+                            Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="6">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <ui:Button
+                                    Appearance="Transparent"
+                                    Command="{Binding DataContext.Labels.ShowEditLabelColorDialogCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
+                                    CommandParameter="{Binding}"
+                                    Padding="0"
+                                    ToolTip="修改颜色">
+                                    <Border
+                                        Width="24"
+                                        Height="24"
+                                        Background="{Binding Color}"
+                                        BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="7" />
+                                </ui:Button>
+                                <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock
+                                        FontWeight="SemiBold"
+                                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                        Text="{Binding Name}"
+                                        TextTrimming="CharacterEllipsis" />
+                                    <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
+                                        <StackPanel.Style>
+                                            <Style TargetType="{x:Type StackPanel}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HotkeyText}" Value="">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </StackPanel.Style>
+                                        <TextBlock
+                                            Margin="0,0,6,0"
+                                            VerticalAlignment="Center"
+                                            FontSize="11"
+                                            Style="{StaticResource MutedTextStyle}"
+                                            Text="快捷键" />
+                                        <Border
+                                            VerticalAlignment="Center"
+                                            Style="{StaticResource LabelHotkeyBadgeStyle}"
+                                            ToolTip="{Binding HotkeyText, StringFormat=按 {0} 切换此类别}">
+                                            <TextBlock
+                                                MinWidth="14"
+                                                FontSize="11"
+                                                FontWeight="SemiBold"
+                                                Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                Text="{Binding HotkeyText}"
+                                                TextAlignment="Center" />
+                                        </Border>
+                                    </StackPanel>
+                                </StackPanel>
+                                <StackPanel
+                                    Grid.Column="2"
+                                    Margin="10,0,0,0"
+                                    VerticalAlignment="Center"
+                                    Orientation="Horizontal">
+                                    <ui:Button
+                                        Appearance="Transparent"
+                                        Command="{Binding DataContext.Labels.SelectLabelCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
+                                        CommandParameter="{Binding}"
+                                        Icon="{ui:SymbolIcon Checkmark24}"
+                                        Style="{StaticResource IconButtonStyle}"
+                                        ToolTip="选择类别；图像分类项目会立即写入当前整图分类" />
+                                    <ui:Button
+                                        Margin="8,0,0,0"
+                                        Appearance="Transparent"
+                                        Command="{Binding DataContext.Labels.DeleteLabelCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
+                                        CommandParameter="{Binding}"
+                                        Icon="{ui:SymbolIcon Delete24}"
+                                        Style="{StaticResource IconButtonStyle}"
+                                        ToolTip="删除类别"
+                                        Visibility="{Binding DataContext.Labels.CanManageLabels, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </StackPanel>
+</UserControl>

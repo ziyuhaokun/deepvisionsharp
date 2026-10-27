@@ -1,0 +1,53 @@
+{
+  "verifyOnStop": false,
+  "blockOnLayoutIssues": false,
+  "defaults": {
+    "assemblyPaths": [
+      "src/DeepVisionSharp.Shell/bin/Debug/net10.0-windows/DeepVisionSharp.dll"
+    ],
+    "build": ["dotnet", "build", "DeepVisionSharp.slnx", "-c", "Debug", "--nologo"],
+    "resourceDictionaries": [
+      "pack://application:,,,/Wpf.Ui;component/Resources/Theme/{theme}.xaml",
+      "pack://application:,,,/Wpf.Ui;component/Resources/Wpf.Ui.xaml",
+      "pack://application:,,,/DeepVisionSharp;component/Resources/StatusPalette.xaml"
+    ],
+    "targetFramework": "net10.0-windows",
+    "platform": "x64",
+    "width": 1600,
+    "height": 1000,
+    "dpis": [96],
+    "animations": "settle"
+  },
+  "views": {
+    "confirm-dialog": {
+      "viewType": "DeepVisionSharp.Shell.Views.Dialogs.Contents.ConfirmDialogContent",
+      "themes": ["dark", "light"],
+      "width": 560,
+      "height": 400
+    },
+    "project-editor-dialog": {
+      "viewType": "DeepVisionSharp.Shell.Views.Dialogs.Contents.ProjectEditorDialogContent",
+      "themes": ["dark", "light"],
+      "width": 560,
+      "height": 720
+    },
+    "gallery-editor-dialog": {
+      "viewType": "DeepVisionSharp.Shell.Views.Dialogs.Contents.GalleryEditorDialogContent",
+      "themes": ["dark", "light"],
+      "width": 560,
+      "height": 720
+    },
+    "model-editor-dialog": {
+      "viewType": "DeepVisionSharp.Shell.Views.Dialogs.Contents.ModelEditorDialogContent",
+      "themes": ["dark", "light"],
+      "width": 560,
+      "height": 720
+    },
+    "split-planner-dialog": {
+      "viewType": "DeepVisionSharp.Shell.Views.Dialogs.Contents.GallerySplitPlannerDialogContent",
+      "themes": ["dark", "light"],
+      "width": 980,
+      "height": 820
+    }
+  }
+}

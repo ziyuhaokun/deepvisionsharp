@@ -1,0 +1,194 @@
+<UserControl
+    x:Class="DeepVisionSharp.Shell.Views.Pages.Sections.SettingsStorageSection"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Views/Pages/SettingsPageResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+                    <StackPanel Visibility="{Binding IsStorageSelected, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Style="{StaticResource SectionTitleStyle}" Text="本地占用" />
+                        <UniformGrid
+                            Margin="0,0,0,14"
+                            Columns="2"
+                            Rows="2">
+                            <ui:Card Margin="0,0,10,10" Padding="14">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border Style="{StaticResource IconTileStyle}">
+                                            <ui:SymbolIcon
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                FontSize="16"
+                                                Symbol="Database24" />
+                                        </Border>
+                                        <TextBlock
+                                            Margin="10,0,0,0"
+                                            VerticalAlignment="Center"
+                                            FontWeight="SemiBold"
+                                            Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                            Text="应用数据" />
+                                    </StackPanel>
+                                    <TextBlock Style="{StaticResource MetricSizeStyle}" Text="{Binding AppDataSize}" />
+                                    <TextBlock
+                                        Style="{StaticResource PathCaptionStyle}"
+                                        Text="{Binding AppDataDirectory}"
+                                        ToolTip="{Binding AppDataDirectory}" />
+                                    <ui:Button
+                                        Margin="0,12,0,0"
+                                        Appearance="Secondary"
+                                        Command="{Binding OpenAppDataFolderCommand}"
+                                        Icon="{ui:SymbolIcon FolderOpen24}">
+                                        打开
+                                    </ui:Button>
+                                </StackPanel>
+                            </ui:Card>
+
+                            <ui:Card Margin="0,0,0,10" Padding="14">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border Style="{StaticResource IconTileStyle}">
+                                            <ui:SymbolIcon
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                FontSize="16"
+                                                Symbol="Cube24" />
+                                        </Border>
+                                        <TextBlock
+                                            Margin="10,0,0,0"
+                                            VerticalAlignment="Center"
+                                            FontWeight="SemiBold"
+                                            Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                            Text="预训练权重" />
+                                    </StackPanel>
+                                    <TextBlock Style="{StaticResource MetricSizeStyle}" Text="{Binding ModelsSize}" />
+                                    <TextBlock
+                                        Style="{StaticResource PathCaptionStyle}"
+                                        Text="{Binding ModelsDirectory}"
+                                        ToolTip="{Binding ModelsDirectory}" />
+                                    <ui:Button
+                                        Margin="0,12,0,0"
+                                        Appearance="Secondary"
+                                        Command="{Binding OpenModelsFolderCommand}"
+                                        Icon="{ui:SymbolIcon FolderOpen24}">
+                                        打开
+                                    </ui:Button>
+                                </StackPanel>
+                            </ui:Card>
+
+                            <ui:Card Margin="0,0,10,0" Padding="14">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border Style="{StaticResource IconTileStyle}">
+                                            <ui:SymbolIcon
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                FontSize="16"
+                                                Symbol="DocumentText24" />
+                                        </Border>
+                                        <TextBlock
+                                            Margin="10,0,0,0"
+                                            VerticalAlignment="Center"
+                                            FontWeight="SemiBold"
+                                            Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                            Text="日志文件" />
+                                    </StackPanel>
+                                    <TextBlock Style="{StaticResource MetricSizeStyle}" Text="{Binding LogsSize}" />
+                                    <TextBlock
+                                        Style="{StaticResource PathCaptionStyle}"
+                                        Text="{Binding LogsDirectory}"
+                                        ToolTip="{Binding LogsDirectory}" />
+                                    <TextBlock
+                                        Style="{StaticResource PathCaptionStyle}"
+                                        Text="{Binding LogRetentionText}" />
+                                    <ui:Button
+                                        Margin="0,12,0,0"
+                                        Appearance="Secondary"
+                                        Command="{Binding OpenLogsFolderCommand}"
+                                        Icon="{ui:SymbolIcon FolderOpen24}">
+                                        打开
+                                    </ui:Button>
+                                </StackPanel>
+                            </ui:Card>
+
+                            <ui:Card Padding="14">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border Style="{StaticResource IconTileStyle}">
+                                            <ui:SymbolIcon
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                FontSize="16"
+                                                Symbol="Bug24" />
+                                        </Border>
+                                        <TextBlock
+                                            Margin="10,0,0,0"
+                                            VerticalAlignment="Center"
+                                            FontWeight="SemiBold"
+                                            Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                            Text="崩溃转储" />
+                                    </StackPanel>
+                                    <TextBlock Style="{StaticResource MetricSizeStyle}" Text="{Binding CrashDumpsSize}" />
+                                    <TextBlock
+                                        Style="{StaticResource PathCaptionStyle}"
+                                        Text="{Binding CrashDumpsDirectory}"
+                                        ToolTip="{Binding CrashDumpsDirectory}" />
+                                    <ui:Button
+                                        Margin="0,12,0,0"
+                                        Appearance="Secondary"
+                                        Command="{Binding OpenCrashDumpsFolderCommand}"
+                                        Icon="{ui:SymbolIcon FolderOpen24}">
+                                        打开
+                                    </ui:Button>
+                                </StackPanel>
+                            </ui:Card>
+                        </UniformGrid>
+
+                        <TextBlock Style="{StaticResource SectionTitleStyle}" Text="缓存维护" />
+                        <ui:Card Style="{StaticResource SettingsCardStyle}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource RowTitleStyle}" Text="缓存与未引用训练数据" />
+                                    <TextBlock
+                                        Style="{StaticResource RowSubtitleStyle}"
+                                        Text="清理缓存和无任务引用的旧训练目录，不影响图库与模型。日志按保留天数自动清理，无需手动操作。"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                                <StackPanel
+                                    Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    Orientation="Horizontal">
+                                    <ui:ProgressRing
+                                        Width="18"
+                                        Height="18"
+                                        Margin="0,0,10,0"
+                                        IsIndeterminate="True"
+                                        Visibility="{Binding IsCleaningCache, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                    <ui:Button
+                                        Margin="0,0,8,0"
+                                        Appearance="Secondary"
+                                        Command="{Binding RefreshStorageInfoCommand}"
+                                        Icon="{ui:SymbolIcon ArrowClockwise24}">
+                                        刷新
+                                    </ui:Button>
+                                    <ui:Button
+                                        Appearance="Secondary"
+                                        Command="{Binding ClearCacheCommand}"
+                                        Icon="{ui:SymbolIcon Delete24}"
+                                        IsEnabled="{Binding IsNotCleaningCache}">
+                                        清理缓存
+                                    </ui:Button>
+                                </StackPanel>
+                            </Grid>
+                        </ui:Card>
+                    </StackPanel>
+</UserControl>

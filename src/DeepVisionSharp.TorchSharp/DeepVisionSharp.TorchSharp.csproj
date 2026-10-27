@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <AssemblyName>DeepVisionSharp.TorchSharp</AssemblyName>
+    <RootNamespace>DeepVisionSharp.TorchSharp</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PlatformTarget>x64</PlatformTarget>
+    <Platforms>x64;AnyCPU</Platforms>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DeepVisionSharp.Domain\DeepVisionSharp.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="TorchSharp" Version="0.107.0" />
+    <PackageReference Include="TorchSharp-cuda-windows" Version="0.107.0" />
+    <PackageReference Include="OpenCvSharp4" Version="4.13.0.20260528" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+  </ItemGroup>
+
+</Project>

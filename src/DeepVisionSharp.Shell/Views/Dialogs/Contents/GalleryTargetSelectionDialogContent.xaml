@@ -1,0 +1,63 @@
+<UserControl
+    x:Class="DeepVisionSharp.Shell.Views.Dialogs.Contents.GalleryTargetSelectionDialogContent"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    MinWidth="480">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </UserControl.Resources>
+
+    <StackPanel>
+        <TextBlock
+            Margin="0,0,0,12"
+            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+            Text="{Binding SummaryText}"
+            TextWrapping="Wrap" />
+
+        <TextBlock
+            FontWeight="SemiBold"
+            Text="目标图库" />
+        <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
+            <RadioButton
+                Margin="0,0,16,0"
+                Command="{Binding SelectNewTargetCommand}"
+                Content="新建图库"
+                GroupName="GalleryTargetMode"
+                IsChecked="{Binding UseNewGallery, Mode=OneWay}" />
+            <RadioButton
+                Command="{Binding SelectExistingTargetCommand}"
+                Content="已有图库"
+                GroupName="GalleryTargetMode"
+                IsChecked="{Binding UseExistingGallery, Mode=OneWay}" />
+        </StackPanel>
+
+        <ui:TextBox
+            Margin="0,12,0,0"
+            Icon="{ui:SymbolIcon Album24}"
+            PlaceholderText="新图库名称"
+            Text="{Binding NewGalleryName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+            Visibility="{Binding UseNewGallery, Converter={StaticResource BooleanToVisibilityConverter}}" />
+
+        <ComboBox
+            Margin="0,12,0,0"
+            DisplayMemberPath="DisplayText"
+            ItemsSource="{Binding AvailableTargets}"
+            SelectedValue="{Binding SelectedTargetGalleryId}"
+            SelectedValuePath="Id"
+            Visibility="{Binding UseExistingGallery, Converter={StaticResource BooleanToVisibilityConverter}}" />
+
+        <CheckBox
+            Margin="0,12,0,0"
+            Content="合并后删除为空的源图库"
+            IsChecked="{Binding DeleteEmptySources}"
+            Visibility="{Binding ShowDeleteEmptySourcesOption, Converter={StaticResource BooleanToVisibilityConverter}}" />
+
+        <TextBlock
+            Margin="0,12,0,0"
+            Foreground="#EF4444"
+            Text="{Binding DialogErrorMessage}"
+            TextWrapping="Wrap"
+            Visibility="{Binding HasDialogErrorMessage, Converter={StaticResource BooleanToVisibilityConverter}}" />
+    </StackPanel>
+</UserControl>

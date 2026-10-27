@@ -1,0 +1,86 @@
+<UserControl
+    x:Class="DeepVisionSharp.Shell.Views.Pages.Sections.LabelingCanvasSection"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters"
+    xmlns:controls="clr-namespace:DeepVisionSharp.Shell.Controls">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Views/Labeling/LabelingWorkbenchResources.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Views/Labeling/LabelingRailTemplates.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+    </UserControl.Resources>
+                <Grid>
+                    <Border
+                        Margin="6"
+                        Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                        BorderBrush="{Binding Labels.CurrentImageClassColor}"
+                        CornerRadius="6">
+                        <Border.Style>
+                            <Style TargetType="{x:Type Border}">
+                                <Setter Property="BorderThickness" Value="0" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Labels.HasCurrentImageClass}" Value="True">
+                                        <Setter Property="BorderThickness" Value="2" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <Image
+                            AutomationProperties.AutomationId="dv.labeling.canvas"
+                            Source="{Binding Workspace.ImageSource}"
+                            Stretch="Uniform" />
+                    </Border>
+
+                    <controls:CanvasCornerFloat
+                        Panel.ZIndex="10"
+                        PinId="tl"
+                        Placement="TopLeft">
+                        <controls:CanvasCornerFloat.Body>
+                            <StackPanel>
+                                <TextBlock
+                                    MaxWidth="380"
+                                    FontSize="13"
+                                    FontWeight="SemiBold"
+                                    Text="{Binding Workspace.ActiveFileName}"
+                                    TextTrimming="CharacterEllipsis" />
+                                <TextBlock
+                                    Margin="0,2,0,0"
+                                    FontSize="11"
+                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                    Text="{Binding Workspace.ImageSizeText}" />
+                            </StackPanel>
+                        </controls:CanvasCornerFloat.Body>
+                    </controls:CanvasCornerFloat>
+
+                    <Border
+                        Panel.ZIndex="10"
+                        Margin="0,0,18,18"
+                        Padding="10,6"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        AutomationProperties.AutomationId="dv.labeling.current-class"
+                        Background="{Binding Labels.CurrentImageClassColor}"
+                        CornerRadius="8"
+                        Visibility="{Binding Workspace.HasImage, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock
+                                Margin="0,0,8,0"
+                                VerticalAlignment="Center"
+                                FontSize="11"
+                                Foreground="White"
+                                Opacity="0.85"
+                                Text="当前标注" />
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="13"
+                                FontWeight="SemiBold"
+                                Foreground="White"
+                                Text="{Binding Labels.CurrentImageClassDisplay}" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+</UserControl>

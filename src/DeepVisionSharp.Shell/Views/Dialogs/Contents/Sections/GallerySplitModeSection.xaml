@@ -1,0 +1,102 @@
+<UserControl
+    x:Class="DeepVisionSharp.Shell.Views.Dialogs.Contents.Sections.GallerySplitModeSection"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Views/Dialogs/Contents/GallerySplitPlannerResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+            <ScrollViewer
+                Grid.Column="0"
+                MaxHeight="450"
+                HorizontalScrollBarVisibility="Disabled"
+                VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource DialogFieldLabelStyle}" Text="拆分方式" />
+                    <TextBlock Style="{StaticResource SplitModeGroupStyle}" Text="常用" />
+                    <RadioButton
+                        Command="{Binding SelectByRatioModeCommand}"
+                        GroupName="GallerySplitMode"
+                        IsChecked="{Binding IsByRatioMode, Mode=OneWay}"
+                        Style="{StaticResource SplitModeCardStyle}">
+                        <StackPanel>
+                            <TextBlock
+                                FontWeight="SemiBold"
+                                Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                Text="按比例拆分" />
+                            <TextBlock Style="{StaticResource MutedTextStyle}" Text="按指定比例抽取样本" />
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton
+                        Command="{Binding SelectByCountModeCommand}"
+                        GroupName="GallerySplitMode"
+                        IsChecked="{Binding IsByCountMode, Mode=OneWay}"
+                        Style="{StaticResource SplitModeCardStyle}">
+                        <StackPanel>
+                            <TextBlock
+                                FontWeight="SemiBold"
+                                Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                Text="按数量拆分" />
+                            <TextBlock Style="{StaticResource MutedTextStyle}" Text="手动输入要移动的张数" />
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton
+                        Command="{Binding SelectManualModeCommand}"
+                        GroupName="GallerySplitMode"
+                        IsChecked="{Binding IsManualMode, Mode=OneWay}"
+                        Style="{StaticResource SplitModeCardStyle}">
+                        <StackPanel>
+                            <TextBlock
+                                FontWeight="SemiBold"
+                                Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                Text="手动选择样本" />
+                            <TextBlock Style="{StaticResource MutedTextStyle}" Text="分页勾选需要移动的样本" />
+                        </StackPanel>
+                    </RadioButton>
+
+                    <TextBlock Style="{StaticResource SplitModeGroupStyle}" Text="按样本状态" />
+                    <RadioButton
+                        Command="{Binding SelectAnnotatedModeCommand}"
+                        Content="移动全部已标注样本"
+                        GroupName="GallerySplitMode"
+                        IsChecked="{Binding IsAnnotatedMode, Mode=OneWay}"
+                        Style="{StaticResource SplitModeCardStyle}" />
+                    <RadioButton
+                        Command="{Binding SelectUnannotatedModeCommand}"
+                        Content="移动全部未标注样本"
+                        GroupName="GallerySplitMode"
+                        IsChecked="{Binding IsUnannotatedMode, Mode=OneWay}"
+                        Style="{StaticResource SplitModeCardStyle}" />
+                    <RadioButton
+                        Command="{Binding SelectWithErrorModeCommand}"
+                        Content="移动全部错误样本"
+                        GroupName="GallerySplitMode"
+                        IsChecked="{Binding IsWithErrorMode, Mode=OneWay}"
+                        Style="{StaticResource SplitModeCardStyle}" />
+
+                    <TextBlock Style="{StaticResource SplitModeGroupStyle}" Text="按规则" />
+                    <RadioButton
+                        Command="{Binding SelectFileNamePrefixModeCommand}"
+                        Content="按文件名前缀拆分"
+                        GroupName="GallerySplitMode"
+                        IsChecked="{Binding IsFileNamePrefixMode, Mode=OneWay}"
+                        Style="{StaticResource SplitModeCardStyle}" />
+                    <RadioButton
+                        Command="{Binding SelectByLabelModeCommand}"
+                        Content="按缺陷类别拆分"
+                        GroupName="GallerySplitMode"
+                        IsChecked="{Binding IsByLabelMode, Mode=OneWay}"
+                        Style="{StaticResource SplitModeCardStyle}" />
+                    <RadioButton
+                        Command="{Binding SelectByLabelRatioModeCommand}"
+                        Content="按类别比例拆分"
+                        GroupName="GallerySplitMode"
+                        IsChecked="{Binding IsByLabelRatioMode, Mode=OneWay}"
+                        Style="{StaticResource SplitModeCardStyle}" />
+                </StackPanel>
+            </ScrollViewer>
+</UserControl>

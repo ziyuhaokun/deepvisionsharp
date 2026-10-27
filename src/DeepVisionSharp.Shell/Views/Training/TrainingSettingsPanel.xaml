@@ -1,0 +1,58 @@
+<UserControl
+    x:Class="DeepVisionSharp.Shell.Views.Training.TrainingSettingsPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters"
+    xmlns:sections="clr-namespace:DeepVisionSharp.Shell.Views.Training.Sections"
+    xmlns:vo="clr-namespace:DeepVisionSharp.Domain.ValueObjects;assembly=DeepVisionSharp.Domain"
+    xmlns:controls="clr-namespace:DeepVisionSharp.Shell.Controls">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Views/Training/TrainingDetailSharedResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid
+        x:Name="SettingsContentHost"
+        Margin="16,6,16,0"
+        MinHeight="0"
+        VerticalAlignment="Stretch">
+        <Grid.Style>
+            <Style TargetType="{x:Type Grid}">
+                <Setter Property="Visibility" Value="Visible" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Monitor.IsSettingsMode}" Value="False">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Grid.Style>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" MinHeight="0" />
+        </Grid.RowDefinitions>
+
+        <Border
+            Grid.Row="0"
+            Margin="0,0,0,8"
+            Padding="10,8"
+            Background="{DynamicResource ControlFillColorSecondaryBrush}"
+            CornerRadius="6"
+            Visibility="{Binding Config.IsJobLocked, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="任务已开始，参数已锁定。如需调整请新建任务。" />
+        </Border>
+
+        <Grid
+            Grid.Row="1"
+            MinHeight="0"
+            IsEnabled="{Binding Config.IsFormEditable}">
+            <sections:TrainingSettingsBasicSection />
+            <sections:TrainingSettingsDatasetSection />
+            <sections:TrainingSettingsHyperparametersSection />
+            <sections:TrainingSettingsAdvancedSection />
+        </Grid>
+    </Grid>
+</UserControl>

@@ -1,0 +1,77 @@
+<UserControl
+    x:Class="DeepVisionSharp.Shell.Views.Dialogs.Contents.AddLabelDialogContent"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    MinWidth="420">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+
+        <Style x:Key="DialogFieldLabelStyle" TargetType="{x:Type TextBlock}">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+        </Style>
+    </UserControl.Resources>
+
+    <StackPanel>
+        <StackPanel Visibility="{Binding IsLabelNameEditable, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <TextBlock Style="{StaticResource DialogFieldLabelStyle}" Text="类别名称" />
+            <ui:TextBox
+                Margin="0,8,0,0"
+                AutomationProperties.AutomationId="dv.dialog.label-name"
+                CaretBrush="{DynamicResource TextFillColorPrimaryBrush}"
+                Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                Icon="{ui:SymbolIcon Tag24}"
+                PlaceholderText="新类别名称"
+                Text="{Binding DraftLabelName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+        </StackPanel>
+
+        <StackPanel Visibility="{Binding IsEditLabelColorMode, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <TextBlock Style="{StaticResource DialogFieldLabelStyle}" Text="类别" />
+            <TextBlock
+                Margin="0,8,0,0"
+                FontSize="14"
+                FontWeight="SemiBold"
+                Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                Text="{Binding DraftLabelName}" />
+        </StackPanel>
+
+        <TextBlock
+            Margin="0,16,0,0"
+            Style="{StaticResource DialogFieldLabelStyle}"
+            Text="类别颜色" />
+        <ComboBox
+            Margin="0,8,0,0"
+            ItemsSource="{Binding PaletteColors}"
+            SelectedItem="{Binding DraftLabelColor, Mode=TwoWay}">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <Border
+                            Width="16"
+                            Height="16"
+                            VerticalAlignment="Center"
+                            Background="{Binding}"
+                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="4" />
+                        <TextBlock
+                            Margin="8,0,0,0"
+                            VerticalAlignment="Center"
+                            FontSize="12"
+                            Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                            Text="{Binding}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+
+        <TextBlock
+            Margin="0,12,0,0"
+            Foreground="#EF4444"
+            Text="{Binding DialogErrorMessage}"
+            TextWrapping="Wrap"
+            Visibility="{Binding HasDialogErrorMessage, Converter={StaticResource BooleanToVisibilityConverter}}" />
+    </StackPanel>
+</UserControl>

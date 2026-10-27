@@ -1,0 +1,98 @@
+<UserControl
+    x:Class="DeepVisionSharp.Shell.Views.Dialogs.Contents.InferenceImageSourceDialogContent"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    MinWidth="480"
+    MaxWidth="560">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <Style TargetType="{x:Type TextBlock}">
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+        </Style>
+        <Style x:Key="DialogFieldLabelStyle" TargetType="{x:Type TextBlock}">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Margin" Value="0,0,0,6" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+        </Style>
+        <Style x:Key="DialogHintStyle" TargetType="{x:Type TextBlock}">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+        </Style>
+    </UserControl.Resources>
+
+    <StackPanel>
+        <TextBlock
+            FontWeight="SemiBold"
+            Text="外部图片" />
+        <ui:Button
+            Margin="0,10,0,0"
+            Appearance="Primary"
+            AutomationProperties.AutomationId="dv.dialog.inference-import-external"
+            Command="{Binding ImportExternalImagesCommand}"
+            HorizontalAlignment="Stretch"
+            Icon="{ui:SymbolIcon FolderOpen24}">
+            导入图片…
+        </ui:Button>
+        <ui:Button
+            Margin="0,8,0,0"
+            Appearance="Transparent"
+            Command="{Binding ClearExternalImagesCommand}"
+            HorizontalAlignment="Stretch">
+            仅清空外部图片
+        </ui:Button>
+
+        <TextBlock
+            Margin="0,18,0,0"
+            FontWeight="SemiBold"
+            Text="图库样本（可多次追加）" />
+        <ComboBox
+            Margin="0,6,0,0"
+            AutomationProperties.AutomationId="dv.dialog.inference-gallery"
+            DisplayMemberPath="DisplayText"
+            ItemsSource="{Binding Galleries}"
+            SelectedItem="{Binding SelectedGallery, Mode=TwoWay}" />
+        <ui:Button
+            Margin="0,10,0,0"
+            Appearance="Primary"
+            AutomationProperties.AutomationId="dv.dialog.inference-load-gallery"
+            Command="{Binding LoadGallerySamplesCommand}"
+            HorizontalAlignment="Stretch"
+            Icon="{ui:SymbolIcon ImageMultiple24}">
+            追加到列表
+        </ui:Button>
+        <ui:Button
+            Margin="0,8,0,0"
+            Appearance="Transparent"
+            Command="{Binding ClearGalleryImagesCommand}"
+            HorizontalAlignment="Stretch">
+            仅清空图库样本
+        </ui:Button>
+
+        <ui:Button
+            Margin="0,16,0,0"
+            Appearance="Secondary"
+            Command="{Binding ClearAllImagesCommand}"
+            HorizontalAlignment="Stretch">
+            清空全部列表
+        </ui:Button>
+
+        <Border
+            Margin="0,18,0,0"
+            Padding="12,10"
+            Background="{DynamicResource ControlFillColorSecondaryBrush}"
+            CornerRadius="8">
+            <StackPanel>
+                <TextBlock
+                    FontSize="12"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="当前列表" />
+                <TextBlock
+                    Margin="0,4,0,0"
+                    FontWeight="SemiBold"
+                    Text="{Binding ImageSourceSummary}"
+                    TextWrapping="Wrap" />
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>

@@ -1,0 +1,93 @@
+<UserControl
+    x:Class="DeepVisionSharp.Shell.Views.Pages.Sections.InferenceToolbarSection"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Views/Pages/InferencePageResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+        <Border
+            Grid.Row="0"
+            Margin="0,0,0,8"
+            Padding="10,8"
+            Background="{DynamicResource ControlFillColorSecondaryBrush}"
+            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock
+                        FontSize="16"
+                        FontWeight="SemiBold"
+                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                        Text="{Binding ProjectTitle}"
+                        TextTrimming="CharacterEllipsis" />
+                    <TextBlock
+                        Margin="0,2,0,0"
+                        FontSize="12"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        Text="{Binding ImageSourceSummary}"
+                        TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+
+                <StackPanel
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal">
+                    <ui:Button
+                        Appearance="Secondary"
+                        AutomationProperties.AutomationId="dv.inference.image-source"
+                        Command="{Binding ShowImageSourceDialogCommand}"
+                        Icon="{ui:SymbolIcon FolderOpen24}"
+                        IsEnabled="{Binding HasProjectContext}">
+                        配置来源
+                    </ui:Button>
+                    <ui:Button
+                        Margin="8,0,0,0"
+                        Appearance="Primary"
+                        AutomationProperties.AutomationId="dv.inference.run-selected"
+                        Command="{Binding RunSelectedCommand}"
+                        Icon="{ui:SymbolIcon Play24}"
+                        IsEnabled="{Binding CanRun}">
+                        推理当前
+                    </ui:Button>
+                    <ui:Button
+                        Margin="8,0,0,0"
+                        Appearance="Secondary"
+                        AutomationProperties.AutomationId="dv.inference.run-all"
+                        Command="{Binding RunAllCommand}"
+                        Icon="{ui:SymbolIcon Flash24}"
+                        IsEnabled="{Binding HasProjectContext}">
+                        推理全部
+                    </ui:Button>
+                    <ui:Button
+                        Margin="8,0,0,0"
+                        Appearance="Secondary"
+                        Command="{Binding ShowLastBatchReportCommand}"
+                        Icon="{ui:SymbolIcon DocumentText24}"
+                        ToolTip="查看最近一次「推理全部」的分析报告">
+                        分析报告
+                    </ui:Button>
+                    <ui:Button
+                        Margin="8,0,0,0"
+                        Appearance="Secondary"
+                        AutomationProperties.AutomationId="dv.inference.stop"
+                        Command="{Binding StopCommand}"
+                        Icon="{ui:SymbolIcon Stop24}"
+                        Visibility="{Binding IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        停止
+                    </ui:Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+</UserControl>

@@ -1,0 +1,120 @@
+<UserControl
+    x:Class="DeepVisionSharp.Shell.Views.Dialogs.Contents.ProjectLabelStatisticsDialogContent"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    MinWidth="720"
+    MaxHeight="700">
+    <UserControl.Resources>
+        <Style x:Key="MetricTitleStyle" TargetType="{x:Type TextBlock}">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+        </Style>
+
+        <Style x:Key="MetricValueStyle" TargetType="{x:Type TextBlock}">
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Loaded="OnLoaded" Unloaded="OnUnloaded" SizeChanged="OnSizeChanged">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel>
+            <TextBlock
+                FontSize="16"
+                FontWeight="SemiBold"
+                Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                Text="{Binding DisplayName, StringFormat={}{0} - 标签统计}" />
+            <TextBlock
+                Margin="0,6,0,0"
+                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                Text="{Binding ScopeDescription}"
+                TextWrapping="Wrap" />
+        </StackPanel>
+
+        <UniformGrid Grid.Row="1" Margin="0,18,0,0" Columns="3" Rows="1">
+            <ui:Card Margin="0,0,12,0" Padding="14">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource MetricTitleStyle}" Text="标签数" />
+                    <TextBlock Style="{StaticResource MetricValueStyle}" Text="{Binding TotalLabels}" />
+                </StackPanel>
+            </ui:Card>
+            <ui:Card Margin="0,0,12,0" Padding="14">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource MetricTitleStyle}" Text="标签样本总计（累计）" />
+                    <TextBlock Style="{StaticResource MetricValueStyle}" Text="{Binding TotalSamplesWithLabels}" />
+                </StackPanel>
+            </ui:Card>
+            <ui:Card Margin="0" Padding="14">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource MetricTitleStyle}" Text="最大单标签样本数" />
+                    <TextBlock Style="{StaticResource MetricValueStyle}" Text="{Binding MaxSampleCount}" />
+                </StackPanel>
+            </ui:Card>
+        </UniformGrid>
+
+        <ui:Card Grid.Row="2" Margin="0,18,0,0" Padding="14">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock
+                        FontWeight="SemiBold"
+                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                        Text="标签分布图" />
+                    <TextBlock
+                        Grid.Column="1"
+                        Margin="0,0,12,0"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        Text="{Binding Rows.Count, StringFormat={}共 {0} 项}"
+                        VerticalAlignment="Center" />
+                    <ComboBox
+                        Grid.Column="2"
+                        MinWidth="128"
+                        Margin="0,0,8,0"
+                        DisplayMemberPath="Label"
+                        ItemsSource="{Binding ChartTypeOptions}"
+                        SelectedValue="{Binding SelectedChartType, Mode=TwoWay}"
+                        SelectedValuePath="Value" />
+                    <ComboBox
+                        Grid.Column="3"
+                        MinWidth="108"
+                        DisplayMemberPath="Label"
+                        ItemsSource="{Binding TopCountOptions}"
+                        SelectedValue="{Binding SelectedTopCount, Mode=TwoWay}"
+                        SelectedValuePath="Value" />
+                </Grid>
+
+                <Border
+                    x:Name="ChartHost"
+                    Grid.Row="1"
+                    MinHeight="340"
+                    Padding="8"
+                    Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                    CornerRadius="10">
+                    <Image
+                        x:Name="ChartImage"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Stretch="Uniform" />
+                </Border>
+            </Grid>
+        </ui:Card>
+    </Grid>
+</UserControl>
+

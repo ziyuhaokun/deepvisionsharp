@@ -1,0 +1,106 @@
+<UserControl
+    x:Class="DeepVisionSharp.Shell.Views.Pages.Sections.GalleryHeaderSection"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Views/Pages/GalleryPageResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+        <!-- 行 0：固定顶栏 -->
+        <Grid Grid.Row="0" Margin="28,24,28,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock
+                VerticalAlignment="Center"
+                FontSize="28"
+                FontWeight="SemiBold"
+                Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                Text="图库" />
+
+            <StackPanel
+                Grid.Column="1"
+                VerticalAlignment="Center"
+                Orientation="Horizontal">
+                <ui:Button
+                    Margin="0,0,10,0"
+                    Appearance="Secondary"
+                    Command="{Binding List.ShowProjectLabelStatisticsDialogCommand}"
+                    Icon="{ui:SymbolIcon ChartMultiple24}"
+                    IsEnabled="{Binding Transfer.IsNotImporting}"
+                    Visibility="{Binding List.ShowsGalleryLabelStatistics, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    标签统计
+                </ui:Button>
+
+                <ui:Button
+                    Margin="0,0,10,0"
+                    Appearance="Secondary"
+                    Command="{Binding List.SelectAllGalleriesCommand}"
+                    IsEnabled="{Binding Transfer.IsNotImporting}"
+                    Visibility="{Binding List.IsGallerySelectionMode, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    全选
+                </ui:Button>
+
+                <ui:Button
+                    Margin="0,0,10,0"
+                    Appearance="Secondary"
+                    Command="{Binding List.DeselectAllGalleriesCommand}"
+                    IsEnabled="{Binding Transfer.IsNotImporting}"
+                    Visibility="{Binding List.IsGallerySelectionMode, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    取消全选
+                </ui:Button>
+
+                <ui:Button
+                    Margin="0,0,10,0"
+                    Appearance="Secondary"
+                    Command="{Binding List.ToggleGallerySelectionModeCommand}"
+                    IsEnabled="{Binding Transfer.IsNotImporting}">
+                    <ui:Button.Style>
+                        <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
+                            <Setter Property="Content" Value="多选" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding List.IsGallerySelectionMode}" Value="True">
+                                    <Setter Property="Content" Value="退出多选" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ui:Button.Style>
+                </ui:Button>
+
+                <ui:Button
+                    Margin="0,0,10,0"
+                    Appearance="Secondary"
+                    Command="{Binding Reorganize.ShowMergeGalleriesDialogCommand}"
+                    IsEnabled="{Binding Reorganize.CanMergeGalleries}">
+                    合并图库
+                </ui:Button>
+
+                <ui:Button
+                    Margin="0,0,10,0"
+                    Appearance="Secondary"
+                    AutomationProperties.AutomationId="dv.gallery.import"
+                    Command="{Binding Transfer.ImportGalleryCommand}"
+                    Icon="{ui:SymbolIcon ArrowUpload24}"
+                    IsEnabled="{Binding Transfer.IsNotImporting}">
+                    导入图库
+                </ui:Button>
+
+                <ui:Button
+                    Appearance="Primary"
+                    AutomationProperties.AutomationId="dv.gallery.create"
+                    Command="{Binding Editor.ShowCreateGalleryDialogCommand}"
+                    Icon="{ui:SymbolIcon Add24}"
+                    IsEnabled="{Binding Transfer.IsNotImporting}">
+                    新建图库
+                </ui:Button>
+            </StackPanel>
+        </Grid>
+
+</UserControl>

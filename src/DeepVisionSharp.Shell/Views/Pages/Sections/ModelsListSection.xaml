@@ -1,0 +1,227 @@
+<UserControl
+    x:Class="DeepVisionSharp.Shell.Views.Pages.Sections.ModelsListSection"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Views/Pages/ModelsPageResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <StackPanel>
+            <Border
+                Margin="0,18,0,0"
+                Padding="36"
+                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Visibility="{Binding List.HasEmptyState, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <StackPanel HorizontalAlignment="Center">
+                    <ui:SymbolIcon
+                        HorizontalAlignment="Center"
+                        FontSize="42"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        Symbol="Database24" />
+                    <TextBlock
+                        Margin="0,14,0,0"
+                        HorizontalAlignment="Center"
+                        FontSize="18"
+                        FontWeight="SemiBold"
+                        Text="{Binding List.EmptyStateTitle}" />
+                    <TextBlock
+                        Margin="0,6,0,0"
+                        HorizontalAlignment="Center"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        Text="{Binding List.EmptyStateDescription}" />
+                </StackPanel>
+            </Border>
+
+            <ItemsControl
+                Margin="0,18,0,0"
+                AutomationProperties.AutomationId="dv.models.cards"
+                ItemsSource="{Binding List.FilteredModels}"
+                Visibility="{Binding List.HasFilteredModels, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <ui:Card
+                            AutomationProperties.AutomationId="{Binding AutomationId}"
+                            Style="{StaticResource ModelCardStyle}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <Border Style="{StaticResource ModelStatusBadgeStyle}">
+                                        <TextBlock
+                                            Style="{StaticResource ModelCardBadgeTextStyle}"
+                                            Text="{Binding Status}" />
+                                    </Border>
+
+                                    <ui:Button
+                                        Grid.Column="1"
+                                        Appearance="Transparent"
+                                        Command="{Binding DataContext.List.OpenModelFolderCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
+                                        CommandParameter="{Binding Id}"
+                                        Icon="{ui:SymbolIcon FolderOpen24}"
+                                        ToolTip="打开模型目录" />
+                                </Grid>
+
+                                <StackPanel Grid.Row="1" Margin="0,18,0,0">
+                                    <TextBlock
+                                        Style="{StaticResource ModelCardTitleTextStyle}"
+                                        Text="{Binding Name}"
+                                        TextTrimming="CharacterEllipsis" />
+                                    <TextBlock
+                                        Style="{StaticResource ModelDescriptionTextStyle}"
+                                        MaxHeight="42"
+                                        Margin="0,8,0,0"
+                                        Text="{Binding Description}"
+                                        TextTrimming="CharacterEllipsis"
+                                        TextWrapping="Wrap" />
+
+                                    <!-- Type + class count as compact pills (no class names on card) -->
+                                    <WrapPanel Margin="0,14,0,-8">
+                                        <Border Style="{StaticResource ModelMetaPillStyle}">
+                                            <TextBlock
+                                                Style="{StaticResource ModelCardMetaTextStyle}"
+                                                Text="{Binding ModelTypeDisplay}"
+                                                TextTrimming="CharacterEllipsis" />
+                                        </Border>
+                                        <Border Style="{StaticResource ModelMetaPillStyle}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <ui:SymbolIcon
+                                                    FontSize="14"
+                                                    Symbol="TagMultiple24" />
+                                                <TextBlock
+                                                    Margin="5,0,0,0"
+                                                    VerticalAlignment="Center"
+                                                    Style="{StaticResource ModelCardMetaTextStyle}"
+                                                    Text="{Binding ClassCountText}" />
+                                            </StackPanel>
+                                        </Border>
+                                        <Border
+                                            Style="{StaticResource ModelMetaPillStyle}"
+                                            Visibility="{Binding ShowsInputChannelsBadge, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <ui:SymbolIcon
+                                                    FontSize="14"
+                                                    Symbol="ImageAltText24" />
+                                                <TextBlock
+                                                    Margin="5,0,0,0"
+                                                    VerticalAlignment="Center"
+                                                    Style="{StaticResource ModelCardMetaTextStyle}"
+                                                    Text="{Binding InputChannelsDisplay}" />
+                                            </StackPanel>
+                                        </Border>
+                                    </WrapPanel>
+
+                                    <Border
+                                        Margin="0,16,0,0"
+                                        Padding="10"
+                                        Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                                        CornerRadius="8">
+                                        <StackPanel>
+                                            <TextBlock
+                                                Style="{StaticResource ModelCardBadgeTextStyle}"
+                                                Text="{Binding MetricsText}" />
+                                            <TextBlock
+                                                Margin="0,4,0,0"
+                                                Style="{StaticResource ModelCardMetaTextStyle}"
+                                                Text="{Binding SummaryText}" />
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+
+                                <Grid Grid.Row="2" Margin="0,18,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock
+                                        Style="{StaticResource ModelCardPathTextStyle}"
+                                        Text="{Binding CheckpointPath}"
+                                        TextTrimming="CharacterEllipsis" />
+
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        Margin="12,0,0,0"
+                                        Style="{StaticResource ModelCardPathTextStyle}"
+                                        Text="{Binding CreatedText}" />
+                                </Grid>
+
+                                <Grid
+                                    Grid.Row="3"
+                                    Margin="0,18,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <ui:Button
+                                        Appearance="Secondary"
+                                        Command="{Binding DataContext.List.ExportModelCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
+                                        CommandParameter="{Binding Id}"
+                                        Icon="{ui:SymbolIcon ArrowDownload24}">
+                                        导出模型
+                                    </ui:Button>
+
+                                    <Button
+                                        Grid.Column="2"
+                                        Margin="8,0,0,0"
+                                        Padding="10,4"
+                                        Background="{DynamicResource ControlFillColorDefaultBrush}"
+                                        BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                        BorderThickness="1"
+                                        Click="OnModelActionsMenuButtonClick"
+                                        Cursor="Hand"
+                                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                        Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType={x:Type Page}}}">
+                                        <Button.ContextMenu>
+                                            <ContextMenu>
+                                                <MenuItem
+                                                    Command="{Binding PlacementTarget.Tag.List.OpenModelFolderCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                    CommandParameter="{Binding PlacementTarget.DataContext.Id, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                    Header="打开目录" />
+                                                <MenuItem
+                                                    Command="{Binding PlacementTarget.Tag.Editor.ShowEditModelDialogCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                    CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                    Header="编辑" />
+                                                <Separator />
+                                                <MenuItem
+                                                    Command="{Binding PlacementTarget.Tag.List.ConfirmDeleteModelCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                    CommandParameter="{Binding PlacementTarget.DataContext.Id, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                    Header="删除" />
+                                            </ContextMenu>
+                                        </Button.ContextMenu>
+                                        <TextBlock
+                                            FontSize="18"
+                                            FontWeight="SemiBold"
+                                            Text="..." />
+                                    </Button>
+                                </Grid>
+                            </Grid>
+                        </ui:Card>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+    </StackPanel>
+</UserControl>

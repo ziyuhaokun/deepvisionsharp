@@ -1,0 +1,396 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters"
+    xmlns:vo="clr-namespace:DeepVisionSharp.Domain.ValueObjects;assembly=DeepVisionSharp.Domain">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Resources/StatusPalette.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+    <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    <converters:FilePathToImageConverter x:Key="FilePathToImageConverter" />
+    <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" />
+    <converters:PercentToStarGridLengthConverter x:Key="PercentToStarGridLengthConverter" />
+
+    <Style TargetType="{x:Type TextBlock}">
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    </Style>
+
+    <Style x:Key="FormSectionStyle" TargetType="{x:Type Border}">
+        <Setter Property="Padding" Value="14" />
+        <Setter Property="Margin" Value="0,0,0,12" />
+        <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+    </Style>
+
+    <Style x:Key="EmptyStatePanelStyle" TargetType="{x:Type StackPanel}">
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style x:Key="SectionTitleStyle" TargetType="{x:Type TextBlock}">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Margin" Value="0,0,0,12" />
+    </Style>
+
+    <Style x:Key="FieldLabelStyle" TargetType="{x:Type TextBlock}">
+        <Setter Property="Margin" Value="0,0,0,4" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    </Style>
+
+    <Style x:Key="FieldHintStyle" TargetType="{x:Type TextBlock}">
+        <Setter Property="Margin" Value="0,4,0,0" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}" />
+    </Style>
+
+    <Style x:Key="TrainingResourceProgressStyle" TargetType="{x:Type ProgressBar}">
+        <Setter Property="Height" Value="8" />
+        <Setter Property="Margin" Value="0,10,0,0" />
+    </Style>
+
+    <Style x:Key="TrainingMetricCardStyle" TargetType="{x:Type Border}">
+        <Setter Property="Padding" Value="12" />
+        <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+    </Style>
+
+    <Style x:Key="TrainingResultCardStyle" TargetType="{x:Type Border}">
+        <Setter Property="Padding" Value="14" />
+        <Setter Property="Margin" Value="0,0,0,12" />
+        <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+    </Style>
+
+    <DataTemplate x:Key="TrainingPreviewImageTemplate">
+        <!-- Larger tile so classification 3×3 grids and detection val batches stay readable -->
+        <Border
+            Width="720"
+            Height="720"
+            Margin="0,0,12,12"
+            Background="{DynamicResource ControlFillColorDefaultBrush}"
+            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="6"
+            ClipToBounds="True"
+            Cursor="Hand"
+            Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
+            ToolTip="左键放大预览 · 右键复制到剪贴板">
+            <Border.InputBindings>
+                <MouseBinding
+                    Command="{Binding DataContext.Monitor.Preview.OpenPreviewLightboxCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
+                    CommandParameter="{Binding}"
+                    MouseAction="LeftClick" />
+            </Border.InputBindings>
+            <Border.ContextMenu>
+                <ContextMenu>
+                    <MenuItem
+                        Command="{Binding PlacementTarget.Tag.Monitor.Preview.CopyPreviewImageCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                        CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                        Header="复制到剪贴板" />
+                </ContextMenu>
+            </Border.ContextMenu>
+            <Image
+                IsHitTestVisible="False"
+                RenderOptions.BitmapScalingMode="HighQuality"
+                Source="{Binding Converter={StaticResource FilePathToImageConverter}}"
+                Stretch="Uniform" />
+        </Border>
+    </DataTemplate>
+
+    <Style
+        x:Key="TrainingConfigNumberBoxBaseStyle"
+        BasedOn="{StaticResource {x:Type ui:NumberBox}}"
+        TargetType="{x:Type ui:NumberBox}" />
+
+    <!--
+      Sections do not inherit the panel's local resources; keep this beside the base style
+      so every training form section can resolve it from the merged dictionary.
+      Do NOT attach TextChanged→SyncNumericConfig: Value is TwoWay-bound and re-entrant
+      TextChanged with ApplyFormFromJob bulk updates can stack-overflow.
+    -->
+    <Style
+        x:Key="TrainingConfigNumberBoxStyle"
+        BasedOn="{StaticResource TrainingConfigNumberBoxBaseStyle}"
+        TargetType="{x:Type ui:NumberBox}" />
+
+    <ControlTemplate x:Key="GalleryRoleChipButtonTemplate" TargetType="{x:Type Button}">
+        <Border
+            x:Name="ChipRoot"
+            Padding="{TemplateBinding Padding}"
+            Background="{TemplateBinding Background}"
+            BorderBrush="{TemplateBinding BorderBrush}"
+            BorderThickness="{TemplateBinding BorderThickness}"
+            CornerRadius="6"
+            SnapsToDevicePixels="True">
+            <ContentPresenter
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                RecognizesAccessKey="True"
+                TextElement.FontWeight="{TemplateBinding FontWeight}"
+                TextElement.Foreground="{TemplateBinding Foreground}" />
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="ChipRoot" Property="Opacity" Value="0.92" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="ChipRoot" Property="Opacity" Value="0.82" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="ChipRoot" Property="Opacity" Value="0.45" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <Style x:Key="GalleryRoleChipButtonBaseStyle" TargetType="{x:Type Button}">
+        <Setter Property="MinWidth" Value="54" />
+        <Setter Property="Padding" Value="10,5" />
+        <Setter Property="Margin" Value="0" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Template" Value="{StaticResource GalleryRoleChipButtonTemplate}" />
+    </Style>
+
+    <Style
+        x:Key="GalleryRoleTrainingChipStyle"
+        BasedOn="{StaticResource GalleryRoleChipButtonBaseStyle}"
+        TargetType="{x:Type Button}">
+        <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SystemFillColorSuccessBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource SystemFillColorSuccessBrush}" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Role}" Value="{x:Static vo:GalleryDatasetRole.Training}">
+                <Setter Property="Background" Value="{StaticResource DatasetRoleTrainingSolidBrush}" />
+                <Setter Property="BorderBrush" Value="{StaticResource DatasetRoleTrainingSolidBrush}" />
+                <Setter Property="Foreground" Value="White" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style
+        x:Key="GalleryRoleValidationChipStyle"
+        BasedOn="{StaticResource GalleryRoleChipButtonBaseStyle}"
+        TargetType="{x:Type Button}">
+        <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColorPrimaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource SystemAccentColorPrimaryBrush}" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Role}" Value="{x:Static vo:GalleryDatasetRole.Validation}">
+                <Setter Property="Background" Value="{StaticResource DatasetRoleValidationSolidBrush}" />
+                <Setter Property="BorderBrush" Value="{StaticResource DatasetRoleValidationSolidBrush}" />
+                <Setter Property="Foreground" Value="White" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style
+        x:Key="GalleryRoleDualChipStyle"
+        BasedOn="{StaticResource GalleryRoleChipButtonBaseStyle}"
+        TargetType="{x:Type Button}">
+        <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SystemFillColorCautionBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Role}" Value="{x:Static vo:GalleryDatasetRole.TrainingAndValidation}">
+                <Setter Property="Background" Value="{StaticResource DatasetRoleDualSolidBrush}" />
+                <Setter Property="BorderBrush" Value="{StaticResource DatasetRoleDualSolidBrush}" />
+                <Setter Property="Foreground" Value="White" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style
+        x:Key="GalleryRoleNoneChipStyle"
+        BasedOn="{StaticResource GalleryRoleChipButtonBaseStyle}"
+        TargetType="{x:Type Button}">
+        <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Role}" Value="{x:Static vo:GalleryDatasetRole.None}">
+                <Setter Property="Background" Value="{StaticResource DatasetRoleNoneSolidBrush}" />
+                <Setter Property="BorderBrush" Value="{StaticResource DatasetRoleNoneSolidBrush}" />
+                <Setter Property="Foreground" Value="White" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="GalleryPurposeRowStyle" TargetType="{x:Type Border}">
+        <Setter Property="Padding" Value="10,8" />
+        <Setter Property="Margin" Value="0,0,0,6" />
+        <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+    </Style>
+
+    <Style x:Key="AutoSplitRatioCardStyle" TargetType="{x:Type Border}">
+        <Setter Property="Padding" Value="10,8" />
+        <Setter Property="Margin" Value="0,0,0,8" />
+        <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="6" />
+    </Style>
+
+    <Style x:Key="AutoSplitGalleryRowStyle" BasedOn="{StaticResource GalleryPurposeRowStyle}" TargetType="{x:Type Border}">
+        <Setter Property="Padding" Value="10,6" />
+        <Setter Property="Margin" Value="0,0,0,4" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                <Setter Property="BorderBrush" Value="#663B82F6" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="AutoSplitSliderRepeatStyle" TargetType="{x:Type RepeatButton}">
+        <Setter Property="OverridesDefaultStyle" Value="True" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="IsTabStop" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type RepeatButton}">
+                    <Border Background="Transparent" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="AutoSplitSliderThumbStyle" TargetType="{x:Type Thumb}">
+        <Setter Property="Width" Value="16" />
+        <Setter Property="Height" Value="16" />
+        <Setter Property="OverridesDefaultStyle" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Thumb}">
+                    <Grid>
+                        <Ellipse
+                            x:Name="Halo"
+                            Width="16"
+                            Height="16"
+                            Fill="#F8FAFC"
+                            Stroke="#3B82F6"
+                            StrokeThickness="2"
+                            SnapsToDevicePixels="True" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Halo" Property="Stroke" Value="#60A5FA" />
+                            <Setter TargetName="Halo" Property="StrokeThickness" Value="2.5" />
+                        </Trigger>
+                        <Trigger Property="IsDragging" Value="True">
+                            <Setter TargetName="Halo" Property="Fill" Value="#DBEAFE" />
+                            <Setter TargetName="Halo" Property="Stroke" Value="#2563EB" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <ControlTemplate x:Key="AutoSplitRatioSliderTemplate" TargetType="{x:Type Slider}">
+        <Grid VerticalAlignment="Stretch">
+            <Track x:Name="PART_Track" VerticalAlignment="Stretch">
+                <Track.DecreaseRepeatButton>
+                    <RepeatButton Command="Slider.DecreaseLarge" Style="{StaticResource AutoSplitSliderRepeatStyle}" />
+                </Track.DecreaseRepeatButton>
+                <Track.IncreaseRepeatButton>
+                    <RepeatButton Command="Slider.IncreaseLarge" Style="{StaticResource AutoSplitSliderRepeatStyle}" />
+                </Track.IncreaseRepeatButton>
+                <Track.Thumb>
+                    <Thumb Style="{StaticResource AutoSplitSliderThumbStyle}" />
+                </Track.Thumb>
+            </Track>
+        </Grid>
+    </ControlTemplate>
+
+    <Style x:Key="AutoSplitRatioSliderStyle" TargetType="{x:Type Slider}">
+        <Setter Property="Height" Value="22" />
+        <Setter Property="MinHeight" Value="22" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="IsMoveToPointEnabled" Value="True" />
+        <Setter Property="IsSnapToTickEnabled" Value="True" />
+        <Setter Property="Minimum" Value="0" />
+        <Setter Property="Maximum" Value="100" />
+        <Setter Property="TickFrequency" Value="1" />
+        <Setter Property="SmallChange" Value="1" />
+        <Setter Property="LargeChange" Value="5" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="OverridesDefaultStyle" Value="True" />
+        <Setter Property="Template" Value="{StaticResource AutoSplitRatioSliderTemplate}" />
+    </Style>
+
+    <Style x:Key="AutoSplitLegendMarkStyle" TargetType="{x:Type Border}">
+        <Setter Property="Width" Value="7" />
+        <Setter Property="Height" Value="7" />
+        <Setter Property="CornerRadius" Value="2" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Margin" Value="0,0,5,0" />
+    </Style>
+
+    <Style x:Key="GalleryRoleSegmentHostStyle" TargetType="{x:Type Border}">
+        <Setter Property="Padding" Value="3" />
+        <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+    </Style>
+
+    <Style
+        x:Key="DatasetSplitModeChipBaseStyle"
+        BasedOn="{StaticResource GalleryRoleChipButtonBaseStyle}"
+        TargetType="{x:Type Button}">
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="Padding" Value="10,4" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    </Style>
+
+    <Style
+        x:Key="DatasetSplitModePurposeChipStyle"
+        BasedOn="{StaticResource DatasetSplitModeChipBaseStyle}"
+        TargetType="{x:Type Button}">
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Config.Dataset.IsPurposeAssignmentMode}" Value="True">
+                <Setter Property="Background" Value="{StaticResource DatasetRoleValidationSolidBrush}" />
+                <Setter Property="BorderBrush" Value="{StaticResource DatasetRoleValidationSolidBrush}" />
+                <Setter Property="Foreground" Value="White" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style
+        x:Key="DatasetSplitModeAutoChipStyle"
+        BasedOn="{StaticResource DatasetSplitModeChipBaseStyle}"
+        TargetType="{x:Type Button}">
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Config.Dataset.IsAutoSplitMode}" Value="True">
+                <Setter Property="Background" Value="{StaticResource DatasetRoleValidationSolidBrush}" />
+                <Setter Property="BorderBrush" Value="{StaticResource DatasetRoleValidationSolidBrush}" />
+                <Setter Property="Foreground" Value="White" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>

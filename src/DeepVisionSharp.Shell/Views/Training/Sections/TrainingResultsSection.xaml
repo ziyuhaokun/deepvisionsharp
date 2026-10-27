@@ -1,0 +1,413 @@
+<UserControl
+    x:Class="DeepVisionSharp.Shell.Views.Training.Sections.TrainingResultsSection"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters"
+    xmlns:controls="clr-namespace:DeepVisionSharp.Shell.Controls"
+    xmlns:trainingControls="clr-namespace:DeepVisionSharp.Shell.Views.Training.Controls"
+    xmlns:vo="clr-namespace:DeepVisionSharp.Domain.ValueObjects;assembly=DeepVisionSharp.Domain">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Views/Training/TrainingDetailSharedResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+                            <ScrollViewer
+                                x:Name="ResultsScrollViewer"
+                                Grid.Row="0"
+                                Margin="16,6,16,0"
+                                HorizontalScrollBarVisibility="Disabled"
+                                MinHeight="0"
+                                VerticalAlignment="Stretch"
+                                VerticalScrollBarVisibility="Auto"
+                                Visibility="{Binding Monitor.IsOverviewSectionActive, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <StackPanel Margin="0,4,0,12" MinHeight="{Binding ViewportHeight, ElementName=ResultsScrollViewer}">
+                                    <Border
+                                        Margin="0,0,0,12"
+                                        Padding="14"
+                                        BorderBrush="{DynamicResource SystemFillColorCriticalBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="6"
+                                        Visibility="{Binding Monitor.ShowFailureSummary, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <ui:SymbolIcon
+                                                Margin="0,1,12,0"
+                                                Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                                                Symbol="ErrorCircle24" />
+                                            <StackPanel Grid.Column="1">
+                                                <TextBlock
+                                                    FontWeight="SemiBold"
+                                                    Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                                                    Text="训练失败" />
+                                                <TextBlock
+                                                    Margin="0,6,0,0"
+                                                    Text="{Binding Monitor.FailureSummary}"
+                                                    TextWrapping="Wrap" />
+                                                <ScrollViewer
+                                                    MaxHeight="160"
+                                                    Margin="0,8,0,0"
+                                                    HorizontalScrollBarVisibility="Disabled"
+                                                    VerticalScrollBarVisibility="Auto"
+                                                    Visibility="{Binding Monitor.ShowFailureTraceback, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                                    <TextBlock
+                                                        FontFamily="Cascadia Mono, Consolas, Courier New"
+                                                        FontSize="8"
+                                                        Text="{Binding Monitor.FailureTraceback}"
+                                                        TextWrapping="Wrap" />
+                                                </ScrollViewer>
+                                                <StackPanel
+                                                    Margin="0,12,0,0"
+                                                    Orientation="Horizontal">
+                                                    <ui:Button
+                                                        Margin="0,0,8,0"
+                                                        HorizontalAlignment="Left"
+                                                        Appearance="Secondary"
+                                                        Command="{Binding Monitor.CopyFailureDetailCommand}"
+                                                        Content="复制失败详情" />
+                                                    <ui:Button
+                                                        HorizontalAlignment="Left"
+                                                        Appearance="Secondary"
+                                                        Command="{Binding Monitor.ShowLogsSectionCommand}"
+                                                        Content="查看完整日志" />
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+
+                                    <StackPanel
+                                        VerticalAlignment="Top"
+                                        Visibility="{Binding Monitor.ShowResultsContent, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                        <Border Style="{StaticResource TrainingResultCardStyle}">
+                                            <StackPanel>
+                                                <!-- Best / last checkpoint cards -->
+                                                <StackPanel Visibility="{Binding Monitor.ShowDualCheckpointResults, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                                    <TextBlock
+                                                        Margin="0,0,0,10"
+                                                        FontWeight="SemiBold"
+                                                        Text="训练权重" />
+                                                    <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
+                                                        <RadioButton
+                                                            Margin="0,0,16,0"
+                                                            Content="入库：最佳模型"
+                                                            GroupName="TrainingCheckpointSave"
+                                                            IsChecked="{Binding Monitor.IsBestCheckpointSelected, Mode=TwoWay}" />
+                                                        <RadioButton
+                                                            Content="入库：末轮模型"
+                                                            GroupName="TrainingCheckpointSave"
+                                                            IsChecked="{Binding Monitor.IsLastCheckpointSelected, Mode=TwoWay}" />
+                                                    </StackPanel>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="12" />
+                                                            <ColumnDefinition Width="*" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <Border
+                                                            Grid.Column="0"
+                                                            Padding="10"
+                                                            Background="{DynamicResource ControlFillColorDefaultBrush}"
+                                                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                                            BorderThickness="1"
+                                                            CornerRadius="8">
+                                                            <StackPanel DataContext="{Binding Monitor.BestCheckpointCard}">
+                                                                <TextBlock FontWeight="SemiBold" Text="{Binding Title}" />
+                                                                <TextBlock
+                                                                    Margin="0,6,0,0"
+                                                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                                    Text="{Binding EpochText}" />
+                                                                <TextBlock
+                                                                    Margin="0,4,0,0"
+                                                                    FontSize="18"
+                                                                    FontWeight="SemiBold"
+                                                                    Text="{Binding MetricText}" />
+                                                                <TextBlock
+                                                                    Margin="0,6,0,0"
+                                                                    FontFamily="Cascadia Mono, Consolas, Courier New"
+                                                                    FontSize="10"
+                                                                    Text="{Binding PathText}"
+                                                                    TextWrapping="Wrap" />
+                                                                <TextBlock
+                                                                    Margin="0,4,0,0"
+                                                                    FontSize="10"
+                                                                    Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                                                    Text="{Binding Footnote}"
+                                                                    TextWrapping="Wrap"
+                                                                    Visibility="{Binding HasFootnote, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                                            </StackPanel>
+                                                        </Border>
+                                                        <Border
+                                                            Grid.Column="2"
+                                                            Padding="10"
+                                                            Background="{DynamicResource ControlFillColorDefaultBrush}"
+                                                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                                            BorderThickness="1"
+                                                            CornerRadius="8">
+                                                            <StackPanel DataContext="{Binding Monitor.LastCheckpointCard}">
+                                                                <TextBlock FontWeight="SemiBold" Text="{Binding Title}" />
+                                                                <TextBlock
+                                                                    Margin="0,6,0,0"
+                                                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                                    Text="{Binding EpochText}" />
+                                                                <TextBlock
+                                                                    Margin="0,4,0,0"
+                                                                    FontSize="18"
+                                                                    FontWeight="SemiBold"
+                                                                    Text="{Binding MetricText}" />
+                                                                <TextBlock
+                                                                    Margin="0,6,0,0"
+                                                                    FontFamily="Cascadia Mono, Consolas, Courier New"
+                                                                    FontSize="10"
+                                                                    Text="{Binding PathText}"
+                                                                    TextWrapping="Wrap" />
+                                                                <TextBlock
+                                                                    Margin="0,4,0,0"
+                                                                    FontSize="10"
+                                                                    Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                                                    Text="{Binding Footnote}"
+                                                                    TextWrapping="Wrap"
+                                                                    Visibility="{Binding HasFootnote, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </Grid>
+                                                </StackPanel>
+
+                                                <!-- Single checkpoint (HALCON / legacy) -->
+                                                <StackPanel Visibility="{Binding Monitor.ShowSingleCheckpointResults, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                                    <TextBlock FontWeight="SemiBold" Text="最佳模型" />
+                                                    <TextBlock
+                                                        Margin="0,8,0,0"
+                                                        FontFamily="Cascadia Mono, Consolas, Courier New"
+                                                        FontSize="11"
+                                                        Text="{Binding JobList.SelectedJob.BestModelPath}"
+                                                        TextWrapping="Wrap" />
+                                                    <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                                                        <TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding Monitor.ResultsBestMetricLabel}" />
+                                                        <TextBlock FontWeight="SemiBold" Text="{Binding Monitor.ResultsBestMap50Text}" />
+                                                        <TextBlock
+                                                            Margin="8,0,0,0"
+                                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                            Text="{Binding Monitor.ResultsBestMap50EpochText}" />
+                                                    </StackPanel>
+                                                </StackPanel>
+
+                                                <StackPanel Margin="0,12,0,0" Orientation="Horizontal">
+                                                    <ui:Button
+                                                        Margin="0,0,8,0"
+                                                        Appearance="Primary"
+                                                        Command="{Binding Config.SaveAsModelCommand}"
+                                                        Content="保存所选到模型库"
+                                                        ToolTip="{Binding Monitor.SaveSelectedCheckpointToolTip}" />
+                                                    <ui:Button
+                                                        Margin="0,0,8,0"
+                                                        Appearance="Secondary"
+                                                        Command="{Binding Monitor.OpenSelectedCheckpointFolderCommand}"
+                                                        Content="打开目录" />
+                                                    <ui:Button
+                                                        Appearance="Secondary"
+                                                        Command="{Binding Monitor.Preview.OpenTrainingPlotsFolderCommand}"
+                                                        Content="打开图表目录"
+                                                        Visibility="{Binding Monitor.IsSelectedJobClassificationModel, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                                        ToolTip="训练图表：results / 混淆矩阵 / 汇总曲线（output/plots）" />
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- 训练图表文件（results.png / 混淆矩阵 / 汇总曲线） -->
+                                        <Border
+                                            Style="{StaticResource TrainingResultCardStyle}"
+                                            Visibility="{Binding Monitor.Preview.ShowClassificationTrainingPlots, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                            <StackPanel>
+                                                <TextBlock FontWeight="SemiBold" Text="训练图表" />
+                                                <TextBlock
+                                                    Margin="0,4,0,8"
+                                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                    FontSize="12"
+                                                    Text="来自 train/ 与 plots/：准确率曲线、损失、混淆矩阵等。点击可放大；右键可复制（预览区同款）。"
+                                                    TextWrapping="Wrap" />
+                                                <ItemsControl ItemsSource="{Binding Monitor.Preview.TrainingPlotImagePaths}">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <WrapPanel Orientation="Horizontal" />
+                                                        </ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Border
+                                                                Width="360"
+                                                                Height="280"
+                                                                Margin="0,0,12,12"
+                                                                Background="{DynamicResource ControlFillColorDefaultBrush}"
+                                                                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                                                BorderThickness="1"
+                                                                CornerRadius="6"
+                                                                ClipToBounds="True"
+                                                                Cursor="Hand"
+                                                                Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
+                                                                ToolTip="左键放大 · 右键复制到剪贴板">
+                                                                <Border.InputBindings>
+                                                                    <MouseBinding
+                                                                        Command="{Binding DataContext.Monitor.Preview.OpenPreviewLightboxCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
+                                                                        CommandParameter="{Binding}"
+                                                                        MouseAction="LeftClick" />
+                                                                </Border.InputBindings>
+                                                                <Border.ContextMenu>
+                                                                    <ContextMenu>
+                                                                        <MenuItem
+                                                                            Command="{Binding PlacementTarget.Tag.Monitor.Preview.CopyPreviewImageCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                                            CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                                            Header="复制到剪贴板" />
+                                                                    </ContextMenu>
+                                                                </Border.ContextMenu>
+                                                                <Image
+                                                                    IsHitTestVisible="False"
+                                                                    RenderOptions.BitmapScalingMode="HighQuality"
+                                                                    Source="{Binding Converter={StaticResource FilePathToImageConverter}}"
+                                                                    Stretch="Uniform" />
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <Border
+                                            Style="{StaticResource TrainingResultCardStyle}"
+                                            Visibility="{Binding Config.UsesNetworkInputSize, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                            <StackPanel>
+                                                <TextBlock FontWeight="SemiBold" Text="训练配置" />
+                                                <Grid Margin="0,10,0,0">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" MinWidth="88" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="Auto" />
+                                                    </Grid.RowDefinitions>
+                                                    <TextBlock
+                                                        Grid.Row="0"
+                                                        Grid.Column="0"
+                                                        Margin="0,0,12,6"
+                                                        Style="{StaticResource FieldLabelStyle}"
+                                                        Text="Epochs"
+                                                        Visibility="{Binding Config.UsesNetworkInputSize, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                                    <TextBlock
+                                                        Grid.Row="0"
+                                                        Grid.Column="1"
+                                                        Margin="0,0,0,6"
+                                                        Text="{Binding Config.Epochs}"
+                                                        Visibility="{Binding Config.UsesNetworkInputSize, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                                    <TextBlock
+                                                        Grid.Row="1"
+                                                        Grid.Column="0"
+                                                        Margin="0,0,12,6"
+                                                        Style="{StaticResource FieldLabelStyle}"
+                                                        Text="Batch Size" />
+                                                    <TextBlock
+                                                        Grid.Row="1"
+                                                        Grid.Column="1"
+                                                        Margin="0,0,0,6"
+                                                        Text="{Binding Config.BatchSize}" />
+                                                    <TextBlock
+                                                        Grid.Row="2"
+                                                        Grid.Column="0"
+                                                        Margin="0,0,12,6"
+                                                        Style="{StaticResource FieldLabelStyle}"
+                                                        Text="学习率"
+                                                        Visibility="{Binding Config.UsesNetworkInputSize, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                                    <TextBlock
+                                                        Grid.Row="2"
+                                                        Grid.Column="1"
+                                                        Margin="0,0,0,6"
+                                                        Text="{Binding Config.LearningRate}"
+                                                        Visibility="{Binding Config.UsesNetworkInputSize, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                                </Grid>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <Border Style="{StaticResource TrainingResultCardStyle}">
+                                            <StackPanel>
+                                                <TextBlock FontWeight="SemiBold" Text="训练耗时" />
+                                                <Grid Margin="0,10,0,0">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" MinWidth="88" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="Auto" />
+                                                    </Grid.RowDefinitions>
+                                                    <TextBlock
+                                                        Grid.Row="0"
+                                                        Grid.Column="0"
+                                                        Margin="0,0,12,6"
+                                                        Style="{StaticResource FieldLabelStyle}"
+                                                        Text="开始时间" />
+                                                    <TextBlock
+                                                        Grid.Row="0"
+                                                        Grid.Column="1"
+                                                        Margin="0,0,0,6"
+                                                        Text="{Binding Monitor.TrainingStartedAtText}"
+                                                        TextWrapping="Wrap" />
+                                                    <TextBlock
+                                                        Grid.Row="1"
+                                                        Grid.Column="0"
+                                                        Margin="0,0,12,6"
+                                                        Style="{StaticResource FieldLabelStyle}"
+                                                        Text="结束时间" />
+                                                    <TextBlock
+                                                        Grid.Row="1"
+                                                        Grid.Column="1"
+                                                        Margin="0,0,0,6"
+                                                        Text="{Binding Monitor.TrainingFinishedAtText}"
+                                                        TextWrapping="Wrap" />
+                                                    <TextBlock
+                                                        Grid.Row="2"
+                                                        Grid.Column="0"
+                                                        Margin="0,0,12,0"
+                                                        Style="{StaticResource FieldLabelStyle}"
+                                                        Text="总耗时" />
+                                                    <TextBlock
+                                                        Grid.Row="2"
+                                                        Grid.Column="1"
+                                                        Text="{Binding Monitor.TrainingDurationText}"
+                                                        TextWrapping="Wrap" />
+                                                </Grid>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+
+                                    <StackPanel
+                                        Style="{StaticResource EmptyStatePanelStyle}"
+                                        Visibility="{Binding Monitor.ShowResultsEmptyState, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                        <ui:SymbolIcon
+                                            HorizontalAlignment="Center"
+                                            FontSize="36"
+                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                            Symbol="ChartMultiple24" />
+                                        <TextBlock
+                                            Margin="0,12,0,0"
+                                            HorizontalAlignment="Center"
+                                            FontSize="16"
+                                            FontWeight="SemiBold"
+                                            Text="{Binding Monitor.ResultsEmptyTitle}" />
+                                        <TextBlock
+                                            Margin="0,6,0,0"
+                                            HorizontalAlignment="Center"
+                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                            Text="{Binding Monitor.ResultsEmptyDescription}"
+                                            TextAlignment="Center"
+                                            TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </ScrollViewer>
+</UserControl>

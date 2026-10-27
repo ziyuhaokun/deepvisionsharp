@@ -1,0 +1,192 @@
+<UserControl
+    x:Class="DeepVisionSharp.Shell.Views.Training.Sections.TrainingResourcesSection"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters"
+    xmlns:controls="clr-namespace:DeepVisionSharp.Shell.Controls"
+    xmlns:trainingControls="clr-namespace:DeepVisionSharp.Shell.Views.Training.Controls"
+    xmlns:vo="clr-namespace:DeepVisionSharp.Domain.ValueObjects;assembly=DeepVisionSharp.Domain">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Views/Training/TrainingDetailSharedResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid>
+                            <ScrollViewer
+                                x:Name="ResourcesScrollViewer"
+                                Grid.Row="0"
+                                Margin="16,6,16,0"
+                                HorizontalScrollBarVisibility="Disabled"
+                                MinHeight="0"
+                                VerticalAlignment="Stretch"
+                                VerticalScrollBarVisibility="Auto"
+                                Visibility="{Binding Monitor.IsResourcesSectionActive, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <Grid Margin="0,4,0,12" MinHeight="{Binding ViewportHeight, ElementName=ResourcesScrollViewer}">
+                                    <StackPanel VerticalAlignment="Top">
+                                        <Border
+                                            Margin="0,0,0,12"
+                                            Padding="12"
+                                            BorderBrush="{DynamicResource SystemFillColorCautionBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="4"
+                                            Visibility="{Binding Monitor.Resources.HasResourcePollingError, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                            <TextBlock
+                                                Foreground="{DynamicResource SystemFillColorCautionBrush}"
+                                                Text="{Binding Monitor.Resources.ResourcePollingError}"
+                                                TextWrapping="Wrap" />
+                                        </Border>
+
+                                        <Grid>
+                                    <UniformGrid
+                                        VerticalAlignment="Top"
+                                        Columns="3"
+                                        Rows="1"
+                                        Visibility="{Binding Monitor.Resources.HasResourceData, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                        <Border Margin="0,0,8,0" Style="{StaticResource TrainingMetricCardStyle}">
+                                            <StackPanel>
+                                                <TextBlock Style="{StaticResource FieldLabelStyle}" Text="CPU 使用率" />
+                                                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="{Binding Monitor.Resources.ResourceCpuPercent, StringFormat={}{0:F1}%}" />
+                                                <ProgressBar
+                                                    Maximum="100"
+                                                    Style="{StaticResource TrainingResourceProgressStyle}"
+                                                        Value="{Binding Monitor.Resources.ResourceCpuPercent, Mode=OneWay}" />
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Margin="0,0,8,0" Style="{StaticResource TrainingMetricCardStyle}">
+                                            <StackPanel>
+                                                <TextBlock Style="{StaticResource FieldLabelStyle}" Text="内存使用" />
+                                                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="{Binding Monitor.Resources.ResourceMemoryPercent, StringFormat={}{0:F1}%}" />
+                                                <ProgressBar
+                                                    Maximum="100"
+                                                    Style="{StaticResource TrainingResourceProgressStyle}"
+                                                        Value="{Binding Monitor.Resources.ResourceMemoryPercent, Mode=OneWay}" />
+                                            </StackPanel>
+                                        </Border>
+                                            <Border Style="{StaticResource TrainingMetricCardStyle}" Visibility="{Binding Monitor.HasGpuResourceData, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                            <StackPanel>
+                                                <TextBlock Style="{StaticResource FieldLabelStyle}" Text="GPU 使用率" />
+                                                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="{Binding Monitor.Resources.ResourceGpuPercent, StringFormat={}{0:F1}%}" />
+                                                <ProgressBar
+                                                    Maximum="100"
+                                                    Style="{StaticResource TrainingResourceProgressStyle}"
+                                                        Value="{Binding Monitor.Resources.ResourceGpuPercent, Mode=OneWay}" />
+                                            </StackPanel>
+                                        </Border>
+                                    </UniformGrid>
+
+                                    <StackPanel
+                                        Style="{StaticResource EmptyStatePanelStyle}"
+                                        Visibility="{Binding Monitor.Resources.HasResourceData, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+                                        <ui:SymbolIcon
+                                            HorizontalAlignment="Center"
+                                            FontSize="36"
+                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                            Symbol="DeveloperBoard24" />
+                                        <TextBlock
+                                            Margin="0,12,0,0"
+                                            HorizontalAlignment="Center"
+                                            FontSize="16"
+                                            FontWeight="SemiBold"
+                                            Text="暂无数据" />
+                                        <TextBlock
+                                            Margin="0,6,0,0"
+                                            HorizontalAlignment="Center"
+                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                            Text="切换到资源页后将显示系统资源监控"
+                                            TextAlignment="Center"
+                                            TextWrapping="Wrap" />
+                                    </StackPanel>
+                                        </Grid>
+                                    </StackPanel>
+                                </Grid>
+                            </ScrollViewer>
+                            <Grid
+                                Grid.Row="0"
+                                Margin="16,6,16,0"
+                                MinHeight="0"
+                                VerticalAlignment="Stretch">
+                                <Grid.Style>
+                                    <Style TargetType="{x:Type Grid}">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Monitor.IsLogsSectionActive}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Grid.Style>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" MinHeight="0" />
+                                </Grid.RowDefinitions>
+
+                                <StackPanel
+                                    Grid.Row="0"
+                                    Margin="0,4,0,8"
+                                    HorizontalAlignment="Right"
+                                    Orientation="Horizontal">
+                                    <CheckBox
+                                        Margin="0,0,12,0"
+                                        VerticalAlignment="Center"
+                                        Content="自动滚动"
+                                        IsChecked="{Binding Log.AutoScrollLog}" />
+                                    <ui:Button
+                                        Margin="0,0,8,0"
+                                        Appearance="Secondary"
+                                        Command="{Binding Log.CopyLogCommand}"
+                                        Content="复制" />
+                                    <ui:Button
+                                        Appearance="Secondary"
+                                        Command="{Binding Log.ClearLogCommand}"
+                                        Content="清空" />
+                                </StackPanel>
+
+                                <Border
+                                    Grid.Row="1"
+                                    ClipToBounds="True"
+                                    VerticalAlignment="Stretch"
+                                    Background="{DynamicResource ControlFillColorDefaultBrush}"
+                                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="6">
+                                    <Grid>
+                                        <ScrollViewer
+                                            x:Name="LogScrollViewer"
+                                            CanContentScroll="False"
+                                            HorizontalScrollBarVisibility="Disabled"
+                                            VerticalAlignment="Stretch"
+                                            VerticalScrollBarVisibility="Auto">
+                                            <TextBlock
+                                                x:Name="LogTextBlock"
+                                                Padding="8"
+                                                FontFamily="Cascadia Mono, Consolas, Courier New"
+                                                FontSize="8"
+                                                Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                Text="{Binding Log.LiveLog}"
+                                                TextWrapping="Wrap" />
+                                        </ScrollViewer>
+
+                                        <TextBlock
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                            Text="训练开始后将在此显示日志">
+                                            <TextBlock.Style>
+                                                <Style TargetType="{x:Type TextBlock}">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Log.HasLogContent}" Value="False">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+    </Grid>
+</UserControl>

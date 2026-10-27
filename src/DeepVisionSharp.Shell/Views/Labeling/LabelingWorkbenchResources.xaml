@@ -1,0 +1,167 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+
+    <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" />
+
+    <Style TargetType="{x:Type TextBlock}">
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    </Style>
+
+    <Style
+        x:Key="WorkbenchCardStyle"
+        BasedOn="{StaticResource {x:Type ui:Card}}"
+        TargetType="{x:Type ui:Card}">
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="0" />
+    </Style>
+
+    <Style x:Key="PanelHeaderStyle" TargetType="{x:Type Border}">
+        <Setter Property="Padding" Value="8,6" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="0,0,0,1" />
+    </Style>
+
+    <Style x:Key="PanelTitleStyle" TargetType="{x:Type TextBlock}">
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    </Style>
+
+    <Style x:Key="ToolSectionStyle" TargetType="{x:Type Border}">
+        <Setter Property="Padding" Value="8" />
+        <Setter Property="Margin" Value="0,0,0,8" />
+        <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="6" />
+    </Style>
+
+    <Style x:Key="SectionTitleStyle" TargetType="{x:Type TextBlock}">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    </Style>
+
+    <Style x:Key="MutedTextStyle" TargetType="{x:Type TextBlock}">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    </Style>
+
+    <Style x:Key="LabelHotkeyBadgeStyle" TargetType="{x:Type Border}">
+        <Setter Property="Padding" Value="5,2" />
+        <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="4" />
+    </Style>
+
+    <Style
+        x:Key="IconButtonStyle"
+        BasedOn="{StaticResource {x:Type ui:Button}}"
+        TargetType="{x:Type ui:Button}">
+        <Setter Property="Width" Value="38" />
+        <Setter Property="Height" Value="34" />
+        <Setter Property="MinWidth" Value="38" />
+        <Setter Property="Padding" Value="0" />
+    </Style>
+
+    <Style
+        x:Key="ToolIconButtonStyle"
+        BasedOn="{StaticResource IconButtonStyle}"
+        TargetType="{x:Type ui:Button}">
+        <Setter Property="Width" Value="42" />
+        <Setter Property="Height" Value="40" />
+        <Setter Property="MinWidth" Value="42" />
+    </Style>
+
+    <Style
+        x:Key="FloatingIconButtonStyle"
+        BasedOn="{StaticResource IconButtonStyle}"
+        TargetType="{x:Type ui:Button}">
+        <Setter Property="Width" Value="36" />
+        <Setter Property="Height" Value="32" />
+        <Setter Property="MinWidth" Value="36" />
+    </Style>
+
+    <Style x:Key="SampleTileStyle" TargetType="{x:Type Border}">
+        <Setter Property="Width" Value="96" />
+        <Setter Property="Height" Value="88" />
+        <Setter Property="Margin" Value="0,0,6,0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="ClipToBounds" Value="True" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="BorderBrush" Value="{DynamicResource TextFillColorTertiaryBrush}" />
+            </Trigger>
+            <DataTrigger Binding="{Binding IsActive}" Value="True">
+                <Setter Property="BorderBrush" Value="#3B82F6" />
+                <Setter Property="BorderThickness" Value="2" />
+                <Setter Property="Background" Value="#0D3B82F6" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="SampleIndexBadgeStyle" TargetType="{x:Type Border}">
+        <Setter Property="MinWidth" Value="18" />
+        <Setter Property="Height" Value="16" />
+        <Setter Property="Padding" Value="4,0" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Background" Value="#CC0F172A" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsActive}" Value="True">
+                <Setter Property="Background" Value="#E63B82F6" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="SampleProgressBadgeStyle" TargetType="{x:Type Border}">
+        <Setter Property="Padding" Value="8,3" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Background" Value="#2622C55E" />
+    </Style>
+
+    <Style
+        x:Key="SamplePageNavButtonStyle"
+        BasedOn="{StaticResource FloatingIconButtonStyle}"
+        TargetType="{x:Type ui:Button}">
+        <Setter Property="Width" Value="24" />
+        <Setter Property="Height" Value="24" />
+        <Setter Property="MinWidth" Value="24" />
+        <Setter Property="Appearance" Value="Transparent" />
+    </Style>
+
+    <Style
+        x:Key="SampleNavButtonStyle"
+        BasedOn="{StaticResource FloatingIconButtonStyle}"
+        TargetType="{x:Type ui:Button}">
+        <Setter Property="Width" Value="28" />
+        <Setter Property="Height" Value="28" />
+        <Setter Property="MinWidth" Value="28" />
+        <Setter Property="Appearance" Value="Secondary" />
+    </Style>
+
+    <Style
+        x:Key="SamplePanelToggleButtonStyle"
+        BasedOn="{StaticResource SampleNavButtonStyle}"
+        TargetType="{x:Type ui:Button}">
+        <Setter Property="Icon" Value="{ui:SymbolIcon ChevronDown24}" />
+        <Setter Property="ToolTip" Value="展开样本列表" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Samples.IsSamplePanelExpanded}" Value="True">
+                <Setter Property="Icon" Value="{ui:SymbolIcon ChevronUp24}" />
+                <Setter Property="ToolTip" Value="收起样本列表" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+</ResourceDictionary>

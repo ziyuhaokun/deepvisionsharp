@@ -1,0 +1,341 @@
+<UserControl
+    x:Class="DeepVisionSharp.Shell.Views.Pages.Sections.SettingsAboutSection"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Views/Pages/SettingsPageResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+                    <StackPanel Visibility="{Binding IsAboutSelected, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Style="{StaticResource SectionTitleStyle}" Text="应用" />
+                        <ui:Card Style="{StaticResource SettingsCardStyle}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Image
+                                    Width="56"
+                                    Height="56"
+                                    RenderOptions.BitmapScalingMode="HighQuality"
+                                    SnapsToDevicePixels="True"
+                                    Source="/DeepVisionSharp;component/Resources/logo.png"
+                                    Stretch="Uniform" />
+                                <StackPanel Grid.Column="1" Margin="16,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock
+                                        FontSize="20"
+                                        FontWeight="SemiBold"
+                                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                        Text="DeepVisionSharp 深度学习平台" />
+                                    <TextBlock
+                                        Margin="0,4,0,0"
+                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                        Text="{Binding AppVersion, StringFormat=版本 {0}}" />
+                                    <TextBlock
+                                        Margin="0,6,0,0"
+                                        Style="{StaticResource RowSubtitleStyle}"
+                                        Text="深度学习标注、训练与推理工作台" />
+                                </StackPanel>
+                            </Grid>
+                        </ui:Card>
+
+                        <TextBlock Style="{StaticResource SectionTitleStyle}" Text="本版更新" />
+                        <ui:Card Style="{StaticResource SettingsCardStyle}">
+                            <StackPanel>
+                                <TextBlock
+                                    Style="{StaticResource RowSubtitleStyle}"
+                                    Text="{Binding ChangeLogEmptyHint}"
+                                    Visibility="{Binding HasCurrentChangeLogEntry, Converter={StaticResource InverseBooleanToVisibilityConverter}}"
+                                    TextWrapping="Wrap" />
+
+                                <StackPanel
+                                    Visibility="{Binding HasCurrentChangeLogEntry, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            FontSize="16"
+                                            FontWeight="SemiBold"
+                                            Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                            Text="{Binding CurrentChangeLogEntry.VersionBadge}" />
+                                        <Border
+                                            Grid.Column="1"
+                                            Padding="8,2"
+                                            Background="{DynamicResource SystemAccentColorPrimaryBrush}"
+                                            CornerRadius="4"
+                                            VerticalAlignment="Center">
+                                            <TextBlock
+                                                FontSize="11"
+                                                Foreground="{DynamicResource TextOnAccentFillColorPrimaryBrush}"
+                                                Text="当前" />
+                                        </Border>
+                                    </Grid>
+                                    <TextBlock
+                                        Margin="0,4,0,0"
+                                        Style="{StaticResource RowSubtitleStyle}"
+                                        Text="{Binding CurrentChangeLogEntry.ReleasedOn, StringFormat=发布日期 {0}}"
+                                        Visibility="{Binding HasCurrentChangeLogReleasedOn, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                    <TextBlock
+                                        Margin="0,2,0,0"
+                                        Style="{StaticResource RowSubtitleStyle}"
+                                        Text="{Binding CurrentChangeLogEntry.Tags, StringFormat=标签 {0}}"
+                                        Visibility="{Binding HasCurrentChangeLogTags, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                    <ItemsControl
+                                        Margin="0,12,0,0"
+                                        ItemsSource="{Binding CurrentChangeLogEntry.Items}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="0,0,0,8">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="16" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock
+                                                        VerticalAlignment="Top"
+                                                        Foreground="{DynamicResource SystemAccentColorPrimaryBrush}"
+                                                        Text="•" />
+                                                    <TextBlock
+                                                        Grid.Column="1"
+                                                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                        Text="{Binding}"
+                                                        TextWrapping="Wrap" />
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </StackPanel>
+                        </ui:Card>
+
+                        <TextBlock Style="{StaticResource SectionTitleStyle}" Text="更新历史" />
+                        <ui:Card Style="{StaticResource SettingsCardStyle}">
+                            <StackPanel>
+                                <TextBlock
+                                    Style="{StaticResource RowSubtitleStyle}"
+                                    Text="{Binding HistoricalVersionsHint}"
+                                    Visibility="{Binding HasHistoricalChangeLogEntries, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{StaticResource RowSubtitleStyle}"
+                                    Text="暂无更早的历史版本节点。"
+                                    Visibility="{Binding HasHistoricalChangeLogEntries, Converter={StaticResource InverseBooleanToVisibilityConverter}}"
+                                    TextWrapping="Wrap" />
+
+                                <ItemsControl
+                                    Margin="0,8,0,0"
+                                    ItemsSource="{Binding HistoricalChangeLogEntries}"
+                                    Visibility="{Binding HasHistoricalChangeLogEntries, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Expander
+                                                Margin="0,0,0,8"
+                                                Header="{Binding Title}"
+                                                IsExpanded="False">
+                                                <ItemsControl Margin="8,8,0,4" ItemsSource="{Binding Items}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Grid Margin="0,0,0,6">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="16" />
+                                                                    <ColumnDefinition Width="*" />
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock
+                                                                    VerticalAlignment="Top"
+                                                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                                    Text="•" />
+                                                                <TextBlock
+                                                                    Grid.Column="1"
+                                                                    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                                    Text="{Binding}"
+                                                                    TextWrapping="Wrap" />
+                                                            </Grid>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </Expander>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </ui:Card>
+
+                        <TextBlock Style="{StaticResource SectionTitleStyle}" Text="运行环境" />
+                        <ui:Card Style="{StaticResource SettingsCardStyle}">
+                            <StackPanel>
+                                <Border Style="{StaticResource SettingsRowStyle}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="120" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                            Text="运行时" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            VerticalAlignment="Center"
+                                            Text="{Binding RuntimeVersion}"
+                                            TextWrapping="Wrap" />
+                                    </Grid>
+                                </Border>
+                                <Border Style="{StaticResource SettingsRowStyle}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="120" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                            Text="操作系统" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            VerticalAlignment="Center"
+                                            Text="{Binding OsVersion}"
+                                            TextWrapping="Wrap" />
+                                    </Grid>
+                                </Border>
+                                <Border Style="{StaticResource SettingsRowStyle}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="120" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                            Text="应用数据" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            VerticalAlignment="Center"
+                                            Margin="0,0,8,0"
+                                            Text="{Binding AppDataDirectory}"
+                                            TextTrimming="CharacterEllipsis"
+                                            ToolTip="{Binding AppDataDirectory}" />
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                            <ui:Button
+                                                Appearance="Transparent"
+                                                Command="{Binding CopyTextCommand}"
+                                                CommandParameter="{Binding AppDataDirectory}"
+                                                Icon="{ui:SymbolIcon Copy24}"
+                                                ToolTip="复制" />
+                                            <ui:Button
+                                                Appearance="Transparent"
+                                                Command="{Binding OpenAppDataFolderCommand}"
+                                                Icon="{ui:SymbolIcon FolderOpen24}"
+                                                ToolTip="打开" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                                <Border Style="{StaticResource SettingsRowStyle}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="120" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                            Text="日志目录" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            VerticalAlignment="Center"
+                                            Margin="0,0,8,0"
+                                            Text="{Binding LogsDirectory}"
+                                            TextTrimming="CharacterEllipsis"
+                                            ToolTip="{Binding LogsDirectory}" />
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                            <ui:Button
+                                                Appearance="Transparent"
+                                                Command="{Binding CopyTextCommand}"
+                                                CommandParameter="{Binding LogsDirectory}"
+                                                Icon="{ui:SymbolIcon Copy24}"
+                                                ToolTip="复制" />
+                                            <ui:Button
+                                                Appearance="Transparent"
+                                                Command="{Binding OpenLogsFolderCommand}"
+                                                Icon="{ui:SymbolIcon FolderOpen24}"
+                                                ToolTip="打开" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                                <Border Style="{StaticResource SettingsRowStyle}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="120" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                            Text="崩溃转储" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            VerticalAlignment="Center"
+                                            Margin="0,0,8,0"
+                                            Text="{Binding CrashDumpsDirectory}"
+                                            TextTrimming="CharacterEllipsis"
+                                            ToolTip="{Binding CrashDumpsDirectory}" />
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                            <ui:Button
+                                                Appearance="Transparent"
+                                                Command="{Binding CopyTextCommand}"
+                                                CommandParameter="{Binding CrashDumpsDirectory}"
+                                                Icon="{ui:SymbolIcon Copy24}"
+                                                ToolTip="复制" />
+                                            <ui:Button
+                                                Appearance="Transparent"
+                                                Command="{Binding OpenCrashDumpsFolderCommand}"
+                                                Icon="{ui:SymbolIcon FolderOpen24}"
+                                                ToolTip="打开" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                                <Border Style="{StaticResource SettingsRowStyle}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="120" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                            Text="模型目录" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            VerticalAlignment="Center"
+                                            Margin="0,0,8,0"
+                                            Text="{Binding ModelsDirectory}"
+                                            TextTrimming="CharacterEllipsis"
+                                            ToolTip="{Binding ModelsDirectory}" />
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                            <ui:Button
+                                                Appearance="Transparent"
+                                                Command="{Binding CopyTextCommand}"
+                                                CommandParameter="{Binding ModelsDirectory}"
+                                                Icon="{ui:SymbolIcon Copy24}"
+                                                ToolTip="复制" />
+                                            <ui:Button
+                                                Appearance="Transparent"
+                                                Command="{Binding OpenModelsFolderCommand}"
+                                                Icon="{ui:SymbolIcon FolderOpen24}"
+                                                ToolTip="打开" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </ui:Card>
+                    </StackPanel>
+</UserControl>

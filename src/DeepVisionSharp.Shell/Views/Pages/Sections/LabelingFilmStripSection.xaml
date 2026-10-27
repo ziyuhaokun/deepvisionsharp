@@ -1,0 +1,350 @@
+<UserControl
+    x:Class="DeepVisionSharp.Shell.Views.Pages.Sections.LabelingFilmStripSection"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Views/Labeling/LabelingWorkbenchResources.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Views/Labeling/LabelingRailTemplates.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <DataTemplate x:Key="SampleTileTemplate">
+                <Border
+                    MouseLeftButtonUp="OnSampleTileMouseLeftButtonUp"
+                    Style="{StaticResource SampleTileStyle}">
+                    <Border.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Click="OnSetSampleAnchorMenuItemClicked" Header="设为标注锚点">
+                                <MenuItem.Style>
+                                    <Style TargetType="{x:Type MenuItem}">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsAnchor}" Value="True">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </MenuItem.Style>
+                            </MenuItem>
+                            <MenuItem Click="OnClearSampleAnchorMenuItemClicked" Header="取消标注锚点">
+                                <MenuItem.Style>
+                                    <Style TargetType="{x:Type MenuItem}">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsAnchor}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </MenuItem.Style>
+                            </MenuItem>
+                            <MenuItem Click="OnDeleteSampleMenuItemClicked" Header="删除样本" />
+                        </ContextMenu>
+                    </Border.ContextMenu>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <Grid ClipToBounds="True">
+                            <Image
+                                Source="{Binding Thumbnail}"
+                                Stretch="UniformToFill" />
+                            <ui:SymbolIcon
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                FontSize="20"
+                                Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                Symbol="Image24">
+                                <ui:SymbolIcon.Style>
+                                    <Style TargetType="{x:Type ui:SymbolIcon}">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Thumbnail}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ui:SymbolIcon.Style>
+                            </ui:SymbolIcon>
+
+                            <StackPanel
+                                Margin="4,4,0,0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                Orientation="Horizontal">
+                                <CheckBox
+                                    VerticalAlignment="Center"
+                                    IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                    IsHitTestVisible="True" />
+                                <Border
+                                    Margin="3,0,0,0"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource SampleIndexBadgeStyle}">
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontSize="10"
+                                        FontWeight="SemiBold"
+                                        Foreground="White"
+                                        Text="{Binding Index}" />
+                                </Border>
+                            </StackPanel>
+
+                            <StackPanel
+                                Margin="0,4,4,0"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Top"
+                                Orientation="Horizontal">
+                                <ui:SymbolIcon
+                                    Margin="0,0,4,0"
+                                    VerticalAlignment="Center"
+                                    FontSize="12"
+                                    Foreground="{DynamicResource SystemFillColorCautionBrush}"
+                                    Symbol="Pin24"
+                                    ToolTip="标注锚点">
+                                    <ui:SymbolIcon.Style>
+                                        <Style TargetType="{x:Type ui:SymbolIcon}">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsAnchor}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ui:SymbolIcon.Style>
+                                </ui:SymbolIcon>
+                                <Ellipse
+                                    Width="8"
+                                    Height="8"
+                                    VerticalAlignment="Center"
+                                    Stroke="#66000000"
+                                    StrokeThickness="1">
+                                    <Ellipse.Style>
+                                        <Style TargetType="{x:Type Ellipse}">
+                                            <Setter Property="Fill" Value="{DynamicResource SystemFillColorSolidNeutralBrush}" />
+                                            <Setter Property="ToolTip" Value="未标注" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsAnnotated}" Value="True">
+                                                    <Setter Property="Fill" Value="{DynamicResource SystemFillColorSuccessBrush}" />
+                                                    <Setter Property="ToolTip" Value="已标注" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding HasError}" Value="True">
+                                                    <Setter Property="Fill" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+                                                    <Setter Property="ToolTip" Value="异常" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Ellipse.Style>
+                                </Ellipse>
+                            </StackPanel>
+                        </Grid>
+
+                        <Border
+                            Grid.Row="1"
+                            Padding="4,3"
+                            Background="{DynamicResource ControlFillColorSecondaryBrush}">
+                            <TextBlock
+                                FontSize="10"
+                                FontWeight="SemiBold"
+                                Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                Text="{Binding FileName}"
+                                TextAlignment="Center"
+                                TextTrimming="CharacterEllipsis"
+                                ToolTip="{Binding FileName}" />
+                        </Border>
+                    </Grid>
+                </Border>
+            </DataTemplate>
+    </ResourceDictionary>
+    </UserControl.Resources>
+                <Border
+                    Grid.Row="1"
+                    Margin="6,0,6,4"
+                    Padding="8,6"
+                    Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <!-- Toolbar: title + progress | primary sample nav | page nav + collapse -->
+                        <Grid MinHeight="32" VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel
+                                VerticalAlignment="Center"
+                                Orientation="Horizontal">
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    FontSize="13"
+                                    FontWeight="SemiBold"
+                                    Text="样本列表" />
+                                <Border
+                                    Margin="8,0,0,0"
+                                    Style="{StaticResource SampleProgressBadgeStyle}">
+                                    <TextBlock
+                                        FontSize="11"
+                                        FontWeight="SemiBold"
+                                        Foreground="{DynamicResource SystemFillColorSuccessBrush}"
+                                        Text="{Binding Workspace.GalleryProgressText}" />
+                                </Border>
+                            </StackPanel>
+
+                            <!-- Primary: sample navigation -->
+                            <Border
+                                Grid.Column="1"
+                                Padding="4,2"
+                                VerticalAlignment="Center"
+                                Background="{DynamicResource ControlFillColorDefaultBrush}"
+                                CornerRadius="8"
+                                Visibility="{Binding Samples.HasSamples, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:Button
+                                        AutomationProperties.AutomationId="dv.labeling.sample.prev"
+                                        Command="{Binding Samples.NavigatePreviousSampleCommand}"
+                                        Icon="{ui:SymbolIcon ChevronLeft24}"
+                                        Style="{StaticResource SampleNavButtonStyle}"
+                                        ToolTip="上一张" />
+                                    <TextBlock
+                                        MinWidth="56"
+                                        Margin="6,0"
+                                        VerticalAlignment="Center"
+                                        AutomationProperties.AutomationId="dv.labeling.sample.position"
+                                        FontSize="13"
+                                        FontWeight="SemiBold"
+                                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                        Text="{Binding Samples.ActiveSamplePositionText}"
+                                        TextAlignment="Center" />
+                                    <ui:Button
+                                        AutomationProperties.AutomationId="dv.labeling.sample.next"
+                                        Command="{Binding Samples.NavigateNextSampleCommand}"
+                                        Icon="{ui:SymbolIcon ChevronRight24}"
+                                        Style="{StaticResource SampleNavButtonStyle}"
+                                        ToolTip="下一张（→；差异分类可用 Tab）" />
+                                </StackPanel>
+                            </Border>
+
+                            <StackPanel
+                                Grid.Column="2"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                Orientation="Horizontal">
+                                <!-- Secondary: page navigation (A1) -->
+                                <StackPanel Orientation="Horizontal">
+                                    <StackPanel.Style>
+                                        <Style TargetType="{x:Type StackPanel}">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding Samples.IsSamplePanelExpanded}" Value="True" />
+                                                        <Condition Binding="{Binding Samples.HasSamples}" Value="True" />
+                                                    </MultiDataTrigger.Conditions>
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </MultiDataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+                                    <TextBlock
+                                        Margin="0,0,4,0"
+                                        VerticalAlignment="Center"
+                                        FontSize="11"
+                                        Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                        Text="页" />
+                                    <ui:Button
+                                        Command="{Binding Samples.GoToPreviousSamplePageCommand}"
+                                        Icon="{ui:SymbolIcon ChevronLeft24}"
+                                        Style="{StaticResource SamplePageNavButtonStyle}"
+                                        ToolTip="上一页" />
+                                    <TextBlock
+                                        MinWidth="40"
+                                        Margin="2,0"
+                                        VerticalAlignment="Center"
+                                        FontSize="11"
+                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                        Text="{Binding Samples.SamplePageText}"
+                                        TextAlignment="Center" />
+                                    <ui:Button
+                                        Margin="0,0,8,0"
+                                        Command="{Binding Samples.GoToNextSamplePageCommand}"
+                                        Icon="{ui:SymbolIcon ChevronRight24}"
+                                        Style="{StaticResource SamplePageNavButtonStyle}"
+                                        ToolTip="下一页" />
+                                </StackPanel>
+                                <ui:Button
+                                    Command="{Binding Samples.ToggleSamplePanelCommand}"
+                                    Style="{StaticResource SamplePanelToggleButtonStyle}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Empty state (no double border) -->
+                        <TextBlock
+                            Grid.Row="1"
+                            Margin="0,10,0,4"
+                            HorizontalAlignment="Center"
+                            Text="暂无样本">
+                            <TextBlock.Style>
+                                <Style BasedOn="{StaticResource MutedTextStyle}" TargetType="{x:Type TextBlock}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding Samples.IsSamplePanelExpanded}" Value="True" />
+                                                <Condition Binding="{Binding Samples.HasNoSamples}" Value="True" />
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </MultiDataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+
+                        <!-- Thumbnail strip -->
+                        <ScrollViewer
+                            Grid.Row="1"
+                            Margin="0,8,0,0"
+                            HorizontalScrollBarVisibility="Auto"
+                            VerticalScrollBarVisibility="Disabled">
+                            <ScrollViewer.Style>
+                                <Style TargetType="{x:Type ScrollViewer}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding Samples.IsSamplePanelExpanded}" Value="True" />
+                                                <Condition Binding="{Binding Samples.HasSamples}" Value="True" />
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </MultiDataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ScrollViewer.Style>
+                            <ItemsControl
+                                HorizontalAlignment="Left"
+                                ItemTemplate="{StaticResource SampleTileTemplate}"
+                                ItemsSource="{Binding Samples.SamplePageItems}"
+                                VirtualizingPanel.IsVirtualizing="True"
+                                VirtualizingPanel.VirtualizationMode="Recycling">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <VirtualizingStackPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+</UserControl>

@@ -1,0 +1,46 @@
+<UserControl
+    x:Class="DeepVisionSharp.Shell.Views.Pages.Sections.DashboardFilterSection"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Views/Pages/DashboardPageResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+                <!-- 筛选栏：搜索框随宽度伸缩，类型固定 -->
+                <Border
+                    Grid.Row="1"
+                    Margin="0,16,0,0"
+                    Padding="14"
+                    Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="10">
+                    <DockPanel LastChildFill="True">
+                        <ComboBox
+                            DockPanel.Dock="Right"
+                            MinWidth="140"
+                            MaxWidth="240"
+                            Width="200"
+                            Margin="12,0,0,0"
+                            VerticalAlignment="Center"
+                            DisplayMemberPath="Label"
+                            ItemsSource="{Binding List.ProjectTypeOptions}"
+                            SelectedValue="{Binding List.SelectedType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            SelectedValuePath="Value" />
+                        <ui:TextBox
+                            MinWidth="160"
+                            VerticalAlignment="Center"
+                            Icon="{ui:SymbolIcon Search24}"
+                            PlaceholderText="搜索项目名称或描述..."
+                            Text="{Binding List.Keyword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    </DockPanel>
+                </Border>
+</UserControl>

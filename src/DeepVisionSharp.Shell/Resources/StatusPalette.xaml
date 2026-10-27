@@ -1,0 +1,40 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+      Shell-wide status palette. Solid fills stay theme-independent so white text keeps the
+      same contrast in both themes; WPF-UI semantic brushes (SystemFillColor*) are used for
+      icons, text and borders, and switch with the theme. Translucent 15% tints are kept as
+      named brushes because there is no semantic equivalent for every hue (blue/cyan/emerald).
+    -->
+
+    <!-- Training job status badges (solid fill + white text) -->
+    <SolidColorBrush x:Key="TrainingJobDraftBadgeBrush" Color="#334155" />
+    <SolidColorBrush x:Key="TrainingJobPreparingBadgeBrush" Color="#0369A1" />
+    <SolidColorBrush x:Key="TrainingJobRunningBadgeBrush" Color="#1D4ED8" />
+    <SolidColorBrush x:Key="TrainingJobSucceededBadgeBrush" Color="#15803D" />
+    <SolidColorBrush x:Key="TrainingJobFailedBadgeBrush" Color="#B91C1C" />
+    <SolidColorBrush x:Key="TrainingJobCancelledBadgeBrush" Color="#B45309" />
+
+    <!-- Selected dataset-role chips (solid fill + white text) -->
+    <SolidColorBrush x:Key="DatasetRoleTrainingSolidBrush" Color="#22C55E" />
+    <SolidColorBrush x:Key="DatasetRoleValidationSolidBrush" Color="#3B82F6" />
+    <SolidColorBrush x:Key="DatasetRoleDualSolidBrush" Color="#F59E0B" />
+    <SolidColorBrush x:Key="DatasetRoleDefectSolidBrush" Color="#EF4444" />
+    <SolidColorBrush x:Key="DatasetRoleNoneSolidBrush" Color="#64748B" />
+
+    <!-- Task center status chips -->
+    <SolidColorBrush x:Key="StatusRunningTintBrush" Color="#263B82F6" />
+    <SolidColorBrush x:Key="StatusSucceededTintBrush" Color="#2622C55E" />
+    <SolidColorBrush x:Key="StatusFailedTintBrush" Color="#26EF4444" />
+
+    <!-- Model library status chips -->
+    <SolidColorBrush x:Key="ModelStatusCreatingTintBrush" Color="#263B82F6" />
+    <SolidColorBrush x:Key="ModelStatusPendingTintBrush" Color="#26F59E0B" />
+    <SolidColorBrush x:Key="ModelStatusTrainingTintBrush" Color="#2606B6D4" />
+    <SolidColorBrush x:Key="ModelStatusCompletedTintBrush" Color="#2622C55E" />
+    <SolidColorBrush x:Key="ModelStatusPublishedTintBrush" Color="#2610B981" />
+    <SolidColorBrush x:Key="ModelStatusTrainingTextBrush" Color="#FF22D3EE" />
+    <SolidColorBrush x:Key="ModelStatusPublishedTextBrush" Color="#FF34D399" />
+</ResourceDictionary>

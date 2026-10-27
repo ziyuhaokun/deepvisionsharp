@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\DeepVisionSharp.Application\DeepVisionSharp.Application.csproj" />
+    <ProjectReference Include="..\DeepVisionSharp.Bootstrap\DeepVisionSharp.Bootstrap.csproj" />
+    <ProjectReference Include="..\DeepVisionSharp.Domain\DeepVisionSharp.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
+    <PackageReference Include="WPF-UI" Version="4.3.0" />
+    <PackageReference Include="WPF-UI.DependencyInjection" Version="4.3.0" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <AssemblyName>DeepVisionSharp</AssemblyName>
+    <RootNamespace>DeepVisionSharp.Shell</RootNamespace>
+    <Product>DeepVisionSharp</Product>
+    <Title>DeepVisionSharp</Title>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <PlatformTarget>x64</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <Version>0.0.1</Version>
+    <AssemblyVersion>0.0.1</AssemblyVersion>
+    <FileVersion>0.0.1</FileVersion>
+    <ApplicationIcon>Resources\logo.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\logo.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="license.txt" CopyToOutputDirectory="PreserveNewest" />
+    <!-- 用户版变更日志（现场/设置页「关于」）；开发者技术细节见仓库根 CHANGELOG.Developer.md（不复制） -->
+    <None Include="..\..\CHANGELOG.md" Link="CHANGELOG.md" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

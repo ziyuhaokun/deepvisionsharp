@@ -1,0 +1,178 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters">
+
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <converters:ProjectTypeVisualConverter x:Key="ProjectTypeVisualConverter" />
+        <converters:RoundedClipConverter x:Key="RoundedClipConverter" />
+
+        <Style TargetType="{x:Type TextBlock}">
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+        </Style>
+
+        <Style
+            x:Key="ProjectCardStyle"
+            BasedOn="{StaticResource {x:Type ui:Card}}"
+            TargetType="{x:Type ui:Card}">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0,0,12,12" />
+            <Setter Property="MinHeight" Value="200" />
+            <Setter Property="Height" Value="220" />
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="ClipToBounds" Value="True" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+            <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ui:Card}">
+                        <Border
+                            Padding="{TemplateBinding Padding}"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="8">
+                            <Grid>
+                                <ContentPresenter
+                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    Content="{TemplateBinding Content}"
+                                    ContentTemplate="{TemplateBinding ContentTemplate}" />
+                                <Border
+                                    x:Name="HoverHighlight"
+                                    IsHitTestVisible="False"
+                                    BorderBrush="{DynamicResource SystemAccentColorPrimaryBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Opacity="0" />
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation
+                                                Storyboard.TargetName="HoverHighlight"
+                                                Storyboard.TargetProperty="Opacity"
+                                                To="1"
+                                                Duration="0:0:0.15" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation
+                                                Storyboard.TargetName="HoverHighlight"
+                                                Storyboard.TargetProperty="Opacity"
+                                                To="0"
+                                                Duration="0:0:0.15" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Trigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation
+                                    Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
+                                    To="-2"
+                                    Duration="0:0:0.15">
+                                    <DoubleAnimation.EasingFunction>
+                                        <CubicEase EasingMode="EaseOut" />
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.EnterActions>
+                    <Trigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation
+                                    Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
+                                    To="0"
+                                    Duration="0:0:0.15">
+                                    <DoubleAnimation.EasingFunction>
+                                        <CubicEase EasingMode="EaseOut" />
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.ExitActions>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style
+            x:Key="TransferOverlayCardStyle"
+            BasedOn="{StaticResource {x:Type ui:Card}}"
+            TargetType="{x:Type ui:Card}">
+            <Setter Property="Padding" Value="28" />
+            <Setter Property="MinWidth" Value="480" />
+            <Setter Property="MaxWidth" Value="520" />
+        </Style>
+
+        <Style x:Key="TransferProgressBarStyle" TargetType="{x:Type ProgressBar}">
+            <Setter Property="Height" Value="6" />
+            <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource SystemAccentColorPrimaryBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+
+        <Style x:Key="ProjectCardTitleTextStyle" TargetType="{x:Type TextBlock}">
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+        </Style>
+
+        <Style x:Key="ProjectCardDescriptionTextStyle" TargetType="{x:Type TextBlock}">
+            <Setter Property="FontSize" Value="12.5" />
+            <Setter Property="LineHeight" Value="19" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}" />
+        </Style>
+
+        <Style x:Key="ProjectCardMetaTextStyle" TargetType="{x:Type TextBlock}">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+        </Style>
+
+        <Style x:Key="ProjectCardBadgeTextStyle" TargetType="{x:Type TextBlock}">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+
+        <Style x:Key="ProjectTypeIconBorderStyle" TargetType="{x:Type Border}">
+            <Setter Property="Width" Value="38" />
+            <Setter Property="Height" Value="38" />
+            <Setter Property="CornerRadius" Value="9" />
+        </Style>
+
+        <Style x:Key="ProjectTypeIconStyle" TargetType="{x:Type ui:SymbolIcon}">
+            <Setter Property="FontSize" Value="19" />
+        </Style>
+
+        <Style x:Key="ProjectTypeBadgeStyle" TargetType="{x:Type Border}">
+            <Setter Property="Padding" Value="9,4" />
+            <Setter Property="CornerRadius" Value="6" />
+        </Style>
+
+        <Style x:Key="ProjectMetaPillStyle" TargetType="{x:Type Border}">
+            <Setter Property="Padding" Value="8,5" />
+            <Setter Property="Margin" Value="0,0,8,0" />
+            <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+            <Setter Property="CornerRadius" Value="6" />
+        </Style>
+</ResourceDictionary>
