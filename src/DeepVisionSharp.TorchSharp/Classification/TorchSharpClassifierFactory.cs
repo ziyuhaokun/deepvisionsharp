@@ -1,4 +1,5 @@
 using TorchSharp;
+using DeepVisionSharp.TorchSharp.Classification.Yolo26;
 using DeepVisionSharp.TorchSharp.Classification.ResNet;
 
 namespace DeepVisionSharp.TorchSharp.Classification;
@@ -10,6 +11,11 @@ public static class TorchSharpClassifierFactory
     public const string ArchResNetTiny = "resnet_tiny_v2";
     public const string ArchResNet18 = "resnet18_v2";
     public const string ArchResNet34 = "resnet34_v2";
+    public const string ArchYolo26NCls = "yolo26n-cls";
+    public const string ArchYolo26SCls = "yolo26s-cls";
+    public const string ArchYolo26MCls = "yolo26m-cls";
+    public const string ArchYolo26LCls = "yolo26l-cls";
+    public const string ArchYolo26XCls = "yolo26x-cls";
 
     public static string ResolveArch(string? modelType)
     {
@@ -34,6 +40,11 @@ public static class TorchSharpClassifierFactory
             return ArchResNet34;
         }
 
+        if (normalized is ArchYolo26NCls or ArchYolo26SCls or ArchYolo26MCls or ArchYolo26LCls or ArchYolo26XCls)
+        {
+            return normalized;
+        }
+
         return ArchResNet18;
     }
 
@@ -48,6 +59,8 @@ public static class TorchSharpClassifierFactory
         {
             ArchResNetTiny => TorchVisionResNetClassifier.CreateTiny(inputChannels, numClasses),
             ArchResNet34 => TorchVisionResNetClassifier.CreateResNet34(inputChannels, numClasses),
+            ArchYolo26NCls or ArchYolo26SCls or ArchYolo26MCls or ArchYolo26LCls or ArchYolo26XCls =>
+                Yolo26ClsClassifier.Create(resolvedArch, inputChannels, numClasses),
             _ => TorchVisionResNetClassifier.CreateResNet18(inputChannels, numClasses)
         };
     }

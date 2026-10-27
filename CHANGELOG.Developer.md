@@ -8,6 +8,7 @@
 
 tags: refactor / classification-only
 
+- TorchSharp 分类后端新增 YOLO26-cls（n/s/m/l/x）网络与工厂分派：通道表与 C3k 分档按 Ultralytics `yolo26-cls.yaml` 对齐，五档参数总量与官方一致；产品模型类型入口尚未接入。
 - 切图从分类热路径拆出：新增 `DeepVisionSharp.Tiling`（`TilePlanner` / `ImageFits` / `CoordinateMaps`，纯几何、无 OpenCV）。`TileRequest` 覆盖 WholeImage / SlidingWindow（EdgeAlign·Drop·Pad） / Grid / Crop；`ImageFitKind` 覆盖 Stretch / Letterbox / Cover / Pad / ShortEdge（含 maxLongEdge） / LongEdge，外加 `PixelSizes.AlignUp`。分类训练与推理仍只走 `ToClassificationTensor` 线性拉伸。删除无调用方的 `ToLetterboxTensor`；推理性能字段去掉 crops / NMS / 切块摘要。
 - 崩溃弹窗、批量推理 HTML 报告与安装测试产物统一为 DeepVisionSharp 产品名；训练后端 key 记录与代码对齐为 torchsharp:classification-train / torchsharp:classification。
 - DEBUG 推理报告复制改为进程内剪贴板（`copy: false`），进程退出后不残留。
