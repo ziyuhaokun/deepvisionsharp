@@ -4,6 +4,7 @@ using DeepVisionSharp.Domain.Repositories;
 using DeepVisionSharp.Domain.ValueObjects;
 using DeepVisionSharp.Application.Inference;
 using DeepVisionSharp.Application.Models;
+using DeepVisionSharp.Application.Ports;
 using DeepVisionSharp.Application.Projects;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -68,6 +69,8 @@ public sealed class RunGalleryBatchInferenceCommandHandler
     private readonly IProjectRepository _projects;
     private readonly IProjectLabelService _labels;
     private readonly IAnnotationWorkflowService _annotations;
+    private readonly IInferenceRunner _inferenceRunner;
+    private readonly IInferenceInputFileProbe _fileProbe;
     private readonly ILogger<RunGalleryBatchInferenceCommandHandler> _logger;
 
     public RunGalleryBatchInferenceCommandHandler(
@@ -76,6 +79,8 @@ public sealed class RunGalleryBatchInferenceCommandHandler
         IProjectRepository projects,
         IProjectLabelService labels,
         IAnnotationWorkflowService annotations,
+        IInferenceRunner inferenceRunner,
+        IInferenceInputFileProbe fileProbe,
         ILogger<RunGalleryBatchInferenceCommandHandler> logger)
     {
         _mediator = mediator;
@@ -83,6 +88,8 @@ public sealed class RunGalleryBatchInferenceCommandHandler
         _projects = projects;
         _labels = labels;
         _annotations = annotations;
+        _inferenceRunner = inferenceRunner;
+        _fileProbe = fileProbe;
         _logger = logger;
     }
 
@@ -147,6 +154,16 @@ public sealed class RunGalleryBatchInferenceCommandHandler
                 new GalleryBatchInferenceResult(0, 0, 0, 0, Array.Empty<string>()));
         }
 
+        if (!_fileProbe.ModelExists(request.ModelPath))
+        {
+            return Result<GalleryBatchInferenceResult>.Failure("模型文件不存在。");
+        }
+
+        if (!ModelTypeNames.TryNormalize(request.ModelType, out var normalizedModelType))
+        {
+            return Result<GalleryBatchInferenceResult>.Failure($"不支持的推理模型类型：{request.ModelType}");
+        }
+
         var config = new InferenceConfig
         {
             ModelId = request.ModelId,
@@ -194,6 +211,7 @@ public sealed class RunGalleryBatchInferenceCommandHandler
                 var processed = await ProcessSampleAsync(
                     request,
                     config,
+                    normalizedModelType,
                     labelByName,
                     fileName,
                     cancellationToken);
@@ -282,13 +300,14 @@ public sealed class RunGalleryBatchInferenceCommandHandler
     private async Task<SampleProcessResult> ProcessSampleAsync(
         RunGalleryBatchInferenceCommand request,
         InferenceConfig config,
+        string normalizedModelType,
         IReadOnlyDictionary<string, ProjectLabelOption> labelByName,
         string fileName,
         CancellationToken cancellationToken)
     {
         // Channel B: this is a per-sample hot path (once per image in the gallery), so it talks to
-        // the workflow port directly instead of round-tripping two extra MediatR requests — and two
-        // extra pipeline behavior stacks — for every image.
+        // the workflow port and inference runner directly instead of round-tripping MediatR requests
+        // and pipeline behavior stacks for every image.
         var existing = await _annotations.LoadAsync(request.GalleryId, fileName, cancellationToken)
             .ConfigureAwait(false);
         if (request.WriteBackPolicy == GalleryBatchInferenceWriteBackPolicy.SkipExisting
@@ -303,16 +322,16 @@ public sealed class RunGalleryBatchInferenceCommandHandler
             return new SampleProcessResult(SampleOutcome.Failed, $"{fileName}: 样本图片路径未找到");
         }
 
-        var inferenceResult = await _mediator.Send(
-            new RunSingleInferenceCommand(
-                request.ModelPath,
-                imagePath,
-                config,
-                request.ModelType),
-            cancellationToken);
-        if (inferenceResult.IsFailure || inferenceResult.Value is null || !inferenceResult.Value.Success)
+        var inference = await _inferenceRunner.RunSingleAsync(
+            request.ModelPath,
+            imagePath,
+            config,
+            normalizedModelType,
+            cancellationToken).ConfigureAwait(false);
+
+        if (!inference.Success)
         {
-            var err = inferenceResult.Error ?? inferenceResult.Value?.Error ?? "推理失败";
+            var err = inference.Error ?? "推理失败";
             return new SampleProcessResult(SampleOutcome.Failed, $"{fileName}: {err}");
         }
 
@@ -320,7 +339,7 @@ public sealed class RunGalleryBatchInferenceCommandHandler
             request.WriteBackKind,
             request.WriteBackPolicy,
             existing,
-            inferenceResult.Value,
+            inference,
             fileName,
             labelByName);
         if (merge.Outcome != SampleOutcome.Written || merge.Document is null)

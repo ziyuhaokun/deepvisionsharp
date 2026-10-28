@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Logging;
-
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading;
+using DeepVisionSharp.Application.Ports;
 
 namespace DeepVisionSharp.Shell.Services;
 
@@ -10,15 +10,19 @@ public sealed class TrainingPreviewPoller : IDisposable
 {
     private readonly TrainingPreviewService _previewService = new();
     private readonly ILogger<TrainingPreviewPoller> _logger;
+    private readonly ITrainingProcessHost? _processHost;
     private CancellationTokenSource? _cts;
     private Task? _runningTask;
     private Action<Exception>? _onError;
+    private Func<Task>? _activeOnChanged;
+    private Func<bool>? _activeCanContinue;
     private bool _errorReported;
     private DateTime _lastPreviewCheck = DateTime.MinValue;
 
-    public TrainingPreviewPoller(ILogger<TrainingPreviewPoller> logger)
+    public TrainingPreviewPoller(ILogger<TrainingPreviewPoller> logger, ITrainingProcessHost? processHost = null)
     {
         _logger = logger;
+        _processHost = processHost;
     }
 
     public void Start(
@@ -31,12 +35,27 @@ public sealed class TrainingPreviewPoller : IDisposable
         Stop();
         _onError = onError;
         _errorReported = false;
+        _activeCanContinue = canContinue;
+        _activeOnChanged = onChanged;
+        if (_processHost is not null)
+        {
+            _processHost.PreviewUpdated += OnProcessHostPreviewUpdated;
+        }
+
         _cts = new CancellationTokenSource();
         _runningTask = RunObservedAsync(canContinue, onChanged, _cts.Token);
     }
 
     public void Stop()
     {
+        if (_processHost is not null)
+        {
+            _processHost.PreviewUpdated -= OnProcessHostPreviewUpdated;
+        }
+
+        _activeCanContinue = null;
+        _activeOnChanged = null;
+
         try
         {
             _cts?.Cancel();
@@ -59,6 +78,26 @@ public sealed class TrainingPreviewPoller : IDisposable
         {
             _cts = null;
             _onError = null;
+        }
+    }
+
+    private void OnProcessHostPreviewUpdated(Guid jobId, string previewPath)
+    {
+        var onChanged = _activeOnChanged;
+        var canContinue = _activeCanContinue;
+        if (onChanged is not null && canContinue?.Invoke() == true)
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await onChanged().ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogDebug(ex, "Push-based preview refresh failed");
+                }
+            });
         }
     }
 

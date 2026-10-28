@@ -22,6 +22,7 @@ namespace DeepVisionSharp.TorchSharp.Training;
 public static class TorchSharpClsTrainer
 {
     public const string BestFileName = "best.torchsharp";
+    public const string LastFileName = "last.torchsharp";
     public const string WeightsFormat = "torchsharp";
     private static string NormalizeOptimizer(string value) => value?.Trim().ToLowerInvariant() switch
     {
@@ -78,6 +79,8 @@ public static class TorchSharpClsTrainer
         Directory.CreateDirectory(options.OutputRoot);
         var bestPath = Path.Combine(options.OutputRoot, BestFileName);
         var metadataPath = bestPath + ".info";
+        var lastPath = Path.Combine(options.OutputRoot, LastFileName);
+        var lastMetadataPath = lastPath + ".info";
 
         options.Log?.Invoke(
             $"TorchSharp CLS 训练开始：train={dataset.TrainSamples.Count}, val={dataset.ValSamples.Count}, " +
@@ -238,6 +241,20 @@ public static class TorchSharpClsTrainer
                     completedEpochs);
             }
 
+            // Always update the last checkpoint at the end of each epoch
+            AtomicFileWriter.Write(lastPath, tempPath => model.save(tempPath));
+            WriteSidecar(
+                lastMetadataPath,
+                options,
+                archName,
+                dataset,
+                imageSize,
+                channels,
+                evaluation.Top1,
+                finalTrainLoss,
+                evaluation,
+                completedEpochs);
+
             if (earlyStopping.IsEnabled)
             {
                 earlyStopping.Report(evaluation.Top1);
@@ -263,6 +280,22 @@ public static class TorchSharpClsTrainer
             AtomicFileWriter.Write(bestPath, tempPath => model.save(tempPath));
             WriteSidecar(
                 metadataPath,
+                options,
+                archName,
+                dataset,
+                imageSize,
+                channels,
+                Math.Max(0f, bestValAcc),
+                finalTrainLoss,
+                bestEvaluation,
+                completedEpochs);
+        }
+
+        if (!File.Exists(lastPath) || !File.Exists(lastMetadataPath))
+        {
+            AtomicFileWriter.Write(lastPath, tempPath => model.save(tempPath));
+            WriteSidecar(
+                lastMetadataPath,
                 options,
                 archName,
                 dataset,

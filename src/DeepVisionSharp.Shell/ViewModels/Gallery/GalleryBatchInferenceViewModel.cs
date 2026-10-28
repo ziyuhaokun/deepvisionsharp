@@ -46,6 +46,7 @@ public sealed partial class GalleryBatchInferenceViewModel : ObservableObject
     private readonly ShellTaskCenterViewModel _taskCenter;
     private readonly GalleryListViewModel _list;
     private readonly ILogger<GalleryBatchInferenceViewModel> _logger;
+    private readonly WorkspaceSessionService _workspaceSession;
     private CancellationTokenSource? _runCts;
     private CancellationTokenSource? _prepareCts;
     private Guid? _backgroundTaskId;
@@ -58,6 +59,7 @@ public sealed partial class GalleryBatchInferenceViewModel : ObservableObject
         ShellSnackbarNotifier snackbar,
         ShellTaskCenterViewModel taskCenter,
         GalleryListViewModel list,
+        WorkspaceSessionService workspaceSession,
         ILogger<GalleryBatchInferenceViewModel> logger)
     {
         _mediator = mediator;
@@ -66,7 +68,16 @@ public sealed partial class GalleryBatchInferenceViewModel : ObservableObject
         _snackbar = snackbar;
         _taskCenter = taskCenter;
         _list = list;
+        _workspaceSession = workspaceSession;
         _logger = logger;
+
+        _workspaceSession.Changed += async (_, _) =>
+        {
+            if (IsRunning || IsPreparing)
+            {
+                await CancelAndWaitAsync().ConfigureAwait(false);
+            }
+        };
 
         ScopeOptions =
         [

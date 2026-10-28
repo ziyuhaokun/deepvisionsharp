@@ -3,23 +3,27 @@ using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using DeepVisionSharp.Domain.Entities;
 using DeepVisionSharp.Domain.Repositories;
+using DeepVisionSharp.Infrastructure.Services;
 
 namespace DeepVisionSharp.Infrastructure.Persistence;
 
 internal sealed class SqliteModelRepository : IModelRepository
 {
     private readonly IFreeSql _db;
+    private readonly ProjectOperationGate? _operations;
     private readonly ILogger<SqliteModelRepository> _logger;
 
-    public SqliteModelRepository(SqliteDb sqliteDb, ILogger<SqliteModelRepository> logger)
+    public SqliteModelRepository(SqliteDb sqliteDb, ProjectOperationGate operations, ILogger<SqliteModelRepository> logger)
     {
         _db = sqliteDb.Instance;
+        _operations = operations;
         _logger = logger;
     }
 
-    internal SqliteModelRepository(IFreeSql db, ILogger<SqliteModelRepository> logger)
+    internal SqliteModelRepository(IFreeSql db, ILogger<SqliteModelRepository> logger, ProjectOperationGate? operations = null)
     {
         _db = db;
+        _operations = operations;
         _logger = logger;
     }
 
@@ -85,6 +89,7 @@ internal sealed class SqliteModelRepository : IModelRepository
     public async Task<bool> DeleteAsync(Guid projectId, Guid id, CancellationToken cancellationToken = default)
     {
         await SqlProjectExecutionGuard.EnsureProjectAsync(_db, projectId, cancellationToken).ConfigureAwait(false);
+        using var operation = _operations?.EnterGalleryDelete(projectId);
         var affectedRows = await _db.Delete<SqlModel>()
             .Where(item => item.ProjectId == projectId && item.Id == id)
             .ExecuteAffrowsAsync(cancellationToken);

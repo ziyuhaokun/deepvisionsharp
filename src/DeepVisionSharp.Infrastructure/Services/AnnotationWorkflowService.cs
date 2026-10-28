@@ -88,15 +88,29 @@ internal sealed class AnnotationWorkflowService : IAnnotationWorkflowService
         var gallery = await _galleries.GetSummaryByIdAsync(galleryId, cancellationToken).ConfigureAwait(false);
         var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         if (gallery is null) return result;
-        var rows = await _db.Select<SqlAnnotation>().Where(row => row.GalleryId == galleryId)
-            .ToListAsync(cancellationToken).ConfigureAwait(false);
+
+        var targetNames = fileNames is { Count: > 0 }
+            ? fileNames.Select(Path.GetFileName).Where(name => !string.IsNullOrWhiteSpace(name)).Select(name => name!).Distinct(StringComparer.OrdinalIgnoreCase).ToList()
+            : null;
+
+        var annotationQuery = _db.Select<SqlAnnotation>().Where(row => row.GalleryId == galleryId);
+        if (targetNames is not null)
+        {
+            annotationQuery = annotationQuery.Where(row => targetNames.Contains(row.FileName));
+        }
+        var rows = await annotationQuery.ToListAsync(cancellationToken).ConfigureAwait(false);
         var documents = rows.ToDictionary(row => row.FileName, row => row.DocumentJson, StringComparer.OrdinalIgnoreCase);
-        var names = fileNames is { Count: > 0 }
-            ? fileNames.Select(Path.GetFileName).Where(name => !string.IsNullOrWhiteSpace(name)).Select(name => name!)
-            : (await _db.Select<SqlSample>().Where(row => row.GalleryId == galleryId)
-                .ToListAsync(row => row.FileName, cancellationToken).ConfigureAwait(false)).Concat(documents.Keys);
-        var indexes = await _db.Select<SqlSampleLabelIndex>().Where(row => row.GalleryId == galleryId)
-            .ToListAsync(cancellationToken).ConfigureAwait(false);
+
+        var names = targetNames
+            ?? (await _db.Select<SqlSample>().Where(row => row.GalleryId == galleryId)
+                .ToListAsync(row => row.FileName, cancellationToken).ConfigureAwait(false)).Concat(documents.Keys).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+
+        var indexQuery = _db.Select<SqlSampleLabelIndex>().Where(row => row.GalleryId == galleryId);
+        if (targetNames is not null)
+        {
+            indexQuery = indexQuery.Where(row => targetNames.Contains(row.FileName));
+        }
+        var indexes = await indexQuery.ToListAsync(cancellationToken).ConfigureAwait(false);
         foreach (var name in names.Distinct(StringComparer.OrdinalIgnoreCase))
         {
             cancellationToken.ThrowIfCancellationRequested();

@@ -86,6 +86,7 @@ public sealed partial class GalleryViewModel : ObservableObject, IDisposable
             snackbar,
             taskCenter,
             List,
+            workspaceSession,
             batchInferenceLogger);
     }
 

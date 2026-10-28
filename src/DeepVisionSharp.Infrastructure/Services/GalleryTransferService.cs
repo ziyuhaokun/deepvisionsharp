@@ -300,76 +300,103 @@ internal sealed class GalleryTransferService : IGalleryTransferService
         var failed = 0;
         var skipped = 0;
         var errors = new List<string>();
+        var createdGalleries = new List<Guid>();
 
-        foreach (var sourceGallery in sourceGalleries)
+        try
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var galleryName = TransferFileNames.MakeUniqueName(sourceGallery.Name, existingNames, "导入图库");
-            var gallery = await _galleries.CreateAsync(
-                projectId,
-                galleryName,
-                sourceGallery.Description,
-                cancellationToken);
-            var imagesDirectory = _fileStore.GetGalleryImagesDirectory(projectId, gallery.Id, ensureExists: true);
-            var sourceSamples = await db.Select<SqlSample>().Where(sample => sample.GalleryId == sourceGallery.Id).ToListAsync(cancellationToken);
-
-            foreach (var sourceSample in sourceSamples)
+            foreach (var sourceGallery in sourceGalleries)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                try
-                {
-                    // Read one row at a time: materializing the gallery's annotations holds every
-                    // Base64 image in memory (a page of 200 rows still costs hundreds of MB).
-                    var annotation = await TransferAnnotationReader
-                        .FindAsync(db, sourceGallery.Id, sourceSample.FileName, cancellationToken)
-                        .ConfigureAwait(false);
-                    if (annotation is null || string.IsNullOrWhiteSpace(annotation.ImageData))
-                    {
-                        skipped++;
-                        errors.Add($"缺失图像: {sourceSample.FileName}");
-                        continue;
-                    }
+                var galleryName = TransferFileNames.MakeUniqueName(sourceGallery.Name, existingNames, "导入图库");
+                var gallery = await _galleries.CreateAsync(
+                    projectId,
+                    galleryName,
+                    sourceGallery.Description,
+                    cancellationToken);
+                createdGalleries.Add(gallery.Id);
+                var imagesDirectory = _fileStore.GetGalleryImagesDirectory(projectId, gallery.Id, ensureExists: true);
+                var sourceSamples = await db.Select<SqlSample>().Where(sample => sample.GalleryId == sourceGallery.Id).ToListAsync(cancellationToken);
 
-                    if (!TransferFileNames.TryGetSafeFileName(sourceSample.FileName, out var safeFileName))
+                foreach (var sourceSample in sourceSamples)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    try
+                    {
+                        // Read one row at a time: materializing the gallery's annotations holds every
+                        // Base64 image in memory (a page of 200 rows still costs hundreds of MB).
+                        var annotation = await TransferAnnotationReader
+                            .FindAsync(db, sourceGallery.Id, sourceSample.FileName, cancellationToken)
+                            .ConfigureAwait(false);
+                        if (annotation is null || string.IsNullOrWhiteSpace(annotation.ImageData))
+                        {
+                            skipped++;
+                            errors.Add($"缺失图像: {sourceSample.FileName}");
+                            continue;
+                        }
+
+                        if (!TransferFileNames.TryGetSafeFileName(sourceSample.FileName, out var safeFileName))
+                        {
+                            failed++;
+                            errors.Add($"非法文件名: {sourceSample.FileName}");
+                            continue;
+                        }
+
+                        var targetFileName = TransferFileNames.GenerateUniqueFileName(imagesDirectory, safeFileName);
+                        var bytes = Convert.FromBase64String(TransferPayloads.ExtractBase64(annotation.ImageData)!);
+                        var hasDocument = !string.IsNullOrWhiteSpace(annotation.DocumentJson) && annotation.DocumentJson != "{}";
+                        await ImportSampleAsync(
+                            gallery,
+                            targetFileName,
+                            (stream, token) => stream.WriteAsync(bytes, token).AsTask(),
+                            hasDocument ? annotation.DocumentJson : null,
+                            sourceSample.IsAnnotated || hasDocument,
+                            sourceSample.HasError,
+                            sourceSample.ErrorMessage,
+                            cancellationToken);
+                        added++;
+                    }
+                    catch (OperationCanceledException) { throw; }
+                    catch (Exception ex)
                     {
                         failed++;
-                        errors.Add($"非法文件名: {sourceSample.FileName}");
-                        continue;
+                        errors.Add($"{sourceSample.FileName}: {ex.Message}");
+                        _logger.LogError(ex, "Failed to import sample {Sample}", sourceSample.FileName);
                     }
+                    finally
+                    {
+                        processed++;
+                        progress?.Report(new GalleryTransferProgress("正在导入图库", processed, total, added, sourceSample.FileName));
+                    }
+                }
 
-                    var targetFileName = TransferFileNames.GenerateUniqueFileName(imagesDirectory, safeFileName);
-                    var bytes = Convert.FromBase64String(TransferPayloads.ExtractBase64(annotation.ImageData)!);
-                    var hasDocument = !string.IsNullOrWhiteSpace(annotation.DocumentJson) && annotation.DocumentJson != "{}";
-                    await ImportSampleAsync(
-                        gallery,
-                        targetFileName,
-                        (stream, token) => stream.WriteAsync(bytes, token).AsTask(),
-                        hasDocument ? annotation.DocumentJson : null,
-                        sourceSample.IsAnnotated || hasDocument,
-                        sourceSample.HasError,
-                        sourceSample.ErrorMessage,
-                        cancellationToken);
-                    added++;
-                }
-                catch (OperationCanceledException) { throw; }
-                catch (Exception ex)
+                // Incremental deltas are exact; reconcile once per gallery so a partially failed
+                // sample cannot leave a permanent drift.
+                await GalleryStatisticsMaintainer.RefreshGalleryAsync(_db, gallery.Id, cancellationToken).ConfigureAwait(false);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Rollback created galleries on unexpected failure or cancellation to prevent orphaned data
+            _logger.LogWarning(ex, "Gallery import failed or cancelled; rolling back {Count} created galleries", createdGalleries.Count);
+            foreach (var createdId in createdGalleries)
+            {
+                try
                 {
-                    failed++;
-                    errors.Add($"{sourceSample.FileName}: {ex.Message}");
-                    _logger.LogError(ex, "Failed to import sample {Sample}", sourceSample.FileName);
+                    await _galleries.DeleteAsync(createdId, CancellationToken.None).ConfigureAwait(false);
+                    var dir = _fileStore.GetGalleryDirectory(projectId, createdId, ensureExists: false);
+                    if (Directory.Exists(dir))
+                    {
+                        Directory.Delete(dir, recursive: true);
+                    }
                 }
-                finally
+                catch (Exception cleanupEx)
                 {
-                    processed++;
-                    progress?.Report(new GalleryTransferProgress("正在导入图库", processed, total, added, sourceSample.FileName));
+                    _logger.LogError(cleanupEx, "Failed to cleanup gallery {GalleryId} during import rollback", createdId);
                 }
             }
-
-            // Incremental deltas are exact; reconcile once per gallery so a partially failed
-            // sample cannot leave a permanent drift.
-            await GalleryStatisticsMaintainer.RefreshGalleryAsync(_db, gallery.Id, cancellationToken).ConfigureAwait(false);
+            throw;
         }
 
         var result = new GalleryTransferResult(failed == 0, total, added, failed, skipped);

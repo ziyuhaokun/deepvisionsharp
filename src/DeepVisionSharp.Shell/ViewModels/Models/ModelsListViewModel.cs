@@ -386,27 +386,30 @@ public sealed partial class ModelsListViewModel : ObservableObject
             ? modelsResult.Value
             : Array.Empty<Domain.Entities.TrainedModel>();
 
-        var loadedModels = new List<ModelRow>();
-        foreach (var model in models)
+        // Fetch model metadata concurrently off the UI thread to prevent blocking
+        var metadataTasks = models.Select(async model =>
         {
-            ModelDisplayMetrics? metadata = null;
-            if (!string.IsNullOrWhiteSpace(model.CheckpointPath))
+            if (string.IsNullOrWhiteSpace(model.CheckpointPath))
             {
-                var metricsResult = await _mediator.Send(
-                    new GetModelDisplayMetricsQuery(model.CheckpointPath),
-                    cancellationToken);
-                if (metricsResult.IsSuccess)
-                {
-                    metadata = metricsResult.Value;
-                }
-
-                if (expectedSessionVersion is not null
-                    && !_workspaceSession.IsCurrent(expectedSessionVersion.Value))
-                {
-                    return;
-                }
+                return (model, (ModelDisplayMetrics?)null);
             }
 
+            var metricsResult = await _mediator.Send(
+                new GetModelDisplayMetricsQuery(model.CheckpointPath),
+                cancellationToken).ConfigureAwait(false);
+            return (model, metricsResult.IsSuccess ? metricsResult.Value : null);
+        });
+
+        var loadedPairs = await Task.WhenAll(metadataTasks).ConfigureAwait(true);
+        if (expectedSessionVersion is not null
+            && !_workspaceSession.IsCurrent(expectedSessionVersion.Value))
+        {
+            return;
+        }
+
+        var loadedModels = new List<ModelRow>(loadedPairs.Length);
+        foreach (var (model, metadata) in loadedPairs)
+        {
             var classes = model.Classes
                 .Where(name => !string.IsNullOrWhiteSpace(name))
                 .Distinct(StringComparer.OrdinalIgnoreCase)

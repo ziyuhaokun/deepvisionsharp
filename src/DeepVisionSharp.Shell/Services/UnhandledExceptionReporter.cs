@@ -32,6 +32,11 @@ public sealed class UnhandledExceptionReporter
     /// </summary>
     public static void ReportStatic(Exception exception, string source, bool promptUser = true)
     {
+        if (IsCancellation(exception))
+        {
+            return;
+        }
+
         try
         {
             ShellExceptionJournal.Record(exception, source);
@@ -51,6 +56,11 @@ public sealed class UnhandledExceptionReporter
 
     public void Report(Exception exception, string source, bool showMessage = true)
     {
+        if (IsCancellation(exception))
+        {
+            return;
+        }
+
         try { ShellExceptionJournal.Record(exception, source); }
         catch { /* Exit code/count still record failure if writing the journal failed. */ }
         try
@@ -79,6 +89,18 @@ public sealed class UnhandledExceptionReporter
         }
 
         PromptCopyToClipboard(report, _logOptions);
+    }
+
+    private static bool IsCancellation(Exception? ex)
+    {
+        if (ex is null) return false;
+        if (ex is OperationCanceledException or TaskCanceledException) return true;
+        if (ex is AggregateException agg)
+        {
+            var flat = agg.Flatten();
+            return flat.InnerExceptions.Count > 0 && flat.InnerExceptions.All(inner => inner is OperationCanceledException or TaskCanceledException);
+        }
+        return false;
     }
 
     private static string BuildReport(Exception exception, string source, FileLoggerOptions options)
