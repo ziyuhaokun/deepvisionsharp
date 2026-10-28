@@ -11,7 +11,8 @@ namespace DeepVisionSharp.TorchSharp.Classification.Yolo26;
 /// <remarks>
 /// Module names follow <c>model.0</c> through <c>model.10</c> so an Ultralytics state dict can load
 /// without key rewriting. The head returns logits in both train and eval mode; softmax stays with
-/// the caller. BatchNorm uses the Ultralytics defaults, eps 1e-3 and momentum 0.03.
+/// the caller. BatchNorm uses the PyTorch defaults, eps 1e-5 and momentum 0.1, matching current
+/// Ultralytics <c>nn.BatchNorm2d(c2)</c>. The older YOLOv5 values (1e-3, 0.03) are not used.
 /// </remarks>
 public sealed class Yolo26ClsClassifier : Module<Tensor, Tensor>
 {
@@ -164,7 +165,7 @@ internal sealed class YoloConv : Module<Tensor, Tensor>
             padding,
             groups: groups,
             bias: false);
-        _bn = BatchNorm2d(outputChannels, eps: 1e-3, momentum: 0.03);
+        _bn = BatchNorm2d(outputChannels, eps: 1e-5, momentum: 0.1);
         register_module("conv", _conv);
         register_module("bn", _bn);
         if (activate)
