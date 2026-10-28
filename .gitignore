@@ -375,6 +375,9 @@ FodyWeavers.xsd
 # Generated synthetic datasets
 samples/generated/
 
+# Local dataset generator. Stays in the tree for the contract test, never committed.
+/dvs-dataset-gen/
+
 # AI workspace artifacts (build logs, reviews, plans)
 .workspace/
 .impeccable/

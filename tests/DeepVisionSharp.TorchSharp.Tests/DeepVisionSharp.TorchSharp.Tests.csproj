@@ -19,6 +19,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\DeepVisionSharp.TorchSharp\DeepVisionSharp.TorchSharp.csproj" />
+    <!-- Local generator, gitignored at /dvs-dataset-gen. The contract test calls it directly. -->
+    <ProjectReference Include="..\..\dvs-dataset-gen\DvsDatasetGen.csproj" />
   </ItemGroup>
 
 </Project>
