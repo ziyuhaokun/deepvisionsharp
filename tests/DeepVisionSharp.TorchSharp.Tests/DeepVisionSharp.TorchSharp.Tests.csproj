@@ -5,6 +5,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
+    <!-- Training tests cost over a minute each. Run them with: dotnet test -filter Category=Slow -->
+    <VSTestTestCaseFilter>Category!=Slow</VSTestTestCaseFilter>
   </PropertyGroup>
 
   <ItemGroup>
