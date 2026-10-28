@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using OpenCvSharp;
@@ -479,9 +480,16 @@ public static class TorchSharpClsTrainer
         {
             var batchCount = Math.Min(batchSize, order.Length - offset);
             var sampleElements = channels * inputHeight * inputWidth;
-            var totalBatchElements = batchCount * sampleElements;
-            var batchBuffer = ArrayPool<float>.Shared.Rent(totalBatchElements);
             var labels = new long[batchCount];
+            // Fill a CPU tensor in place. torch.tensor(float[]) copies the array into storage and
+            // then again onto the device, so a 640px batch paid for two full copies per step.
+            using var cpuImages = empty(
+                [batchCount, channels, inputHeight, inputWidth],
+                dtype: ScalarType.Float32,
+                device: CPU);
+            // bytes aliases the tensor's own storage, so this writes the pixels straight in.
+            var storage = MemoryMarshal.Cast<byte, float>(cpuImages.bytes);
+            var sampleBuffer = ArrayPool<float>.Shared.Rent(sampleElements);
             Tensor? images = null;
             Tensor? labelTensor = null;
             try
@@ -501,21 +509,17 @@ public static class TorchSharpClsTrainer
                         enableHorizontalFlip: horizontalFlip,
                         enableVerticalFlip: verticalFlip);
 
-                    var sampleSpan = batchBuffer.AsSpan(index * sampleElements, sampleElements);
+                    var sampleSpan = sampleBuffer.AsSpan(0, sampleElements);
                     TorchSharpImageTensor.FillNormalizedData(preparedMat, sampleSpan, preprocessing);
+                    sampleSpan.CopyTo(storage[(index * sampleElements)..]);
                 }
 
-                images = tensor(
-                    batchBuffer.AsMemory(0, totalBatchElements),
-                    [batchCount, channels, inputHeight, inputWidth],
-                    dtype: ScalarType.Float32,
-                    device: device);
-
+                images = device.type == DeviceType.CPU ? cpuImages.alias() : cpuImages.to(device);
                 labelTensor = tensor(labels, [batchCount], ScalarType.Int64, device);
             }
             finally
             {
-                ArrayPool<float>.Shared.Return(batchBuffer);
+                ArrayPool<float>.Shared.Return(sampleBuffer);
             }
 
             yield return (images!, labelTensor!);
