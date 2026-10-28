@@ -233,17 +233,27 @@ internal sealed class C3k2 : Module<Tensor, Tensor>
     private readonly Module<Tensor, Tensor>[] _blocks;
     private readonly long _hidden;
 
-    public C3k2(long inputChannels, long outputChannels, int repeats, bool c3k, double expansion = 0.5)
+    public C3k2(
+        long inputChannels,
+        long outputChannels,
+        int repeats,
+        bool c3k,
+        double expansion = 0.5,
+        bool attention = false)
         : base(nameof(C3k2))
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(repeats, 1);
         _hidden = (long)(outputChannels * expansion);
         _cv1 = new YoloConv(inputChannels, 2 * _hidden, kernel: 1);
         // C3k2 replaces C2f's blocks with Bottleneck(self.c, self.c, shortcut, g), whose default expansion is 0.5.
+        // The attention flag adds a PSA block after the bottleneck, which only the detection P5 layer uses.
+        var heads = Math.Max((int)(_hidden / 64), 1);
         _blocks = Enumerable.Range(0, repeats)
             .Select(_ => c3k
                 ? (Module<Tensor, Tensor>)new C3k(_hidden, _hidden)
-                : new YoloBottleneck(_hidden, _hidden, shortcut: true, expansion: 0.5))
+                : attention
+                    ? new BottleneckPsa(_hidden, heads)
+                    : new YoloBottleneck(_hidden, _hidden, shortcut: true, expansion: 0.5))
             .ToArray();
         _cv2 = new YoloConv((2 + repeats) * _hidden, outputChannels, kernel: 1);
 
@@ -263,6 +273,28 @@ internal sealed class C3k2 : Module<Tensor, Tensor>
         }
 
         return _cv2.forward(cat(values, dim: 1)).MoveToOuterDisposeScope();
+    }
+}
+
+/// <summary>A bottleneck followed by a position-sensitive attention block, for the detection P5 layer.</summary>
+internal sealed class BottleneckPsa : Module<Tensor, Tensor>
+{
+    private readonly YoloBottleneck _bottleneck;
+    private readonly PsaBlock _attention;
+
+    public BottleneckPsa(long channels, int heads)
+        : base(nameof(BottleneckPsa))
+    {
+        _bottleneck = new YoloBottleneck(channels, channels, shortcut: true, expansion: 0.5);
+        _attention = new PsaBlock(channels, attentionRatio: 0.5, heads);
+        register_module("0", _bottleneck);
+        register_module("1", _attention);
+    }
+
+    public override Tensor forward(Tensor input)
+    {
+        using var scope = NewDisposeScope();
+        return _attention.forward(_bottleneck.forward(input)).MoveToOuterDisposeScope();
     }
 }
 

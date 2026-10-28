@@ -64,7 +64,7 @@ internal sealed class YoloAttention : Module<Tensor, Tensor>
 }
 
 /// <summary>Attention residual followed by a two-convolution feed-forward residual.</summary>
-internal sealed class PsaBlock : Module<Tensor, Tensor>
+public sealed class PsaBlock : Module<Tensor, Tensor>
 {
     private readonly YoloAttention _attention;
     private readonly Sequential _feedForward;
