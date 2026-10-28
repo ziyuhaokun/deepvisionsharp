@@ -79,11 +79,16 @@ internal sealed class ClassificationDatasetExportService : IClassificationDatase
 
                 var fileNames = await _galleries.ListSampleFileNamesAsync(galleryId, cancellationToken: cancellationToken);
                 total += fileNames.Count;
+                // One query for the whole gallery. LoadAsync re-reads the gallery summary per image,
+                // which is a thousand round trips on a dataset of this size.
+                var imageClasses = await _annotations
+                    .LoadImageClassesBatchAsync(galleryId, fileNames, cancellationToken)
+                    .ConfigureAwait(false);
                 foreach (var fileName in fileNames)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    var document = await _annotations.LoadAsync(galleryId, fileName, cancellationToken);
-                    var imageClass = NormalizeClass(document.ImageClass, normalizedClasses);
+                    imageClasses.TryGetValue(fileName, out var rawClass);
+                    var imageClass = NormalizeClass(rawClass, normalizedClasses);
                     if (imageClass is null)
                     {
                         missingClass++;
