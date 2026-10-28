@@ -28,7 +28,7 @@ internal sealed class TorchSharpClassificationTrainingBackend : ITrainingBackend
     private readonly IProjectRepository _projects;
     private readonly ITrainingJobRepository _repository;
     private readonly ITrainingProcessHost _processHost;
-    private readonly TorchSharpClsEngine _inferenceEngine;
+    private readonly IInferenceRuntime _inferenceRuntime;
     private readonly IProjectLabelStatisticsQueryService _labelStatistics;
     private readonly ILogger<TorchSharpClassificationTrainingBackend> _logger;
     private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _runningTokens = new();
@@ -41,7 +41,7 @@ internal sealed class TorchSharpClassificationTrainingBackend : ITrainingBackend
         IProjectRepository projects,
         ITrainingJobRepository repository,
         ITrainingProcessHost processHost,
-        TorchSharpClsEngine inferenceEngine,
+        IInferenceRuntime inferenceRuntime,
         IProjectLabelStatisticsQueryService labelStatistics,
         ILogger<TorchSharpClassificationTrainingBackend> logger)
     {
@@ -50,7 +50,7 @@ internal sealed class TorchSharpClassificationTrainingBackend : ITrainingBackend
         _projects = projects;
         _repository = repository;
         _processHost = processHost;
-        _inferenceEngine = inferenceEngine;
+        _inferenceRuntime = inferenceRuntime;
         _labelStatistics = labelStatistics;
         _logger = logger;
     }
@@ -154,8 +154,10 @@ internal sealed class TorchSharpClassificationTrainingBackend : ITrainingBackend
         IDisposable trainingGate;
         try
         {
-            trainingGate = await _inferenceEngine.Gate
-                .BeginTrainingAsync(TimeSpan.FromSeconds(30), runToken)
+            // The runtime also clears the model cache once the device is ours, so inference or
+            // warmup cannot repopulate it between the start command's clear and this point.
+            trainingGate = await _inferenceRuntime
+                .BeginExclusiveAsync(TimeSpan.FromSeconds(30), runToken)
                 .ConfigureAwait(false);
         }
         catch (Exception ex)

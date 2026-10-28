@@ -74,22 +74,20 @@ public sealed class InferenceTrainingGate
 
         try
         {
-            // Bounded: a stuck inference must not block the training start forever. The cached models
-            // are released by the caller either way, so a timeout only means a brief overlap.
+            // Training and inference share one native device. Starting training while an inference
+            // call is still in native code can exceed GPU memory or race the native runtime, so a
+            // drain timeout is a failed hand-off rather than permission to overlap the operations.
             await drainTask.WaitAsync(drainTimeout, cancellationToken).ConfigureAwait(false);
         }
-        catch (TimeoutException)
+        catch (TimeoutException ex)
         {
-            // Proceed anyway; the remaining inference finishes shortly and the cache was cleared.
+            CancelTrainingWaiter(drainTask);
+            throw new TimeoutException("等待推理结束后启动训练超时。", ex);
         }
         catch
         {
             // Cancelled or failed while draining: give the gate back so training is not wedged.
-            lock (_sync)
-            {
-                _trainingActive = false;
-            }
-
+            CancelTrainingWaiter(drainTask);
             throw;
         }
 
@@ -138,6 +136,15 @@ public sealed class InferenceTrainingGate
             {
                 waiter.TrySetResult();
             }
+        }
+    }
+
+    private void CancelTrainingWaiter(Task drainTask)
+    {
+        lock (_sync)
+        {
+            _trainingActive = false;
+            _drainWaiters.RemoveAll(waiter => waiter.Task == drainTask);
         }
     }
 

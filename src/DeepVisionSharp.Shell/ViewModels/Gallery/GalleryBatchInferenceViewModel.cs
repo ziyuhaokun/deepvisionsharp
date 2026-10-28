@@ -48,6 +48,7 @@ public sealed partial class GalleryBatchInferenceViewModel : ObservableObject
     private readonly ILogger<GalleryBatchInferenceViewModel> _logger;
     private readonly WorkspaceSessionService _workspaceSession;
     private CancellationTokenSource? _runCts;
+    private string? _runOwnerKey;
     private CancellationTokenSource? _prepareCts;
     private Guid? _backgroundTaskId;
     private string? _cachedGpuName;
@@ -624,6 +625,8 @@ public sealed partial class GalleryBatchInferenceViewModel : ObservableObject
 
         _runCts?.Dispose();
         _runCts = new CancellationTokenSource();
+        // One key per run: a second gallery's batch, or the inference page, is never stopped by this one.
+        _runOwnerKey = $"gallery-batch:{Guid.NewGuid():N}";
         IsRunning = true;
         ShowView(running: true);
         LogText = string.Empty;
@@ -658,7 +661,8 @@ public sealed partial class GalleryBatchInferenceViewModel : ObservableObject
                     Confidence,
                     SelectedDevice.Device,
                     InferenceMaxDetectionsLimits.Normalize(MaxDetections),
-                    progress),
+                    progress,
+                    _runOwnerKey),
                 _runCts.Token);
 
             if (result.IsFailure || result.Value is null)
@@ -718,10 +722,9 @@ public sealed partial class GalleryBatchInferenceViewModel : ObservableObject
         finally
         {
             IsRunning = false;
-            // StopInferenceCommand is process-wide: it stops every inference backend, not just this
-            // batch. Sending it on normal completion would kill a labeling-page auto-inference the
-            // user started in parallel (today the in-process backend's StopAsync is a no-op, but the
-            // command's contract is global). The batch's own token already cancelled its work.
+            // Nothing to stop on normal completion: the run has ended. A user cancel sends
+            // StopInferenceCommand with this run's owner key, which only affects this batch's
+            // inference, never a labeling-page auto-inference started in parallel.
             OnPropertyChanged(nameof(IsNotRunning));
             OnPropertyChanged(nameof(CanStart));
             OnPropertyChanged(nameof(IsConfigInteractive));
@@ -756,7 +759,7 @@ public sealed partial class GalleryBatchInferenceViewModel : ObservableObject
         await _runCts.CancelAsync();
         try
         {
-            await _mediator.Send(new StopInferenceCommand("User cancelled gallery batch"));
+            await _mediator.Send(new StopInferenceCommand("User cancelled gallery batch", _runOwnerKey));
         }
         catch
         {

@@ -59,7 +59,8 @@ public sealed record RunGalleryBatchInferenceCommand(
     double ConfidenceThreshold,
     string Device,
     int MaxDetections,
-    IProgress<GalleryBatchInferenceProgress>? Progress = null) : ICommand<GalleryBatchInferenceResult>;
+    IProgress<GalleryBatchInferenceProgress>? Progress = null,
+    string? OwnerKey = null) : ICommand<GalleryBatchInferenceResult>;
 
 public sealed class RunGalleryBatchInferenceCommandHandler
     : ICommandHandler<RunGalleryBatchInferenceCommand, GalleryBatchInferenceResult>
@@ -170,7 +171,8 @@ public sealed class RunGalleryBatchInferenceCommandHandler
             ConfidenceThreshold = request.ConfidenceThreshold,
             MaxDetections = request.MaxDetections,
             BatchSize = 8,
-            Device = device
+            Device = device,
+            OwnerKey = request.OwnerKey
         };
 
         const int BatchPersistSize = 50;

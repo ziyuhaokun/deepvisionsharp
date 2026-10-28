@@ -29,9 +29,12 @@ internal sealed record TrainingRunWorkItem(TrainingRunRequest Request, Cancellat
 internal sealed class TrainingRunQueue
 {
     private readonly Channel<TrainingRunWorkItem> _channel = Channel.CreateUnbounded<TrainingRunWorkItem>(
-        new UnboundedChannelOptions { SingleReader = true, SingleWriter = false });
+        // Shutdown() drains leftovers while the worker may still be reading, so the channel has two
+        // potential readers and must not promise SingleReader.
+        new UnboundedChannelOptions { SingleReader = false, SingleWriter = false });
     private readonly object _sync = new();
     private readonly Dictionary<Guid, CancellationTokenSource> _cancellations = new();
+    private bool _shuttingDown;
 
     /// <summary>True while any run is queued or executing.</summary>
     public bool HasAny
@@ -58,6 +61,12 @@ internal sealed class TrainingRunQueue
     {
         lock (_sync)
         {
+            if (_shuttingDown)
+            {
+                error = "训练队列正在关闭，请稍后重试。";
+                return false;
+            }
+
             if (_cancellations.Count > 0)
             {
                 error = "已有训练任务正在运行，请等待其完成或停止后再启动。";
@@ -81,6 +90,55 @@ internal sealed class TrainingRunQueue
 
     public IAsyncEnumerable<TrainingRunWorkItem> ReadAllAsync(CancellationToken cancellationToken)
         => _channel.Reader.ReadAllAsync(cancellationToken);
+
+    /// <summary>
+    /// Stops accepting work, cancels the current run, and releases requests that the worker has not
+    /// consumed yet. The returned requests still need their terminal status persisted by the worker.
+    /// </summary>
+    public IReadOnlyList<TrainingRunRequest> Shutdown()
+    {
+        List<CancellationTokenSource> cancellations;
+        lock (_sync)
+        {
+            if (_shuttingDown)
+            {
+                return [];
+            }
+
+            _shuttingDown = true;
+            cancellations = _cancellations.Values.ToList();
+            _channel.Writer.TryComplete();
+        }
+
+        foreach (var cancellation in cancellations)
+        {
+            try
+            {
+                cancellation.Cancel();
+            }
+            catch (ObjectDisposedException)
+            {
+                // The worker completed the item while shutdown was beginning.
+            }
+        }
+
+        var pending = new List<TrainingRunRequest>();
+        while (_channel.Reader.TryRead(out var work))
+        {
+            lock (_sync)
+            {
+                if (_cancellations.Remove(work.Request.JobId, out var cancellation))
+                {
+                    cancellation.Dispose();
+                }
+            }
+
+            work.Request.GateLease.Dispose();
+            pending.Add(work.Request);
+        }
+
+        return pending;
+    }
 
     /// <summary>Cancels a queued or executing job. Returns false when the job is not tracked.</summary>
     public bool TryCancel(Guid jobId)

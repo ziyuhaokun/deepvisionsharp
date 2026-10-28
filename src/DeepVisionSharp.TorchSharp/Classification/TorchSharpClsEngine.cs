@@ -153,6 +153,9 @@ public sealed class TorchSharpClsEngine : IDisposable
     /// <summary>Load and validate the actual model using the same cache and lifetime as inference.</summary>
     public bool Warmup(string modelPath, string deviceName)
     {
+        // Warmup loads native weights and consumes the same device memory as inference. It must
+        // participate in the same gate so training cannot start while a model is still loading.
+        using var gateLease = _gate.EnterInference();
         using var operation = EnterOperation();
         var device = TorchSharpDeviceManager.ResolveDevice(deviceName);
         var key = BuildCacheKey(modelPath, device);

@@ -16,16 +16,22 @@ namespace DeepVisionSharp.Shell.ViewModels.Inference;
 
 public sealed partial class InferenceRunnerViewModel : ObservableObject
 {
+    /// <summary>
+    /// Identifies this page's inference (runs and warm-up) so Stop affects only it. One instance of
+    /// the page exists at a time; a per-instance key would only matter if that changed.
+    /// </summary>
+    private const string OwnerKey = "inference-page";
+
     private readonly IMediator _mediator;
     private readonly IInferenceRunner _inferenceRunner;
     private readonly ITaskCapabilityResolver _taskCapabilities;
     private readonly IUiDispatcher _uiDispatcher;
     private readonly ShellSnackbarNotifier _snackbar;
+    private readonly IWarmupCoordinator _warmups;
     private readonly ILogger<InferenceRunnerViewModel> _logger;
 
     private CancellationTokenSource? _runCts;
-    private CancellationTokenSource? _warmupCts;
-    private int _warmupGeneration;
+    private volatile bool _detached;
 
     public InferenceRunnerViewModel(
         IMediator mediator,
@@ -33,6 +39,7 @@ public sealed partial class InferenceRunnerViewModel : ObservableObject
         ITaskCapabilityResolver taskCapabilities,
         IUiDispatcher uiDispatcher,
         ShellSnackbarNotifier snackbar,
+        IWarmupCoordinator warmups,
         ILogger<InferenceRunnerViewModel> logger)
     {
         _mediator = mediator;
@@ -40,7 +47,9 @@ public sealed partial class InferenceRunnerViewModel : ObservableObject
         _taskCapabilities = taskCapabilities;
         _uiDispatcher = uiDispatcher;
         _snackbar = snackbar;
+        _warmups = warmups;
         _logger = logger;
+        _warmups.Completed += OnWarmupCompleted;
 
         DeviceOptions.Add(InferenceDeviceOption.Cpu);
         DeviceOptions.Add(InferenceDeviceOption.PrimaryGpu());
@@ -126,20 +135,18 @@ public sealed partial class InferenceRunnerViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Asks for the current model/device to be warm. The coordinator runs one warm-up at a time and
+    /// keeps only the latest target, so repeated calls while the user moves between models cost one
+    /// load, not one per selection.
+    /// </summary>
     public void ScheduleWarmup()
     {
-        var gen = Interlocked.Increment(ref _warmupGeneration);
-        _warmupCts?.Cancel();
-        _warmupCts?.Dispose();
-
-        var cts = new CancellationTokenSource();
-        _warmupCts = cts;
-        var token = cts.Token;
-
         var model = SelectedModel;
 
         if (model is null || string.IsNullOrWhiteSpace(model.ModelPath) || !File.Exists(model.ModelPath))
         {
+            _warmups.Cancel();
             IsWarmingUp = false;
             WarmupStatusText = string.Empty;
             return;
@@ -148,54 +155,73 @@ public sealed partial class InferenceRunnerViewModel : ObservableObject
         IsWarmingUp = true;
         WarmupStatusText = "正在后台预热模型与算法引擎...";
 
-        _ = Task.Run(async () =>
+        var config = new InferenceConfig
         {
-            try
-            {
-                var runDevice = ResolveRunDevice(model);
-                var config = new InferenceConfig
-                {
-                    ModelId = model.Id,
-                    ConfidenceThreshold = Math.Clamp(ConfidenceThreshold, 0.01, 1.0),
-                    MaxDetections = InferenceMaxDetectionsLimits.Normalize(MaxDetections),
-                    BatchSize = 8,
-                    Device = runDevice
-                };
+            ModelId = model.Id,
+            ConfidenceThreshold = Math.Clamp(ConfidenceThreshold, 0.01, 1.0),
+            MaxDetections = InferenceMaxDetectionsLimits.Normalize(MaxDetections),
+            BatchSize = 8,
+            Device = ResolveRunDevice(model),
+            OwnerKey = OwnerKey
+        };
 
-                var result = await _inferenceRunner.WarmupAsync(model.ModelPath, config, model.ModelType, token).ConfigureAwait(false);
+        _warmups.Request(new WarmupRequest(model.ModelPath, model.ModelType, config));
+    }
 
-                _uiDispatcher.Post(() =>
-                {
-                    if (gen == _warmupGeneration && !token.IsCancellationRequested)
-                    {
-                        IsWarmingUp = false;
-                        WarmupStatusText = result.Success ? "模型预热完成" : $"模型预热失败：{result.Error ?? "未知错误"}";
-                    }
-                });
-            }
-            catch (OperationCanceledException)
+    private void OnWarmupCompleted(WarmupOutcome outcome)
+    {
+        if (_detached)
+        {
+            return;
+        }
+
+        // A result for a target the user has already moved away from must not overwrite the status
+        // of the one now being warmed.
+        if (!string.Equals(outcome.Request.Key, _warmups.DesiredKey, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        _uiDispatcher.Post(() =>
+        {
+            if (_detached || !string.Equals(outcome.Request.Key, _warmups.DesiredKey, StringComparison.Ordinal))
             {
+                return;
             }
-            catch (Exception ex)
+
+            IsWarmingUp = false;
+            WarmupStatusText = outcome switch
             {
-                _logger.LogDebug(ex, "Warmup failed or skipped for {Model}", model.Name);
-                _uiDispatcher.Post(() =>
-                {
-                    if (gen == _warmupGeneration && !token.IsCancellationRequested)
-                    {
-                        IsWarmingUp = false;
-                        WarmupStatusText = "模型未预热（将在推理时自动载入）";
-                    }
-                });
-            }
-        }, token);
+                { Cancelled: true } => "模型预热已取消",
+                { Success: true } => "模型预热完成",
+                _ => $"模型预热失败：{outcome.Error ?? "未知错误"}"
+            };
+        });
+    }
+
+    /// <summary>
+    /// Waits until no warm-up is running or queued; false means native loading is still in progress.
+    /// Pages call this before letting go of the view model.
+    /// </summary>
+    public Task<bool> WaitForWarmupIdleAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
+        => _warmups.WaitForIdleAsync(timeout, cancellationToken);
+
+    /// <summary>
+    /// Last teardown step: stop listening to warm-up. Deliberately does not cancel it — the
+    /// coordinator is process-wide, and by now a newer page may own the running warm-up. Stopping
+    /// this page's own warm-up is <see cref="CancelRuns"/>'s job, at unload time.
+    /// </summary>
+    public void DetachWarmup()
+    {
+        _detached = true;
+        _warmups.Completed -= OnWarmupCompleted;
     }
 
     [RelayCommand]
     public async Task StopAsync()
     {
         _runCts?.Cancel();
-        await _mediator.Send(new StopInferenceCommand("User cancelled from Inference page")).ConfigureAwait(true);
+        await _mediator.Send(new StopInferenceCommand("User cancelled from Inference page", OwnerKey)).ConfigureAwait(true);
         // Native synchronous work cannot be interrupted safely. Its owning run clears IsRunning
         // only after it has returned; cancellation prevents publishing that late result.
     }
@@ -227,12 +253,11 @@ public sealed partial class InferenceRunnerViewModel : ObservableObject
         {
         }
 
-        try
+        _warmups.Cancel();
+        if (IsWarmingUp)
         {
-            _warmupCts?.Cancel();
-        }
-        catch (ObjectDisposedException)
-        {
+            IsWarmingUp = false;
+            WarmupStatusText = string.Empty;
         }
     }
 
@@ -298,7 +323,8 @@ public sealed partial class InferenceRunnerViewModel : ObservableObject
                 ConfidenceThreshold = Math.Clamp(ConfidenceThreshold, 0.01, 1.0),
                 MaxDetections = InferenceMaxDetectionsLimits.Normalize(MaxDetections),
                 BatchSize = 8,
-                Device = ResolveRunDevice(model)
+                Device = ResolveRunDevice(model),
+                OwnerKey = OwnerKey
             };
 
             if (string.IsNullOrWhiteSpace(model.ModelPath) || !File.Exists(model.ModelPath))

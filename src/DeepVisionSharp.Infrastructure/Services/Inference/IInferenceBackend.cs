@@ -7,8 +7,6 @@ internal interface IInferenceBackend
 {
     string BackendKey { get; }
 
-    bool IsActive { get; }
-
     bool CanHandle(InferenceBackendContext context);
 
     Task<InferenceResult> RunSingleAsync(
@@ -20,6 +18,4 @@ internal interface IInferenceBackend
         InferenceBackendContext context,
         CancellationToken cancellationToken)
         => Task.FromResult(InferenceWarmupResult.Ok(0, 0, preflightCached: true, loadSkipped: true));
-
-    Task StopAsync(string? reason, CancellationToken cancellationToken);
 }

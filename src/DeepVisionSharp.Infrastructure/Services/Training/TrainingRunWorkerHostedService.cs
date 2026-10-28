@@ -34,6 +34,17 @@ internal sealed class TrainingRunWorkerHostedService : BackgroundService
         _logger = logger;
     }
 
+    public override async Task StopAsync(CancellationToken cancellationToken)
+    {
+        var pending = _queue.Shutdown();
+        await base.StopAsync(cancellationToken).ConfigureAwait(false);
+
+        foreach (var request in pending)
+        {
+            await EnsureCancelledAsync(request.JobId).ConfigureAwait(false);
+        }
+    }
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         await foreach (var work in _queue.ReadAllAsync(stoppingToken).ConfigureAwait(false))

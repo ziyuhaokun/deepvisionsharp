@@ -57,7 +57,11 @@ public sealed class RunSingleInferenceCommandHandler : ICommandHandler<RunSingle
     }
 }
 
-public sealed record StopInferenceCommand(string Reason = "User requested") : ICommand;
+/// <summary>
+/// Stops the inference started under <paramref name="OwnerKey"/>. It is deliberately not process-wide:
+/// without an owner it does nothing, so one page cancelling can never kill another page's work.
+/// </summary>
+public sealed record StopInferenceCommand(string Reason = "User requested", string? OwnerKey = null) : ICommand;
 
 public sealed class StopInferenceCommandHandler : ICommandHandler<StopInferenceCommand>
 {
@@ -70,7 +74,7 @@ public sealed class StopInferenceCommandHandler : ICommandHandler<StopInferenceC
 
     public async Task<Result> Handle(StopInferenceCommand request, CancellationToken cancellationToken)
     {
-        await _inferenceRunner.StopAsync(request.Reason, cancellationToken);
+        await _inferenceRunner.StopAsync(request.OwnerKey, request.Reason, cancellationToken);
         return Result.Success();
     }
 }

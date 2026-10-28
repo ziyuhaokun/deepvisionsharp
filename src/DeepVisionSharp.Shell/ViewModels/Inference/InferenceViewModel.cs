@@ -41,6 +41,7 @@ public sealed partial class InferenceViewModel : ObservableObject, IDisposable
     public InferenceViewModel(
         IMediator mediator,
         IInferenceRunner inferenceRunner,
+        IWarmupCoordinator warmups,
         WorkspaceSessionService workspaceSession,
         ILocalFileDialogService fileDialog,
         IProjectFileStore fileStore,
@@ -80,6 +81,7 @@ public sealed partial class InferenceViewModel : ObservableObject, IDisposable
             taskCapabilities,
             uiDispatcher,
             snackbar,
+            warmups,
             runnerLogger);
 
         Report = new InferenceReportViewModel(
@@ -199,6 +201,17 @@ public sealed partial class InferenceViewModel : ObservableObject, IDisposable
         _loadCts?.Cancel();
         Runner.CancelRuns();
         LoadCommand.Cancel();
+    }
+
+    /// <summary>
+    /// <see cref="Deactivate"/> plus a bounded wait for the model warm-up that was in flight. A native
+    /// load cannot be interrupted, so this is how a page lets go of its view model without leaving the
+    /// load running unsupervised. Returns false when the load outlived <paramref name="timeout"/>.
+    /// </summary>
+    public async Task<bool> DeactivateAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
+    {
+        Deactivate();
+        return await Runner.WaitForWarmupIdleAsync(timeout, cancellationToken).ConfigureAwait(false);
     }
 
     public InferenceWorklistViewModel Worklist { get; }
@@ -507,6 +520,7 @@ public sealed partial class InferenceViewModel : ObservableObject, IDisposable
     {
         if (_disposed) return;
         Deactivate();
+        Runner.DetachWarmup();
         _disposed = true;
         _loadCts?.Dispose();
         // RunSelected/RunAll take no CancellationToken, so their generated commands cannot be

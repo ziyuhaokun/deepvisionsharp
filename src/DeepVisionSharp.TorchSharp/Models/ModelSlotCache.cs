@@ -25,6 +25,7 @@ internal sealed class ModelSlotCache<TKey, TValue>
     /// from building the same model twice (which doubles peak GPU memory for that model).
     /// </summary>
     private readonly Dictionary<TKey, SemaphoreSlim> _buildLocks = new();
+    private int _generation;
 
     public ModelSlotCache(int capacity)
     {
@@ -58,6 +59,7 @@ internal sealed class ModelSlotCache<TKey, TValue>
     /// <summary>Gets or creates an entry without leasing it (warmup).</summary>
     public TValue GetOrAdd(TKey key, Func<TKey, TValue> factory)
     {
+        SemaphoreSlim buildLock;
         lock (_sync)
         {
             if (_entries.TryGetValue(key, out var cached))
@@ -65,22 +67,58 @@ internal sealed class ModelSlotCache<TKey, TValue>
                 TouchNoLock(cached);
                 return cached.Value;
             }
+
+            buildLock = GetBuildLockNoLock(key);
         }
 
-        var created = factory(key);
-        lock (_sync)
+        buildLock.Wait();
+        try
         {
-            if (_entries.TryGetValue(key, out var raced))
+            while (true)
             {
-                created.Dispose();
-                TouchNoLock(raced);
-                return raced.Value;
-            }
+                lock (_sync)
+                {
+                    if (_entries.TryGetValue(key, out var builtWhileWaiting))
+                    {
+                        TouchNoLock(builtWhileWaiting);
+                        return builtWhileWaiting.Value;
+                    }
+                }
 
-            var entry = new Entry(created, _order.AddLast(key));
-            _entries[key] = entry;
-            EvictNoLock(skip: candidate => EqualityComparer<TKey>.Default.Equals(candidate, key));
-            return created;
+                int generation;
+                lock (_sync)
+                {
+                    generation = _generation;
+                }
+
+                var created = factory(key);
+                lock (_sync)
+                {
+                    // Clear may have happened while native weights were loading. Do not let an
+                    // old factory repopulate a cache that was deliberately emptied for training.
+                    if (generation != _generation)
+                    {
+                        created.Dispose();
+                        continue;
+                    }
+
+                    if (_entries.TryGetValue(key, out var raced))
+                    {
+                        created.Dispose();
+                        TouchNoLock(raced);
+                        return raced.Value;
+                    }
+
+                    var entry = new Entry(created, _order.AddLast(key));
+                    _entries[key] = entry;
+                    EvictNoLock(skip: candidate => EqualityComparer<TKey>.Default.Equals(candidate, key));
+                    return created;
+                }
+            }
+        }
+        finally
+        {
+            buildLock.Release();
         }
     }
 
@@ -99,10 +137,7 @@ internal sealed class ModelSlotCache<TKey, TValue>
                 return new Lease(this, key, cached.Value);
             }
 
-            if (!_buildLocks.TryGetValue(key, out buildLock!))
-            {
-                _buildLocks[key] = buildLock = new SemaphoreSlim(1, 1);
-            }
+            buildLock = GetBuildLockNoLock(key);
         }
 
         buildLock.Wait();
@@ -118,9 +153,29 @@ internal sealed class ModelSlotCache<TKey, TValue>
                 }
             }
 
+            int generation;
+            lock (_sync)
+            {
+                generation = _generation;
+            }
+
             var created = factory(key);
             lock (_sync)
             {
+                if (generation != _generation)
+                {
+                    created.Dispose();
+                    throw new InvalidOperationException("模型缓存已在加载期间清空，请重试。");
+                }
+
+                if (_entries.TryGetValue(key, out var raced))
+                {
+                    created.Dispose();
+                    raced.InUse++;
+                    TouchNoLock(raced);
+                    return new Lease(this, key, raced.Value);
+                }
+
                 var entry = new Entry(created, _order.AddLast(key)) { InUse = 1 };
                 _entries[key] = entry;
                 EvictNoLock(skip: candidate => EqualityComparer<TKey>.Default.Equals(candidate, key));
@@ -142,6 +197,7 @@ internal sealed class ModelSlotCache<TKey, TValue>
         var immediate = new List<TValue>();
         lock (_sync)
         {
+            _generation++;
             foreach (var pair in _entries.ToArray())
             {
                 if (pair.Value.InUse > 0)
@@ -191,6 +247,16 @@ internal sealed class ModelSlotCache<TKey, TValue>
         {
             DisposeAll([pending]);
         }
+    }
+
+    private SemaphoreSlim GetBuildLockNoLock(TKey key)
+    {
+        if (!_buildLocks.TryGetValue(key, out var buildLock))
+        {
+            _buildLocks[key] = buildLock = new SemaphoreSlim(1, 1);
+        }
+
+        return buildLock;
     }
 
     private void TouchNoLock(Entry entry)

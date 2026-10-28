@@ -20,7 +20,12 @@ public interface IInferenceRunner
         string modelType,
         CancellationToken cancellationToken);
 
-    Task StopAsync(string? reason, CancellationToken cancellationToken);
+    /// <summary>
+    /// Stops the inference that <paramref name="ownerKey"/> started (see
+    /// <see cref="InferenceConfig.OwnerKey"/>) and returns once it has really ended; other callers'
+    /// inference is untouched. A blank <paramref name="ownerKey"/> stops nothing.
+    /// </summary>
+    Task StopAsync(string? ownerKey, string? reason, CancellationToken cancellationToken);
 }
 
 public sealed class InferenceWarmupResult

@@ -10,6 +10,9 @@ public partial class InferencePage : Page
     /// <summary>Matches MainWindow title bar height.</summary>
     private const double TitleBarHeight = 44;
 
+    /// <summary>How long unloading waits for an in-flight model warm-up before releasing anyway.</summary>
+    private static readonly TimeSpan WarmupDrainTimeout = TimeSpan.FromSeconds(5);
+
     private readonly InferenceViewModel _viewModel;
     private readonly PageDisposalScheduler _disposal;
     private Window? _hostWindow;
@@ -18,9 +21,13 @@ public partial class InferencePage : Page
     {
         _viewModel = viewModel;
         DataContext = viewModel;
+        // A model warm-up may still be loading native weights when the page goes away; the drain
+        // lets the dispose wait for it instead of leaving the load running against a dead view model.
         _disposal = new PageDisposalScheduler(
             () => _viewModel,
-            ex => System.Diagnostics.Debug.WriteLine(ex));
+            ex => System.Diagnostics.Debug.WriteLine(ex),
+            PageDisposalScheduler.DefaultDelay,
+            drain: () => _viewModel.DeactivateAsync(WarmupDrainTimeout));
         InitializeComponent();
     }
 

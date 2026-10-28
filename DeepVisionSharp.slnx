@@ -17,5 +17,6 @@
     <Project Path="tests/DeepVisionSharp.Tiling.Tests/DeepVisionSharp.Tiling.Tests.csproj" />
     <Project Path="tests/DeepVisionSharp.TorchSharp.Tests/DeepVisionSharp.TorchSharp.Tests.csproj" />
     <Project Path="tests/DeepVisionSharp.Application.Tests/DeepVisionSharp.Application.Tests.csproj" />
+    <Project Path="tests/DeepVisionSharp.Infrastructure.Tests/DeepVisionSharp.Infrastructure.Tests.csproj" />
   </Folder>
 </Solution>

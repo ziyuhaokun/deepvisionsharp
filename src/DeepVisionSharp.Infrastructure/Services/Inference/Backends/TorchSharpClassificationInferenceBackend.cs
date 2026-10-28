@@ -27,8 +27,6 @@ internal sealed class TorchSharpClassificationInferenceBackend : IInferenceBacke
 
     public string BackendKey => BackendKeys.InferenceTorchSharpClassification;
 
-    public bool IsActive => false;
-
     public bool CanHandle(InferenceBackendContext context)
         => ModelTypeNames.IsClassificationModelType(context.ModelType)
            && LooksLikeTorchSharpClassificationWeights(context.ModelPath);
@@ -122,8 +120,6 @@ internal sealed class TorchSharpClassificationInferenceBackend : IInferenceBacke
             return Task.FromResult(Failed(ex.Message));
         }
     }
-
-    public Task StopAsync(string? reason, CancellationToken cancellationToken) => Task.CompletedTask;
 
     private static bool LooksLikeTorchSharpClassificationWeights(string? path)
     {

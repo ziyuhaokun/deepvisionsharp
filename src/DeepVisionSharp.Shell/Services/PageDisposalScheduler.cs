@@ -27,10 +27,16 @@ public sealed class PageDisposalScheduler
     /// </summary>
     public static readonly TimeSpan DefaultDelay = TimeSpan.FromSeconds(5);
 
+    /// <summary>Extra time a scheduled drain may take after the dispose delay has elapsed.</summary>
+    private static readonly TimeSpan DrainGrace = TimeSpan.FromSeconds(5);
+
     private readonly Func<IDisposable?> _target;
     private readonly Action<Exception>? _onError;
+    private readonly Func<Task>? _drain;
     private readonly DispatcherTimer _timer;
     private int _generation;
+    private Task? _drainTask;
+    private DateTime? _drainDeadline;
 
     /// <param name="target">Returns the view model to dispose, or null when there is nothing to do.</param>
     /// <param name="onError">Called when disposal throws; disposal must never break navigation.</param>
@@ -39,11 +45,16 @@ public sealed class PageDisposalScheduler
     {
     }
 
-    public PageDisposalScheduler(Func<IDisposable?> target, Action<Exception>? onError, TimeSpan delay)
+    public PageDisposalScheduler(
+        Func<IDisposable?> target,
+        Action<Exception>? onError,
+        TimeSpan delay,
+        Func<Task>? drain = null)
     {
         ArgumentNullException.ThrowIfNull(target);
         _target = target;
         _onError = onError;
+        _drain = drain;
         _timer = new DispatcherTimer { Interval = delay };
         _timer.Tick += OnTick;
     }
@@ -53,6 +64,7 @@ public sealed class PageDisposalScheduler
     {
         _generation++;
         _timer.Stop();
+        _drainTask = null;
     }
 
     /// <summary>Schedules a dispose unless <see cref="CancelPendingDispose"/> runs first.</summary>
@@ -61,6 +73,8 @@ public sealed class PageDisposalScheduler
         var generation = _generation;
         _timer.Stop();
         _timer.Tag = generation;
+        _drainTask = _drain is null ? null : RunDrainAsync(_drain);
+        _drainDeadline = DateTime.UtcNow + DrainGrace;
         _timer.Start();
     }
 
@@ -73,9 +87,34 @@ public sealed class PageDisposalScheduler
             return;
         }
 
+        // Work the view model owns (a native model load) may still be running. Give it the grace
+        // period, then dispose anyway: its callbacks are guarded once the view model is disposed.
+        if (_drainTask is { IsCompleted: false })
+        {
+            if (_drainDeadline is { } deadline && DateTime.UtcNow < deadline)
+            {
+                _timer.Start();
+                return;
+            }
+
+            _onError?.Invoke(new TimeoutException("页面拆卸时后台工作未在宽限期内结束，已强制释放视图模型"));
+        }
+
         try
         {
             _target()?.Dispose();
+        }
+        catch (Exception ex)
+        {
+            _onError?.Invoke(ex);
+        }
+    }
+
+    private async Task RunDrainAsync(Func<Task> drain)
+    {
+        try
+        {
+            await drain().ConfigureAwait(false);
         }
         catch (Exception ex)
         {

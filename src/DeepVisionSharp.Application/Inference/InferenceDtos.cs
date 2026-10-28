@@ -78,6 +78,13 @@ public sealed class InferenceConfig
     /// <summary>Inference device: <see cref="InferenceDevices.Cpu"/> / <see cref="InferenceDevices.PrimaryGpu"/>.</summary>
     public string Device { get; set; } = InferenceDevices.PrimaryGpu;
 
+    /// <summary>
+    /// Identifies who started the work, so <c>StopInferenceCommand</c> can stop exactly that caller's
+    /// inference instead of everyone's. Not part of the inference parameters and ignored by
+    /// <see cref="IsValid"/>; null means "anonymous" and such work can never be stopped by owner.
+    /// </summary>
+    public string? OwnerKey { get; set; }
+
     public bool IsValid =>
         ModelId.HasValue
         && ConfidenceThreshold is > 0 and <= 1
