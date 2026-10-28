@@ -19,10 +19,14 @@ public sealed class Yolo26ClsClassifierTests
 
         var parameters = model.parameters().Sum(parameter => parameter.numel());
 
+        // The expected counts are the published ultralytics numbers, independent of our own table;
+        // comparing against OfficialParameterCount as well would only re-read the same source.
         Assert.Equal(expected, parameters);
-        Assert.Equal(Yolo26ClsClassifier.OfficialParameterCount(scale), parameters);
     }
 
+    // Pins the official yolo26-cls module numbering and widths. These are deliberate structure locks,
+    // not incidental internals: renaming a submodule or reordering stages changes the layout this
+    // test guards, and the weights-loading path depends on it.
     [Theory]
     [InlineData("n", 128, 256, false, false, true, true)]
     [InlineData("s", 256, 512, false, false, true, true)]

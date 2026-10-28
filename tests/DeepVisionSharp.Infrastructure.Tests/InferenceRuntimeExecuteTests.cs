@@ -11,11 +11,17 @@ public sealed class InferenceRuntimeExecuteTests
     public async Task Execute_registers_operation_while_async_work_runs_and_releases_it_afterwards()
     {
         var runtime = new InferenceRuntime();
+        var entered = new TaskCompletionSource();
         var gate = new TaskCompletionSource<int>();
 
-        var run = runtime.ExecuteAsync("warmup", _ => gate.Task, CancellationToken.None);
-        await Task.Delay(30);
+        var run = runtime.ExecuteAsync("warmup", async _ =>
+        {
+            entered.SetResult();
+            return await gate.Task;
+        }, CancellationToken.None);
 
+        // The operation is registered for the whole await, not just up to the first synchronous part.
+        await entered.Task.WaitAsync(Wait);
         Assert.Equal(["warmup"], runtime.ActiveOperations);
 
         gate.SetResult(9);

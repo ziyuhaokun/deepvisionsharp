@@ -371,4 +371,151 @@ public sealed class CoordinateMapTests
         Assert.Equal(new PixelPoint(0, 0), CoordinateMaps.ToSource(fit, fit.DestRect.Origin));
         Assert.Null(CoordinateMaps.ToSource(fit, new PixelRect(0, 0, 100, 10)));
     }
+
+    // --- ToCanvas: source -> canvas -------------------------------------------
+    // Letterbox 200x100 -> 100x100: scale 0.5 both axes, content occupies (0,25)-(100,75).
+
+    [Fact]
+    public void Letterbox_maps_the_source_origin_onto_the_content_rect_top_left()
+    {
+        var fit = ImageFits.Letterbox(new PixelSize(200, 100), new PixelSize(100, 100));
+
+        // 0*0.5 + 0 = 0; 0*0.5 + 25 = 25.
+        Assert.Equal(new PixelPoint(0, 25), CoordinateMaps.ToCanvas(fit, new PixelPoint(0, 0)));
+    }
+
+    [Fact]
+    public void Letterbox_maps_the_source_far_corner_onto_the_content_rect_far_corner()
+    {
+        var fit = ImageFits.Letterbox(new PixelSize(200, 100), new PixelSize(100, 100));
+
+        // 200*0.5 = 100; 100*0.5 + 25 = 75.
+        var mapped = CoordinateMaps.ToCanvas(fit, new PixelPoint(200, 100));
+
+        Assert.Equal(new PixelPoint(100, 75), mapped);
+        Assert.Equal(fit.DestRect.Right, mapped.X);
+        Assert.Equal(fit.DestRect.Bottom, mapped.Y);
+    }
+
+    [Fact]
+    public void Stretch_scales_each_axis_by_its_own_factor()
+    {
+        // 200x100 -> 50x50: scaleX 0.25, scaleY 0.5.
+        var fit = ImageFits.Stretch(new PixelSize(200, 100), new PixelSize(50, 50));
+
+        // 100*0.25 = 25; 50*0.5 = 25.
+        Assert.Equal(new PixelPoint(25, 25), CoordinateMaps.ToCanvas(fit, new PixelPoint(100, 50)));
+    }
+
+    [Fact]
+    public void Cover_maps_a_point_inside_the_cropped_source_window()
+    {
+        // 200x100 -> 50x50: cover keeps the middle 100x100 source window starting at x=50.
+        var fit = ImageFits.Cover(new PixelSize(200, 100), new PixelSize(50, 50));
+
+        // (100-50)*0.5 = 25; (50-0)*0.5 = 25.
+        Assert.Equal(new PixelPoint(25, 25), CoordinateMaps.ToCanvas(fit, new PixelPoint(100, 50)));
+    }
+
+    // --- ToSource: canvas -> source -------------------------------------------
+
+    [Fact]
+    public void Letterbox_maps_a_content_point_back_to_the_source()
+    {
+        var fit = ImageFits.Letterbox(new PixelSize(200, 100), new PixelSize(100, 100));
+
+        // (50-0)/0.5 = 100; (50-25)/0.5 = 50.
+        Assert.Equal(new PixelPoint(100, 50), CoordinateMaps.ToSource(fit, new PixelPoint(50, 50)));
+    }
+
+    [Fact]
+    public void Stretch_round_trips_a_source_point()
+    {
+        var fit = ImageFits.Stretch(new PixelSize(200, 100), new PixelSize(50, 50));
+        var source = new PixelPoint(120, 40);
+
+        var canvas = CoordinateMaps.ToCanvas(fit, source);
+        var back = CoordinateMaps.ToSource(fit, canvas);
+
+        // 120*0.25 = 30, 40*0.5 = 20; back: 30/0.25 = 120, 20/0.5 = 40.
+        Assert.Equal(new PixelPoint(30, 20), canvas);
+        Assert.Equal(source, back);
+    }
+
+    [Fact]
+    public void The_content_rects_far_edge_maps_back_to_the_source_far_edge()
+    {
+        // DestRect is inclusive at its far edge: a box on that pixel still belongs to the image.
+        var fit = ImageFits.Letterbox(new PixelSize(200, 100), new PixelSize(100, 100));
+
+        var back = CoordinateMaps.ToSource(fit, new PixelPoint(fit.DestRect.Right, fit.DestRect.Bottom));
+
+        Assert.Equal(new PixelPoint(200, 100), back);
+        Assert.Equal(fit.SourceRect.Right, back.X);
+        Assert.Equal(fit.SourceRect.Bottom, back.Y);
+    }
+
+    [Fact]
+    public void Cover_maps_the_canvas_origin_into_the_middle_of_the_source()
+    {
+        // Canvas (0,0) is not source (0,0) under cover: the left 50 source pixels were cropped away.
+        var fit = ImageFits.Cover(new PixelSize(200, 100), new PixelSize(50, 50));
+
+        Assert.Equal(new PixelPoint(50, 0), CoordinateMaps.ToSource(fit, new PixelPoint(0, 0)));
+    }
+
+    [Fact]
+    public void ToSource_throws_for_a_padding_point_instead_of_returning_a_wrong_pixel()
+    {
+        var fit = ImageFits.Letterbox(new PixelSize(200, 100), new PixelSize(100, 100));
+
+        Assert.Throws<ArgumentOutOfRangeException>(
+            () => CoordinateMaps.ToSource(fit, new PixelPoint(0, 0)));
+    }
+
+    // --- ToSource(PixelRect): canvas rect -> source rect -----------------------
+
+    [Fact]
+    public void The_whole_letterbox_content_maps_to_the_whole_source()
+    {
+        var fit = ImageFits.Letterbox(new PixelSize(200, 100), new PixelSize(100, 100));
+
+        var mapped = CoordinateMaps.ToSource(fit, fit.DestRect);
+
+        Assert.Equal(new PixelRect(0, 0, 200, 100), mapped);
+    }
+
+    [Fact]
+    public void A_canvas_rect_covering_padding_is_clipped_to_the_content_first()
+    {
+        var fit = ImageFits.Letterbox(new PixelSize(200, 100), new PixelSize(100, 100));
+
+        // The canvas rect includes the top padding band; only the content part may map back.
+        var mapped = CoordinateMaps.ToSource(fit, new PixelRect(0, 0, 100, 100));
+
+        Assert.Equal(new PixelRect(0, 0, 200, 100), mapped);
+    }
+
+    [Fact]
+    public void A_canvas_rect_inside_a_stretched_content_maps_to_its_source_box()
+    {
+        // 200x100 -> 50x50: scaleX 0.25, scaleY 0.5.
+        var fit = ImageFits.Stretch(new PixelSize(200, 100), new PixelSize(50, 50));
+
+        // topLeft (10,10) -> (40,20); bottomRight (20,20) -> (80,40); so 40x20 at (40,20).
+        var mapped = CoordinateMaps.ToSource(fit, new PixelRect(10, 10, 10, 10));
+
+        Assert.Equal(new PixelRect(40, 20, 40, 20), mapped);
+    }
+
+    [Fact]
+    public void A_canvas_rect_inside_a_covered_content_maps_to_the_cropped_source_window()
+    {
+        // 200x100 -> 50x50 cover: the content shows source x 50..150.
+        var fit = ImageFits.Cover(new PixelSize(200, 100), new PixelSize(50, 50));
+
+        var mapped = CoordinateMaps.ToSource(fit, new PixelRect(0, 0, 50, 50));
+
+        Assert.Equal(new PixelRect(50, 0, 100, 100), mapped);
+    }
 }

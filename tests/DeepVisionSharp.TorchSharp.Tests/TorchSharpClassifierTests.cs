@@ -27,6 +27,9 @@ public sealed class TorchSharpClassifierTests
         Assert.Equal(expected, TorchSharpClassifierFactory.ResolveArch(input));
     }
 
+    // Locks the torchvision submodule naming on purpose: zero_init_residual is only correct if these
+    // are the residual branch's second BN layers, so the names are part of the contract, not an
+    // incidental internal. A rename must update this test deliberately.
     [Fact]
     public void ResNet_zero_initializes_residual_bn2_weights()
     {

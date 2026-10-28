@@ -37,8 +37,15 @@ public sealed class WarmupCoordinatorTests
 
         coordinator.Request(Target("b.torchsharp"));
 
-        // "a" is still inside its (uninterruptible) native load: "b" must not start yet.
-        await Task.Delay(50);
+        // "a" is still inside its (uninterruptible) native load, and the coordinator only starts the
+        // next target once that call has returned. Give it a bounded chance to get this wrong rather
+        // than asserting a race outright.
+        var settle = DateTime.UtcNow + TimeSpan.FromMilliseconds(50);
+        while (DateTime.UtcNow < settle && runner.StartedPaths().Count == 1)
+        {
+            await Task.Yield();
+        }
+
         Assert.Equal(["a.torchsharp"], runner.StartedPaths());
 
         runner.Release();
@@ -85,7 +92,11 @@ public sealed class WarmupCoordinatorTests
         await runner.FirstWarmupEntered.WaitAsync(Wait);
 
         var idle = coordinator.WaitForIdleAsync(Wait);
-        await Task.Delay(30);
+        // The load is still inside its uninterruptible call, so "idle" cannot be reported yet.
+        await TestAsync.WaitUntil(
+            () => runner.StartedPaths().Count == 1 && !idle.IsCompleted,
+            Wait,
+            because: "native 加载尚未结束，WaitForIdleAsync 却提前完成");
         Assert.False(idle.IsCompleted);
 
         runner.Release();

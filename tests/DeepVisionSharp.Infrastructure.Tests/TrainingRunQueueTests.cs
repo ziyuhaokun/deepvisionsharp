@@ -5,6 +5,8 @@ namespace DeepVisionSharp.Infrastructure.Tests;
 
 public sealed class TrainingRunQueueTests
 {
+    private static readonly TimeSpan Wait = TimeSpan.FromSeconds(5);
+
     [Fact]
     public void Shutdown_before_dequeue_releases_pending_run_and_tracking()
     {
@@ -78,17 +80,21 @@ public sealed class TrainingRunQueueTests
     public async Task Shutdown_ends_worker_read_loop_without_hanging()
     {
         var queue = new TrainingRunQueue();
+        var readerStarted = new TaskCompletionSource();
         var reader = Task.Run(async () =>
         {
+            readerStarted.TrySetResult();
             await foreach (var _ in queue.ReadAllAsync(CancellationToken.None))
             {
             }
         });
 
-        await Task.Delay(20);
+        // Wait until the loop is actually awaiting a read, so the shutdown below races a live
+        // consumer rather than a task that has not started yet.
+        await readerStarted.Task.WaitAsync(Wait);
         queue.Shutdown();
 
-        await reader.WaitAsync(TimeSpan.FromSeconds(2));
+        await reader.WaitAsync(Wait);
     }
 
     [Fact]

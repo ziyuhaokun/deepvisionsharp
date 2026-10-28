@@ -233,7 +233,7 @@ public sealed class InferenceRuntimeExclusiveTests
         var runtime = new InferenceRuntime(engine);
 
         var exclusive = runtime.BeginExclusiveAsync(Wait, CancellationToken.None);
-        await Task.Delay(30);
+        await TestAsync.WaitUntil(() => engine.Calls.Contains("device-begin"), Wait);
 
         // A request that started through the legacy engine entry still holds the device gate.
         Assert.False(exclusive.IsCompleted);

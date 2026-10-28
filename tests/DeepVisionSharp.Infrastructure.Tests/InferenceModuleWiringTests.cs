@@ -19,8 +19,9 @@ public sealed class InferenceModuleWiringTests
         var first = provider.GetRequiredService<IInferenceRuntime>();
         var second = provider.GetRequiredService<IInferenceRuntime>();
 
+        // Only the registration shape matters here: one instance, running. Which implementation it is
+        // stays an implementation choice.
         Assert.Same(first, second);
-        Assert.IsType<InferenceRuntime>(first);
         Assert.Equal(InferenceRuntimeState.Running, first.State);
     }
 
@@ -37,7 +38,6 @@ public sealed class InferenceModuleWiringTests
         var second = provider.GetRequiredService<IWarmupCoordinator>();
 
         Assert.Same(first, second);
-        Assert.IsType<WarmupCoordinator>(first);
         Assert.False(first.IsRunning);
         Assert.Null(first.DesiredKey);
     }

@@ -42,8 +42,13 @@ public sealed class InferenceRuntimeOwnerStopTests
         await entered.Task.WaitAsync(Wait);
 
         var stop = runtime.StopAsync("a", "user", CancellationToken.None);
-        await Task.Delay(30);
+        // The operation is inside its (uninterruptible) native call, so Stop must still be draining.
+        await TestAsync.WaitUntil(
+            () => runtime.OperationSnapshots.Any(info => info.IsCancelling),
+            Wait,
+            because: "Stop 未把该 owner 的 operation 标记为停止中");
         Assert.False(stop.IsCompleted);
+        Assert.False(run.IsCompleted);
 
         release.Set();
         await stop.WaitAsync(Wait);
