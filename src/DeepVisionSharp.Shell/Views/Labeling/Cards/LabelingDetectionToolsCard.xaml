@@ -16,74 +16,117 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <StackPanel Margin="0,0,0,12">
-        <Grid Margin="0,0,0,6">
-            <TextBlock Style="{StaticResource SectionTitleStyle}" Text="检测工具" />
-            <TextBlock
-                HorizontalAlignment="Right"
-                VerticalAlignment="Center"
-                AutomationProperties.AutomationId="dv.labeling.detection.status"
-                Style="{StaticResource MutedTextStyle}"
-                Text="{Binding Editor.DetectionStatusText}" />
-        </Grid>
+    <StackPanel>
+        <!-- Drawing mode -->
+        <Border Style="{StaticResource ToolSectionStyle}">
+            <StackPanel>
+                <TextBlock Style="{StaticResource SectionTitleStyle}" Text="标注模式" />
+                <StackPanel Margin="0,6,0,0" Orientation="Horizontal">
+                    <ui:Button
+                        AutomationProperties.AutomationId="dv.labeling.tool.select"
+                        Command="{Binding Editor.SetSelectToolCommand}"
+                        Icon="{ui:SymbolIcon CursorHover24}"
+                        Style="{StaticResource SelectToolButtonStyle}" />
+                    <ui:Button
+                        Margin="8,0,0,0"
+                        AutomationProperties.AutomationId="dv.labeling.tool.rectangle"
+                        Command="{Binding Editor.SetRectangleToolCommand}"
+                        Icon="{ui:SymbolIcon Square24}"
+                        Style="{StaticResource RectangleToolButtonStyle}" />
+                </StackPanel>
+                <TextBlock
+                    Margin="0,8,0,0"
+                    Style="{StaticResource MutedTextStyle}"
+                    Text="矩形：拖拽画框；选择：移动/缩放已选框。滚轮缩放，中键平移。"
+                    TextWrapping="Wrap" />
+            </StackPanel>
+        </Border>
 
-        <WrapPanel>
-            <ui:Button
-                Margin="0,0,6,6"
-                Appearance="Secondary"
-                AutomationProperties.AutomationId="dv.labeling.tool.mode"
-                Command="{Binding Editor.ToggleToolModeCommand}">
-                <TextBlock Text="{Binding Editor.ToolModeText}" />
-            </ui:Button>
+        <!-- Editing actions -->
+        <Border Style="{StaticResource ToolSectionStyle}">
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Style="{StaticResource SectionTitleStyle}" Text="标注操作" />
+                    <Border
+                        Grid.Column="1"
+                        Padding="6,2"
+                        Background="{DynamicResource ControlFillColorDefaultBrush}"
+                        CornerRadius="6">
+                        <TextBlock
+                            AutomationProperties.AutomationId="dv.labeling.detection.status"
+                            FontSize="11"
+                            FontWeight="SemiBold"
+                            Text="{Binding Editor.DetectionStatusText}" />
+                    </Border>
+                </Grid>
 
-            <ui:Button
-                Margin="0,0,6,6"
-                Appearance="Secondary"
-                AutomationProperties.AutomationId="dv.labeling.box.delete"
-                Command="{Binding Editor.DeleteSelectedBoxCommand}"
-                Content="删除选中"
-                IsEnabled="{Binding Editor.HasSelectedBox}" />
+                <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
+                    <ui:Button
+                        AutomationProperties.AutomationId="dv.labeling.box.undo"
+                        Command="{Binding Editor.UndoBoxEditCommand}"
+                        Icon="{ui:SymbolIcon ArrowUndo24}"
+                        Style="{StaticResource IconButtonStyle}"
+                        ToolTip="撤销 (Ctrl+Z)" />
+                    <ui:Button
+                        Margin="6,0,0,0"
+                        AutomationProperties.AutomationId="dv.labeling.box.redo"
+                        Command="{Binding Editor.RedoBoxEditCommand}"
+                        Icon="{ui:SymbolIcon ArrowRedo24}"
+                        Style="{StaticResource IconButtonStyle}"
+                        ToolTip="重做 (Ctrl+Y)" />
+                    <ui:Button
+                        Margin="6,0,0,0"
+                        AutomationProperties.AutomationId="dv.labeling.box.delete"
+                        Command="{Binding Editor.DeleteSelectedBoxCommand}"
+                        Icon="{ui:SymbolIcon Delete24}"
+                        IsEnabled="{Binding Editor.HasSelectedBox}"
+                        Style="{StaticResource IconButtonStyle}"
+                        ToolTip="删除选中框 (Delete)" />
+                    <ui:Button
+                        Margin="6,0,0,0"
+                        AutomationProperties.AutomationId="dv.labeling.box.clear"
+                        Command="{Binding Editor.ClearBoxesCommand}"
+                        Icon="{ui:SymbolIcon Eraser24}"
+                        IsEnabled="{Binding Editor.HasBoxes}"
+                        Style="{StaticResource IconButtonStyle}"
+                        ToolTip="清空当前样本的所有框" />
+                </StackPanel>
 
-            <ui:Button
-                Margin="0,0,6,6"
-                Appearance="Secondary"
-                AutomationProperties.AutomationId="dv.labeling.box.undo"
-                Command="{Binding Editor.UndoBoxEditCommand}"
-                Content="撤销" />
+                <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
+                    <ui:Button
+                        Padding="10,4"
+                        Appearance="Secondary"
+                        AutomationProperties.AutomationId="dv.labeling.mark.no-objects"
+                        BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        Command="{Binding Editor.MarkNoObjectsCommand}"
+                        Content="标记无目标"
+                        IsEnabled="{Binding Editor.IsBoxEditingEnabled}" />
+                    <ui:Button
+                        Margin="6,0,0,0"
+                        Padding="10,4"
+                        Appearance="Primary"
+                        AutomationProperties.AutomationId="dv.labeling.mark.reviewed"
+                        Command="{Binding Editor.MarkReviewedCommand}"
+                        Content="完成标注"
+                        Icon="{ui:SymbolIcon Checkmark24}"
+                        IsEnabled="{Binding Editor.IsBoxEditingEnabled}" />
+                </StackPanel>
 
-            <ui:Button
-                Margin="0,0,6,6"
-                Appearance="Secondary"
-                AutomationProperties.AutomationId="dv.labeling.box.redo"
-                Command="{Binding Editor.RedoBoxEditCommand}"
-                Content="重做" />
-        </WrapPanel>
-
-        <WrapPanel>
-            <ui:Button
-                Margin="0,0,6,6"
-                Appearance="Secondary"
-                AutomationProperties.AutomationId="dv.labeling.mark.no-objects"
-                Command="{Binding Editor.MarkNoObjectsCommand}"
-                Content="标记无目标"
-                IsEnabled="{Binding Editor.IsBoxEditingEnabled}" />
-
-            <ui:Button
-                Margin="0,0,6,6"
-                Appearance="Primary"
-                AutomationProperties.AutomationId="dv.labeling.mark.reviewed"
-                Command="{Binding Editor.MarkReviewedCommand}"
-                Content="完成标注"
-                IsEnabled="{Binding Editor.IsBoxEditingEnabled}"
-                Icon="{ui:SymbolIcon Checkmark24}" />
-
-            <ui:Button
-                Margin="0,0,6,6"
-                Appearance="Secondary"
-                AutomationProperties.AutomationId="dv.labeling.import-yolo"
-                Command="{Binding ImportYoloDatasetCommand}"
-                Content="导入 YOLO 数据集"
-                IsEnabled="{Binding Workspace.IsNotBusy}" />
-        </WrapPanel>
+                <ui:Button
+                    Margin="0,8,0,0"
+                    Padding="10,4"
+                    HorizontalAlignment="Stretch"
+                    AutomationProperties.AutomationId="dv.labeling.import-yolo"
+                    Command="{Binding ImportYoloDatasetCommand}"
+                    Content="导入 YOLO 数据集"
+                    Icon="{ui:SymbolIcon FolderOpen24}"
+                    IsEnabled="{Binding Workspace.IsNotBusy}" />
+            </StackPanel>
+        </Border>
     </StackPanel>
 </UserControl>

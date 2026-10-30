@@ -87,6 +87,46 @@
         <Setter Property="MinWidth" Value="36" />
     </Style>
 
+    <Style x:Key="BodyTextStyle" TargetType="{x:Type TextBlock}">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    </Style>
+
+    <Style x:Key="EmptyAnnotationsStyle" TargetType="{x:Type Border}">
+        <Setter Property="Visibility" Value="Visible" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Editor.HasBoxes}" Value="True">
+                <Setter Property="Visibility" Value="Collapsed" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style
+        x:Key="SelectToolButtonStyle"
+        BasedOn="{StaticResource ToolIconButtonStyle}"
+        TargetType="{x:Type ui:Button}">
+        <Setter Property="Appearance" Value="Secondary" />
+        <Setter Property="ToolTip" Value="选择工具：移动 / 缩放已选框" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Editor.IsSelectTool}" Value="True">
+                <Setter Property="Appearance" Value="Primary" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style
+        x:Key="RectangleToolButtonStyle"
+        BasedOn="{StaticResource ToolIconButtonStyle}"
+        TargetType="{x:Type ui:Button}">
+        <Setter Property="Appearance" Value="Secondary" />
+        <Setter Property="ToolTip" Value="矩形工具：拖拽画框（先在类别列表选类别）" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Editor.IsRectangleTool}" Value="True">
+                <Setter Property="Appearance" Value="Primary" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
     <Style x:Key="SampleTileStyle" TargetType="{x:Type Border}">
         <Setter Property="Width" Value="96" />
         <Setter Property="Height" Value="88" />

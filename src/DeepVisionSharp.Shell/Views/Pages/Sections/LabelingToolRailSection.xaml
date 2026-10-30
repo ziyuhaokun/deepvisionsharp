@@ -51,6 +51,9 @@
                                         <MenuItem Header="常用快捷键速查" IsEnabled="False" FontWeight="Bold" />
                                         <Separator />
                                         <MenuItem Header="Ctrl + S：保存当前标注" IsEnabled="False" />
+                                        <MenuItem Header="Ctrl + Z / Y：撤销 / 重做" IsEnabled="False" />
+                                        <MenuItem Header="Delete：删除选中的框" IsEnabled="False" />
+                                        <MenuItem Header="滚轮：缩放画布；中键拖动：平移" IsEnabled="False" />
                                         <MenuItem Header="← / →：切换上一张 / 下一张样本" IsEnabled="False" />
                                         <MenuItem Header="数字键 1~9：快速选择对应序号的标签类别" IsEnabled="False" />
                                     </ContextMenu>

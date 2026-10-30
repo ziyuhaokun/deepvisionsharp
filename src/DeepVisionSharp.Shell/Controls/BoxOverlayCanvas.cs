@@ -12,21 +12,27 @@ namespace DeepVisionSharp.Shell.Controls;
 /// <summary>
 /// Rectangle editing layer drawn over the labeling image. Coordinates are original-image pixels;
 /// the control maps them through the same Uniform fit the <see cref="System.Windows.Controls.Image"/>
-/// uses, so boxes stay glued to the pixels when the window resizes.
+/// uses, with zoom/pan on top, so boxes stay glued to the pixels at any scale.
 /// </summary>
 public sealed class BoxOverlayCanvas : FrameworkElement
 {
     private const double HandleSize = 9;
     private const double HitTolerance = 7;
     private const double MinimumDragPixels = 3;
+    private const double MinZoom = 0.15;
+    private const double MaxZoom = 8;
+
+    public static readonly DependencyProperty ImageSourceProperty = DependencyProperty.Register(
+        nameof(ImageSource), typeof(ImageSource), typeof(BoxOverlayCanvas),
+        new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
 
     public static readonly DependencyProperty ImageWidthProperty = DependencyProperty.Register(
         nameof(ImageWidth), typeof(double), typeof(BoxOverlayCanvas),
-        new FrameworkPropertyMetadata(0d, FrameworkPropertyMetadataOptions.AffectsRender));
+        new FrameworkPropertyMetadata(0d, FrameworkPropertyMetadataOptions.AffectsRender, OnImageSizeChanged));
 
     public static readonly DependencyProperty ImageHeightProperty = DependencyProperty.Register(
         nameof(ImageHeight), typeof(double), typeof(BoxOverlayCanvas),
-        new FrameworkPropertyMetadata(0d, FrameworkPropertyMetadataOptions.AffectsRender));
+        new FrameworkPropertyMetadata(0d, FrameworkPropertyMetadataOptions.AffectsRender, OnImageSizeChanged));
 
     public static readonly DependencyProperty BoxesProperty = DependencyProperty.Register(
         nameof(Boxes), typeof(IList), typeof(BoxOverlayCanvas),
@@ -50,6 +56,26 @@ public sealed class BoxOverlayCanvas : FrameworkElement
         nameof(IsReadOnly), typeof(bool), typeof(BoxOverlayCanvas),
         new FrameworkPropertyMetadata(false));
 
+    public static readonly DependencyProperty ShowLabelNamesProperty = DependencyProperty.Register(
+        nameof(ShowLabelNames), typeof(bool), typeof(BoxOverlayCanvas),
+        new FrameworkPropertyMetadata(true, FrameworkPropertyMetadataOptions.AffectsRender));
+
+    public static readonly DependencyProperty ShowBoxNumbersProperty = DependencyProperty.Register(
+        nameof(ShowBoxNumbers), typeof(bool), typeof(BoxOverlayCanvas),
+        new FrameworkPropertyMetadata(true, FrameworkPropertyMetadataOptions.AffectsRender));
+
+    public static readonly DependencyProperty ZoomScaleProperty = DependencyProperty.Register(
+        nameof(ZoomScale), typeof(double), typeof(BoxOverlayCanvas),
+        new FrameworkPropertyMetadata(
+            1d,
+            FrameworkPropertyMetadataOptions.AffectsRender | FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
+            OnZoomChanged,
+            CoerceZoom));
+
+    public static readonly DependencyProperty ViewportRectProperty = DependencyProperty.Register(
+        nameof(ViewportRect), typeof(Rect), typeof(BoxOverlayCanvas),
+        new FrameworkPropertyMetadata(Rect.Empty, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+
     public static readonly DependencyProperty EditStartingCommandProperty = DependencyProperty.Register(
         nameof(EditStartingCommand), typeof(ICommand), typeof(BoxOverlayCanvas));
 
@@ -65,8 +91,13 @@ public sealed class BoxOverlayCanvas : FrameworkElement
     private DragMode _dragMode;
     private HandleKind _handle;
     private Point _dragStartImage;
+    private Point _dragStartScreen;
     private Rect _originalBounds;
     private BoxShapeViewModel? _draftBox;
+    private double _panX;
+    private double _panY;
+    private bool _isPanning;
+    private bool _updatingViewport;
 
     public BoxOverlayCanvas()
     {
@@ -94,6 +125,12 @@ public sealed class BoxOverlayCanvas : FrameworkElement
         South,
         SouthWest,
         West
+    }
+
+    public ImageSource? ImageSource
+    {
+        get => (ImageSource?)GetValue(ImageSourceProperty);
+        set => SetValue(ImageSourceProperty, value);
     }
 
     public double ImageWidth
@@ -138,6 +175,30 @@ public sealed class BoxOverlayCanvas : FrameworkElement
         set => SetValue(IsReadOnlyProperty, value);
     }
 
+    public bool ShowLabelNames
+    {
+        get => (bool)GetValue(ShowLabelNamesProperty);
+        set => SetValue(ShowLabelNamesProperty, value);
+    }
+
+    public bool ShowBoxNumbers
+    {
+        get => (bool)GetValue(ShowBoxNumbersProperty);
+        set => SetValue(ShowBoxNumbersProperty, value);
+    }
+
+    public double ZoomScale
+    {
+        get => (double)GetValue(ZoomScaleProperty);
+        set => SetValue(ZoomScaleProperty, value);
+    }
+
+    public Rect ViewportRect
+    {
+        get => (Rect)GetValue(ViewportRectProperty);
+        set => SetValue(ViewportRectProperty, value);
+    }
+
     public ICommand? EditStartingCommand
     {
         get => (ICommand?)GetValue(EditStartingCommandProperty);
@@ -160,6 +221,59 @@ public sealed class BoxOverlayCanvas : FrameworkElement
     {
         get => (ICommand?)GetValue(RedoCommandProperty);
         set => SetValue(RedoCommandProperty, value);
+    }
+
+    /// <summary>Zooms around the control centre.</summary>
+    public void ZoomBy(double factor)
+    {
+        var centre = new Point(ActualWidth / 2, ActualHeight / 2);
+        ZoomAround(centre, factor);
+    }
+
+    /// <summary>Returns to the fit-to-window view.</summary>
+    public void FitView()
+    {
+        _panX = 0;
+        _panY = 0;
+        ZoomScale = 1;
+        InvalidateVisual();
+        UpdateViewportRect();
+        OnPropertyChanged_ViewChanged();
+    }
+
+    private event EventHandler? ViewChanged;
+
+    /// <summary>Raised after wheel/middle-drag changed zoom or pan (the toolbar text binds through ZoomScale).</summary>
+    public event EventHandler? ViewTransformChanged
+    {
+        add => ViewChanged += value;
+        remove => ViewChanged -= value;
+    }
+
+    private void OnPropertyChanged_ViewChanged() => ViewChanged?.Invoke(this, EventArgs.Empty);
+
+    private static object CoerceZoom(DependencyObject d, object baseValue)
+    {
+        var value = (double)baseValue;
+        return double.IsFinite(value) ? Math.Clamp(value, MinZoom, MaxZoom) : 1d;
+    }
+
+    private static void OnZoomChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        var control = (BoxOverlayCanvas)d;
+        control.InvalidateVisual();
+        control.UpdateViewportRect();
+        control.OnPropertyChanged_ViewChanged();
+    }
+
+    private static void OnImageSizeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        var control = (BoxOverlayCanvas)d;
+        control._panX = 0;
+        control._panY = 0;
+        control.ZoomScale = 1;
+        control.InvalidateVisual();
+        control.UpdateViewportRect();
     }
 
     private static void OnBoxesChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -188,36 +302,100 @@ public sealed class BoxOverlayCanvas : FrameworkElement
         drawingContext.DrawRectangle(Brushes.Transparent, null, new Rect(RenderSize));
 
         var content = GetContentRect();
-        if (content.Width <= 0 || content.Height <= 0)
+        if (content.Width > 0 && content.Height > 0)
         {
-            return;
-        }
-
-        drawingContext.DrawRectangle(null, CreatePen(Color.FromArgb(0x66, 0x94, 0xA3, 0xB8), 1), content);
-
-        if (Boxes is null)
-        {
-            return;
-        }
-
-        var dpi = VisualTreeHelper.GetDpi(this).PixelsPerDip;
-        foreach (var item in Boxes.OfType<BoxShapeViewModel>())
-        {
-            var rect = ToScreenRect(item);
-            var color = ParseColor(item.Color);
-            var isSelected = ReferenceEquals(item, SelectedBox);
-            var pen = CreatePen(color, isSelected ? 3 : 2);
-            drawingContext.DrawRectangle(null, pen, rect);
-            DrawLabel(drawingContext, rect, item.Label, color, dpi);
-
-            if (isSelected && !IsReadOnly)
+            if (ImageSource is not null)
             {
-                foreach (var handle in HandlePoints(rect))
+                drawingContext.DrawImage(ImageSource, content);
+            }
+
+            drawingContext.DrawRectangle(null, CreatePen(Color.FromArgb(0x66, 0x94, 0xA3, 0xB8), 1), content);
+        }
+
+        if (Boxes is not null && content.Width > 0)
+        {
+            var dpi = VisualTreeHelper.GetDpi(this).PixelsPerDip;
+            foreach (var item in Boxes.OfType<BoxShapeViewModel>())
+            {
+                var rect = ToScreenRect(item);
+                var color = ParseColor(item.Color);
+                var isSelected = ReferenceEquals(item, SelectedBox);
+                drawingContext.DrawRectangle(null, CreatePen(color, isSelected ? 3 : 2), rect);
+                if (ShowBoxNumbers && item.Number > 0)
                 {
-                    drawingContext.DrawRectangle(Brushes.White, CreatePen(color, 1),
-                        new Rect(handle.X - (HandleSize / 2), handle.Y - (HandleSize / 2), HandleSize, HandleSize));
+                    DrawBoxNumber(drawingContext, rect, item.Number, color, dpi);
+                }
+
+                if (ShowLabelNames)
+                {
+                    DrawLabel(drawingContext, rect, item.Label, color, dpi);
+                }
+
+                if (isSelected && !IsReadOnly)
+                {
+                    foreach (var handle in HandlePoints(rect))
+                    {
+                        drawingContext.DrawRectangle(Brushes.White, CreatePen(color, 1),
+                            new Rect(handle.X - (HandleSize / 2), handle.Y - (HandleSize / 2), HandleSize, HandleSize));
+                    }
                 }
             }
+        }
+
+        UpdateViewportRect();
+    }
+
+    protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
+    {
+        base.OnRenderSizeChanged(sizeInfo);
+        UpdateViewportRect();
+    }
+
+    protected override void OnMouseWheel(MouseWheelEventArgs e)
+    {
+        base.OnMouseWheel(e);
+        if (IsReadOnly || ImageWidth <= 0)
+        {
+            return;
+        }
+
+        var factor = e.Delta > 0 ? 1.12 : 1 / 1.12;
+        ZoomAround(e.GetPosition(this), factor);
+        e.Handled = true;
+    }
+
+    private void ZoomAround(Point anchor, double factor)
+    {
+        var before = ToImagePoint(anchor);
+        var target = Math.Clamp(ZoomScale * factor, MinZoom, MaxZoom);
+        if (Math.Abs(target - ZoomScale) < 0.0001)
+        {
+            return;
+        }
+
+        ZoomScale = target;
+        // Keep the image point under the cursor fixed after the scale changed.
+        var content = GetContentRect();
+        var scale = content.Width / Math.Max(1, ImageWidth);
+        var currentX = content.X + (before.X * scale);
+        var currentY = content.Y + (before.Y * scale);
+        _panX += anchor.X - currentX;
+        _panY += anchor.Y - currentY;
+        InvalidateVisual();
+        UpdateViewportRect();
+        OnPropertyChanged_ViewChanged();
+    }
+
+    protected override void OnMouseDown(MouseButtonEventArgs e)
+    {
+        base.OnMouseDown(e);
+        if (e.ChangedButton == MouseButton.Middle && !IsReadOnly)
+        {
+            _isPanning = true;
+            _dragStartScreen = e.GetPosition(this);
+            CaptureMouse();
+            Cursor = Cursors.SizeAll;
+            e.Handled = true;
         }
     }
 
@@ -233,7 +411,7 @@ public sealed class BoxOverlayCanvas : FrameworkElement
         var point = e.GetPosition(this);
         var imagePoint = ToImagePoint(point);
 
-        if (SelectedBox is not null && !IsReadOnly)
+        if (SelectedBox is not null)
         {
             var handle = HitTestHandle(SelectedBox, point);
             if (handle != HandleKind.None)
@@ -285,6 +463,18 @@ public sealed class BoxOverlayCanvas : FrameworkElement
     protected override void OnMouseMove(MouseEventArgs e)
     {
         base.OnMouseMove(e);
+        if (_isPanning)
+        {
+            var current = e.GetPosition(this);
+            _panX += current.X - _dragStartScreen.X;
+            _panY += current.Y - _dragStartScreen.Y;
+            _dragStartScreen = current;
+            InvalidateVisual();
+            UpdateViewportRect();
+            OnPropertyChanged_ViewChanged();
+            return;
+        }
+
         if (_dragMode == DragMode.None)
         {
             Cursor = Tool == BoxToolMode.Draw && !IsReadOnly ? Cursors.Cross : Cursors.Arrow;
@@ -353,11 +543,24 @@ public sealed class BoxOverlayCanvas : FrameworkElement
         InvalidateVisual();
     }
 
+    protected override void OnMouseUp(MouseButtonEventArgs e)
+    {
+        base.OnMouseUp(e);
+        if (e.ChangedButton == MouseButton.Middle && _isPanning)
+        {
+            _isPanning = false;
+            ReleaseMouseCapture();
+            Cursor = Cursors.Arrow;
+            e.Handled = true;
+        }
+    }
+
     protected override void OnLostMouseCapture(MouseEventArgs e)
     {
         base.OnLostMouseCapture(e);
         _dragMode = DragMode.None;
         _draftBox = null;
+        _isPanning = false;
     }
 
     protected override void OnKeyDown(KeyEventArgs e)
@@ -538,10 +741,15 @@ public sealed class BoxOverlayCanvas : FrameworkElement
             return Rect.Empty;
         }
 
-        var scale = Math.Min(ActualWidth / ImageWidth, ActualHeight / ImageHeight);
+        var fit = Math.Min(ActualWidth / ImageWidth, ActualHeight / ImageHeight);
+        var scale = fit * ZoomScale;
         var width = ImageWidth * scale;
         var height = ImageHeight * scale;
-        return new Rect((ActualWidth - width) / 2, (ActualHeight - height) / 2, width, height);
+        return new Rect(
+            ((ActualWidth - width) / 2) + _panX,
+            ((ActualHeight - height) / 2) + _panY,
+            width,
+            height);
     }
 
     private double GetScale()
@@ -573,6 +781,65 @@ public sealed class BoxOverlayCanvas : FrameworkElement
         return new Point(
             Math.Clamp((screenPoint.X - content.X) / scale, 0, Math.Max(0, ImageWidth)),
             Math.Clamp((screenPoint.Y - content.Y) / scale, 0, Math.Max(0, ImageHeight)));
+    }
+
+    /// <summary>Source-image rectangle currently visible; the bird's-eye view draws it.</summary>
+    private void UpdateViewportRect()
+    {
+        if (_updatingViewport || ImageWidth <= 0 || ImageHeight <= 0 || ActualWidth <= 0)
+        {
+            return;
+        }
+
+        var content = GetContentRect();
+        var scale = GetScale();
+        if (scale <= 0 || content.Width <= 0)
+        {
+            return;
+        }
+
+        var left = Math.Clamp((0 - content.X) / scale, 0, ImageWidth);
+        var top = Math.Clamp((0 - content.Y) / scale, 0, ImageHeight);
+        var right = Math.Clamp((ActualWidth - content.X) / scale, 0, ImageWidth);
+        var bottom = Math.Clamp((ActualHeight - content.Y) / scale, 0, ImageHeight);
+        var viewport = new Rect(left, top, Math.Max(0, right - left), Math.Max(0, bottom - top));
+        if (viewport.Width <= 0 || viewport.Height <= 0)
+        {
+            return;
+        }
+
+        _updatingViewport = true;
+        try
+        {
+            SetCurrentValue(ViewportRectProperty, viewport);
+        }
+        finally
+        {
+            _updatingViewport = false;
+        }
+    }
+
+    private static void DrawBoxNumber(
+        DrawingContext context,
+        Rect rect,
+        int number,
+        Color color,
+        double pixelsPerDip)
+    {
+        var text = new FormattedText(
+            number.ToString(CultureInfo.InvariantCulture),
+            CultureInfo.InvariantCulture,
+            FlowDirection.LeftToRight,
+            new Typeface("Segoe UI Semibold"),
+            11,
+            Brushes.White,
+            pixelsPerDip);
+        var width = Math.Max(18, text.Width + 8);
+        var badge = new Rect(rect.Left, rect.Top, width, 18);
+        var brush = new SolidColorBrush(Color.FromArgb(0xF2, color.R, color.G, color.B));
+        brush.Freeze();
+        context.DrawRectangle(brush, null, badge);
+        context.DrawText(text, new Point(badge.Left + ((badge.Width - text.Width) / 2), badge.Top + 2));
     }
 
     private static void DrawLabel(

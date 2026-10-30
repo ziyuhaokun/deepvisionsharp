@@ -3,7 +3,8 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-    xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters">
+    xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters"
+    xmlns:controls="clr-namespace:DeepVisionSharp.Shell.Controls">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -21,8 +22,47 @@
             BorderThickness="1"
             CornerRadius="8">
             <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- Bird's-eye view: whole image, every box, and the visible viewport -->
+                <StackPanel
+                    Margin="8,8,8,0"
+                    Visibility="{Binding Workspace.IsDetectionProject, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Style="{StaticResource SectionTitleStyle}" Text="鸟瞰图" />
+                        <TextBlock
+                            Grid.Column="1"
+                            AutomationProperties.AutomationId="dv.labeling.overview.hint"
+                            Style="{StaticResource MutedTextStyle}"
+                            Text="点击框定位" />
+                    </Grid>
+                    <Border
+                        Height="150"
+                        Margin="0,6,0,0"
+                        Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                        BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        ClipToBounds="True">
+                        <controls:BoxOverviewCanvas
+                            AutomationProperties.AutomationId="dv.labeling.overview"
+                            Boxes="{Binding Editor.Boxes}"
+                            ImageSource="{Binding Workspace.ImageSource}"
+                            SelectedBox="{Binding Editor.SelectedBox, Mode=TwoWay}"
+                            ViewportRect="{Binding Editor.ViewportRect}" />
+                    </Border>
+                </StackPanel>
+
                 <ContentControl
                     x:Name="SideRailHost"
+                    Grid.Row="1"
                     HorizontalContentAlignment="Stretch"
                     VerticalContentAlignment="Stretch"
                     Content="{Binding}">

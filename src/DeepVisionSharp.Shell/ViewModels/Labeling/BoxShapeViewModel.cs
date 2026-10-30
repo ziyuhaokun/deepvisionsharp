@@ -36,11 +36,20 @@ public sealed partial class BoxShapeViewModel : ObservableObject
     [ObservableProperty]
     private double _height;
 
+    /// <summary>1-based position in the editor list; drawn on the canvas and in the list.</summary>
+    [ObservableProperty]
+    private int _number;
+
+    [ObservableProperty]
+    private bool _isSelected;
+
     public string Color => PaletteFor(Label);
 
     public string Summary => $"{Label} · {Width:0}×{Height:0}";
 
     public string CoordinatesText => $"({X:0}, {Y:0})  {Width:0}×{Height:0}";
+
+    public string NumberText => Number > 0 ? Number.ToString() : string.Empty;
 
     public AnnotationShape ToShape() =>
         new(Label, AnnotationShapeKind.Rectangle, X, Y, Width, Height);
@@ -61,6 +70,8 @@ public sealed partial class BoxShapeViewModel : ObservableObject
         OnPropertyChanged(nameof(Color));
         OnPropertyChanged(nameof(Summary));
     }
+
+    partial void OnNumberChanged(int value) => OnPropertyChanged(nameof(NumberText));
 
     partial void OnXChanged(double value) => NotifyGeometryChanged();
 

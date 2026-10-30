@@ -11,100 +11,241 @@
                 <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Views/Labeling/LabelingWorkbenchResources.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Views/Labeling/LabelingRailTemplates.xaml" />
             </ResourceDictionary.MergedDictionaries>
-    </ResourceDictionary>
+
+            <Style x:Key="ViewToolbarCellButtonStyle" TargetType="{x:Type Button}">
+                <Setter Property="Width" Value="28" />
+                <Setter Property="Height" Value="28" />
+                <Setter Property="MinWidth" Value="28" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="Margin" Value="0" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Button}">
+                            <Border
+                                x:Name="Cell"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="5">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Cell" Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
+                                    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter Property="Opacity" Value="0.4" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
     </UserControl.Resources>
-                <Grid>
-                    <Border
-                        Margin="6"
-                        Background="{DynamicResource ControlFillColorSecondaryBrush}"
-                        BorderBrush="{Binding Labels.CurrentImageClassColor}"
-                        CornerRadius="6">
-                        <Border.Style>
-                            <Style TargetType="{x:Type Border}">
-                                <Setter Property="BorderThickness" Value="0" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Labels.HasCurrentImageClass}" Value="True">
-                                        <Setter Property="BorderThickness" Value="2" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Border.Style>
-                        <Grid>
-                            <Image
-                                AutomationProperties.AutomationId="dv.labeling.canvas"
-                                Source="{Binding Workspace.ImageSource}"
-                                Stretch="Uniform" />
-                            <controls:BoxOverlayCanvas
-                                AutomationProperties.AutomationId="dv.labeling.box-layer"
-                                ActiveLabel="{Binding Editor.ActiveBoxLabel}"
-                                Boxes="{Binding Editor.Boxes}"
-                                EditCompletedCommand="{Binding Editor.NotifyBoxesEditedCommand}"
-                                EditStartingCommand="{Binding Editor.BeginBoxEditCommand}"
-                                ImageHeight="{Binding Workspace.ImageHeight}"
-                                ImageWidth="{Binding Workspace.ImageWidth}"
-                                IsReadOnly="{Binding Editor.IsEditorReadOnly}"
-                                RedoCommand="{Binding Editor.RedoBoxEditCommand}"
-                                SelectedBox="{Binding Editor.SelectedBox, Mode=TwoWay}"
-                                Tool="{Binding Editor.ActiveToolMode}"
-                                UndoCommand="{Binding Editor.UndoBoxEditCommand}"
-                                Visibility="{Binding Workspace.IsDetectionProject, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                        </Grid>
-                    </Border>
 
-                    <controls:CanvasCornerFloat
-                        Panel.ZIndex="10"
-                        PinId="tl"
-                        Placement="TopLeft">
-                        <controls:CanvasCornerFloat.Body>
-                            <StackPanel>
-                                <TextBlock
-                                    MaxWidth="380"
-                                    FontSize="13"
-                                    FontWeight="SemiBold"
-                                    Text="{Binding Workspace.ActiveFileName}"
-                                    TextTrimming="CharacterEllipsis" />
-                                <TextBlock
-                                    Margin="0,2,0,0"
-                                    FontSize="11"
-                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                    Text="{Binding Workspace.ImageSizeText}" />
-                            </StackPanel>
-                        </controls:CanvasCornerFloat.Body>
-                    </controls:CanvasCornerFloat>
+    <Grid>
+        <Border
+            Margin="6"
+            Background="{DynamicResource ControlFillColorSecondaryBrush}"
+            BorderBrush="{Binding Labels.CurrentImageClassColor}"
+            CornerRadius="6">
+            <Border.Style>
+                <Style TargetType="{x:Type Border}">
+                    <Setter Property="BorderThickness" Value="0" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Labels.HasCurrentImageClass}" Value="True">
+                            <Setter Property="BorderThickness" Value="2" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <Grid>
+                <Image
+                    AutomationProperties.AutomationId="dv.labeling.canvas"
+                    Source="{Binding Workspace.ImageSource}"
+                    Stretch="Uniform">
+                    <Image.Style>
+                        <Style TargetType="{x:Type Image}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Workspace.IsDetectionProject}" Value="True">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Image.Style>
+                </Image>
+                <controls:BoxOverlayCanvas
+                    x:Name="BoxLayer"
+                    AutomationProperties.AutomationId="dv.labeling.box-layer"
+                    ActiveLabel="{Binding Editor.ActiveBoxLabel}"
+                    Boxes="{Binding Editor.Boxes}"
+                    ImageSource="{Binding Workspace.ImageSource}"
+                    EditCompletedCommand="{Binding Editor.NotifyBoxesEditedCommand}"
+                    EditStartingCommand="{Binding Editor.BeginBoxEditCommand}"
+                    ImageHeight="{Binding Workspace.ImageHeight}"
+                    ImageWidth="{Binding Workspace.ImageWidth}"
+                    IsReadOnly="{Binding Editor.IsEditorReadOnly}"
+                    RedoCommand="{Binding Editor.RedoBoxEditCommand}"
+                    SelectedBox="{Binding Editor.SelectedBox, Mode=TwoWay}"
+                    ShowBoxNumbers="{Binding Editor.ShowBoxNumbers}"
+                    ShowLabelNames="{Binding Editor.ShowLabelNames}"
+                    Tool="{Binding Editor.ActiveToolMode}"
+                    UndoCommand="{Binding Editor.UndoBoxEditCommand}"
+                    ViewportRect="{Binding Editor.ViewportRect, Mode=OneWayToSource}"
+                    Visibility="{Binding Workspace.IsDetectionProject, Converter={StaticResource BooleanToVisibilityConverter}}"
+                    ZoomScale="{Binding Editor.ZoomScale, Mode=TwoWay}" />
+            </Grid>
+        </Border>
 
-                    <Border
-                        Panel.ZIndex="10"
-                        Margin="0,0,18,18"
-                        Padding="10,6"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Bottom"
-                        AutomationProperties.AutomationId="dv.labeling.current-class"
-                        Background="{Binding Labels.CurrentImageClassColor}"
-                        CornerRadius="8"
-                        Visibility="{Binding Workspace.HasImage, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock
-                                Margin="0,0,8,0"
-                                VerticalAlignment="Center"
-                                FontSize="11"
-                                Foreground="White"
-                                Opacity="0.85"
-                                Text="当前标注" />
-                            <TextBlock
-                                VerticalAlignment="Center"
-                                FontSize="13"
-                                FontWeight="SemiBold"
-                                Foreground="White"
-                                Text="{Binding Labels.CurrentImageClassDisplay}"
-                                Visibility="{Binding Workspace.IsClassificationProject, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                            <TextBlock
-                                VerticalAlignment="Center"
-                                FontSize="13"
-                                FontWeight="SemiBold"
-                                Foreground="White"
-                                Text="{Binding Editor.DetectionStatusText}"
-                                Visibility="{Binding Workspace.IsDetectionProject, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                        </StackPanel>
-                    </Border>
-                </Grid>
+        <controls:CanvasCornerFloat
+            Panel.ZIndex="10"
+            PinId="tl"
+            Placement="TopLeft">
+            <controls:CanvasCornerFloat.Body>
+                <StackPanel>
+                    <TextBlock
+                        MaxWidth="380"
+                        FontSize="13"
+                        FontWeight="SemiBold"
+                        Text="{Binding Workspace.ActiveFileName}"
+                        TextTrimming="CharacterEllipsis" />
+                    <TextBlock
+                        Margin="0,2,0,0"
+                        FontSize="11"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        Text="{Binding Workspace.ImageSizeText}" />
+                </StackPanel>
+            </controls:CanvasCornerFloat.Body>
+        </controls:CanvasCornerFloat>
+
+        <!-- Detection view toolbar: undo/redo, zoom, fit -->
+        <Border
+            Panel.ZIndex="10"
+            Margin="12"
+            Padding="2,2,3,2"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top"
+            Background="{DynamicResource ControlFillColorSecondaryBrush}"
+            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="8"
+            Visibility="{Binding Workspace.IsDetectionProject, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Border.Effect>
+                <DropShadowEffect
+                    BlurRadius="10"
+                    Direction="270"
+                    Opacity="0.18"
+                    ShadowDepth="2"
+                    Color="#000000" />
+            </Border.Effect>
+            <StackPanel Orientation="Horizontal">
+                <Button
+                    AutomationProperties.AutomationId="dv.labeling.view.undo"
+                    Command="{Binding Editor.UndoBoxEditCommand}"
+                    Style="{StaticResource ViewToolbarCellButtonStyle}"
+                    ToolTip="撤销 (Ctrl+Z)">
+                    <ui:SymbolIcon FontSize="14" Symbol="ArrowUndo24" />
+                </Button>
+                <Button
+                    AutomationProperties.AutomationId="dv.labeling.view.redo"
+                    Command="{Binding Editor.RedoBoxEditCommand}"
+                    Style="{StaticResource ViewToolbarCellButtonStyle}"
+                    ToolTip="重做 (Ctrl+Y)">
+                    <ui:SymbolIcon FontSize="14" Symbol="ArrowRedo24" />
+                </Button>
+
+                <Border
+                    Width="1"
+                    Height="16"
+                    Margin="2,0"
+                    VerticalAlignment="Center"
+                    Background="{DynamicResource ControlStrokeColorDefaultBrush}" />
+
+                <Button
+                    AutomationProperties.AutomationId="dv.labeling.view.zoom-out"
+                    Click="OnZoomOutClicked"
+                    Style="{StaticResource ViewToolbarCellButtonStyle}"
+                    ToolTip="缩小 (滚轮)">
+                    <ui:SymbolIcon FontSize="14" Symbol="Subtract24" />
+                </Button>
+                <TextBlock
+                    Width="44"
+                    VerticalAlignment="Center"
+                    AutomationProperties.AutomationId="dv.labeling.view.zoom"
+                    FontSize="12"
+                    FontWeight="SemiBold"
+                    Text="{Binding Editor.ZoomText}"
+                    TextAlignment="Center" />
+                <Button
+                    AutomationProperties.AutomationId="dv.labeling.view.zoom-in"
+                    Click="OnZoomInClicked"
+                    Style="{StaticResource ViewToolbarCellButtonStyle}"
+                    ToolTip="放大 (滚轮)">
+                    <ui:SymbolIcon FontSize="14" Symbol="Add24" />
+                </Button>
+                <Button
+                    AutomationProperties.AutomationId="dv.labeling.view.fit"
+                    Click="OnFitClicked"
+                    Style="{StaticResource ViewToolbarCellButtonStyle}"
+                    ToolTip="适应窗口">
+                    <ui:SymbolIcon FontSize="14" Symbol="FullScreenMaximize24" />
+                </Button>
+            </StackPanel>
+        </Border>
+
+        <controls:CanvasCornerFloat
+            Panel.ZIndex="10"
+            PinId="bl"
+            Placement="BottomLeft"
+            Visibility="{Binding Workspace.IsDetectionProject, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <controls:CanvasCornerFloat.Body>
+                <CheckBox
+                    AutomationProperties.AutomationId="dv.labeling.show-label-names"
+                    Content="显示标签名称"
+                    FontSize="11"
+                    IsChecked="{Binding Editor.ShowLabelNames, Mode=TwoWay}" />
+            </controls:CanvasCornerFloat.Body>
+        </controls:CanvasCornerFloat>
+
+        <Border
+            Panel.ZIndex="10"
+            Margin="0,0,18,18"
+            Padding="10,6"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Bottom"
+            AutomationProperties.AutomationId="dv.labeling.current-class"
+            Background="{Binding Labels.CurrentImageClassColor}"
+            CornerRadius="8"
+            Visibility="{Binding Workspace.HasImage, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock
+                    Margin="0,0,8,0"
+                    VerticalAlignment="Center"
+                    FontSize="11"
+                    Foreground="White"
+                    Opacity="0.85"
+                    Text="当前标注" />
+                <TextBlock
+                    VerticalAlignment="Center"
+                    FontSize="13"
+                    FontWeight="SemiBold"
+                    Foreground="White"
+                    Text="{Binding Labels.CurrentImageClassDisplay}"
+                    Visibility="{Binding Workspace.IsClassificationProject, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                <TextBlock
+                    VerticalAlignment="Center"
+                    FontSize="13"
+                    FontWeight="SemiBold"
+                    Foreground="White"
+                    Text="{Binding Editor.DetectionStatusText}"
+                    Visibility="{Binding Workspace.IsDetectionProject, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            </StackPanel>
+        </Border>
+    </Grid>
 </UserControl>

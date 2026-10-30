@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Windows;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -49,6 +50,7 @@ public sealed partial class LabelingEditorViewModel : ObservableObject,
             refreshGalleryAsync);
 
         _context.PropertyChanged += OnContextPropertyChanged;
+        Boxes.CollectionChanged += (_, _) => RenumberBoxes();
     }
 
     LabelingWorkspaceContext ILabelingSamplePersistenceHost.Context => _context;
@@ -92,6 +94,8 @@ public sealed partial class LabelingEditorViewModel : ObservableObject,
 
         SelectedBox = null;
         IsReviewed = isReviewed;
+        ZoomScale = 1;
+        ViewportRect = Rect.Empty;
         if (string.IsNullOrWhiteSpace(ActiveBoxLabel) && shapes.Count > 0)
         {
             ActiveBoxLabel = shapes[0].Label;
@@ -121,7 +125,26 @@ public sealed partial class LabelingEditorViewModel : ObservableObject,
     [ObservableProperty]
     private BoxToolMode _activeToolMode = BoxToolMode.Draw;
 
+    [ObservableProperty]
+    private bool _showLabelNames = true;
+
+    [ObservableProperty]
+    private bool _showBoxNumbers = true;
+
+    [ObservableProperty]
+    private double _zoomScale = 1;
+
+    /// <summary>Source-image rectangle visible in the canvas; the bird's-eye view draws it.</summary>
+    [ObservableProperty]
+    private Rect _viewportRect;
+
     public ObservableCollection<BoxShapeViewModel> Boxes { get; } = new();
+
+    public bool IsSelectTool => ActiveToolMode == BoxToolMode.Select;
+
+    public bool IsRectangleTool => ActiveToolMode == BoxToolMode.Draw;
+
+    public string ZoomText => $"{ZoomScale * 100:0}%";
 
     public bool IsDetection => _context.IsDetectionProject;
 
@@ -189,6 +212,8 @@ public sealed partial class LabelingEditorViewModel : ObservableObject,
 
         SelectedBox = null;
         IsReviewed = false;
+        ZoomScale = 1;
+        ViewportRect = Rect.Empty;
         _undo.Clear();
         _redo.Clear();
         NotifyHistoryChanged();
@@ -365,7 +390,28 @@ public sealed partial class LabelingEditorViewModel : ObservableObject,
     private void ToggleToolMode()
     {
         ActiveToolMode = ActiveToolMode == BoxToolMode.Draw ? BoxToolMode.Select : BoxToolMode.Draw;
-        OnPropertyChanged(nameof(ToolModeText));
+    }
+
+    [RelayCommand]
+    private void SetSelectTool() => ActiveToolMode = BoxToolMode.Select;
+
+    [RelayCommand]
+    private void SetRectangleTool() => ActiveToolMode = BoxToolMode.Draw;
+
+    /// <summary>Removes every box while keeping the sample marked as reviewed.</summary>
+    [RelayCommand]
+    private void ClearBoxes()
+    {
+        if (Boxes.Count == 0)
+        {
+            return;
+        }
+
+        BeginBoxEdit();
+        Boxes.Clear();
+        SelectedBox = null;
+        IsReviewed = true;
+        NotifyBoxesEditedCore();
     }
 
     partial void OnImageClassChanged(string? value)
@@ -374,10 +420,34 @@ public sealed partial class LabelingEditorViewModel : ObservableObject,
         OnPropertyChanged(nameof(ImageClassSummary));
     }
 
-    partial void OnSelectedBoxChanged(BoxShapeViewModel? value) =>
+    partial void OnSelectedBoxChanged(BoxShapeViewModel? value)
+    {
+        foreach (var box in Boxes)
+        {
+            box.IsSelected = ReferenceEquals(box, value);
+        }
+
         OnPropertyChanged(nameof(HasSelectedBox));
+    }
+
+    partial void OnActiveToolModeChanged(BoxToolMode value)
+    {
+        OnPropertyChanged(nameof(ToolModeText));
+        OnPropertyChanged(nameof(IsSelectTool));
+        OnPropertyChanged(nameof(IsRectangleTool));
+    }
+
+    partial void OnZoomScaleChanged(double value) => OnPropertyChanged(nameof(ZoomText));
 
     public bool HasSelectedBox => SelectedBox is not null;
+
+    private void RenumberBoxes()
+    {
+        for (var index = 0; index < Boxes.Count; index++)
+        {
+            Boxes[index].Number = index + 1;
+        }
+    }
 
     public void NotifyProjectWorkflowChanged()
     {

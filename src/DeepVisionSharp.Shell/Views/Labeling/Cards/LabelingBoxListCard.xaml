@@ -6,7 +6,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters"
-    d:DesignHeight="500"
+    d:DesignHeight="600"
     d:DesignWidth="340"
     mc:Ignorable="d">
     <UserControl.Resources>
@@ -14,88 +14,199 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Views/Labeling/LabelingWorkbenchResources.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" />
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <StackPanel Margin="8">
-        <Grid Margin="0,0,0,8">
-            <TextBlock Style="{StaticResource SectionTitleStyle}" Text="目标列表" />
-            <TextBlock
-                HorizontalAlignment="Right"
+    <Grid Margin="8,4,8,8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header: title + count + clear -->
+        <Grid Margin="0,0,0,6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Style="{StaticResource SectionTitleStyle}" Text="标注列表" />
+            <Border
+                Grid.Column="1"
+                Margin="8,0,0,0"
+                Padding="7,2"
                 VerticalAlignment="Center"
-                Style="{StaticResource MutedTextStyle}"
-                Text="{Binding Editor.BoxCount, StringFormat={}{0} 个}" />
+                Background="{DynamicResource ControlFillColorDefaultBrush}"
+                CornerRadius="8">
+                <TextBlock
+                    AutomationProperties.AutomationId="dv.labeling.box-count"
+                    FontSize="11"
+                    FontWeight="SemiBold"
+                    Text="{Binding Editor.BoxCount, StringFormat={}{0} 个}" />
+            </Border>
+            <ui:Button
+                Grid.Column="2"
+                Margin="4,0,0,0"
+                Appearance="Transparent"
+                AutomationProperties.AutomationId="dv.labeling.box.clear-top"
+                Command="{Binding Editor.ClearBoxesCommand}"
+                Icon="{ui:SymbolIcon Eraser24}"
+                IsEnabled="{Binding Editor.HasBoxes}"
+                Style="{StaticResource IconButtonStyle}"
+                ToolTip="清空当前样本的所有框" />
         </Grid>
 
-        <TextBlock
-            Margin="2,4,2,8"
-            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-            Text="画框后在此查看；点击行可选中，Delete 删除。"
-            TextWrapping="Wrap"
-            Visibility="{Binding Editor.HasBoxes, Converter={StaticResource InverseBooleanToVisibilityConverter}}" />
+        <!-- List -->
+        <Border
+            Grid.Row="1"
+            Padding="6"
+            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            ClipToBounds="True"
+            CornerRadius="6">
+            <Grid>
+                <ScrollViewer
+                    CanContentScroll="True"
+                    HorizontalScrollBarVisibility="Disabled"
+                    PanningMode="VerticalOnly"
+                    VerticalScrollBarVisibility="Auto"
+                    Visibility="{Binding Editor.HasBoxes, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <ItemsControl
+                        AutomationProperties.AutomationId="dv.labeling.box-list"
+                        ItemsSource="{Binding Editor.Boxes}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border
+                                    Margin="0,0,0,4"
+                                    Padding="6"
+                                    Cursor="Hand"
+                                    MouseLeftButtonUp="OnRowClicked">
+                                    <Border.Style>
+                                        <Style TargetType="{x:Type Border}">
+                                            <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+                                            <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+                                            <Setter Property="BorderThickness" Value="1" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                    <Setter Property="Background" Value="#1A3B82F6" />
+                                                    <Setter Property="BorderBrush" Value="#3B82F6" />
+                                                    <Setter Property="BorderThickness" Value="2" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
 
-        <ItemsControl AutomationProperties.AutomationId="dv.labeling.box-list" ItemsSource="{Binding Editor.Boxes}">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <Border
-                        Margin="0,0,0,4"
-                        Padding="6"
-                        Background="{DynamicResource ControlFillColorSecondaryBrush}"
-                        BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
-                        BorderThickness="1"
-                        CornerRadius="6">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
+                                        <Border
+                                            Width="4"
+                                            Margin="0,1,0,1"
+                                            Background="{Binding Color}"
+                                            CornerRadius="2" />
 
-                            <Border
-                                Width="4"
-                                Margin="0,2,0,2"
-                                Background="{Binding Color}"
-                                CornerRadius="2" />
+                                        <Border
+                                            Grid.Column="1"
+                                            Width="20"
+                                            Height="20"
+                                            Margin="8,0,0,0"
+                                            VerticalAlignment="Center"
+                                            Background="{Binding Color}"
+                                            CornerRadius="10">
+                                            <TextBlock
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                FontSize="10"
+                                                FontWeight="SemiBold"
+                                                Foreground="White"
+                                                Text="{Binding NumberText}" />
+                                        </Border>
 
-                            <StackPanel Grid.Column="1" Margin="8,0,0,0">
-                                <TextBlock
-                                    FontWeight="SemiBold"
-                                    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                                    Text="{Binding Label}"
-                                    TextTrimming="CharacterEllipsis" />
-                                <TextBlock
-                                    FontSize="11"
-                                    Style="{StaticResource MutedTextStyle}"
-                                    Text="{Binding CoordinatesText}" />
-                            </StackPanel>
+                                        <StackPanel Grid.Column="2" Margin="8,0,0,0">
+                                            <TextBlock
+                                                FontWeight="SemiBold"
+                                                Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                Text="{Binding Label}"
+                                                TextTrimming="CharacterEllipsis" />
+                                            <TextBlock
+                                                Margin="0,2,0,0"
+                                                FontSize="11"
+                                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                Text="{Binding CoordinatesText}" />
+                                        </StackPanel>
 
-                            <StackPanel
-                                Grid.Column="2"
-                                VerticalAlignment="Center"
-                                Orientation="Horizontal">
-                                <ui:Button
-                                    Appearance="Transparent"
-                                    AutomationProperties.AutomationId="dv.labeling.box.select"
-                                    Command="{Binding DataContext.Editor.SelectBoxCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                    CommandParameter="{Binding}"
-                                    Icon="{ui:SymbolIcon Checkmark24}"
-                                    Style="{StaticResource IconButtonStyle}"
-                                    ToolTip="选中此目标" />
-                                <ui:Button
-                                    Margin="4,0,0,0"
-                                    Appearance="Transparent"
-                                    AutomationProperties.AutomationId="dv.labeling.box.remove"
-                                    Command="{Binding DataContext.Editor.DeleteBoxCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                    CommandParameter="{Binding}"
-                                    Icon="{ui:SymbolIcon Delete24}"
-                                    Style="{StaticResource IconButtonStyle}"
-                                    ToolTip="删除此目标" />
-                            </StackPanel>
-                        </Grid>
+                                        <ui:Button
+                                            Grid.Column="3"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            Appearance="Transparent"
+                                            AutomationProperties.AutomationId="dv.labeling.box.remove"
+                                            Command="{Binding DataContext.Editor.DeleteBoxCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Icon="{ui:SymbolIcon Delete24}"
+                                            Style="{StaticResource IconButtonStyle}"
+                                            ToolTip="删除此目标" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- Empty state -->
+                <Border
+                    Padding="16"
+                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Style="{StaticResource EmptyAnnotationsStyle}">
+                    <Border BorderBrush="Transparent" BorderThickness="0">
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <ui:SymbolIcon
+                                HorizontalAlignment="Center"
+                                FontSize="26"
+                                Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                Symbol="Square24" />
+                            <TextBlock
+                                Margin="0,8,0,0"
+                                HorizontalAlignment="Center"
+                                Style="{StaticResource MutedTextStyle}"
+                                Text="还没有标注" />
+                            <TextBlock
+                                Margin="0,2,0,0"
+                                HorizontalAlignment="Center"
+                                FontSize="11"
+                                Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                TextWrapping="Wrap"
+                                Text="在左侧选择类别后，拖拽画框"
+                                TextAlignment="Center" />
+                        </StackPanel>
                     </Border>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Footer: review state -->
+        <Grid Grid.Row="2" Margin="0,6,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock
+                Style="{StaticResource MutedTextStyle}"
+                Text="滚轮缩放 · 中键平移 · Delete 键删除" />
+            <TextBlock
+                Grid.Column="1"
+                AutomationProperties.AutomationId="dv.labeling.box.review-state"
+                FontSize="11"
+                FontWeight="SemiBold"
+                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                Text="{Binding Editor.DetectionStatusText}" />
+        </Grid>
+    </Grid>
 </UserControl>
