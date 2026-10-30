@@ -28,7 +28,7 @@ public sealed class CreateProjectCommandHandler : ICommandHandler<CreateProjectC
             return Result<Project>.Failure(
                 string.IsNullOrWhiteSpace(request.Type)
                     ? "项目类型不能为空。"
-                    : $"不支持的项目类型：{request.Type.Trim()}。当前仅支持图像分类。");
+                    : $"不支持的项目类型：{request.Type.Trim()}。当前支持图像分类与目标检测。");
         }
 
         var type = ProjectTypes.Normalize(request.Type);

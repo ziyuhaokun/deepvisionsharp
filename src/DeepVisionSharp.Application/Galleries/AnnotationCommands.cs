@@ -9,7 +9,9 @@ public sealed record SaveAnnotationsCommand(
     string FileName,
     double ImageWidth,
     double ImageHeight,
-    string? ImageClass = null) : ICommand;
+    string? ImageClass = null,
+    IReadOnlyList<AnnotationShape>? Shapes = null,
+    bool IsReviewed = false) : ICommand;
 
 public sealed class SaveAnnotationsCommandHandler : ICommandHandler<SaveAnnotationsCommand>
 {
@@ -28,6 +30,8 @@ public sealed class SaveAnnotationsCommandHandler : ICommandHandler<SaveAnnotati
             request.ImageWidth,
             request.ImageHeight,
             request.ImageClass,
+            request.Shapes,
+            request.IsReviewed,
             cancellationToken);
 
         return Result.Success();

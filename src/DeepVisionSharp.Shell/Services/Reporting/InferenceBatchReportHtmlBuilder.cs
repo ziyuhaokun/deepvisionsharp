@@ -54,49 +54,91 @@ public static class InferenceBatchReportHtmlBuilder
         sb.AppendLine("</div>");
         sb.AppendLine("</section>");
 
-        // Evaluation
-        sb.AppendLine("<section class=\"panel\">");
-        sb.AppendLine("<div class=\"panel-head\">");
-        sb.AppendLine("<h2>分类评估</h2>");
-        sb.AppendLine("<span class=\"panel-hint\">准确率统计全部类别；漏检、误报与混淆矩阵仅统计 OK/NG 子集</span>");
-        sb.AppendLine("</div>");
-
-        sb.AppendLine("<div class=\"metrics metrics-eval\">");
-        sb.AppendLine(MetricCard("漏检率", report.MissRateText, "FN / (TP+FN)", "warn"));
-        sb.AppendLine(MetricCard("误报率", report.FalseAlarmRateText, "FP / (TN+FP)", "violet"));
-        sb.AppendLine(MetricCard("准确率", report.AccuracyText, "成对样本正确率", "ok"));
-        sb.AppendLine(MetricCard(
-            "成对样本",
-            report.Evaluation.ClassifiedCount.ToString(CultureInfo.InvariantCulture),
-            report.Evaluation.ClassifiedCount <= 0 ? "需预计 + 推理标记" : "已参与分类评估",
-            "neutral"));
-        sb.AppendLine("</div>");
-
-        sb.AppendLine("<div class=\"confusion\">");
-        sb.AppendLine("<div class=\"confusion-title\">OK/NG 子集混淆矩阵</div>");
-        sb.AppendLine("<div class=\"confusion-grid\">");
-        sb.AppendLine(ConfusionCell("TP", report.Evaluation.TruePositive, "命中 NG", "tp"));
-        sb.AppendLine(ConfusionCell("FP", report.Evaluation.FalsePositive, "误报", "fp"));
-        sb.AppendLine(ConfusionCell("FN", report.Evaluation.FalseNegative, "漏检", "fn"));
-        sb.AppendLine(ConfusionCell("TN", report.Evaluation.TrueNegative, "正确 OK", "tn"));
-        sb.AppendLine("</div>");
-        sb.AppendLine($"<p class=\"confusion-note\">{H(report.ConfusionText)}</p>");
-        sb.AppendLine("</div>");
-        sb.AppendLine("</section>");
-
-        // Original samples
-        if (report.HasOriginalSamples)
+        if (report.IsDetection)
         {
+            // Detection reports have no OK/NG pairs; show box counts instead of a confusion matrix.
+            sb.AppendLine("<section class=\"panel\">");
+            sb.AppendLine("<div class=\"panel-head\"><h2>检测结果</h2>");
+            sb.AppendLine("<span class=\"panel-hint\">按类别统计采纳阈值以上、经 NMS 的预测框</span></div>");
+            sb.AppendLine("<div class=\"metrics metrics-eval\">");
+            sb.AppendLine(MetricCard(
+                "检出框",
+                report.DetectionBoxCount.ToString(CultureInfo.InvariantCulture),
+                "全部成功样本",
+                "accent"));
+            sb.AppendLine(MetricCard(
+                "类别数",
+                report.DetectionClassCounts.Count.ToString(CultureInfo.InvariantCulture),
+                "有检出的类别",
+                "neutral"));
+            sb.AppendLine(MetricCard(
+                "样本数",
+                report.SuccessCount.ToString(CultureInfo.InvariantCulture),
+                "成功推理样本",
+                "ok"));
+            sb.AppendLine("</div>");
+            if (report.DetectionClassCounts.Count > 0)
+            {
+                sb.AppendLine("<div class=\"confusion\">");
+                sb.AppendLine("<div class=\"confusion-title\">每类框数</div>");
+                sb.AppendLine("<div class=\"confusion-grid\">");
+                foreach (var item in report.DetectionClassCounts)
+                {
+                    sb.AppendLine(ConfusionCell(item.ClassName, item.Count, "个框", "tp"));
+                }
+
+                sb.AppendLine("</div>");
+                sb.AppendLine("</div>");
+            }
+
+            sb.AppendLine("</section>");
+        }
+        else
+        {
+            // Evaluation
             sb.AppendLine("<section class=\"panel\">");
             sb.AppendLine("<div class=\"panel-head\">");
-            sb.AppendLine("<h2>原图样例</h2>");
-            sb.AppendLine($"<span class=\"panel-hint\">每类最多 {InferenceBatchReport.MaxOriginalSamplesPerRole} 张 · 不含文件名</span>");
+            sb.AppendLine("<h2>分类评估</h2>");
+            sb.AppendLine("<span class=\"panel-hint\">准确率统计全部类别；漏检、误报与混淆矩阵仅统计 OK/NG 子集</span>");
             sb.AppendLine("</div>");
-            AppendSampleGroup(sb, "OK 原图", report.OkOriginalSamples, "ok", "OK");
-            AppendSampleGroup(sb, "NG 原图（命中）", report.NgOriginalSamples, "ng", "命中");
-            AppendSampleGroup(sb, "漏检原图", report.MissOriginalSamples, "miss", "漏检");
-            AppendSampleGroup(sb, "误报原图", report.FalseAlarmOriginalSamples, "false_alarm", "误报");
+
+            sb.AppendLine("<div class=\"metrics metrics-eval\">");
+            sb.AppendLine(MetricCard("漏检率", report.MissRateText, "FN / (TP+FN)", "warn"));
+            sb.AppendLine(MetricCard("误报率", report.FalseAlarmRateText, "FP / (TN+FP)", "violet"));
+            sb.AppendLine(MetricCard("准确率", report.AccuracyText, "成对样本正确率", "ok"));
+            sb.AppendLine(MetricCard(
+                "成对样本",
+                report.Evaluation.ClassifiedCount.ToString(CultureInfo.InvariantCulture),
+                report.Evaluation.ClassifiedCount <= 0 ? "需预计 + 推理标记" : "已参与分类评估",
+                "neutral"));
+            sb.AppendLine("</div>");
+
+            sb.AppendLine("<div class=\"confusion\">");
+            sb.AppendLine("<div class=\"confusion-title\">OK/NG 子集混淆矩阵</div>");
+            sb.AppendLine("<div class=\"confusion-grid\">");
+            sb.AppendLine(ConfusionCell("TP", report.Evaluation.TruePositive, "命中 NG", "tp"));
+            sb.AppendLine(ConfusionCell("FP", report.Evaluation.FalsePositive, "误报", "fp"));
+            sb.AppendLine(ConfusionCell("FN", report.Evaluation.FalseNegative, "漏检", "fn"));
+            sb.AppendLine(ConfusionCell("TN", report.Evaluation.TrueNegative, "正确 OK", "tn"));
+            sb.AppendLine("</div>");
+            sb.AppendLine($"<p class=\"confusion-note\">{H(report.ConfusionText)}</p>");
+            sb.AppendLine("</div>");
             sb.AppendLine("</section>");
+
+            // Original samples
+            if (report.HasOriginalSamples)
+            {
+                sb.AppendLine("<section class=\"panel\">");
+                sb.AppendLine("<div class=\"panel-head\">");
+                sb.AppendLine("<h2>原图样例</h2>");
+                sb.AppendLine($"<span class=\"panel-hint\">每类最多 {InferenceBatchReport.MaxOriginalSamplesPerRole} 张 · 不含文件名</span>");
+                sb.AppendLine("</div>");
+                AppendSampleGroup(sb, "OK 原图", report.OkOriginalSamples, "ok", "OK");
+                AppendSampleGroup(sb, "NG 原图（命中）", report.NgOriginalSamples, "ng", "命中");
+                AppendSampleGroup(sb, "漏检原图", report.MissOriginalSamples, "miss", "漏检");
+                AppendSampleGroup(sb, "误报原图", report.FalseAlarmOriginalSamples, "false_alarm", "误报");
+                sb.AppendLine("</section>");
+            }
         }
 
         // Anomalies

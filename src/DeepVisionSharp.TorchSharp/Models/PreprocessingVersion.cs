@@ -10,7 +10,10 @@ public enum PreprocessingVersion
     UnitScaleV1 = 0,
 
     /// <summary>ImageNet mean/std after the /255 step; required by torchvision pretrained weights.</summary>
-    ImageNetV2 = 1
+    ImageNetV2 = 1,
+
+    /// <summary>Unit scale after a 114-gray letterbox; detection models record this.</summary>
+    LetterboxV1 = 2
 }
 
 public static class PreprocessingVersions
@@ -19,12 +22,22 @@ public static class PreprocessingVersions
 
     public const string ImageNetWire = "imagenet_v2";
 
+    public const string LetterboxWire = "letterbox_v1";
+
     public static string ToWireValue(this PreprocessingVersion version) =>
-        version == PreprocessingVersion.ImageNetV2 ? ImageNetWire : UnitScaleWire;
+        version switch
+        {
+            PreprocessingVersion.ImageNetV2 => ImageNetWire,
+            PreprocessingVersion.LetterboxV1 => LetterboxWire,
+            _ => UnitScaleWire
+        };
 
     /// <summary>Unknown or missing values fall back to the legacy pipeline, never to ImageNet.</summary>
     public static PreprocessingVersion Parse(string? value) =>
-        string.Equals(value?.Trim(), ImageNetWire, StringComparison.OrdinalIgnoreCase)
-            ? PreprocessingVersion.ImageNetV2
-            : PreprocessingVersion.UnitScaleV1;
+        value?.Trim().ToLowerInvariant() switch
+        {
+            ImageNetWire => PreprocessingVersion.ImageNetV2,
+            LetterboxWire => PreprocessingVersion.LetterboxV1,
+            _ => PreprocessingVersion.UnitScaleV1
+        };
 }

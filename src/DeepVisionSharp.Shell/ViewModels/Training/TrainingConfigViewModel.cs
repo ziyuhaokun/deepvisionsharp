@@ -61,10 +61,69 @@ public sealed partial class TrainingConfigViewModel : ObservableObject,
         try
         {
             Spatial.SetModelType(SelectedModelType);
+            RebuildAvailableModelTypes();
         }
         finally
         {
             _suppressDraftFormSave = false;
+        }
+
+        _jobs.PropertyChanged += OnJobsPropertyChanged;
+    }
+
+    private void OnJobsPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(TrainingJobsViewModel.CurrentProjectType))
+        {
+            RebuildAvailableModelTypes();
+        }
+    }
+
+    /// <summary>
+    /// Keeps the model picker on the open project's family. A detection project never offers
+    /// ResNet/YOLO26-cls keys, and vice versa.
+    /// </summary>
+    private void RebuildAvailableModelTypes()
+    {
+        var workflow = ProjectWorkflow.Resolve(_jobs.CurrentProjectType ?? ProjectTypes.Default);
+        var family = ProjectWorkflow.IsDetection(workflow)
+            ? ModelFamily.Detection
+            : ModelFamily.Classification;
+        var keys = ModelCapabilityCatalog.ModelTypesFor(family);
+        if (AvailableModelTypes.Count != keys.Count
+            || !AvailableModelTypes.Select(option => option.Value).SequenceEqual(keys, StringComparer.Ordinal))
+        {
+            AvailableModelTypes.Clear();
+            foreach (var key in keys)
+            {
+                AvailableModelTypes.Add(new ModelTypeOption(key, ModelTypeNames.GetDisplayLabel(key)));
+            }
+        }
+
+        if (!keys.Contains(SelectedModelType, StringComparer.Ordinal))
+        {
+            var wasSuppressed = _suppressDraftFormSave;
+            _suppressDraftFormSave = true;
+            try
+            {
+                SelectedModelType = family == ModelFamily.Detection
+                    ? ModelTypeNames.DefaultDetection
+                    : ModelTypeNames.Default;
+            }
+            finally
+            {
+                _suppressDraftFormSave = wasSuppressed;
+            }
+        }
+
+        // Classification sizes (256) are valid but too small for detection; move to the family default
+        // once, when the project opens. Later user edits are respected.
+        if (family == ModelFamily.Detection
+            && NetworkInputSizePolicy.ForModelType(SelectedModelType) is { } policy
+            && (Spatial.NetworkInputWidth <= 320 || Spatial.NetworkInputHeight <= 320))
+        {
+            Spatial.SetNetworkInputSizeFromUser(policy.Default);
+            OnPropertyChanged(nameof(UsesNetworkInputSize));
         }
     }
 
@@ -76,10 +135,8 @@ public sealed partial class TrainingConfigViewModel : ObservableObject,
 
     public ObservableCollection<string> OptimizerOptions { get; } = new(["sgd", "adam", "adamw"]);
 
-    public IReadOnlyList<ModelTypeOption> AvailableModelTypes { get; } =
-        ModelTypeNames.AllProductKeys
-            .Select(key => new ModelTypeOption(key, ModelTypeNames.GetDisplayLabel(key)))
-            .ToList();
+    /// <summary>Model keys compatible with the open project's workflow.</summary>
+    public ObservableCollection<ModelTypeOption> AvailableModelTypes { get; } = new();
 
     [ObservableProperty]
     private string _modelName = string.Empty;
@@ -101,6 +158,20 @@ public sealed partial class TrainingConfigViewModel : ObservableObject,
 
     [ObservableProperty]
     private string _optimizer = "sgd";
+
+    // --- Detection-only parameters (ignored by classification models) ---
+
+    [ObservableProperty]
+    private double _detectionNmsIou = 0.45;
+
+    [ObservableProperty]
+    private double _detectionConfidence = 0.25;
+
+    [ObservableProperty]
+    private int _detectionMaxDetections = 100;
+
+    [ObservableProperty]
+    private bool _detectionHorizontalFlip = true;
 
     /// <summary>
     /// True while <see cref="StartTrainingAsync"/> is in flight (local UI feedback before / during Preparing).
@@ -131,6 +202,11 @@ public sealed partial class TrainingConfigViewModel : ObservableObject,
 
     public bool IsClassificationModelSelected =>
         ModelTypeNames.IsClassificationModelType(SelectedModelType);
+
+    public bool IsDetectionModelSelected =>
+        ModelTypeNames.IsDetectionModelType(SelectedModelType);
+
+    public bool ShowsDetectionOptions => IsDetectionModelSelected;
 
     public string ClsAugmentationSummary =>
         Cls.BuildSummary(IsClassificationModelSelected);
@@ -216,7 +292,7 @@ public sealed partial class TrainingConfigViewModel : ObservableObject,
             : "训练准备中或运行中无法删除，请先停止";
 
     private bool IsDatasetReadyForSelectedModel =>
-        SelectedModelCapabilities?.Family == ModelFamily.Classification
+        SelectedModelCapabilities is not null
         && Dataset.IsDatasetConfigValid;
 
     public void HandleSelectedJobChanged(TrainingJobListItem? job, CancellationToken cancellationToken = default)
@@ -258,6 +334,7 @@ public sealed partial class TrainingConfigViewModel : ObservableObject,
 
     public void HandleProjectWorkflowChanged()
     {
+        RebuildAvailableModelTypes();
         Spatial.NotifyProjectWorkflowChanged();
         Dataset.NotifyProjectWorkflowChanged();
         OnPropertyChanged(nameof(ShowsClassificationAugmentation));
@@ -314,6 +391,8 @@ public sealed partial class TrainingConfigViewModel : ObservableObject,
     partial void OnSelectedModelTypeChanged(string value)
     {
         OnPropertyChanged(nameof(IsClassificationModelSelected));
+        OnPropertyChanged(nameof(IsDetectionModelSelected));
+        OnPropertyChanged(nameof(ShowsDetectionOptions));
         OnPropertyChanged(nameof(ClsAugmentationSummary));
         OnPropertyChanged(nameof(ShowsClassificationAugmentation));
         OnPropertyChanged(nameof(ClassificationAugmentationSummary));
@@ -395,7 +474,11 @@ public sealed partial class TrainingConfigViewModel : ObservableObject,
             Optimizer = Optimizer,
             ClassificationAugmentation = IsClassificationModelSelected
                 ? Cls.Build()
-                : null
+                : null,
+            DetectionNmsIou = DetectionNmsIou,
+            DetectionConfidence = DetectionConfidence,
+            DetectionMaxDetections = DetectionMaxDetections,
+            DetectionHorizontalFlip = DetectionHorizontalFlip
         };
         Dataset.ApplyToForm(form);
         Spatial.ApplyToForm(form);
@@ -432,6 +515,7 @@ public sealed partial class TrainingConfigViewModel : ObservableObject,
                 || row.ConfigBatchSize is not null
                 || row.ConfigLearningRate is not null
                 || row.ConfigClassificationAugmentation is not null
+                || row.ConfigDetectionOptions is not null
                 || row.ConfigNetworkInputWidth is not null
                 || row.ConfigNetworkInputHeight is not null
                 || row.ConfigNetworkInputSize is not null
@@ -454,6 +538,7 @@ public sealed partial class TrainingConfigViewModel : ObservableObject,
                 Spatial.ResetToDefaults();
                 Spatial.TryApplySuggestedDefault(isFormEditable: true, suppressDraftSave: true);
                 Cls.ResetToDefaults();
+                ResetDetectionDefaults();
                 Dataset.ResetForNewJob();
             }
             else
@@ -500,6 +585,11 @@ public sealed partial class TrainingConfigViewModel : ObservableObject,
                 Spatial.SetNetworkInputHeightFromUser(height);
 
                 Cls.Apply(row.ConfigClassificationAugmentation);
+                var detection = row.ConfigDetectionOptions;
+                DetectionNmsIou = detection?.NmsIouThreshold ?? 0.45;
+                DetectionConfidence = detection?.EvaluationConfidence ?? 0.25;
+                DetectionMaxDetections = detection?.MaxDetections ?? 100;
+                DetectionHorizontalFlip = detection?.HorizontalFlip ?? true;
                 Spatial.TryApplySuggestedDefault(isFormEditable: true, suppressDraftSave: true);
             }
         }
@@ -525,7 +615,16 @@ public sealed partial class TrainingConfigViewModel : ObservableObject,
         Spatial.SetModelType(SelectedModelType);
         Spatial.ResetToDefaults();
         Cls.ResetToDefaults();
+        ResetDetectionDefaults();
         Dataset.ResetForNewJob();
+    }
+
+    private void ResetDetectionDefaults()
+    {
+        DetectionNmsIou = 0.45;
+        DetectionConfidence = 0.25;
+        DetectionMaxDetections = 100;
+        DetectionHorizontalFlip = true;
     }
 
     private string GetStartBlockReason() => _lifecycle.GetStartBlockReason();

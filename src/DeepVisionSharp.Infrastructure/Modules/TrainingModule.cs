@@ -16,6 +16,7 @@ internal static class TrainingModule
         services.AddSingleton<TrainingBackendRegistry>();
         services.AddSingleton<TrainingEnvironmentCheckCoordinator>();
         services.AddSingleton<ITrainingBackend, TorchSharpClassificationTrainingBackend>();
+        services.AddSingleton<ITrainingBackend, TorchSharpDetectionTrainingBackend>();
         services.AddSingleton<ITrainingEnvironmentChecker, TorchSharpTrainingEnvironmentChecker>();
         services.AddSingleton<TrainingJobRecoveryCoordinator>();
         services.AddSingleton<TrainingRunQueue>();

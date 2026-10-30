@@ -26,6 +26,8 @@ public sealed partial class LabelingViewModel : ObservableObject
     private readonly WorkspaceSessionService _workspaceSession;
     private readonly IAppNavigationService _navigation;
     private readonly ShellSnackbarNotifier _snackbar;
+    private readonly ILocalFileDialogService _fileDialog;
+    private readonly IYoloDatasetImportService _yoloImport;
     private readonly ILogger<LabelingViewModel> _logger;
 
     public LabelingViewModel(
@@ -33,6 +35,7 @@ public sealed partial class LabelingViewModel : ObservableObject
         IAnnotationWorkflowService annotations,
         IGalleryTransferService galleryTransfer,
         ILocalFileDialogService fileDialog,
+        IYoloDatasetImportService yoloImport,
         IProjectLabelService labels,
         WorkspaceSessionService workspaceSession,
         IAppNavigationService navigation,
@@ -54,6 +57,8 @@ public sealed partial class LabelingViewModel : ObservableObject
         _workspaceSession = workspaceSession;
         _navigation = navigation;
         _snackbar = snackbar;
+        _fileDialog = fileDialog;
+        _yoloImport = yoloImport;
         _logger = logger;
 
         Workspace = new LabelingWorkspaceContext(imageSources);
@@ -146,6 +151,64 @@ public sealed partial class LabelingViewModel : ObservableObject
         {
             Workspace.IsLoading = false;
             RefreshProjectWorkflow();
+        }
+    }
+
+    [RelayCommand]
+    private async Task ImportYoloDatasetAsync()
+    {
+        var gallery = Workspace.Gallery;
+        if (gallery is null)
+        {
+            _snackbar.ShowWarning("请先选择图库。", "导入");
+            return;
+        }
+
+        if (!Workspace.IsDetectionProject)
+        {
+            _snackbar.ShowWarning("YOLO 数据集只能导入目标检测项目。", "导入");
+            return;
+        }
+
+        var folder = await _fileDialog.SelectFolderAsync();
+        if (string.IsNullOrWhiteSpace(folder))
+        {
+            _snackbar.ShowInfo("已取消导入 YOLO 数据集。", "导入");
+            return;
+        }
+
+        Workspace.IsImporting = true;
+        try
+        {
+            var result = await _yoloImport.ImportAsync(new YoloDatasetImportRequest(gallery.Id, folder));
+            var message = $"导入 {result.Imported}/{result.Total} 张，{result.BoxCount} 个框";
+            if (result.Errors.Count > 0)
+            {
+                _snackbar.ShowWarning($"{message}；{result.Errors[0]}", "导入");
+            }
+            else if (result.Succeeded)
+            {
+                _snackbar.ShowSuccess(message, "导入");
+            }
+            else
+            {
+                _snackbar.ShowWarning(message, "导入");
+            }
+
+            await RefreshGalleryAsync();
+        }
+        catch (OperationCanceledException)
+        {
+            _snackbar.ShowInfo("已取消导入 YOLO 数据集。", "导入");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to import YOLO dataset from {Folder}", folder);
+            _snackbar.ShowError($"导入 YOLO 数据集失败：{ex.Message}", "导入");
+        }
+        finally
+        {
+            Workspace.IsImporting = false;
         }
     }
 

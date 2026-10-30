@@ -171,8 +171,25 @@ public sealed class InferenceDetectionRow
 
     public required double Confidence { get; init; }
 
+    // Detection geometry in original-image pixels; zero for classification rows.
+    public double X { get; init; }
+
+    public double Y { get; init; }
+
+    public double Width { get; init; }
+
+    public double Height { get; init; }
+
+    public bool HasBox => Width > 0 && Height > 0;
+
     public string ConfidenceText => $"{Confidence:P1}";
+
+    public string GeometryText => HasBox
+        ? $"({X:0}, {Y:0})  {Width:0}×{Height:0}"
+        : string.Empty;
 }
+
+public sealed record InferenceDetectionClassCount(string ClassName, int Count);
 
 /// <summary>Session evaluation with NG as positive class (漏检 = false negative).</summary>
 /// <summary>One row in the batch analysis report grid.</summary>
@@ -253,6 +270,14 @@ public sealed class InferenceBatchReport
     public double MaxSuccessMilliseconds { get; init; }
 
     public required InferenceOkNgEvaluation Evaluation { get; init; }
+
+    /// <summary>Detection reports replace the OK/NG evaluation panel with per-class box counts.</summary>
+    public bool IsDetection { get; init; }
+
+    public IReadOnlyList<InferenceDetectionClassCount> DetectionClassCounts { get; init; } =
+        Array.Empty<InferenceDetectionClassCount>();
+
+    public int DetectionBoxCount { get; init; }
 
     public IReadOnlyList<InferenceBatchReportSampleRow> Samples { get; init; } =
         Array.Empty<InferenceBatchReportSampleRow>();
@@ -580,6 +605,46 @@ public sealed record InferenceResultSummary
         }
 
 
+
+        if (ModelTypeNames.IsDetectionModelType(modelType))
+        {
+            var rows = result.Boxes
+                .OrderByDescending(box => box.Confidence)
+                .Select(box => new InferenceDetectionRow
+                {
+                    ClassName = string.IsNullOrWhiteSpace(box.ClassName) ? box.Label : box.ClassName,
+                    Confidence = box.Confidence,
+                    X = box.X,
+                    Y = box.Y,
+                    Width = box.Width,
+                    Height = box.Height
+                })
+                .ToArray();
+
+            if (rows.Length == 0)
+            {
+                return new InferenceResultSummary
+                {
+                    Success = true,
+                    Headline = "未检出目标",
+                    Detail = "阈值内没有满足条件的框。",
+                    PerformanceText = performance
+                };
+            }
+
+            var counts = rows
+                .GroupBy(row => row.ClassName, StringComparer.OrdinalIgnoreCase)
+                .Select(group => $"{group.Key} {group.Count()}")
+                .ToArray();
+            return new InferenceResultSummary
+            {
+                Success = true,
+                Headline = $"检出 {rows.Length} 个目标（最高 {rows[0].Confidence:P1}）",
+                Detail = string.Join("，", counts),
+                PerformanceText = performance,
+                Rows = rows
+            };
+        }
 
         return new InferenceResultSummary
         {

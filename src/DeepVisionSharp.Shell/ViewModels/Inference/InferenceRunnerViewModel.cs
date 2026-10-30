@@ -90,6 +90,13 @@ public sealed partial class InferenceRunnerViewModel : ObservableObject
         SelectedModel is not null
         && !ModelTypeNames.IsClassificationModelType(SelectedModel.ModelType);
 
+    public bool ShowsNmsIou =>
+        SelectedModel is not null
+        && ModelTypeNames.IsDetectionModelType(SelectedModel.ModelType);
+
+    [ObservableProperty]
+    private double _nmsIou = 0.45;
+
     public string ResolveRunDevice(InferencePageModelOption? model)
     {
         if (SelectedDevice is not null && !string.IsNullOrWhiteSpace(SelectedDevice.DeviceValue))
@@ -123,6 +130,7 @@ public sealed partial class InferenceRunnerViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(ShowsConfidenceThreshold));
         OnPropertyChanged(nameof(ShowsMaxDetections));
+        OnPropertyChanged(nameof(ShowsNmsIou));
         RefreshDeviceOptionsForModel(value);
     }
 
@@ -321,6 +329,7 @@ public sealed partial class InferenceRunnerViewModel : ObservableObject
             {
                 ModelId = model.Id,
                 ConfidenceThreshold = Math.Clamp(ConfidenceThreshold, 0.01, 1.0),
+                NmsIouThreshold = Math.Clamp(NmsIou, 0.05, 0.95),
                 MaxDetections = InferenceMaxDetectionsLimits.Normalize(MaxDetections),
                 BatchSize = 8,
                 Device = ResolveRunDevice(model),

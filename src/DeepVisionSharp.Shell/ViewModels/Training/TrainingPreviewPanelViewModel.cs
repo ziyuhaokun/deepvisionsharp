@@ -67,7 +67,9 @@ public sealed partial class TrainingPreviewPanelViewModel : ObservableObject
         IsSelectedJobClassificationModel && HasTrainingPlotImages;
 
     public bool ShowPreviewEmptyState =>
-        !HasPreviewImages && IsSelectedJobClassificationModel;
+        !HasPreviewImages
+        && _jobs.SelectedJob is not null
+        && ModelTypeNames.IsKnownModelType(_jobs.SelectedJob.ModelType);
 
     public string PreviewEmptyTitle => "\u6682\u65e0\u9884\u89c8";
 

@@ -71,6 +71,9 @@ public sealed class InferenceConfig
 
     public double ConfidenceThreshold { get; set; } = 0.5;
 
+    /// <summary>NMS IoU threshold for detection models; ignored by classification.</summary>
+    public double NmsIouThreshold { get; set; } = 0.45;
+
     public int MaxDetections { get; set; } = InferenceMaxDetectionsLimits.Default;
 
     public int BatchSize { get; set; } = 8;
@@ -88,6 +91,7 @@ public sealed class InferenceConfig
     public bool IsValid =>
         ModelId.HasValue
         && ConfidenceThreshold is > 0 and <= 1
+        && NmsIouThreshold is >= 0.05 and <= 0.95
         && MaxDetections is >= InferenceMaxDetectionsLimits.Min and <= InferenceMaxDetectionsLimits.Max
         && BatchSize > 0
         && InferenceMaxDetectionsLimits.NormalizeDevice(Device).IsSuccess;
@@ -100,6 +104,9 @@ public sealed class InferenceResult
     public string? Error { get; set; }
 
     public List<ClassificationResult> Detections { get; set; } = new();
+
+    /// <summary>Detection boxes in original-image pixels; empty for classification results.</summary>
+    public List<DetectionBoxResult> Boxes { get; set; } = new();
 
     public InferencePerformanceMetrics? Performance { get; set; }
 

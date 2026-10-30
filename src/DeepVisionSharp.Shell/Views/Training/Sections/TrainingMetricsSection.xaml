@@ -219,11 +219,33 @@
                                             </DataGrid.Columns>
                                         </DataGrid>
 
-                                        <!-- 分类：最新一轮的每类指标，暴露"全判 OK"这类退化 -->
+                                        <!-- 检测历史列 -->
+                                        <DataGrid
+                                            AutoGenerateColumns="False"
+                                            CanUserAddRows="False"
+                                            CanUserDeleteRows="False"
+                                            EnableRowVirtualization="True"
+                                            HeadersVisibility="Column"
+                                            IsReadOnly="True"
+                                            ItemsSource="{Binding Monitor.Metrics.MetricHistory}"
+                                            MaxHeight="280"
+                                            ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                            Visibility="{Binding Monitor.Metrics.ShowDetectionMetricsCards, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                            <DataGrid.Columns>
+                                                <DataGridTextColumn Binding="{Binding Epoch}" Header="轮次" Width="60" />
+                                                <DataGridTextColumn Binding="{Binding BoxMap50Text}" Header="mAP50" Width="*" />
+                                                <DataGridTextColumn Binding="{Binding BoxMapText}" Header="mAP50-95" Width="*" />
+                                                <DataGridTextColumn Binding="{Binding TrainLossText}" Header="训练损失" Width="*" />
+                                                <DataGridTextColumn Binding="{Binding ValLossText}" Header="验证损失" Width="*" />
+                                                <DataGridTextColumn Binding="{Binding LrText}" Header="学习率" Width="*" />
+                                            </DataGrid.Columns>
+                                        </DataGrid>
+
+                                        <!-- 最新一轮的每类指标，暴露"全判 OK"这类退化 -->
                                         <TextBlock
                                             Margin="0,16,0,10"
                                             FontWeight="SemiBold"
-                                            Text="分类指标（最新一轮）"
+                                            Text="{Binding Monitor.Metrics.PerClassPanelTitle}"
                                             Visibility="{Binding Monitor.Metrics.HasPerClassRows, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                         <DataGrid
                                             AutoGenerateColumns="False"

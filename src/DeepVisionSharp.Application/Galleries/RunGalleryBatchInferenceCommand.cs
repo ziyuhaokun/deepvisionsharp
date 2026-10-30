@@ -133,7 +133,7 @@ public sealed class RunGalleryBatchInferenceCommandHandler
             return Result<GalleryBatchInferenceResult>.Failure("项目尚未配置类别，无法写回推理结果。");
         }
 
-        var labelByName = DetectionInferenceWriteBackMapper.BuildLabelLookup(labelOptions);
+        var labelByName = ClassificationInferenceWriteBackMapper.BuildLabelLookup(labelOptions);
 
         request.Progress?.Report(new GalleryBatchInferenceProgress(
             "正在筛选待推理样本…", 0, 0, null, 0, 0, 0));
@@ -313,7 +313,7 @@ public sealed class RunGalleryBatchInferenceCommandHandler
         var existing = await _annotations.LoadAsync(request.GalleryId, fileName, cancellationToken)
             .ConfigureAwait(false);
         if (request.WriteBackPolicy == GalleryBatchInferenceWriteBackPolicy.SkipExisting
-            && !string.IsNullOrWhiteSpace(existing.ImageClass))
+            && existing.HasAnnotations)
         {
             return new SampleProcessResult(SampleOutcome.Skipped, null);
         }
@@ -356,7 +356,9 @@ public sealed class RunGalleryBatchInferenceCommandHandler
                 fileName,
                 merge.Document.ImageWidth,
                 merge.Document.ImageHeight,
-                merge.Document.ImageClass));
+                merge.Document.ImageClass,
+                merge.Document.Boxes,
+                merge.Document.IsReviewed));
     }
 
     private readonly record struct SampleProcessResult(
@@ -385,8 +387,43 @@ public sealed class RunGalleryBatchInferenceCommandHandler
             {
                 InferenceWriteBackKind.ImageClassTop1 =>
                     MergeImageClass(policy, existing, inference, fileName, labelByName),
+                InferenceWriteBackKind.BoundingBoxes =>
+                    MergeBoundingBoxes(policy, existing, inference, fileName, labelByName),
                 _ => new MergeResult(SampleOutcome.Failed, null)
             };
+        }
+
+        /// <summary>
+        /// Adopts predicted boxes as annotations. Replace overwrites the sample's boxes; Append keeps
+        /// existing boxes and drops predictions that overlap a same-class box at IoU &gt; 0.7.
+        /// </summary>
+        private static MergeResult MergeBoundingBoxes(
+            GalleryBatchInferenceWriteBackPolicy policy,
+            AnnotationDocument existing,
+            InferenceResult inference,
+            string fileName,
+            IReadOnlyDictionary<string, ProjectLabelOption> labelByName)
+        {
+            var width = inference.ImageWidth > 0 ? inference.ImageWidth : existing.ImageWidth;
+            var height = inference.ImageHeight > 0 ? inference.ImageHeight : existing.ImageHeight;
+            var merged = DetectionAnnotationMerger.Merge(
+                existing,
+                inference.Boxes,
+                labelByName.Keys.ToArray(),
+                policy == GalleryBatchInferenceWriteBackPolicy.Append,
+                width,
+                height);
+            if (merged.IsFailure)
+            {
+                return new MergeResult(
+                    SampleOutcome.Failed,
+                    null,
+                    $"{fileName}: {merged.Error}");
+            }
+
+            return merged.Value is null
+                ? new MergeResult(SampleOutcome.Skipped, null)
+                : new MergeResult(SampleOutcome.Written, merged.Value);
         }
 
         private static MergeResult MergeImageClass(

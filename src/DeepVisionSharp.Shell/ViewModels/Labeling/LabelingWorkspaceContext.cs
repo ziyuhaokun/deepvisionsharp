@@ -30,6 +30,8 @@ public sealed partial class LabelingWorkspaceContext : ObservableObject
 
     public bool IsClassificationProject => ProjectWorkflow.IsClassification(WorkflowKind);
 
+    public bool IsDetectionProject => ProjectWorkflow.IsDetection(WorkflowKind);
+
     [ObservableProperty]
     private string _projectName = "标记";
 
@@ -124,6 +126,7 @@ public sealed partial class LabelingWorkspaceContext : ObservableObject
     private void NotifyWorkflowCapabilities()
     {
         OnPropertyChanged(nameof(IsClassificationProject));
+        OnPropertyChanged(nameof(IsDetectionProject));
     }
 
     private void NotifyBusyState()

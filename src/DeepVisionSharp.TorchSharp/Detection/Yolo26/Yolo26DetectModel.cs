@@ -39,6 +39,7 @@ public sealed class Yolo26DetectModel : Module<Tensor, Tensor[]>
         : base(name)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(numClasses, 1);
+        NumClasses = numClasses;
         var channels = BuildChannels(scale);
         var repeats = Math.Max((int)Math.Round(2 * scale.Depth), 1);
 
@@ -87,8 +88,19 @@ public sealed class Yolo26DetectModel : Module<Tensor, Tensor[]>
 
     public int NumClasses { get; }
 
+    /// <summary>Stride of the finest head (P3); P4/P5 are 2x/4x this.</summary>
+    public const int BaseStride = 8;
+
+    /// <summary>Creates the n-scale model; kept for the generated-dataset test.</summary>
     public static Yolo26DetectModel Create(int inputChannels, int numClasses) =>
-        new($"yolo26n-det", inputChannels, numClasses, Yolo26ClsScale.Parse("n"));
+        Create("yolo26n-det", inputChannels, numClasses);
+
+    /// <summary>Creates a detection model from a product key such as <c>yolo26s-det</c>.</summary>
+    public static Yolo26DetectModel Create(string archName, int inputChannels, int numClasses)
+    {
+        var scale = Yolo26ClsScale.Parse(archName);
+        return new($"yolo26{scale.Name}-det", inputChannels, numClasses, scale);
+    }
 
     public override Tensor[] forward(Tensor input)
     {

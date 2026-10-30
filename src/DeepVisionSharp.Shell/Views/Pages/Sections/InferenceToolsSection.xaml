@@ -85,6 +85,24 @@
                                         SmallChange="10"
                                         Value="{Binding MaxDetections, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                         Visibility="{Binding ShowsMaxDetections, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                    <TextBlock
+                                        Margin="0,12,0,0"
+                                        Style="{StaticResource FieldLabelStyle}"
+                                        Text="NMS IoU"
+                                        Visibility="{Binding ShowsNmsIou, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                    <ui:NumberBox
+                                        Maximum="0.95"
+                                        Minimum="0.05"
+                                        SmallChange="0.05"
+                                        Value="{Binding NmsIou, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        Visibility="{Binding ShowsNmsIou, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                    <TextBlock
+                                        Margin="0,4,0,0"
+                                        FontSize="12"
+                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                        TextWrapping="Wrap"
+                                        Text="IoU 越高保留的重叠框越少，检测模型默认 0.45。"
+                                        Visibility="{Binding ShowsNmsIou, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                 </StackPanel>
                             </Border>
                         </StackPanel>
@@ -181,6 +199,16 @@
                                             </Style>
                                         </TextBlock.Style>
                                     </TextBlock>
+                                    <ui:Button
+                                        Margin="0,8,0,0"
+                                        Padding="10,3"
+                                        HorizontalAlignment="Left"
+                                        Appearance="Primary"
+                                        AutomationProperties.AutomationId="dv.inference.adopt-boxes"
+                                        Command="{Binding AdoptPredictedBoxesCommand}"
+                                        Content="采纳预测框为标注"
+                                        FontSize="11"
+                                        Visibility="{Binding CanAdoptPredictedBoxes, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                     <StackPanel
                                         Margin="0,6,0,0"
                                         Orientation="Horizontal"
@@ -233,7 +261,7 @@
                                     <TextBlock
                                         Style="{StaticResource SectionTitleStyle}"
                                         Margin="0,0,0,8"
-                                        Text="类别明细" />
+                                        Text="结果明细" />
                                     <ListBox
                                         MinHeight="0"
                                         MaxHeight="360"
@@ -257,12 +285,27 @@
                                                         <ColumnDefinition Width="*" />
                                                         <ColumnDefinition Width="Auto" />
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock
-                                                        VerticalAlignment="Center"
-                                                        FontWeight="SemiBold"
-                                                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                                                        Text="{Binding ClassName}"
-                                                        TextTrimming="CharacterEllipsis" />
+                                                    <StackPanel VerticalAlignment="Center">
+                                                        <TextBlock
+                                                            FontWeight="SemiBold"
+                                                            Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                            Text="{Binding ClassName}"
+                                                            TextTrimming="CharacterEllipsis" />
+                                                        <TextBlock
+                                                            FontSize="11"
+                                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                            Text="{Binding GeometryText}">
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="TextBlock">
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding HasBox}" Value="False">
+                                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </TextBlock.Style>
+                                                        </TextBlock>
+                                                    </StackPanel>
                                                     <TextBlock
                                                         Grid.Column="1"
                                                         Margin="8,0,0,0"

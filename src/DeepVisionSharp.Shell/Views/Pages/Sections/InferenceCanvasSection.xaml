@@ -29,10 +29,19 @@
                     Margin="6"
                     Background="{DynamicResource ControlFillColorSecondaryBrush}"
                     CornerRadius="6">
-                    <Image
-                        x:Name="InferenceSurface"
-                        Source="{Binding PreviewImage}"
-                        Stretch="Uniform" />
+                    <Grid>
+                        <Image
+                            x:Name="InferenceSurface"
+                            Source="{Binding PreviewImage}"
+                            Stretch="Uniform" />
+                        <controls:BoxOverlayCanvas
+                            AutomationProperties.AutomationId="dv.inference.box-layer"
+                            Boxes="{Binding Canvas.BoxOverlays}"
+                            ImageHeight="{Binding Canvas.ImageHeight}"
+                            ImageWidth="{Binding Canvas.ImageWidth}"
+                            IsReadOnly="True"
+                            Visibility="{Binding Canvas.HasBoxOverlays, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    </Grid>
                 </Border>
 
                 <!-- Top-left: compact status float + pin -->

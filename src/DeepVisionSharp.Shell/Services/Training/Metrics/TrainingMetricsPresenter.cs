@@ -99,6 +99,7 @@ public static class TrainingMetricsPresenterCatalog
     public static ITrainingMetricsPresenter Resolve(MetricProfileKind profile) => profile switch
     {
         MetricProfileKind.ClassificationAccuracy => Classification,
+        MetricProfileKind.DetectionMap => Detection,
         _ => None
     };
 
@@ -145,6 +146,32 @@ public static class TrainingMetricsPresenterCatalog
         ],
         [new("LR", p => p.Lr)],
         p => p.AccuracyTop1 ?? p.ValMap50);
+
+    private static readonly ITrainingMetricsPresenter Detection = new FixedMetricsPresenter(
+        MetricProfileKind.DetectionMap,
+        "检测 mAP",
+        "等待 mAP50 验证指标",
+        "最佳 mAP50：",
+        "当前检测指标（第 {0} 轮）",
+        "mAP 来自验证集框匹配（IoU 0.5–0.95）；P/R/F1 按置信度 0.5、IoU 0.5 统计。",
+        false,
+        true,
+        [
+            new("map50", "mAP50", 0, MetricValueFormat.Percent, p => p.BoxMap50 ?? p.ValMap50),
+            new("map", "mAP50-95", 1, MetricValueFormat.Percent, p => p.BoxMap ?? p.ValMap),
+            new("train_loss", "训练损失", 2, MetricValueFormat.Loss, p => p.TrainLoss, PreferHigher: false),
+            new("val_loss", "验证损失", 3, MetricValueFormat.Loss, p => p.ValLoss, PreferHigher: false)
+        ],
+        [
+            new("mAP50", p => p.BoxMap50 ?? p.ValMap50),
+            new("mAP50-95", p => p.BoxMap ?? p.ValMap)
+        ],
+        [
+            new("Train loss", p => p.TrainLoss),
+            new("Val loss", p => p.ValLoss)
+        ],
+        [new("LR", p => p.Lr)],
+        p => p.BoxMap50 ?? p.ValMap50);
 }
 
 internal sealed class FixedMetricsPresenter : ITrainingMetricsPresenter

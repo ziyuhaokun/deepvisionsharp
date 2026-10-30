@@ -65,6 +65,11 @@ public static class TrainingResourceHeuristics
             ModelTypeNames.Yolo26MCls => 64,
             ModelTypeNames.Yolo26LCls => 64,
             ModelTypeNames.Yolo26XCls => 96,
+            ModelTypeNames.Yolo26NDet => 16,
+            ModelTypeNames.Yolo26SDet => 32,
+            ModelTypeNames.Yolo26MDet => 64,
+            ModelTypeNames.Yolo26LDet => 64,
+            ModelTypeNames.Yolo26XDet => 96,
             _ => 0
         };
     }

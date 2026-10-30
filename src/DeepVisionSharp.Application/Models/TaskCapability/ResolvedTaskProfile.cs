@@ -8,19 +8,22 @@ namespace DeepVisionSharp.Application.Models;
 public enum InferenceKind
 {
     None,
-    ClassificationServe
+    ClassificationServe,
+    DetectionServe
 }
 
 public enum MetricProfileKind
 {
     None,
-    ClassificationAccuracy
+    ClassificationAccuracy,
+    DetectionMap
 }
 
 public enum InferenceWriteBackKind
 {
     None,
-    ImageClassTop1
+    ImageClassTop1,
+    BoundingBoxes
 }
 
 public enum RuntimeSessionKind
@@ -81,14 +84,9 @@ internal sealed class TaskCapabilityResolver : ITaskCapabilityResolver
 
     public Result ValidateModelExecution(string? modelType)
     {
-        if (!ModelCapabilityCatalog.TryResolve(modelType, out var model))
-        {
-            return Result.Failure($"不支持的模型类型：{modelType}");
-        }
-
-        return model.Family == ModelFamily.Classification
+        return ModelCapabilityCatalog.TryResolve(modelType, out _)
             ? Result.Success()
-            : Result.Failure("当前仅开放分类模型。");
+            : Result.Failure($"不支持的模型类型：{modelType}");
     }
 
     public Result<ProjectCapabilityProfile> ForProject(string? projectType)
@@ -174,22 +172,35 @@ internal sealed class TaskCapabilityResolver : ITaskCapabilityResolver
 
     private static TaskOverlay ResolveOverlay(ProjectWorkflowKind workflow, ModelFamily family)
     {
-        if (workflow != ProjectWorkflowKind.Classification
-            || family != ModelFamily.Classification)
+        if (workflow == ProjectWorkflowKind.Detection && family == ModelFamily.Detection)
         {
-            throw new InvalidOperationException($"\u7f3a\u5c11\u4efb\u52a1\u80fd\u529b\u53e0\u52a0\uff1a{workflow} + {family}");
+            return new TaskOverlay(
+                ExportKind.DetectionYoloFolders,
+                InferenceKind.DetectionServe,
+                InferenceWriteBackKind.BoundingBoxes,
+                MetricProfileKind.DetectionMap,
+                RuntimeSessionKind.InProcess,
+                BackendKeys.InferenceTorchSharpDetection,
+                ArtifactHandlerKeys.Detection,
+                UsesNetworkInputSize: true,
+                ShowsClassificationAugmentation: false);
         }
 
-        return new TaskOverlay(
-            ExportKind.ClassificationFolders,
-            InferenceKind.ClassificationServe,
-            InferenceWriteBackKind.ImageClassTop1,
-            MetricProfileKind.ClassificationAccuracy,
-            RuntimeSessionKind.InProcess,
-            BackendKeys.InferenceTorchSharpClassification,
-            ArtifactHandlerKeys.Classification,
-            UsesNetworkInputSize: true,
-            ShowsClassificationAugmentation: true);
+        if (workflow == ProjectWorkflowKind.Classification && family == ModelFamily.Classification)
+        {
+            return new TaskOverlay(
+                ExportKind.ClassificationFolders,
+                InferenceKind.ClassificationServe,
+                InferenceWriteBackKind.ImageClassTop1,
+                MetricProfileKind.ClassificationAccuracy,
+                RuntimeSessionKind.InProcess,
+                BackendKeys.InferenceTorchSharpClassification,
+                ArtifactHandlerKeys.Classification,
+                UsesNetworkInputSize: true,
+                ShowsClassificationAugmentation: true);
+        }
+
+        throw new InvalidOperationException($"\u7f3a\u5c11\u4efb\u52a1\u80fd\u529b\u53e0\u52a0\uff1a{workflow} + {family}");
     }
 
     private sealed record TaskOverlay(

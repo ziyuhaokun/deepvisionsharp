@@ -29,6 +29,17 @@ public sealed class TorchSharpModelBundle
 
     public string? Arch { get; init; }
 
+    public int NumClasses { get; init; }
+
+    public int MaxDetections { get; init; } = 100;
+
+    public double NmsIou { get; init; } = 0.45;
+
+    /// <summary>Detection head strides (P3, P4, P5); empty for classification models.</summary>
+    public IReadOnlyList<int> Strides { get; init; } = Array.Empty<int>();
+
+    public bool IsDetection => string.Equals(Task, "detect", StringComparison.OrdinalIgnoreCase);
+
     /// <summary>Pixel normalisation the model was trained with; legacy sidecars mean unit scale.</summary>
     public PreprocessingVersion Preprocessing { get; init; } = PreprocessingVersion.UnitScaleV1;
 
@@ -85,10 +96,11 @@ public sealed class TorchSharpModelBundle
     /// </summary>
     private static TorchSharpModelBundle Validate(TorchSharpModelBundle bundle, string metadataPath)
     {
-        if (bundle.Classes.Count < 2)
+        var minimumClasses = bundle.IsDetection ? 1 : 2;
+        if (bundle.Classes.Count < minimumClasses)
         {
             throw new InvalidDataException(
-                $"模型元数据不完整：{Path.GetFileName(metadataPath)} 需要至少 2 个类别（classes），" +
+                $"模型元数据不完整：{Path.GetFileName(metadataPath)} 需要至少 {minimumClasses} 个类别（classes），" +
                 $"当前为 {bundle.Classes.Count}。");
         }
 
@@ -174,6 +186,10 @@ public sealed class TorchSharpModelBundle
             InputHeight = height,
             InputChannels = channels,
             Arch = arch,
+            NumClasses = root["num_classes"]?.GetValue<int>() ?? classes.Count,
+            MaxDetections = root["max_detections"]?.GetValue<int>() ?? 100,
+            NmsIou = root["nms_iou"]?.GetValue<double>() ?? 0.45,
+            Strides = ReadStrides(root["strides"]),
             Preprocessing = PreprocessingVersions.Parse(root["preprocessing"]?.GetValue<string>())
         };
     }
@@ -212,8 +228,25 @@ public sealed class TorchSharpModelBundle
             InputHeight = inputHeight,
             InputChannels = channels,
             Arch = arch,
+            NumClasses = root["num_classes"]?.GetValue<int>() ?? classes.Count,
+            MaxDetections = root["max_detections"]?.GetValue<int>() ?? 100,
+            NmsIou = root["nms_iou"]?.GetValue<double>() ?? 0.45,
+            Strides = ReadStrides(root["strides"]),
             WeightsFormat = weightsFormat,
             Preprocessing = PreprocessingVersions.Parse(root["preprocessing"]?.GetValue<string>())
         };
+    }
+
+    private static IReadOnlyList<int> ReadStrides(JsonNode? node)
+    {
+        if (node is not JsonArray array)
+        {
+            return Array.Empty<int>();
+        }
+
+        return array
+            .Select(item => item?.GetValue<int>() ?? 0)
+            .Where(value => value > 0)
+            .ToArray();
     }
 }

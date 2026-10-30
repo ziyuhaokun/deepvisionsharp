@@ -21,8 +21,24 @@ public static class TaskCompatibilityCatalog
         return Validate(workflow, capabilities.Family);
     }
 
-    public static Result Validate(ProjectWorkflowKind workflow, ModelFamily family) =>
-        workflow == ProjectWorkflowKind.Classification && family == ModelFamily.Classification
+    public static Result Validate(ProjectWorkflowKind workflow, ModelFamily family)
+    {
+        var expected = workflow switch
+        {
+            ProjectWorkflowKind.Classification => ModelFamily.Classification,
+            ProjectWorkflowKind.Detection => ModelFamily.Detection,
+            _ => (ModelFamily?)null
+        };
+
+        if (expected is null)
+        {
+            return Result.Failure($"未知的项目工作流：{workflow}。");
+        }
+
+        return expected == family
             ? Result.Success()
-            : Result.Failure("图像分类项目仅支持分类模型。");
+            : Result.Failure(workflow == ProjectWorkflowKind.Detection
+                ? "目标检测项目仅支持检测模型。"
+                : "图像分类项目仅支持分类模型。");
+    }
 }

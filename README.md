@@ -5,7 +5,7 @@
 <h1 align="center">DeepVisionSharp</h1>
 
 <p align="center">
-  <strong>进程内图像分类工作台。</strong> 标注、训练、推理都在一个 WPF 进程里完成，不启动 Python。
+  <strong>进程内视觉工作台。</strong> 标注、训练、推理都在一个 WPF 进程里完成，不启动 Python。
 </p>
 
 <p align="center">
@@ -19,9 +19,9 @@
   <img src="docs/assets/hero.jpg" alt="DeepVisionSharp — in-process classification, no Python" width="100%">
 </p>
 
-把分类模型关进桌面应用。一批图、几个类，在本机训完立刻推理；数据不出机，也不把训练外包给 conda。
+把分类与检测模型关进桌面应用。一批图、几个类、若干框，在本机训完立刻推理；数据不出机，也不把训练外包给 conda。
 
-当前只做**整图分类**。检测、分割、异常检测不在范围内。
+当前支持**整图分类**与**目标检测**（YOLO26-det，矩形框）。分割、异常检测不在范围内。
 
 ## 立场
 
@@ -30,7 +30,7 @@
 | 一个进程 | TorchSharp 0.107 + LibTorch 2.10 跑在 WPF 宿主里。没有 sidecar，没有 Ultralytics CLI。 |
 | 本机优先 | SQLite、图库、权重、日志都在 `%LOCALAPPDATA%\\DeepVisionSharp`。运行时不上报遥测。 |
 | 现场能装 | 自包含安装包，默认用户目录，不需要管理员，也不捆绑 Python。 |
-| 分类做透 | ResNet-Tiny / 18 / 34（torchvision 兼容）。SGD / Adam / AdamW。缺预训练权重就从随机初始化开训。 |
+| 两类任务 | 分类：ResNet-Tiny / 18 / 34（torchvision 兼容）与 YOLO26-cls；检测：YOLO26-det n/s/m/l/x。SGD / Adam / AdamW。缺预训练权重就从随机初始化开训。 |
 
 <p align="center">
   <img src="docs/assets/about.png" alt="设置 · 关于" width="82%">
@@ -39,7 +39,9 @@
 ## 工作流
 
 ```text
-项目 → 图库 → 整图标注 → 导出分类数据集 → 进程内训练 → 模型库 → 单图 / 批量推理
+分类：项目 → 图库 → 整图标注 → 导出分类数据集 → 进程内训练 → 模型库 → 单图 / 批量推理
+检测：项目 → 图库（图片或 YOLO 数据集）→ 画框 / 标记无目标 → 导出 YOLO 数据集
+      → 进程内训练（mAP50 / mAP50-95）→ 模型库 → 推理画框 → 采纳预测框为标注
 ```
 
 训练在后台跑；准备或运行期间不能删除该项目。标注 sidecar 用完整图片名（`sample.jpg.json`），旧的 `sample.json` 仍可读。
@@ -101,7 +103,7 @@ flowchart LR
 | `Application` | CQRS、校验、Ports |
 | `Domain` | 实体与值对象 |
 | `Infrastructure` | SQLite、训练 / 推理调度 |
-| `Tiling` | 切图几何（规划窗口；分类 1.0 不调用） |
+| `Tiling` | 切图与适配几何（分类不调用；检测训练/推理复用 `ImageFits` / `CoordinateMaps`） |
 | `TorchSharp` | 进程内训练与推理 |
 | `Bootstrap` | 依赖注入装配 |
 

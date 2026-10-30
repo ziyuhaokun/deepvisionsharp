@@ -29,10 +29,26 @@
                                 </Style.Triggers>
                             </Style>
                         </Border.Style>
-                        <Image
-                            AutomationProperties.AutomationId="dv.labeling.canvas"
-                            Source="{Binding Workspace.ImageSource}"
-                            Stretch="Uniform" />
+                        <Grid>
+                            <Image
+                                AutomationProperties.AutomationId="dv.labeling.canvas"
+                                Source="{Binding Workspace.ImageSource}"
+                                Stretch="Uniform" />
+                            <controls:BoxOverlayCanvas
+                                AutomationProperties.AutomationId="dv.labeling.box-layer"
+                                ActiveLabel="{Binding Editor.ActiveBoxLabel}"
+                                Boxes="{Binding Editor.Boxes}"
+                                EditCompletedCommand="{Binding Editor.NotifyBoxesEditedCommand}"
+                                EditStartingCommand="{Binding Editor.BeginBoxEditCommand}"
+                                ImageHeight="{Binding Workspace.ImageHeight}"
+                                ImageWidth="{Binding Workspace.ImageWidth}"
+                                IsReadOnly="{Binding Editor.IsEditorReadOnly}"
+                                RedoCommand="{Binding Editor.RedoBoxEditCommand}"
+                                SelectedBox="{Binding Editor.SelectedBox, Mode=TwoWay}"
+                                Tool="{Binding Editor.ActiveToolMode}"
+                                UndoCommand="{Binding Editor.UndoBoxEditCommand}"
+                                Visibility="{Binding Workspace.IsDetectionProject, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        </Grid>
                     </Border>
 
                     <controls:CanvasCornerFloat
@@ -79,7 +95,15 @@
                                 FontSize="13"
                                 FontWeight="SemiBold"
                                 Foreground="White"
-                                Text="{Binding Labels.CurrentImageClassDisplay}" />
+                                Text="{Binding Labels.CurrentImageClassDisplay}"
+                                Visibility="{Binding Workspace.IsClassificationProject, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="13"
+                                FontWeight="SemiBold"
+                                Foreground="White"
+                                Text="{Binding Editor.DetectionStatusText}"
+                                Visibility="{Binding Workspace.IsDetectionProject, Converter={StaticResource BooleanToVisibilityConverter}}" />
                         </StackPanel>
                     </Border>
                 </Grid>

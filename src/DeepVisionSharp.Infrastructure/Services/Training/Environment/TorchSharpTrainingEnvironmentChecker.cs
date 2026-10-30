@@ -11,9 +11,8 @@ internal sealed class TorchSharpTrainingEnvironmentChecker : ITrainingEnvironmen
     public string CheckerKey => BackendKeys.TorchSharpClassification;
 
     public bool CanHandle(TrainingEnvironmentCheckContext context)
-        => context.Backend.BackendKey == BackendKeys.TorchSharpClassification
-           || (ModelTypeNames.IsClassificationModelType(context.Command.Form.ModelType)
-               && context.Backend.BackendKey == BackendKeys.TorchSharpClassification);
+        => context.Backend.BackendKey is BackendKeys.TorchSharpClassification
+            or BackendKeys.TorchSharpDetection;
 
     public Task<TrainingEnvironmentCheckResult> CheckAsync(
         TrainingEnvironmentCheckContext context,
@@ -24,14 +23,14 @@ internal sealed class TorchSharpTrainingEnvironmentChecker : ITrainingEnvironmen
         {
             notes.Add(new TrainingEnvironmentIssue(
                 "TORCHSHARP_CUDA",
-                "已检测到 CUDA，TorchSharp 分类训练可使用 GPU",
+                "已检测到 CUDA，TorchSharp 训练可使用 GPU",
                 Severity: TrainingEnvironmentIssueSeverity.Info));
         }
         else
         {
             notes.Add(new TrainingEnvironmentIssue(
                 "TORCHSHARP_CPU",
-                "未检测到 CUDA，TorchSharp 分类训练将使用 CPU",
+                "未检测到 CUDA，TorchSharp 训练将使用 CPU",
                 "如需 GPU，请确认已安装 TorchSharp-cuda-windows 与 NVIDIA 驱动",
                 TrainingEnvironmentIssueSeverity.Info));
         }

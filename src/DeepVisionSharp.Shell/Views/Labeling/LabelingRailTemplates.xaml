@@ -21,8 +21,26 @@
         </ScrollViewer>
     </DataTemplate>
 
+    <!-- 目标检测 ToolRail：框工具 + 类别列表（点选类别用于新框或替换选中框） -->
+    <DataTemplate x:Key="LabelingToolRail.Detection">
+        <ScrollViewer
+            Padding="8"
+            HorizontalScrollBarVisibility="Disabled"
+            VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <cards:LabelingDetectionToolsCard />
+                <cards:LabelingClassListCard />
+            </StackPanel>
+        </ScrollViewer>
+    </DataTemplate>
+
     <!-- 右栏：分类项目留空（鸟瞰在壳上） -->
     <DataTemplate x:Key="LabelingSideRail.Empty">
         <Grid />
+    </DataTemplate>
+
+    <!-- 目标检测右栏：当前样本的框列表 -->
+    <DataTemplate x:Key="LabelingSideRail.Detection">
+        <cards:LabelingBoxListCard />
     </DataTemplate>
 </ResourceDictionary>

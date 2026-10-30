@@ -61,7 +61,7 @@ public sealed partial class TrainingSpatialSettingsViewModel : ObservableObject
                 return "当前模型不使用网络输入尺寸。";
             }
 
-            return $"分类网络输入宽×高，训练和推理固定使用该尺寸。宽高各自范围 {policy.Min}–{policy.Max}，须为 {policy.Step} 的倍数。";
+            return $"网络输入宽×高，训练和推理固定使用该尺寸。宽高各自范围 {policy.Min}–{policy.Max}，须为 {policy.Step} 的倍数。";
         }
     }
 

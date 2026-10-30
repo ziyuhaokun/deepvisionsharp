@@ -17,8 +17,20 @@ public sealed record NetworkInputSizePolicy(int Min, int Max, int Step, int Defa
         // 4x the memory and compute at the same batch size.
         Default: 256);
 
+    /// <summary>Detection product band. YOLO26 requires an edge length multiple of 32.</summary>
+    public static NetworkInputSizePolicy DetectionProduct { get; } = new(
+        Min: 320,
+        Max: 1280,
+        Step: 32,
+        Default: 640);
+
     public static NetworkInputSizePolicy? ForModelFamily(ModelFamily family) =>
-        family == ModelFamily.Classification ? ClassificationProduct : null;
+        family switch
+        {
+            ModelFamily.Classification => ClassificationProduct,
+            ModelFamily.Detection => DetectionProduct,
+            _ => null
+        };
 
     public static NetworkInputSizePolicy? ForModelType(string? modelType)
     {

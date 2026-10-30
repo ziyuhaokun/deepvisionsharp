@@ -1,3 +1,4 @@
+using DeepVisionSharp.Application.Models;
 using DeepVisionSharp.Application.Ports;
 using DeepVisionSharp.Domain.ValueObjects;
 
@@ -43,6 +44,8 @@ public static class TrainingDatasetConfigRules
             return TrainingValidationMessages.SelectDataset;
         }
 
+        var isDetection = ModelTypeNames.IsDetectionModelType(form.ModelType);
+
         foreach (var galleryId in participating)
         {
             if (!annotatedCountsByGalleryId.TryGetValue(galleryId, out var annotated) || annotated <= 0)
@@ -70,6 +73,13 @@ public static class TrainingDatasetConfigRules
 
         if (perClassCounts is { Count: > 0 })
         {
+            if (isDetection)
+            {
+                // A detection class may hold any number of boxes; images without boxes are negatives
+                // and are just as valid as positives. Only the class list itself must be non-empty.
+                return null;
+            }
+
             if (perClassCounts.Count < 2)
             {
                 return "分类训练至少需要 2 个类别";
@@ -137,8 +147,13 @@ public static class TrainingDatasetConfigRules
             return new DatasetEstimate(0, 0, "所选数据集必须包含已标注样本");
         }
 
+        if (total < 2)
+        {
+            return new DatasetEstimate(total, 0, "至少需要 2 张已标注样本才能划分训练集与验证集");
+        }
+
         var ratio = Math.Clamp(validationRatio, 0, 0.5);
-        var val = (int)Math.Round(total * ratio);
+        var val = Math.Clamp((int)Math.Round(total * ratio), 1, total - 1);
         var train = total - val;
 
         if (train <= 0 || val <= 0)

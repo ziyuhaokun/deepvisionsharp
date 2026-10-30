@@ -13,6 +13,7 @@ internal static class ModelArtifactsModule
         services.AddSingleton<IModelCheckpointFileService, ModelCheckpointFileService>();
         services.AddSingleton<ModelArtifactHandlerRegistry>();
         services.AddSingleton<IModelArtifactHandler, ClassificationModelArtifactHandler>();
+        services.AddSingleton<IModelArtifactHandler, DetectionModelArtifactHandler>();
         services.AddSingleton<ITrainedModelArtifactService, TrainedModelArtifactService>();
         return services;
     }

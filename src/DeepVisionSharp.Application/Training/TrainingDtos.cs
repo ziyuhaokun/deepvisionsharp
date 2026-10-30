@@ -52,6 +52,25 @@ public sealed class TrainingJobForm
 
     /// <summary>Classification flip augmentation.</summary>
     public ClassificationAugmentation? ClassificationAugmentation { get; set; }
+
+    // --- Detection-only fields (ignored for classification jobs) ---
+
+    public double DetectionNmsIou { get; set; } = 0.45;
+
+    public double DetectionConfidence { get; set; } = 0.25;
+
+    public int DetectionMaxDetections { get; set; } = 100;
+
+    public bool DetectionHorizontalFlip { get; set; } = true;
+
+    public DetectionTrainingOptions? ToDetectionOptions() =>
+        ModelTypeNames.IsDetectionModelType(ModelType)
+            ? DetectionTrainingOptions.Normalize(new DetectionTrainingOptions(
+                DetectionNmsIou,
+                DetectionConfidence,
+                DetectionMaxDetections,
+                DetectionHorizontalFlip))
+            : null;
 }
 
 public static class TrainingJobFormMapper
@@ -94,7 +113,8 @@ public static class TrainingJobFormMapper
             classificationAugmentation: classificationAugmentation,
             networkInputSize: networkInputSize,
             networkInputWidth: networkInputWidth,
-            networkInputHeight: networkInputHeight);
+            networkInputHeight: networkInputHeight,
+            detectionOptions: form.ToDetectionOptions());
     }
 
     public static TrainingJobForm FromConfiguration(
@@ -131,7 +151,11 @@ public static class TrainingJobFormMapper
             ValidationRatio = config.ValidationRatio,
             NetworkInputWidth = config.NetworkInputWidth ?? config.NetworkInputSize ?? defaultInput,
             NetworkInputHeight = config.NetworkInputHeight ?? config.NetworkInputSize ?? defaultInput,
-            ClassificationAugmentation = config.ClassificationAugmentation
+            ClassificationAugmentation = config.ClassificationAugmentation,
+            DetectionNmsIou = config.DetectionOptions?.NmsIouThreshold ?? 0.45,
+            DetectionConfidence = config.DetectionOptions?.EvaluationConfidence ?? 0.25,
+            DetectionMaxDetections = config.DetectionOptions?.MaxDetections ?? 100,
+            DetectionHorizontalFlip = config.DetectionOptions?.HorizontalFlip ?? true
         };
     }
 
@@ -230,6 +254,8 @@ public sealed class TrainingJobRow
     public double? ConfigValidationRatio { get; init; }
 
     public ClassificationAugmentation? ConfigClassificationAugmentation { get; init; }
+
+    public DetectionTrainingOptions? ConfigDetectionOptions { get; init; }
 
     public int? ConfigNetworkInputSize { get; init; }
 

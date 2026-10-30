@@ -89,6 +89,9 @@ public sealed partial class TrainingJobsViewModel : ObservableObject
 
     public Guid? CurrentProjectId { get; private set; }
 
+    /// <summary>Stored type of the project in context; null while no project is open.</summary>
+    public string? CurrentProjectType { get; private set; }
+
     public bool IsTrainingWorkflow => HasProjectContext;
 
     public bool HasJobs => JobCount > 0;
@@ -143,7 +146,9 @@ public sealed partial class TrainingJobsViewModel : ObservableObject
                 SelectedJob = null;
                 _pinnedSelectedJobId = null;
                 CurrentProjectId = null;
+                CurrentProjectType = null;
                 HasProjectContext = false;
+                OnPropertyChanged(nameof(CurrentProjectType));
                 RefreshJobMetrics();
                 NotifyListState();
                 TraceLoad("load: no project context");
@@ -175,7 +180,9 @@ public sealed partial class TrainingJobsViewModel : ObservableObject
                 SelectedJob = null;
                 _pinnedSelectedJobId = null;
                 CurrentProjectId = null;
+                CurrentProjectType = null;
                 HasProjectContext = false;
+                OnPropertyChanged(nameof(CurrentProjectType));
                 RefreshJobMetrics();
                 NotifyListState();
                 TraceLoad("load: project missing");
@@ -183,8 +190,10 @@ public sealed partial class TrainingJobsViewModel : ObservableObject
             }
 
             CurrentProjectId = project.Id;
+            CurrentProjectType = project.Type;
             HasProjectContext = true;
-            TraceLoad("load: classification workflow");
+            OnPropertyChanged(nameof(CurrentProjectType));
+            TraceLoad($"load: {project.Type} workflow");
 
             TraceLoad("load: reconcile orphans");
             await _mediator.Send(new ReconcileOrphanedTrainingJobsCommand(), cancellationToken);

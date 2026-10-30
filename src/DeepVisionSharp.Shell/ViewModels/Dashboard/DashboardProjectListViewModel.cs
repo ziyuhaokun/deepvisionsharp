@@ -50,7 +50,22 @@ public sealed partial class DashboardProjectListViewModel : ObservableObject
         _logger = logger;
 
         ProjectTypeOptions.Add(new ProjectTypeFilterOption(string.Empty, "全部类型"));
-        ProjectTypeOptions.Add(CreateProjectTypeOption(ProjectTypes.Classification));
+        foreach (var type in ProjectCapabilityCatalog.ActiveProjectTypes)
+        {
+            ProjectTypeOptions.Add(CreateProjectTypeOption(type));
+        }
+    }
+
+    /// <summary>Header for the project list; follows the entered project's type.</summary>
+    public string CurrentProjectTypeLabel
+    {
+        get
+        {
+            var type = _workspaceSession.Current.Project?.Type;
+            return type is null
+                ? $"当前项目 · {ProjectTypes.GetDisplayLabel(ProjectTypes.Default)}"
+                : $"当前项目 · {ProjectTypes.GetDisplayLabel(type)}";
+        }
     }
 
     private const int KeywordDebounceMilliseconds = 250;

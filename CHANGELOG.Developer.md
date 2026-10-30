@@ -6,9 +6,17 @@
 
 ### v0.0.2-dev (unreleased)
 
-tags: refactor / classification-only
+tags: detection / classification / refactor
 
-- TorchSharp 分类后端新增 YOLO26-cls（n/s/m/l/x）网络与工厂分派：通道表与 C3k 分档按 Ultralytics `yolo26-cls.yaml` 对齐，五档参数总量与官方一致；产品模型类型入口尚未接入。
+- 新增 Detection 项目类型与 ModelFamily：`ProjectTypes` / `ProjectWorkflowKind` / `ProjectCapabilityCatalog` 双类型；`TaskCompatibilityCatalog` 按 workflow × family 配对；`ResolvedTaskProfile` 的 overlay 增加 `ExportKind.DetectionYoloFolders`、`InferenceKind.DetectionServe`、`InferenceWriteBackKind.BoundingBoxes`、`MetricProfileKind.DetectionMap`。`ModelTypeNames` 增加 `yolo26n-det` … `yolo26x-det`，拆出 `IsKnownModelType` / `IsDetectionModelType`，并审计全部 `IsClassificationModelType` 调用点。
+- 标注契约支持检测：`AnnotationDocument` / `AnnotationSaveItem` / `IAnnotationWorkflowService` 增加 `AnnotationShape` 与 `IsReviewed`；sidecar 写 Labelme `shapes` 与 `flags.dvReviewed`，旧分类 sidecar 无 shapes 仍可读；标签索引、按标签选样本与统计从 shape labels 派生；删除标签并清理时同时移除对应框。数据库 `Annotations.DocumentJson` 原样承载，不升 schema。
+- 新增 `DeepVisionSharp.Domain.Datasets.YoloDatasetFormat`（类别文件与 YOLO txt 解析/格式化）与 `IYoloDatasetImportService`：解析 `classes.txt` 或 `data.yaml` 的 `names`，按 `images/`→`labels/` 镜像读取，暂存图片与生成的 sidecar 后复用现有图库导入事务，缺失标签文件按负样本处理。
+- 新增 `IDetectionDatasetExportService`：输出 `detection-dataset/{train,val}/{images,labels}` 与 `dataset-manifest.json`（含框数、fingerprint、split_method）；空 txt 表示负样本；自动划分复用 `hash-rank-v1` 但不按类别分组；未 reviewed、缺图、未知标签框分别计数。
+- TorchSharp 检测链路：`Yolo26DetectModel` 支持 n/s/m/l/x 并修复 `NumClasses` 未赋值；`DetectionLetterbox` 复用 `Tiling.ImageFits.Letterbox` 做像素与框变换；`DetectionTensorDecoder` 张量化 decode + `DetectionNms`；`DetectionMetrics`（mAP50 / mAP50-95 与每类 P/R/F1）；`TorchSharpDetTrainer`（letterbox、水平翻转、早停、原子 best/last、检测 `.info`）；`TorchSharpDetectEngine`（反 letterbox、NMS、LRU 缓存）。`TorchSharpModelBundle` 增加 `num_classes` / `max_detections` / `nms_iou` / `strides`，检测允许单类。
+- Infrastructure：新增 `TorchSharpDetectionTrainingBackend`（单飞、设备独占、心跳、DV_COMPLETED `task: "detect"`）、`DetectionModelArtifactHandler`（允许单类，可从 dataset-manifest 恢复类别）、`TorchSharpDetectionInferenceBackend`；`IInferenceEngineControl` 增加复合实现，训练独占时同时清空分类与检测缓存；环境检查覆盖检测后端；`ModelMetadataReader` 按 family 放宽；`InferenceModelCache` 双引擎清理。
+- Shell：项目类型视觉与筛选支持检测；新增 `BoxOverlayCanvas` 框图层与检测工具/框列表卡片，支持画框、选中、移动、缩放、删除、撤销/重做、标记无目标；检测工具栏提供 YOLO 数据集导入；训练页按项目 workflow 过滤模型、增加 NMS IoU / 评估置信度 / 最大框数 / 水平翻转参数与 mAP 指标卡；推理页增加画框叠加、框坐标明细、NMS IoU 参数与检测版批量 HTML 报告；图库批量推理为检测模型提供「追加预测框」写回。
+- 测试：新增能力矩阵、YOLO 文本格式、Labelme shapes 往返、检测划分、框几何 / NMS / 指标、检测数据集契约、检测写回合并与 Slow 训练器端到端测试。
+- TorchSharp 分类后端新增 YOLO26-cls（n/s/m/l/x）网络与工厂分派：通道表与 C3k 分档按 Ultralytics `yolo26-cls.yaml` 对齐，五档参数总量与官方一致；产品模型类型入口已接入。
 - 切图从分类热路径拆出：新增 `DeepVisionSharp.Tiling`（`TilePlanner` / `ImageFits` / `CoordinateMaps`，纯几何、无 OpenCV）。`TileRequest` 覆盖 WholeImage / SlidingWindow（EdgeAlign·Drop·Pad） / Grid / Crop；`ImageFitKind` 覆盖 Stretch / Letterbox / Cover / Pad / ShortEdge（含 maxLongEdge） / LongEdge，外加 `PixelSizes.AlignUp`。分类训练与推理仍只走 `ToClassificationTensor` 线性拉伸。删除无调用方的 `ToLetterboxTensor`；推理性能字段去掉 crops / NMS / 切块摘要。
 - 崩溃弹窗、批量推理 HTML 报告与安装测试产物统一为 DeepVisionSharp 产品名；训练后端 key 记录与代码对齐为 torchsharp:classification-train / torchsharp:classification。
 - DEBUG 推理报告复制改为进程内剪贴板（`copy: false`），进程退出后不残留。

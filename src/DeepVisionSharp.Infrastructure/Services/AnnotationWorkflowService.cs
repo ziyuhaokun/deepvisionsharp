@@ -71,7 +71,9 @@ internal sealed class AnnotationWorkflowService : IAnnotationWorkflowService
             return new AnnotationDocument(
                 document.ImageWidth,
                 document.ImageHeight,
-                LabelmeAnnotationSerializer.ReadImageClass(document.Flags));
+                LabelmeAnnotationSerializer.ReadImageClass(document.Flags),
+                LabelmeAnnotationSerializer.ReadShapes(document),
+                LabelmeAnnotationSerializer.ReadReviewed(document.Flags));
         }
         catch (JsonException ex)
         {
@@ -128,6 +130,77 @@ internal sealed class AnnotationWorkflowService : IAnnotationWorkflowService
         return result;
     }
 
+    public async Task<IReadOnlyDictionary<string, AnnotationDocument>> LoadDocumentsBatchAsync(
+        Guid galleryId,
+        IReadOnlyList<string> fileNames,
+        CancellationToken cancellationToken = default)
+    {
+        var gallery = await _galleries.GetSummaryByIdAsync(galleryId, cancellationToken).ConfigureAwait(false);
+        var result = new Dictionary<string, AnnotationDocument>(StringComparer.OrdinalIgnoreCase);
+        if (gallery is null) return result;
+
+        var targetNames = fileNames is { Count: > 0 }
+            ? fileNames
+                .Select(Path.GetFileName)
+                .Where(name => !string.IsNullOrWhiteSpace(name))
+                .Select(name => name!)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList()
+            : null;
+
+        var annotationQuery = _db.Select<SqlAnnotation>().Where(row => row.GalleryId == galleryId);
+        if (targetNames is not null)
+        {
+            annotationQuery = annotationQuery.Where(row => targetNames.Contains(row.FileName));
+        }
+
+        var rows = await annotationQuery.ToListAsync(cancellationToken).ConfigureAwait(false);
+        var documents = rows.ToDictionary(row => row.FileName, row => row.DocumentJson, StringComparer.OrdinalIgnoreCase);
+
+        var names = targetNames
+            ?? (await _db.Select<SqlSample>().Where(row => row.GalleryId == galleryId)
+                .ToListAsync(row => row.FileName, cancellationToken).ConfigureAwait(false))
+                .Concat(documents.Keys)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+        foreach (var name in names)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            documents.TryGetValue(name, out var databaseJson);
+            var path = _fileStore.ResolveSampleImagePath(gallery.ProjectId, galleryId, name);
+            var content = await SampleAnnotationFiles.ReadAsync(path, databaseJson, cancellationToken).ConfigureAwait(false);
+            result[name] = ParseDocument(content.Json);
+        }
+
+        return result;
+    }
+
+    private static AnnotationDocument ParseDocument(string? documentJson)
+    {
+        if (string.IsNullOrWhiteSpace(documentJson))
+        {
+            return new AnnotationDocument(0, 0);
+        }
+
+        try
+        {
+            var document = LabelmeAnnotationSerializer.Deserialize(documentJson);
+            return document is null
+                ? new AnnotationDocument(0, 0)
+                : new AnnotationDocument(
+                    document.ImageWidth,
+                    document.ImageHeight,
+                    LabelmeAnnotationSerializer.ReadImageClass(document.Flags),
+                    LabelmeAnnotationSerializer.ReadShapes(document),
+                    LabelmeAnnotationSerializer.ReadReviewed(document.Flags));
+        }
+        catch (JsonException)
+        {
+            return new AnnotationDocument(0, 0);
+        }
+    }
+
     /// <summary>
     /// Serialises writes per sample. Two saves for the same image (a debounced autosave overlapping
     /// an explicit save, or two windows) would otherwise race the File.Exists → Replace/Move check
@@ -141,12 +214,24 @@ internal sealed class AnnotationWorkflowService : IAnnotationWorkflowService
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _sampleSaveGates =
         new(StringComparer.OrdinalIgnoreCase);
 
-    public async Task SaveAsync(
+    public Task SaveAsync(
         Guid galleryId,
         string fileName,
         double imageWidth,
         double imageHeight,
         string? imageClass = null,
+        CancellationToken cancellationToken = default) =>
+        SaveAsync(galleryId, fileName, imageWidth, imageHeight, imageClass,
+            shapes: null, isReviewed: false, cancellationToken);
+
+    public async Task SaveAsync(
+        Guid galleryId,
+        string fileName,
+        double imageWidth,
+        double imageHeight,
+        string? imageClass,
+        IReadOnlyList<AnnotationShape>? shapes,
+        bool isReviewed,
         CancellationToken cancellationToken = default)
     {
         var gateKey = $"{galleryId:N}:{Path.GetFileName(fileName)}";
@@ -154,7 +239,7 @@ internal sealed class AnnotationWorkflowService : IAnnotationWorkflowService
         await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            await SaveCoreAsync(galleryId, fileName, imageWidth, imageHeight, imageClass, cancellationToken)
+            await SaveCoreAsync(galleryId, fileName, imageWidth, imageHeight, imageClass, shapes, isReviewed, cancellationToken)
                 .ConfigureAwait(false);
         }
         finally
@@ -178,7 +263,7 @@ internal sealed class AnnotationWorkflowService : IAnnotationWorkflowService
         var preparedFiles = new List<(string TempPath, string FinalPath, string BackupPath, bool HadCanonical)>();
         var annotationsToInsert = new List<SqlAnnotation>();
         var fileNames = new List<string>();
-        var newAnnotationsState = new Dictionary<string, (bool HasAnnotations, string? NormalizedClass)>(StringComparer.OrdinalIgnoreCase);
+        var newAnnotationsState = new Dictionary<string, (bool HasAnnotations, IReadOnlyList<string> Labels)>(StringComparer.OrdinalIgnoreCase);
 
         try
         {
@@ -189,7 +274,11 @@ internal sealed class AnnotationWorkflowService : IAnnotationWorkflowService
                 fileNames.Add(safeFileName);
 
                 var normalizedClass = string.IsNullOrWhiteSpace(item.ImageClass) ? null : item.ImageClass.Trim();
-                newAnnotationsState[safeFileName] = (normalizedClass is not null, normalizedClass);
+                var shapes = item.Shapes?.Where(shape => shape.HasArea).ToArray() ?? Array.Empty<AnnotationShape>();
+                var labels = BuildLabels(normalizedClass, shapes);
+                newAnnotationsState[safeFileName] = (
+                    normalizedClass is not null || shapes.Length > 0 || item.IsReviewed,
+                    labels);
 
                 var document = new LabelmeDocument
                 {
@@ -198,7 +287,8 @@ internal sealed class AnnotationWorkflowService : IAnnotationWorkflowService
                     ImageData = null,
                     ImageWidth = (int)Math.Round(Math.Max(0, item.ImageWidth)),
                     ImageHeight = (int)Math.Round(Math.Max(0, item.ImageHeight)),
-                    Flags = LabelmeAnnotationSerializer.BuildDocumentFlags(item.ImageClass)
+                    Flags = LabelmeAnnotationSerializer.BuildDocumentFlags(item.ImageClass, item.IsReviewed),
+                    Shapes = LabelmeAnnotationSerializer.ToLabelmeShapes(shapes)
                 };
 
                 var documentJson = LabelmeAnnotationSerializer.Serialize(document);
@@ -250,13 +340,13 @@ internal sealed class AnnotationWorkflowService : IAnnotationWorkflowService
                 var previousAnnotatedMap = previousSamples.ToDictionary(s => s.FileName, s => s.IsAnnotated, StringComparer.OrdinalIgnoreCase);
 
                 var annotatedDelta = 0;
-                foreach (var (fileName, (hasAnnotations, normalizedClass)) in newAnnotationsState)
+                foreach (var (fileName, (hasAnnotations, labels)) in newAnnotationsState)
                 {
                     await GallerySampleLabelIndexMaintainer.ReplaceLabelsAsync(
                         _db,
                         gallery.Id,
                         fileName,
-                        normalizedClass is null ? Array.Empty<string>() : [normalizedClass],
+                        labels,
                         cancellationToken,
                         transaction);
 
@@ -325,6 +415,8 @@ internal sealed class AnnotationWorkflowService : IAnnotationWorkflowService
         double imageWidth,
         double imageHeight,
         string? imageClass,
+        IReadOnlyList<AnnotationShape>? shapes,
+        bool isReviewed,
         CancellationToken cancellationToken)
     {
         await SqlProjectExecutionGuard.EnsureGalleryAsync(_db, galleryId, cancellationToken).ConfigureAwait(false);
@@ -332,6 +424,7 @@ internal sealed class AnnotationWorkflowService : IAnnotationWorkflowService
             ?? throw new InvalidOperationException("图库不存在。");
 
         var safeFileName = Path.GetFileName(fileName);
+        var effectiveShapes = shapes?.Where(shape => shape.HasArea).ToArray() ?? Array.Empty<AnnotationShape>();
         var document = new LabelmeDocument
         {
             Version = "5.0.1",
@@ -339,7 +432,8 @@ internal sealed class AnnotationWorkflowService : IAnnotationWorkflowService
             ImageData = null,
             ImageWidth = (int)Math.Round(Math.Max(0, imageWidth)),
             ImageHeight = (int)Math.Round(Math.Max(0, imageHeight)),
-            Flags = LabelmeAnnotationSerializer.BuildDocumentFlags(imageClass)
+            Flags = LabelmeAnnotationSerializer.BuildDocumentFlags(imageClass, isReviewed),
+            Shapes = LabelmeAnnotationSerializer.ToLabelmeShapes(effectiveShapes)
         };
 
         var documentJson = LabelmeAnnotationSerializer.Serialize(document);
@@ -350,7 +444,8 @@ internal sealed class AnnotationWorkflowService : IAnnotationWorkflowService
         var tempAnnotationPath = annotationPath + "." + operationId + ".tmp";
         var backupPath = annotationPath + "." + operationId + ".bak";
         var normalizedClass = string.IsNullOrWhiteSpace(imageClass) ? null : imageClass.Trim();
-        var hasAnnotations = normalizedClass is not null;
+        var labels = BuildLabels(normalizedClass, effectiveShapes);
+        var hasAnnotations = normalizedClass is not null || effectiveShapes.Length > 0 || isReviewed;
         var promoted = false;
         var hadCanonical = false;
 
@@ -388,7 +483,7 @@ internal sealed class AnnotationWorkflowService : IAnnotationWorkflowService
                     _db,
                     gallery.Id,
                     safeFileName,
-                    normalizedClass is null ? Array.Empty<string>() : new[] { normalizedClass },
+                    labels,
                     cancellationToken,
                     transaction);
 
@@ -470,6 +565,26 @@ internal sealed class AnnotationWorkflowService : IAnnotationWorkflowService
             normalizedClass ?? "<none>",
             safeFileName,
             gallery.Id);
+    }
+
+    private static IReadOnlyList<string> BuildLabels(string? imageClass, IReadOnlyList<AnnotationShape> shapes)
+    {
+        var labels = new List<string>();
+        if (!string.IsNullOrWhiteSpace(imageClass))
+        {
+            labels.Add(imageClass.Trim());
+        }
+
+        foreach (var shape in shapes)
+        {
+            var label = shape.Label.Trim();
+            if (label.Length > 0 && !labels.Contains(label, StringComparer.OrdinalIgnoreCase))
+            {
+                labels.Add(label);
+            }
+        }
+
+        return labels;
     }
 
     private static void TryDeleteFile(string path)

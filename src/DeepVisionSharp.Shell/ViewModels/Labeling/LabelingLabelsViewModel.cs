@@ -41,7 +41,7 @@ public sealed partial class LabelingLabelsViewModel : ObservableObject
         _editor.PropertyChanged += OnEditorPropertyChanged;
     }
 
-    public bool CanManageLabels => _context.IsClassificationProject;
+    public bool CanManageLabels => _context.Gallery is not null;
 
     public ObservableCollection<LabelOptionRow> LabelOptions { get; } = new();
 
@@ -89,6 +89,12 @@ public sealed partial class LabelingLabelsViewModel : ObservableObject
     private async Task SelectLabelAsync(LabelOptionRow label)
     {
         SelectedLabel = label;
+        if (_context.IsDetectionProject)
+        {
+            _editor.SetActiveBoxLabel(label.Name);
+            return;
+        }
+
         await _editor.ApplyImageClassAndSaveAsync(label.Name);
     }
 
@@ -298,6 +304,11 @@ public sealed partial class LabelingLabelsViewModel : ObservableObject
         SelectedLabel = LabelOptions.FirstOrDefault(item =>
                      string.Equals(item.Name, CurrentImageClass, StringComparison.OrdinalIgnoreCase))
                  ?? LabelOptions.FirstOrDefault();
+        if (_context.IsDetectionProject && string.IsNullOrWhiteSpace(_editor.ActiveBoxLabel))
+        {
+            _editor.ActiveBoxLabel = SelectedLabel?.Name;
+        }
+
         NotifyCurrentImageClassChanged();
     }
 

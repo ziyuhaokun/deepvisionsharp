@@ -22,6 +22,9 @@ public sealed class CommandValidatorTests
     [InlineData("yolo26x-cls")]
     [InlineData("yolo26n")]
     [InlineData("yolo26-s")]
+    [InlineData("yolo26n-det")]
+    [InlineData("yolo26-s-det")]
+    [InlineData("yolo26x-det")]
     public void InferenceValidator_accepts_valid_model_types(string modelType)
     {
         var command = new RunSingleInferenceCommand(

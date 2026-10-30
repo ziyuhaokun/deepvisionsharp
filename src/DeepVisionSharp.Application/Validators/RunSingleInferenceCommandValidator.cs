@@ -17,7 +17,7 @@ public sealed class RunSingleInferenceCommandValidator : AbstractValidator<RunSi
             .Cascade(CascadeMode.Stop)
             .NotEmpty()
             .WithMessage("模型类型不能为空")
-            .Must(ModelTypeNames.IsClassificationModelType)
+            .Must(ModelTypeNames.IsKnownModelType)
             .WithMessage(command => $"不支持的推理模型类型：{command.ModelType.Trim()}");
 
         RuleFor(command => command.ModelPath)

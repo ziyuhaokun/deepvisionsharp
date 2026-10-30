@@ -16,7 +16,8 @@ public sealed class TrainingConfiguration
         int? networkInputSize = null,
         int? networkInputWidth = null,
         int? networkInputHeight = null,
-        int earlyStoppingPatience = 0)
+        int earlyStoppingPatience = 0,
+        DetectionTrainingOptions? detectionOptions = null)
     {
         Epochs = epochs;
         EarlyStoppingPatience = Math.Max(0, earlyStoppingPatience);
@@ -37,6 +38,9 @@ public sealed class TrainingConfiguration
         ClassificationAugmentation = classificationAugmentation is null
             ? null
             : ClassificationAugmentation.Normalize(classificationAugmentation);
+        DetectionOptions = detectionOptions is null
+            ? null
+            : DetectionTrainingOptions.Normalize(detectionOptions);
         var width = networkInputWidth is > 0
             ? networkInputWidth
             : networkInputSize is > 0 ? networkInputSize : null;
@@ -87,4 +91,7 @@ public sealed class TrainingConfiguration
 
     /// <summary>Classification flip augmentation. Null means the caller did not set one.</summary>
     public ClassificationAugmentation? ClassificationAugmentation { get; }
+
+    /// <summary>Detection-only knobs (NMS IoU, evaluation confidence, max boxes, hflip).</summary>
+    public DetectionTrainingOptions? DetectionOptions { get; }
 }

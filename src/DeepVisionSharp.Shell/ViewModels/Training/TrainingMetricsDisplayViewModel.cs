@@ -85,6 +85,18 @@ public sealed partial class TrainingMetricsDisplayViewModel : ObservableObject
     public bool ShowClassificationMetricsCards =>
         ShowMetricsContent && CurrentMetricProfile == MetricProfileKind.ClassificationAccuracy;
 
+    /// <summary>Cards/history for any known profile (classification or detection).</summary>
+    public bool ShowProfileMetricsCards =>
+        ShowMetricsContent && CurrentMetricProfile is not MetricProfileKind.None;
+
+    public bool ShowDetectionMetricsCards =>
+        ShowMetricsContent && CurrentMetricProfile == MetricProfileKind.DetectionMap;
+
+    /// <summary>Per-class table title; the columns are shared by both families.</summary>
+    public string PerClassPanelTitle => CurrentMetricProfile == MetricProfileKind.DetectionMap
+        ? "检测指标（最新一轮）"
+        : "分类指标（最新一轮）";
+
     public bool ShowMetricsEmptyState =>
         !HasTrainingMetrics && CurrentMetricProfile is not MetricProfileKind.None;
 

@@ -28,6 +28,8 @@ public sealed partial class InferenceViewModel : ObservableObject, IDisposable
     private readonly IMediator _mediator;
     private readonly WorkspaceSessionService _workspaceSession;
     private readonly ITaskCapabilityResolver _taskCapabilities;
+    private readonly IAnnotationWorkflowService _annotations;
+    private readonly IProjectLabelService _projectLabels;
     private readonly IAppDialogService _appDialogService;
     private readonly IImageSourceFactory _imageSources;
     private readonly IUiDispatcher _uiDispatcher;
@@ -47,6 +49,8 @@ public sealed partial class InferenceViewModel : ObservableObject, IDisposable
         IProjectFileStore fileStore,
         IImageSourceFactory imageSources,
         ITaskCapabilityResolver taskCapabilities,
+        IAnnotationWorkflowService annotations,
+        IProjectLabelService projectLabels,
         IAppDialogService appDialogService,
         IClipboardService clipboard,
         IUiDispatcher uiDispatcher,
@@ -58,6 +62,8 @@ public sealed partial class InferenceViewModel : ObservableObject, IDisposable
         _mediator = mediator;
         _workspaceSession = workspaceSession;
         _taskCapabilities = taskCapabilities;
+        _annotations = annotations;
+        _projectLabels = projectLabels;
         _appDialogService = appDialogService;
         _imageSources = imageSources;
         _uiDispatcher = uiDispatcher;
@@ -468,6 +474,81 @@ public sealed partial class InferenceViewModel : ObservableObject, IDisposable
 
         NotifyCanRun();
         NotifyStatusBar();
+        OnPropertyChanged(nameof(CanAdoptPredictedBoxes));
+        AdoptPredictedBoxesCommand.NotifyCanExecuteChanged();
+    }
+
+    /// <summary>True when the current image comes from a gallery and the result carries boxes.</summary>
+    public bool CanAdoptPredictedBoxes =>
+        SelectedImage?.GalleryId is not null && Canvas.HasBoxOverlays;
+
+    /// <summary>
+    /// Appends the predicted boxes to the sample's annotations (pre-labeling). Existing boxes and
+    /// overlapping same-class predictions are preserved/skipped, so this is safe to run repeatedly.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanAdoptPredictedBoxes))]
+    private async Task AdoptPredictedBoxesAsync()
+    {
+        var image = SelectedImage;
+        if (image?.GalleryId is not Guid galleryId)
+        {
+            return;
+        }
+
+        if (_workspaceSession.Current.Project?.Id is not Guid projectId)
+        {
+            return;
+        }
+
+        try
+        {
+            var labels = await _projectLabels.ListAsync(projectId);
+            var existing = await _annotations.LoadAsync(galleryId, image.DisplayName);
+            var width = existing.ImageWidth > 0 ? existing.ImageWidth : Canvas.ImageWidth;
+            var height = existing.ImageHeight > 0 ? existing.ImageHeight : Canvas.ImageHeight;
+            var boxes = Canvas.ResultRows
+                .Where(row => row.HasBox)
+                .Select(row => new DetectionBoxResult
+                {
+                    Label = row.ClassName,
+                    ClassName = row.ClassName,
+                    Confidence = row.Confidence,
+                    X = row.X,
+                    Y = row.Y,
+                    Width = row.Width,
+                    Height = row.Height
+                })
+                .ToArray();
+
+            var merged = DetectionAnnotationMerger.Merge(
+                existing,
+                boxes,
+                labels.Select(label => label.Name).ToArray(),
+                append: true,
+                width,
+                height);
+            if (merged.IsFailure || merged.Value is null)
+            {
+                _snackbar.ShowWarning(merged.Error ?? "没有可采纳的预测框。", "推理");
+                return;
+            }
+
+            var document = merged.Value;
+            await _annotations.SaveAsync(
+                galleryId,
+                image.DisplayName,
+                document.ImageWidth,
+                document.ImageHeight,
+                document.ImageClass,
+                document.Boxes,
+                document.IsReviewed);
+            _snackbar.ShowSuccess($"已采纳 {document.Boxes.Count} 个预测框为标注。", "推理");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to adopt predicted boxes for {FileName}", image.DisplayName);
+            _snackbar.ShowError($"采纳预测框失败：{ex.Message}", "推理");
+        }
     }
 
     private static string FormatImageSize(ImageSource? source)
@@ -494,6 +575,8 @@ public sealed partial class InferenceViewModel : ObservableObject, IDisposable
         ResultPerformance = summary.PerformanceText;
         HasResult = true;
         LastResultFailed = !summary.Success;
+        OnPropertyChanged(nameof(CanAdoptPredictedBoxes));
+        AdoptPredictedBoxesCommand.NotifyCanExecuteChanged();
 
         if (persistToSelectedImage && SelectedImage is not null)
         {

@@ -154,6 +154,8 @@ public sealed class LabelingSamplePersistence : IDisposable
             var imageWidth = context.ImageWidth;
             var imageHeight = context.ImageHeight;
             var imageClass = _host.ImageClass?.Trim();
+            var shapes = _host.Shapes.ToArray();
+            var isReviewed = _host.IsReviewed;
 
             context.IsSaving = true;
 
@@ -172,7 +174,9 @@ public sealed class LabelingSamplePersistence : IDisposable
                 fileName,
                 imageWidth,
                 imageHeight,
-                imageClass);
+                imageClass,
+                shapes,
+                isReviewed);
 
             if (refreshGallery)
             {
@@ -181,9 +185,13 @@ public sealed class LabelingSamplePersistence : IDisposable
 
             if (notifyUser)
             {
-                var detail = string.IsNullOrWhiteSpace(imageClass)
-                    ? "未分类"
-                    : $"分类 {imageClass}";
+                var detail = shapes.Length > 0
+                    ? $"{shapes.Length} 个目标"
+                    : isReviewed
+                        ? "无目标"
+                        : string.IsNullOrWhiteSpace(imageClass)
+                            ? "未分类"
+                            : $"分类 {imageClass}";
                 _snackbar.ShowSuccess($"已保存「{fileName}」：{detail}。", "保存");
             }
 
@@ -300,7 +308,9 @@ public sealed class LabelingSamplePersistence : IDisposable
                 image,
                 document.ImageWidth,
                 document.ImageHeight,
-                document.ImageClass);
+                document.ImageClass,
+                document.Boxes,
+                document.IsReviewed);
         }).ConfigureAwait(false);
 
         _logger.LogInformation("Selected sample {SampleId} in gallery {GalleryId}", sample.Id, gallery.Id);
@@ -326,8 +336,14 @@ public interface ILabelingSamplePersistenceHost
     /// <summary>Class currently shown in the editor; read when saving the active sample.</summary>
     string? ImageClass { get; }
 
+    /// <summary>Boxes currently shown in the editor; read when saving the active sample.</summary>
+    IReadOnlyList<AnnotationShape> Shapes { get; }
+
+    /// <summary>Detection review mark; read when saving the active sample.</summary>
+    bool IsReviewed { get; }
+
     /// <summary>
-    /// Publishes a fully loaded sample (identity, image, dimensions, class) in one synchronous step.
+    /// Publishes a fully loaded sample (identity, image, dimensions, class, boxes) in one synchronous step.
     /// Must run on the UI thread.
     /// </summary>
     void ApplySampleState(
@@ -337,7 +353,9 @@ public interface ILabelingSamplePersistenceHost
         LoadedSampleImage image,
         double imageWidth,
         double imageHeight,
-        string? imageClass);
+        string? imageClass,
+        IReadOnlyList<AnnotationShape> shapes,
+        bool isReviewed);
 
     void RaiseDebouncedSaveCompleted();
 }

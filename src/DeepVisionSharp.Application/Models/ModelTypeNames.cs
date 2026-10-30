@@ -14,7 +14,15 @@ public static class ModelTypeNames
     public const string Yolo26LCls = "yolo26l-cls";
     public const string Yolo26XCls = "yolo26x-cls";
 
+    public const string Yolo26NDet = "yolo26n-det";
+    public const string Yolo26SDet = "yolo26s-det";
+    public const string Yolo26MDet = "yolo26m-det";
+    public const string Yolo26LDet = "yolo26l-det";
+    public const string Yolo26XDet = "yolo26x-det";
+
     public const string Default = ResNet18;
+
+    public const string DefaultDetection = Yolo26NDet;
 
     private static readonly string[] ClassificationModelTypes =
     [
@@ -28,8 +36,29 @@ public static class ModelTypeNames
         Yolo26XCls
     ];
 
+    private static readonly string[] DetectionModelTypes =
+    [
+        Yolo26NDet,
+        Yolo26SDet,
+        Yolo26MDet,
+        Yolo26LDet,
+        Yolo26XDet
+    ];
+
+    private static readonly string[] KnownModelTypes =
+    [
+        .. ClassificationModelTypes,
+        .. DetectionModelTypes
+    ];
+
     /// <summary>All creatable product keys.</summary>
-    public static IReadOnlyList<string> AllProductKeys { get; } = ClassificationModelTypes;
+    public static IReadOnlyList<string> AllProductKeys => KnownModelTypes;
+
+    /// <summary>Classification model keys, in display order.</summary>
+    public static IReadOnlyList<string> ClassificationProductKeys => ClassificationModelTypes;
+
+    /// <summary>Detection model keys, in display order.</summary>
+    public static IReadOnlyList<string> DetectionProductKeys => DetectionModelTypes;
 
     /// <summary>Canonicalizes a product model type. Empty input fails.</summary>
     public static bool TryNormalize(string? modelType, out string normalized)
@@ -41,7 +70,7 @@ public static class ModelTypeNames
         }
 
         var lower = modelType.Trim().ToLowerInvariant();
-        if (ClassificationModelTypes.Contains(lower, StringComparer.Ordinal))
+        if (KnownModelTypes.Contains(lower, StringComparer.Ordinal))
         {
             normalized = lower;
             return true;
@@ -57,6 +86,11 @@ public static class ModelTypeNames
             "yolo26m" or "yolo26-m" or "yolo26_m" or "yolo26m_cls" => Yolo26MCls,
             "yolo26l" or "yolo26-l" or "yolo26_l" or "yolo26l_cls" => Yolo26LCls,
             "yolo26x" or "yolo26-x" or "yolo26_x" or "yolo26x_cls" => Yolo26XCls,
+            "yolo26n-det" or "yolo26-n-det" or "yolo26n_det" => Yolo26NDet,
+            "yolo26s-det" or "yolo26-s-det" or "yolo26s_det" => Yolo26SDet,
+            "yolo26m-det" or "yolo26-m-det" or "yolo26m_det" => Yolo26MDet,
+            "yolo26l-det" or "yolo26-l-det" or "yolo26l_det" => Yolo26LDet,
+            "yolo26x-det" or "yolo26-x-det" or "yolo26x_det" => Yolo26XDet,
             _ => null
         };
 
@@ -69,8 +103,17 @@ public static class ModelTypeNames
         return false;
     }
 
-    public static bool IsClassificationModelType(string? modelType) =>
+    /// <summary>True for any product model key (classification or detection).</summary>
+    public static bool IsKnownModelType(string? modelType) =>
         TryNormalize(modelType, out _);
+
+    public static bool IsClassificationModelType(string? modelType) =>
+        TryNormalize(modelType, out var normalized)
+        && ClassificationModelTypes.Contains(normalized, StringComparer.Ordinal);
+
+    public static bool IsDetectionModelType(string? modelType) =>
+        TryNormalize(modelType, out var normalized)
+        && DetectionModelTypes.Contains(normalized, StringComparer.Ordinal);
 
     /// <summary>Short UI label for a model type key.</summary>
     public static string GetDisplayLabel(string? modelType)
@@ -94,6 +137,11 @@ public static class ModelTypeNames
             Yolo26SCls => "YOLO26-S",
             Yolo26MCls => "YOLO26-M",
             Yolo26LCls => "YOLO26-L",
+            Yolo26NDet => "YOLO26-N 检测",
+            Yolo26SDet => "YOLO26-S 检测",
+            Yolo26MDet => "YOLO26-M 检测",
+            Yolo26LDet => "YOLO26-L 检测",
+            Yolo26XDet => "YOLO26-X 检测",
             Yolo26XCls => "YOLO26-X",
             _ => normalized
         };

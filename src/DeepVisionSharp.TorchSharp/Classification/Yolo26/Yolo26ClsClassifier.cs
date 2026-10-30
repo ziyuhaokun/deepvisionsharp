@@ -123,9 +123,13 @@ internal readonly record struct Yolo26ClsScale(
             normalized = normalized["yolo26".Length..];
         }
 
-        if (normalized.EndsWith("-cls", StringComparison.Ordinal))
+        foreach (var suffix in new[] { "-cls", "-det" })
         {
-            normalized = normalized[..^"-cls".Length];
+            if (normalized.EndsWith(suffix, StringComparison.Ordinal))
+            {
+                normalized = normalized[..^suffix.Length];
+                break;
+            }
         }
 
         return normalized switch

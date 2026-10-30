@@ -130,7 +130,7 @@ internal static class TrainingRunMarkerStore
             ? $"，epoch {epoch}/{total}"
             : string.Empty;
 
-        return $"应用重启导致 TorchSharp 分类训练中断（阶段：{stage}{progress}，最后心跳 "
+        return $"应用重启导致 TorchSharp 训练中断（阶段：{stage}{progress}，最后心跳 "
                + $"{marker.HeartbeatUtc.ToLocalTime():yyyy-MM-dd HH:mm:ss}）。请复制为新任务后重试；"
                + "若进程异常退出，请在设置页的崩溃转储目录与训练日志中查找现场。";
     }

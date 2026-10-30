@@ -88,18 +88,38 @@ public sealed partial class GalleryBatchInferenceViewModel : ObservableObject
         ];
         SelectedScopeOption = ScopeOptions[0];
 
-        WriteBackOptions =
-        [
-            new GalleryBatchInferenceWriteBackOption(
-                GalleryBatchInferenceWriteBackPolicy.SkipExisting,
-                "跳过已有标注（推荐）"),
-            // Whole-image classification stores exactly one class per sample, so "append" has nothing
-            // to add and would silently overwrite. It is not offered as a separate choice.
-            new GalleryBatchInferenceWriteBackOption(
-                GalleryBatchInferenceWriteBackPolicy.Replace,
-                "覆盖已有标注（危险）")
-        ];
-        SelectedWriteBackOption = WriteBackOptions[0];
+        RebuildWriteBackOptions(isDetection: false);
+    }
+
+    /// <summary>
+    /// Detection can append predicted boxes to existing annotations; whole-image classification
+    /// stores exactly one class, so append would silently behave like replace and is not offered.
+    /// </summary>
+    private void RebuildWriteBackOptions(bool isDetection)
+    {
+        if (WriteBackOptions.Count > 0 && _writeBackOptionsDetection == isDetection)
+        {
+            return;
+        }
+
+        _writeBackOptionsDetection = isDetection;
+        var previous = SelectedWriteBackOption?.Policy;
+        WriteBackOptions.Clear();
+        WriteBackOptions.Add(new GalleryBatchInferenceWriteBackOption(
+            GalleryBatchInferenceWriteBackPolicy.SkipExisting,
+            "跳过已有标注（推荐）"));
+        if (isDetection)
+        {
+            WriteBackOptions.Add(new GalleryBatchInferenceWriteBackOption(
+                GalleryBatchInferenceWriteBackPolicy.Append,
+                "追加预测框"));
+        }
+
+        WriteBackOptions.Add(new GalleryBatchInferenceWriteBackOption(
+            GalleryBatchInferenceWriteBackPolicy.Replace,
+            "覆盖已有标注（危险）"));
+        SelectedWriteBackOption = WriteBackOptions.FirstOrDefault(
+            option => option.Policy == previous) ?? WriteBackOptions[0];
     }
 
     public ObservableCollection<InferenceModelOption> Models { get; } = new();
@@ -108,7 +128,9 @@ public sealed partial class GalleryBatchInferenceViewModel : ObservableObject
 
     public IReadOnlyList<GalleryBatchInferenceScopeOption> ScopeOptions { get; }
 
-    public IReadOnlyList<GalleryBatchInferenceWriteBackOption> WriteBackOptions { get; }
+    public ObservableCollection<GalleryBatchInferenceWriteBackOption> WriteBackOptions { get; } = new();
+
+    private bool _writeBackOptionsDetection;
 
     [ObservableProperty]
     private InferenceModelOption? _selectedModel;
@@ -572,6 +594,7 @@ public sealed partial class GalleryBatchInferenceViewModel : ObservableObject
 
     partial void OnSelectedModelChanged(InferenceModelOption? value)
     {
+        RebuildWriteBackOptions(value is not null && ModelTypeNames.IsDetectionModelType(value.ModelType));
         ResolveWriteBackKind();
         RefreshDevicesForSelectedModel();
         OnPropertyChanged(nameof(ShowsMaxDetections));

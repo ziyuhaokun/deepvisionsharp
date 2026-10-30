@@ -70,7 +70,7 @@ internal sealed class TrainingJobStartPreparer
                 return Result<TrainingStartContext>.Failure("仅失败或已取消的任务可续训");
             }
 
-            if (!ModelTypeNames.IsClassificationModelType(job.ModelType))
+            if (!ModelTypeNames.IsKnownModelType(job.ModelType))
             {
                 return Result<TrainingStartContext>.Failure(TrainingValidationMessages.ResumeNotSupported);
             }

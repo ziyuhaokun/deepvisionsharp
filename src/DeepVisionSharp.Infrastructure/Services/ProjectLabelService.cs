@@ -209,7 +209,11 @@ internal sealed class ProjectLabelService : IProjectLabelService
     {
         await ForEachAnnotationDocumentAsync(projectId, async (galleryId, fileName, document) =>
         {
-            if (!string.Equals(document.ImageClass, labelName, StringComparison.OrdinalIgnoreCase))
+            var classRemoved = string.Equals(document.ImageClass, labelName, StringComparison.OrdinalIgnoreCase);
+            var remainingShapes = document.Boxes
+                .Where(shape => !string.Equals(shape.Label, labelName, StringComparison.OrdinalIgnoreCase))
+                .ToArray();
+            if (!classRemoved && remainingShapes.Length == document.Boxes.Count)
             {
                 return;
             }
@@ -219,7 +223,9 @@ internal sealed class ProjectLabelService : IProjectLabelService
                 fileName,
                 document.ImageWidth,
                 document.ImageHeight,
-                null,
+                classRemoved ? null : document.ImageClass,
+                remainingShapes,
+                document.IsReviewed,
                 cancellationToken);
         }, cancellationToken);
     }
@@ -244,7 +250,7 @@ internal sealed class ProjectLabelService : IProjectLabelService
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var document = await _annotations.LoadAsync(galleryWithSamples.Id, fileName, cancellationToken);
-                if (string.IsNullOrWhiteSpace(document.ImageClass))
+                if (!document.HasAnnotations)
                 {
                     continue;
                 }

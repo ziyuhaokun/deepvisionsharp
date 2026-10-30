@@ -14,8 +14,10 @@ public static class ProjectCapabilityCatalog
 {
     private static readonly ProjectCapabilityProfile Classification = new(ProjectWorkflowKind.Classification);
 
+    private static readonly ProjectCapabilityProfile Detection = new(ProjectWorkflowKind.Detection);
+
     public static IReadOnlyList<string> ActiveProjectTypes { get; } =
-        Array.AsReadOnly([ProjectTypes.Classification]);
+        Array.AsReadOnly([ProjectTypes.Classification, ProjectTypes.Detection]);
 
     public static string DefaultCreationType => ProjectTypes.Classification;
 
@@ -24,7 +26,10 @@ public static class ProjectCapabilityCatalog
     public static void EnsureActive(string? projectType) => ProjectTypes.Normalize(projectType);
 
     public static ProjectCapabilityProfile Resolve(ProjectWorkflowKind workflow) =>
-        workflow == ProjectWorkflowKind.Classification
-            ? Classification
-            : throw new ArgumentOutOfRangeException(nameof(workflow), workflow, "未知的项目工作流。");
+        workflow switch
+        {
+            ProjectWorkflowKind.Classification => Classification,
+            ProjectWorkflowKind.Detection => Detection,
+            _ => throw new ArgumentOutOfRangeException(nameof(workflow), workflow, "未知的项目工作流。")
+        };
 }

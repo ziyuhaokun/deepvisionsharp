@@ -21,9 +21,11 @@ internal static class DataModule
         services.AddSingleton<IProjectFileStore, ProjectFileStore>();
         services.AddSingleton<IProjectSqliteTransferService, ProjectSqliteTransferService>();
         services.AddSingleton<IClassificationDatasetExportService, ClassificationDatasetExportService>();
+        services.AddSingleton<IDetectionDatasetExportService, DetectionDatasetExportService>();
         services.AddSingleton<IProjectRepository, SqliteProjectRepository>();
         services.AddSingleton<IGalleryRepository, SqliteGalleryRepository>();
         services.AddSingleton<IGalleryTransferService, GalleryTransferService>();
+        services.AddSingleton<IYoloDatasetImportService, YoloDatasetImportService>();
         services.AddSingleton<IAnnotationWorkflowService, AnnotationWorkflowService>();
         services.AddSingleton<IGalleryAnnotationLabelQueryService, GalleryAnnotationLabelQueryService>();
         services.AddSingleton<IProjectLabelStatisticsQueryService, ProjectLabelStatisticsQueryService>();

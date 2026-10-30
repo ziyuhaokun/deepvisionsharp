@@ -55,7 +55,8 @@ public sealed class GetTrainingJobsByProjectQueryHandler : IQueryHandler<GetTrai
             ConfigNetworkInputSize = job.Configuration?.NetworkInputSize,
             ConfigNetworkInputWidth = job.Configuration?.NetworkInputWidth,
             ConfigNetworkInputHeight = job.Configuration?.NetworkInputHeight,
-            ConfigClassificationAugmentation = job.Configuration?.ClassificationAugmentation
+            ConfigClassificationAugmentation = job.Configuration?.ClassificationAugmentation,
+            ConfigDetectionOptions = job.Configuration?.DetectionOptions
         };
     }
 }

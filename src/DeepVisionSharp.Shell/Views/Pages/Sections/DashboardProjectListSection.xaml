@@ -25,7 +25,7 @@
                             Margin="2,8,2,0"
                             FontSize="18"
                             FontWeight="SemiBold"
-                            Text="当前项目 · 图像分类" />
+                            Text="{Binding List.CurrentProjectTypeLabel}" />
                         <!-- 列表摘要 -->
                         <TextBlock
                             Margin="2,8,2,0"

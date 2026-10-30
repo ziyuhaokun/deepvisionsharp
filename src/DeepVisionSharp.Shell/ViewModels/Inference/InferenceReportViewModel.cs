@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DeepVisionSharp.Application.Galleries;
 using DeepVisionSharp.Application.Inference;
+using DeepVisionSharp.Application.Models;
 using DeepVisionSharp.Shell.Services;
 using DeepVisionSharp.Shell.Services.Dialogs;
 using DeepVisionSharp.Shell.Services.Reporting;
@@ -106,6 +107,16 @@ public sealed partial class InferenceReportViewModel : ObservableObject
 
         var eval = InferenceOkNgEvaluation.FromItems(targets);
         var originalSamples = BuildOriginalSamples(targets);
+        var isDetection = ModelTypeNames.IsDetectionModelType(model.ModelType);
+        var detectionBoxes = targets
+            .SelectMany(item => item.LastResultSummary?.Rows ?? Array.Empty<InferenceDetectionRow>())
+            .Where(row => row.HasBox)
+            .ToArray();
+        var detectionCounts = detectionBoxes
+            .GroupBy(row => row.ClassName, StringComparer.OrdinalIgnoreCase)
+            .OrderByDescending(group => group.Count())
+            .Select(group => new InferenceDetectionClassCount(group.Key, group.Count()))
+            .ToArray();
 
         return new InferenceBatchReport
         {
@@ -123,8 +134,11 @@ public sealed partial class InferenceReportViewModel : ObservableObject
             MinSuccessMilliseconds = minMs,
             MaxSuccessMilliseconds = maxMs,
             Evaluation = eval,
+            IsDetection = isDetection,
+            DetectionClassCounts = detectionCounts,
+            DetectionBoxCount = detectionBoxes.Length,
             Samples = samples,
-            OriginalSamples = originalSamples,
+            OriginalSamples = isDetection ? Array.Empty<InferenceReportOriginalSample>() : originalSamples,
         };
     }
 

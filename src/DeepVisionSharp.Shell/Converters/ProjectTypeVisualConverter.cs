@@ -20,10 +20,16 @@ public static class ProjectTypeVisuals
         Color.FromRgb(0x8B, 0x5C, 0xF6),
         Color.FromArgb(0x26, 0x8B, 0x5C, 0xF6));
 
+    private static readonly ProjectTypeVisual DetectionVisual = new(
+        SymbolRegular.Crop24,
+        Color.FromRgb(0xF5, 0x9E, 0x0B),
+        Color.FromArgb(0x26, 0xF5, 0x9E, 0x0B));
+
     private static readonly IReadOnlyDictionary<string, ProjectTypeVisual> ByKey =
         new Dictionary<string, ProjectTypeVisual>(StringComparer.OrdinalIgnoreCase)
         {
-            [ProjectTypes.Classification] = DefaultVisual
+            [ProjectTypes.Classification] = DefaultVisual,
+            [ProjectTypes.Detection] = DetectionVisual
         };
 
     public static ProjectTypeVisual Get(string? typeKey)

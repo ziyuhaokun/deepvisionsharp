@@ -16,7 +16,7 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <StackPanel Visibility="{Binding Workspace.IsClassificationProject, Converter={StaticResource BooleanToVisibilityConverter}}">
+    <StackPanel>
         <Grid Margin="0,0,0,6">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -149,7 +149,7 @@
                                         CommandParameter="{Binding}"
                                         Icon="{ui:SymbolIcon Checkmark24}"
                                         Style="{StaticResource IconButtonStyle}"
-                                        ToolTip="选择类别；图像分类项目会立即写入当前整图分类" />
+                                        ToolTip="选择类别；分类项目写入整图分类，检测项目用于新框或替换选中框的类别" />
                                     <ui:Button
                                         Margin="8,0,0,0"
                                         Appearance="Transparent"

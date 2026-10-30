@@ -1,0 +1,89 @@
+<UserControl
+    x:Class="DeepVisionSharp.Shell.Views.Labeling.Cards.LabelingDetectionToolsCard"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    d:DesignHeight="300"
+    d:DesignWidth="280"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Views/Labeling/LabelingWorkbenchResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <StackPanel Margin="0,0,0,12">
+        <Grid Margin="0,0,0,6">
+            <TextBlock Style="{StaticResource SectionTitleStyle}" Text="检测工具" />
+            <TextBlock
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center"
+                AutomationProperties.AutomationId="dv.labeling.detection.status"
+                Style="{StaticResource MutedTextStyle}"
+                Text="{Binding Editor.DetectionStatusText}" />
+        </Grid>
+
+        <WrapPanel>
+            <ui:Button
+                Margin="0,0,6,6"
+                Appearance="Secondary"
+                AutomationProperties.AutomationId="dv.labeling.tool.mode"
+                Command="{Binding Editor.ToggleToolModeCommand}">
+                <TextBlock Text="{Binding Editor.ToolModeText}" />
+            </ui:Button>
+
+            <ui:Button
+                Margin="0,0,6,6"
+                Appearance="Secondary"
+                AutomationProperties.AutomationId="dv.labeling.box.delete"
+                Command="{Binding Editor.DeleteSelectedBoxCommand}"
+                Content="删除选中"
+                IsEnabled="{Binding Editor.HasSelectedBox}" />
+
+            <ui:Button
+                Margin="0,0,6,6"
+                Appearance="Secondary"
+                AutomationProperties.AutomationId="dv.labeling.box.undo"
+                Command="{Binding Editor.UndoBoxEditCommand}"
+                Content="撤销" />
+
+            <ui:Button
+                Margin="0,0,6,6"
+                Appearance="Secondary"
+                AutomationProperties.AutomationId="dv.labeling.box.redo"
+                Command="{Binding Editor.RedoBoxEditCommand}"
+                Content="重做" />
+        </WrapPanel>
+
+        <WrapPanel>
+            <ui:Button
+                Margin="0,0,6,6"
+                Appearance="Secondary"
+                AutomationProperties.AutomationId="dv.labeling.mark.no-objects"
+                Command="{Binding Editor.MarkNoObjectsCommand}"
+                Content="标记无目标"
+                IsEnabled="{Binding Editor.IsBoxEditingEnabled}" />
+
+            <ui:Button
+                Margin="0,0,6,6"
+                Appearance="Primary"
+                AutomationProperties.AutomationId="dv.labeling.mark.reviewed"
+                Command="{Binding Editor.MarkReviewedCommand}"
+                Content="完成标注"
+                IsEnabled="{Binding Editor.IsBoxEditingEnabled}"
+                Icon="{ui:SymbolIcon Checkmark24}" />
+
+            <ui:Button
+                Margin="0,0,6,6"
+                Appearance="Secondary"
+                AutomationProperties.AutomationId="dv.labeling.import-yolo"
+                Command="{Binding ImportYoloDatasetCommand}"
+                Content="导入 YOLO 数据集"
+                IsEnabled="{Binding Workspace.IsNotBusy}" />
+        </WrapPanel>
+    </StackPanel>
+</UserControl>

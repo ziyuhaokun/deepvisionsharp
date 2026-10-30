@@ -76,6 +76,11 @@
                     <ContentControl.Style>
                         <Style TargetType="ContentControl">
                             <Setter Property="ContentTemplate" Value="{StaticResource LabelingToolRail.Classification}" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Workspace.IsDetectionProject}" Value="True">
+                                    <Setter Property="ContentTemplate" Value="{StaticResource LabelingToolRail.Detection}" />
+                                </DataTrigger>
+                            </Style.Triggers>
                         </Style>
                     </ContentControl.Style>
                 </ContentControl>

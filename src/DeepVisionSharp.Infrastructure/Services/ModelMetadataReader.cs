@@ -26,10 +26,10 @@ internal sealed class ModelMetadataReader : IModelMetadataReader
         var isLegacyInitialBaseWeights = metadata.IsInitial;
         var isBaseWeights = isExplicitBaseWeights || isLegacyInitialBaseWeights;
 
-        var isClassificationModel = ModelTypeNames.IsClassificationModelType(metadata.ModelType);
+        var isSupportedModel = ModelTypeNames.IsKnownModelType(metadata.ModelType);
         var isCompleteTrainedModel = string.Equals(metadata.ArtifactKind, "trained_model", StringComparison.Ordinal)
             && !metadata.IsInitial
-            && isClassificationModel
+            && isSupportedModel
             && !string.IsNullOrWhiteSpace(metadata.DatasetFingerprint);
 
         // Schema 2 is current; legacy initial .info may omit schema_version (0 after deserialize).

@@ -39,7 +39,7 @@
                                                             Style="{StaticResource FieldLabelStyle}"
                                                             Margin="0"
                                                             Text="模型架构" />
-                                                        <controls:ParamHelpButton Title="模型架构" HelpText="选择分类网络架构，支持 ResNet 系列与 YOLO26-cls 系列" />
+                                                        <controls:ParamHelpButton Title="模型架构" HelpText="按项目类型选择架构：分类支持 ResNet 与 YOLO26-cls，检测支持 YOLO26-det" />
                                                     </StackPanel>
                                                     <ComboBox
                                                         ItemsSource="{Binding Config.AvailableModelTypes}"
