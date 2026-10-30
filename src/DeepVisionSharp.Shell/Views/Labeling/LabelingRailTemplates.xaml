@@ -21,7 +21,7 @@
         </ScrollViewer>
     </DataTemplate>
 
-    <!-- 目标检测 ToolRail：框工具 + 类别列表（点选类别用于新框或替换选中框） -->
+    <!-- 目标检测 ToolRail：框工具 + 编辑（导入图像 / 移动）+ 类别列表 -->
     <DataTemplate x:Key="LabelingToolRail.Detection">
         <ScrollViewer
             Padding="8"

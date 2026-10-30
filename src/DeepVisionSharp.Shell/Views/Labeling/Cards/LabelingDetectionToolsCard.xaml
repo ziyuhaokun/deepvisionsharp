@@ -117,8 +117,24 @@
                         IsEnabled="{Binding Editor.IsBoxEditingEnabled}" />
                 </StackPanel>
 
+            </StackPanel>
+        </Border>
+
+        <!-- Data import -->
+        <Border Style="{StaticResource ToolSectionStyle}">
+            <StackPanel>
+                <TextBlock Style="{StaticResource SectionTitleStyle}" Text="数据" />
                 <ui:Button
                     Margin="0,8,0,0"
+                    Padding="10,4"
+                    HorizontalAlignment="Stretch"
+                    AutomationProperties.AutomationId="dv.labeling.import-images"
+                    Command="{Binding Samples.ImportImagesCommand}"
+                    Content="导入图像"
+                    Icon="{ui:SymbolIcon ArrowUpload24}"
+                    IsEnabled="{Binding Samples.CanImportImages}" />
+                <ui:Button
+                    Margin="0,6,0,0"
                     Padding="10,4"
                     HorizontalAlignment="Stretch"
                     AutomationProperties.AutomationId="dv.labeling.import-yolo"
@@ -126,6 +142,15 @@
                     Content="导入 YOLO 数据集"
                     Icon="{ui:SymbolIcon FolderOpen24}"
                     IsEnabled="{Binding Workspace.IsNotBusy}" />
+                <ui:Button
+                    Margin="0,6,0,0"
+                    Padding="10,4"
+                    HorizontalAlignment="Stretch"
+                    AutomationProperties.AutomationId="dv.labeling.move-samples"
+                    Command="{Binding Samples.ShowMoveSamplesDialogCommand}"
+                    Content="移动样本到其他图库"
+                    Icon="{ui:SymbolIcon FolderArrowRight24}"
+                    IsEnabled="{Binding Samples.CanMoveSelectedSamples}" />
             </StackPanel>
         </Border>
     </StackPanel>
