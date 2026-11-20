@@ -149,6 +149,8 @@ public sealed class SampleInferenceContext : ObservableObject
         StopCommand = new RelayCommand(() => { });
         SetExpectedOkCommand = new RelayCommand<SampleInferenceImage>(_ => { });
         SetExpectedNgCommand = new RelayCommand<SampleInferenceImage>(_ => { });
+        ClearExpectedCommand = new RelayCommand<SampleInferenceImage>(_ => { });
+        AdoptPredictedBoxesCommand = new RelayCommand(() => { });
     }
 
     public string ProjectTitle => "冷轧带钢表面缺陷检测";
@@ -249,6 +251,9 @@ public sealed class SampleInferenceContext : ObservableObject
 
     public bool HasResult => true;
 
+    /// <summary>设计态下只要有叠加框就展示「采纳预测框为标注」入口。</summary>
+    public bool CanAdoptPredictedBoxes => Canvas.BoxOverlays.Count > 0;
+
     public string ResultHeadline => "NG · 3 处缺陷";
 
     public string ResultDetail => "最高置信度 0.94（划伤）；耗时 42 ms，无后处理告警。";
@@ -269,6 +274,9 @@ public sealed class SampleInferenceContext : ObservableObject
 
     /// <summary>画布的叠加层宿主（对应真 VM 的 <c>Canvas</c> 子 VM）：推理页只读画布只读这一路。</summary>
     public SampleInferenceCanvas Canvas { get; } = new();
+
+    /// <summary>运行参数宿主（对应真 VM 的 <c>Runner</c> 子 VM）：NMS IoU 仅供设计态展示与编辑。</summary>
+    public SampleInferenceRunner Runner { get; } = new();
 
     /// <summary>当前样本来源标签（与真 VM 同口径的空安全投影）。</summary>
     public string SelectedImageSourceLabel => SelectedImage?.SourceLabel ?? string.Empty;
@@ -318,6 +326,10 @@ public sealed class SampleInferenceContext : ObservableObject
     public ICommand SetExpectedOkCommand { get; }
 
     public ICommand SetExpectedNgCommand { get; }
+
+    public ICommand ClearExpectedCommand { get; }
+
+    public ICommand AdoptPredictedBoxesCommand { get; }
 }
 
 /// <summary>待推理列表项 stub（对应 InferenceImageItem）：缩略图是画出来的渐变占位图。</summary>
@@ -343,6 +355,20 @@ public sealed class SampleInferenceImage
 public sealed class SampleInferenceCanvas
 {
     public ObservableCollection<BoxShapeViewModel> BoxOverlays { get; } = [];
+}
+
+/// <summary>运行参数 stub（对应 InferenceRunnerViewModel）：只有设计态用到的 NMS IoU 两项。</summary>
+public sealed class SampleInferenceRunner : ObservableObject
+{
+    private double _nmsIou = 0.45;
+
+    public bool ShowsNmsIou => true;
+
+    public double NmsIou
+    {
+        get => _nmsIou;
+        set => SetProperty(ref _nmsIou, value);
+    }
 }
 
 /// <summary>模型下拉项 stub（对应 InferencePageModelOption）。</summary>

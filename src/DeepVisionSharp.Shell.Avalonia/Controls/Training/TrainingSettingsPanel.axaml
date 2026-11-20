@@ -182,43 +182,6 @@
                             </ComboBox>
                         </StackPanel>
 
-                        <Border Height="1" Margin="0,18,0,18" Background="{DynamicResource IvStrokeSubtleBrush}" />
-
-                        <StackPanel>
-                            <TextBlock Classes="sectionTitle" Text="训练参数" />
-                            <Grid ColumnDefinitions="*,16,*,16,*">
-
-                                <StackPanel Grid.Column="0">
-                                    <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
-                                        <TextBlock Margin="0" VerticalAlignment="Center" Classes="fieldLabel" Text="Epochs" />
-                                        <dv:ParamHelpButton Title="Epochs" HelpText="范围 1–100000" />
-                                    </StackPanel>
-                                    <iv:NumericBox Minimum="1" DecimalPlaces="0"
-                                                  Tag="Epochs"
-                                                  Value="{Binding Config.Epochs, Mode=TwoWay}" />
-                                </StackPanel>
-
-                                <StackPanel Grid.Column="2">
-                                    <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
-                                        <TextBlock Margin="0" VerticalAlignment="Center" Classes="fieldLabel" Text="Batch Size" />
-                                        <dv:ParamHelpButton Title="Batch Size" HelpText="范围 1–32" />
-                                    </StackPanel>
-                                    <iv:NumericBox Minimum="1" DecimalPlaces="0"
-                                                  Tag="BatchSize"
-                                                  Value="{Binding Config.BatchSize, Mode=TwoWay}" />
-                                </StackPanel>
-
-                                <StackPanel Grid.Column="4">
-                                    <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
-                                        <TextBlock Margin="0" VerticalAlignment="Center" Classes="fieldLabel" Text="学习率" />
-                                        <dv:ParamHelpButton Title="学习率" HelpText="范围 0.00005–0.005" />
-                                    </StackPanel>
-                                    <iv:NumericBox Maximum="0.005" Minimum="0.00005" Step="0.0001" DecimalPlaces="4"
-                                                  Tag="LearningRate"
-                                                  Value="{Binding Config.LearningRate, Mode=TwoWay}" />
-                                </StackPanel>
-                            </Grid>
-                        </StackPanel>
                     </StackPanel>
                 </Border>
             </ScrollViewer>
@@ -429,6 +392,59 @@
                     </Grid>
                 </Grid>
             </Border>
+
+            <ScrollViewer Margin="0,4,0,12"
+                          HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Auto"
+                          IsVisible="{Binding Monitor.IsHyperparametersSectionActive}">
+                <Border Margin="0" Classes="formSection">
+                    <StackPanel MaxWidth="900" HorizontalAlignment="Stretch">
+                        <Grid ColumnDefinitions="*,16,*,16,*" IsVisible="{Binding Config.UsesNetworkInputSize}">
+                            <StackPanel Grid.Column="0">
+                                <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
+                                    <TextBlock Margin="0" VerticalAlignment="Center" Classes="fieldLabel" Text="Epochs" />
+                                    <dv:ParamHelpButton Title="Epochs" HelpText="范围 1–100000" />
+                                </StackPanel>
+                                <iv:NumericBox Minimum="1" Maximum="100000" DecimalPlaces="0"
+                                              Tag="Epochs"
+                                              Value="{Binding Config.Epochs, Mode=TwoWay}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
+                                    <TextBlock Margin="0" VerticalAlignment="Center" Classes="fieldLabel" Text="Batch Size" />
+                                    <dv:ParamHelpButton Title="Batch Size" HelpText="范围 1–32" />
+                                </StackPanel>
+                                <iv:NumericBox Minimum="1" DecimalPlaces="0"
+                                              Tag="BatchSize"
+                                              Value="{Binding Config.BatchSize, Mode=TwoWay}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="4">
+                                <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
+                                    <TextBlock Margin="0" VerticalAlignment="Center" Classes="fieldLabel" Text="学习率" />
+                                    <dv:ParamHelpButton Title="学习率" HelpText="范围 0.00005–0.005" />
+                                </StackPanel>
+                                <iv:NumericBox Maximum="0.005" Minimum="0.00005" Step="0.0001" DecimalPlaces="4"
+                                              Tag="LearningRate"
+                                              Value="{Binding Config.LearningRate, Mode=TwoWay}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid Margin="0,12,0,0" ColumnDefinitions="*">
+                            <StackPanel Grid.Column="0">
+                                <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
+                                    <TextBlock Margin="0" VerticalAlignment="Center" Classes="fieldLabel" Text="早停耐心" />
+                                    <dv:ParamHelpButton Title="早停耐心" HelpText="连续多少轮验证集无提升就停止；0 表示关闭（跑满 Epochs）" />
+                                </StackPanel>
+                                <iv:NumericBox Minimum="0" Maximum="100" DecimalPlaces="0"
+                                              Tag="EarlyStoppingPatience"
+                                              Value="{Binding Config.EarlyStoppingPatience, Mode=TwoWay}" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </ScrollViewer>
 
             <ScrollViewer Margin="0,4,0,12"
                           HorizontalScrollBarVisibility="Disabled"

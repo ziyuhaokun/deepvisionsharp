@@ -122,6 +122,12 @@
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
                             <TextBlock Grid.Row="0" Grid.Column="0"
@@ -143,6 +149,66 @@
                                        FontSize="12.5"
                                        Text="{Binding Config.Dataset.DatasetSummaryText}"
                                        TextWrapping="Wrap" />
+
+                            <TextBlock Grid.Row="2" Grid.Column="0"
+                                       Margin="0,0,0,10"
+                                       Classes="fieldLabel"
+                                       Text="模型" />
+                            <TextBlock Grid.Row="2" Grid.Column="2"
+                                       Margin="0,0,0,10"
+                                       FontSize="12.5"
+                                       Text="{Binding Config.InferredModelTypeDisplay}"
+                                       TextWrapping="Wrap" />
+
+                            <TextBlock Grid.Row="3" Grid.Column="0"
+                                       Margin="0,0,0,8"
+                                       Classes="fieldLabel"
+                                       Text="Epochs" />
+                            <TextBlock Grid.Row="3" Grid.Column="2"
+                                       Margin="0,0,0,8"
+                                       FontFamily="{DynamicResource IvMonoFontFamily}"
+                                       FontSize="12.5"
+                                       Text="{Binding Config.Epochs}" />
+
+                            <TextBlock Grid.Row="4" Grid.Column="0"
+                                       Margin="0,0,0,8"
+                                       Classes="fieldLabel"
+                                       Text="Batch Size" />
+                            <TextBlock Grid.Row="4" Grid.Column="2"
+                                       Margin="0,0,0,8"
+                                       FontFamily="{DynamicResource IvMonoFontFamily}"
+                                       FontSize="12.5"
+                                       Text="{Binding Config.BatchSize}" />
+
+                            <TextBlock Grid.Row="5" Grid.Column="0"
+                                       Margin="0,0,0,8"
+                                       Classes="fieldLabel"
+                                       Text="学习率" />
+                            <TextBlock Grid.Row="5" Grid.Column="2"
+                                       Margin="0,0,0,8"
+                                       FontFamily="{DynamicResource IvMonoFontFamily}"
+                                       FontSize="12.5"
+                                       Text="{Binding Config.LearningRate}" />
+
+                            <TextBlock Grid.Row="6" Grid.Column="0"
+                                       Classes="fieldLabel"
+                                       Text="优化器" />
+                            <TextBlock Grid.Row="6" Grid.Column="2"
+                                       FontFamily="{DynamicResource IvMonoFontFamily}"
+                                       FontSize="12.5"
+                                       Text="{Binding Config.Optimizer}" />
+
+                            <TextBlock Grid.Row="7" Grid.Column="0"
+                                       Margin="0,12,0,0"
+                                       Classes="fieldLabel"
+                                       Text="数据增强"
+                                       IsVisible="{Binding Config.ShowsClassificationAugmentation}" />
+                            <TextBlock Grid.Row="7" Grid.Column="2"
+                                       Margin="0,12,0,0"
+                                       FontSize="12.5"
+                                       Text="{Binding Config.ClassificationAugmentationSummary}"
+                                       TextWrapping="Wrap"
+                                       IsVisible="{Binding Config.ShowsClassificationAugmentation}" />
                         </Grid>
                     </StackPanel>
                 </Border>
@@ -864,7 +930,47 @@
                                     </Grid>
                                 </Border>
 
-
+                                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                                    <StackPanel Margin="0,16,0,0" IsVisible="{Binding Monitor.Metrics.HasPerClassRows}">
+                                        <TextBlock Margin="0,0,0,8"
+                                                   FontSize="13"
+                                                   FontWeight="SemiBold"
+                                                   Text="{Binding Monitor.Metrics.PerClassPanelTitle}" />
+                                        <Border Classes="historyTable" MinWidth="520">
+                                            <Grid RowDefinitions="Auto,*">
+                                                <Border Classes="historyHeaderRow">
+                                                    <Grid ColumnDefinitions="*,100,100,100,80">
+                                                        <TextBlock Classes="historyHeader" Text="类别" />
+                                                        <TextBlock Grid.Column="1" Classes="historyHeader" Text="Precision" />
+                                                        <TextBlock Grid.Column="2" Classes="historyHeader" Text="Recall" />
+                                                        <TextBlock Grid.Column="3" Classes="historyHeader" Text="F1" />
+                                                        <TextBlock Grid.Column="4" Classes="historyHeader" Text="样本数" />
+                                                    </Grid>
+                                                </Border>
+                                                <ScrollViewer Grid.Row="1"
+                                                              MaxHeight="220"
+                                                              HorizontalScrollBarVisibility="Disabled"
+                                                              VerticalScrollBarVisibility="Auto">
+                                                    <ItemsControl ItemsSource="{Binding Monitor.Metrics.PerClassRows}">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <Border Classes="historyRow">
+                                                                    <Grid ColumnDefinitions="*,100,100,100,80">
+                                                                        <TextBlock Classes="historyCell" Text="{Binding ClassName}" />
+                                                                        <TextBlock Grid.Column="1" Classes="historyCell" Text="{Binding PrecisionText}" />
+                                                                        <TextBlock Grid.Column="2" Classes="historyCell" Text="{Binding RecallText}" />
+                                                                        <TextBlock Grid.Column="3" Classes="historyCell" Text="{Binding F1Text}" />
+                                                                        <TextBlock Grid.Column="4" Classes="historyCell" Text="{Binding SupportText}" />
+                                                                    </Grid>
+                                                                </Border>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </ScrollViewer>
+                                            </Grid>
+                                        </Border>
+                                    </StackPanel>
+                                </ScrollViewer>
                             </StackPanel>
                         </ScrollViewer>
                     </StackPanel>

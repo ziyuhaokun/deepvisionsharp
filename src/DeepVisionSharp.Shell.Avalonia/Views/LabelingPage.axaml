@@ -223,6 +223,7 @@
                                                            ShowAutoFit="True"
                                                            ShowYoloInfer="True"
                                                            AutoFitRequested="OnFitClicked" />
+                            <cards:LabelingDetectionActionsCard />
                             <cards:LabelingClassListCard />
                         </StackPanel>
                     </ScrollViewer>
@@ -249,13 +250,19 @@
                                          AutomationProperties.AutomationId="dv.labeling.canvas"
                                          ActiveColor="{Binding Labels.ActiveLabelColor}"
                                          ActiveLabelId="{Binding Labels.ActiveLabelId}"
-                                         ActiveLabel="{Binding Labels.ActiveLabelName}"
+                                         ActiveLabel="{Binding Editor.ActiveBoxLabel}"
                                          Boxes="{Binding Editor.Boxes}"
                                          ImageSource="{Binding Workspace.ImageSource}"
+                                         ImageWidth="{Binding Workspace.ImageWidth}"
+                                         ImageHeight="{Binding Workspace.ImageHeight}"
+                                         IsReadOnly="{Binding Editor.IsEditorReadOnly}"
+                                         RedoCommand="{Binding Editor.RedoBoxEditCommand}"
+                                         SelectedBox="{Binding Editor.SelectedBox, Mode=TwoWay}"
                                          ShowLabelNames="{Binding Editor.ShowLabelNames}"
                                          ToolMode="{Binding Editor.ActiveToolMode}"
+                                         UndoCommand="{Binding Editor.UndoBoxEditCommand}"
                                          UseTransparentFill="{Binding Workspace.ProjectProfile.SupportsImageClass}"
-                                         ZoomScale="{Binding Editor.ZoomScale, Mode=OneWay}"
+                                         ZoomScale="{Binding Editor.ZoomScale, Mode=TwoWay}"
                                          AnnotationCreated="OnAnnotationCreated"
                                          AnnotationEditStarted="OnAnnotationEditStarted"
                                          AnnotationEditCompleted="OnAnnotationEditCompleted" />
@@ -553,6 +560,8 @@
                         <dv:AnnotationOverview x:Name="OverviewSurface"
                                                Boxes="{Binding Editor.Boxes}"
                                                ImageSource="{Binding Workspace.ImageSource}"
+                                               ImageWidth="{Binding Workspace.ImageWidth}"
+                                               ImageHeight="{Binding Workspace.ImageHeight}"
                                                NavigateRequested="OnOverviewNavigateRequested" />
                     </Border>
                 </StackPanel>

@@ -1,0 +1,110 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iv="clr-namespace:YuUI.Controls;assembly=yu-ui.avalonia"
+             xmlns:ui="clr-namespace:YuUI;assembly=yu-ui.avalonia"
+             x:Class="DeepVisionSharp.Shell.Avalonia.Controls.Labeling.LabelingDetectionActionsCard">
+
+    <!-- WPF LabelingDetectionToolsCard 里存在、但 Avalonia 检测轨原来缺的四个入口。 -->
+    <UserControl.Styles>
+        <Style Selector="Border.toolSection">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0,0,0,16" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+        <Style Selector="TextBlock.sectionTitle">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        </Style>
+        <Style Selector="Button.actionButton">
+            <Setter Property="Height" Value="32" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="Padding" Value="10,0" />
+            <Setter Property="FontSize" Value="11.5" />
+        </Style>
+    </UserControl.Styles>
+
+    <StackPanel>
+        <Border Classes="toolSection">
+            <StackPanel>
+                <TextBlock Classes="sectionTitle"
+                           FontSize="12"
+                           Text="标注操作" />
+                <Border Margin="0,6,0,0"
+                        Padding="6,2"
+                        HorizontalAlignment="Left"
+                        Background="{DynamicResource IvSurface2Brush}"
+                        CornerRadius="4">
+                    <TextBlock AutomationProperties.AutomationId="dv.labeling.detection.status"
+                               FontSize="10.5"
+                               Foreground="{DynamicResource IvText2Brush}"
+                               Text="{Binding Editor.DetectionStatusText}" />
+                </Border>
+
+                <WrapPanel Margin="0,8,0,0">
+                    <Button Margin="0,0,6,6"
+                            AutomationProperties.AutomationId="dv.labeling.box.delete"
+                            Classes="actionButton"
+                            Command="{Binding Editor.DeleteSelectedBoxCommand}"
+                            IsEnabled="{Binding Editor.HasSelectedBox}"
+                            Theme="{StaticResource IvSubtleButtonStyle}"
+                            ToolTip.Tip="删除选中框 (Delete)">
+                        <StackPanel Orientation="Horizontal">
+                            <iv:Icon Margin="0,0,6,0"
+                                     VerticalAlignment="Center"
+                                     FontSize="14"
+                                     Data="{x:Static ui:IvIcons.Delete}" />
+                            <TextBlock VerticalAlignment="Center" Text="删除选中框" />
+                        </StackPanel>
+                    </Button>
+                    <Button Margin="0,0,6,6"
+                            AutomationProperties.AutomationId="dv.labeling.mark.no-objects"
+                            Classes="actionButton"
+                            Command="{Binding Editor.MarkNoObjectsCommand}"
+                            Content="标记无目标"
+                            IsEnabled="{Binding Editor.IsBoxEditingEnabled}"
+                            Theme="{StaticResource IvSubtleButtonStyle}" />
+                    <Button Margin="0,0,6,6"
+                            AutomationProperties.AutomationId="dv.labeling.mark.reviewed"
+                            Classes="actionButton"
+                            Command="{Binding Editor.MarkReviewedCommand}"
+                            IsEnabled="{Binding Editor.IsBoxEditingEnabled}"
+                            Theme="{StaticResource IvPrimaryButtonStyle}"
+                            ToolTip.Tip="完成标注">
+                        <StackPanel Orientation="Horizontal">
+                            <iv:Icon Margin="0,0,6,0"
+                                     VerticalAlignment="Center"
+                                     FontSize="14"
+                                     Data="{x:Static ui:IvIcons.Check}" />
+                            <TextBlock VerticalAlignment="Center" Text="完成标注" />
+                        </StackPanel>
+                    </Button>
+                </WrapPanel>
+            </StackPanel>
+        </Border>
+
+        <Border Classes="toolSection">
+            <StackPanel>
+                <TextBlock Classes="sectionTitle" Text="数据" />
+                <Button Margin="0,8,0,0"
+                        HorizontalAlignment="Stretch"
+                        AutomationProperties.AutomationId="dv.labeling.import-yolo"
+                        Classes="actionButton"
+                        Command="{Binding ImportYoloDatasetCommand}"
+                        IsEnabled="{Binding Workspace.IsNotBusy}"
+                        Theme="{StaticResource IvButtonBaseStyle}"
+                        ToolTip.Tip="导入 YOLO 数据集">
+                    <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                        <iv:Icon Margin="0,0,6,0"
+                                 VerticalAlignment="Center"
+                                 FontSize="14"
+                                 Data="{x:Static ui:IvIcons.FolderOpen}" />
+                        <TextBlock VerticalAlignment="Center" Text="导入 YOLO 数据集" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>

@@ -289,60 +289,27 @@ MainWindow 构造
 
 ### 5.3 离屏渲染取证（可复制执行）
 
-工具：`C:/Users/yu/codes/tooling/agent-offscreen-render/scripts/render.ps1`（pwsh 7，仅 Windows）。
-Avalonia 侧的渲染工厂在 `C:/Users/yu/codes/temp/yuui/ViewFactoryAvaloniaReal.cs`（**仓库外**，见 §7.7）。
+工具入口已入仓：`scripts/agent-render/render-avalonia-real.ps1`（pwsh 7，仅 Windows）；
+预设是根目录 `agent-render.json` 的 `AvaloniaRealShell`，工厂是 `scripts/agent-render/ViewFactoryAvaloniaReal.cs`。
+完整参数与目录说明见 `scripts/agent-render/README.md`。
 
 ```powershell
-$tool = 'C:/Users/yu/codes/tooling/agent-offscreen-render/scripts'
-$A = 'C:/Users/yu/codes/github/deepvisionsharp/src/DeepVisionSharp.Shell.Avalonia/bin/Debug/net10.0-windows'
-$U = 'C:/Users/yu/codes/github/deepvisionsharp/src/yu-ui.avalonia/bin/Debug/net10.0'
-$res = @(
-  'avares://yu-ui.avalonia/Tokens/Palette.axaml','avares://yu-ui.avalonia/Tokens/Metrics.axaml',
-  'avares://yu-ui.avalonia/Tokens/Typography.axaml','avares://yu-ui.avalonia/Tokens/Motion.axaml',
-  'avares://yu-ui.avalonia/Themes/Generic.axaml','avares://yu-ui.avalonia/Themes/Forms.axaml',
-  'avares://yu-ui.avalonia/Styles/Common.axaml','avares://yu-ui.avalonia/Styles/Button.axaml',
-  'avares://yu-ui.avalonia/Styles/ButtonImplicit.axaml','avares://yu-ui.avalonia/Styles/TextInput.axaml',
-  'avares://yu-ui.avalonia/Styles/Selection.axaml','avares://yu-ui.avalonia/Styles/Switch.axaml',
-  'avares://yu-ui.avalonia/Styles/ProgressBar.axaml','avares://yu-ui.avalonia/Styles/Container.axaml',
-  'avares://yu-ui.avalonia/Styles/ScrollBar.axaml','avares://yu-ui.avalonia/Styles/Slider.axaml',
-  'avares://yu-ui.avalonia/Styles/List.axaml','avares://yu-ui.avalonia/Styles/ComboBox.axaml',
-  'avares://yu-ui.avalonia/Styles/TreeView.axaml','avares://yu-ui.avalonia/Styles/Menu.axaml'
-)
-
-# 业务程序集全部当引用传：FreeSql 用 Assembly.Load 反射加载 provider，只有进了宿主 deps.json 的 DLL 才找得到。
-$refs = @(Get-ChildItem $A -Filter '*.dll' | Where-Object { $_.Name -notlike 'Avalonia*' } | ForEach-Object FullName)
-$refs += "$U/yu-ui.avalonia.dll"
-
-$env:DV_RENDER_PAGE = 'dashboard'      # dashboard | gallery | models（工厂支持哪些取值看工厂文件）
-$out = (& "$tool/render.ps1" -Stack avalonia `
-    -AssemblyPath $refs `
-    -FactoryFile 'C:/Users/yu/codes/temp/yuui/ViewFactoryAvaloniaReal.cs' `
-    -ViewType 'DeepVisionSharp.Shell.Avalonia.MainWindow' `
-    -ResourceDictionary $res -Width 1600 -Height 1000 -Theme light -Background white -TimeoutSeconds 180) |
-  Select-Object -Last 1
-
-$sum = Get-Content (Join-Path $out 'summary.json') -Raw | ConvertFrom-Json
-$sum.status; $sum.layoutIssueCount; $sum.bindingIssueCount      # 验收看这三个
-Copy-Item (Join-Path $out 'snapshot.png') 'C:/Users/yu/codes/temp/yuui/preview/inwin-dashboard.png' -Force
+$env:AGENT_RENDER_ROOT = 'C:\tools\agent-render'   # 含 scripts\render.ps1 的工具仓库根
+pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\agent-render\render-avalonia-real.ps1
 ```
 
-已知坑（照抄脚本时容易漏）：
+默认跑 7 条路由（`dashboard,gallery,models,labeling,training,inference,settings`）并额外出一张 stub training；
+产物落在 `.outputs/agent-render/<timestamp>/`，其中 `summary/` 保留每页原始 `summary.json`，
+`binding-errors/` 保留绑定错误清单，`report.json` 汇总 status / layoutIssueCount / bindingIssueCount。
 
-- **SQLite 原生库要手工同步。** 离屏宿主的 `out/` 里没有 `SQLite.Interop.dll`，第一次渲染必然在打开数据根时失败。
-  有真实数据时要补：
+已知坑（脚本已经处理，手工拼命令时别漏）：
 
-  ```powershell
-  $target = Join-Path (Split-Path -Parent $out) 'out'
-  $native = Join-Path $A 'runtimes/win-x64/native/SQLite.Interop.dll'
-  Copy-Item $native (Join-Path $target 'SQLite.Interop.dll') -Force
-  Copy-Item $native (Join-Path $target 'runtimes/win-x64/native/SQLite.Interop.dll') -Force
-  # 然后再渲染一遍（脚本里的 Sync-NativeDeps 就是这么做的）
-  ```
-
+- **SQLite 原生库要同步。** 离屏宿主的 `out/` 里没有 `SQLite.Interop.dll`，第一次渲染会在打开数据根时失败；
+  `Sync-NativeDeps` 会补到 `out/` 与 `out/runtimes/win-x64/native/` 并重渲一次。
 - **离屏宿主自己不等待异步首屏**。真实 VM 的首屏加载是异步的，工厂必须自己 `Dispatcher.UIThread.RunJobs()`
   轮询到 `IsLoading == false` 再出图（`ViewFactoryAvaloniaReal.cs` 的 `WaitUntilReady` 就是这么做的）。
 - 出图里没有 `Popup` / `ToolTip`；Avalonia 栈不支持交互步骤，只能出初始截图。
-- 数据根默认是 `%LOCALAPPDATA%\DeepVisionSharp\Data`（只读使用，别写）。
+- 数据根默认是 `%LOCALAPPDATA%\DeepVisionSharp\Data`（只读使用，别写）；截图依赖本机数据，不是跨机器 fixture。
 
 ### 5.4 已知坑：独立渲染 `UserControl` 会产生文本重叠伪影
 
@@ -362,7 +329,7 @@ harness 还会报「文本重叠 / 被裁切」类 layout issue；同一个页�
 
 行数为裁剪后的实际值（`wc -l`）。「已接真 VM」= 容器注册了 `Presentation` 的 ViewModel 并由 code-behind
 注入 `DataContext`；`ViewModels/Sample<Xxx>Context.cs` 只作设计时/兜底。
-「在窗渲染」= `-ViewType MainWindow` 走导航进入（§5.4 唯一有效证据），产物 `temp/yuui/preview/inwin-*.png`。
+「在窗渲染」= `-ViewType MainWindow` 走导航进入（§5.4 唯一有效证据），产物见 `.outputs/agent-render/<timestamp>/shots/inwin-*.png`（§7.7）。
 `binding` 列是 1600×1000 在窗渲染的 `bindingIssueCount`，全部为 **0**（基线 `ac0c2e0`）。
 
 | 页面 | 文件（行） | 已照抄 | 已接真 VM | 在窗渲染 | binding | 已知缺陷 / 备注 |
@@ -370,12 +337,12 @@ harness 还会报「文本重叠 / 被裁切」类 layout issue；同一个页�
 | 项目 Dashboard | `DashboardPage.axaml` 512 | 是 | **是** `DashboardViewModel`（singleton） | `inwin-dashboard.png` | **0** | 真实数据 2 项目 / 1000 样本；长项目描述按源设定省略号（源同行为） |
 | 图库 Gallery | `GalleryPage.axaml` 543 | 是 | **是** `GalleryViewModel`（transient） | `inwin-gallery.png` | **0** | 真实数据 1 图库 / 1000 样本 / 1000 已标注；页面被导航缓存 → transient VM 事实单例 |
 | 模型 Models | `ModelsPage.axaml` 441 | 是 | **是** `ModelsViewModel`（transient） | `inwin-models.png` | **0** | 长路径按源设定省略号 |
-| 标记 Labeling | `LabelingPage.axaml` 565 | 是 | **是** `LabelingViewModel` | `inwin-labeling.png` | **0** | 裁掉 73 条无后端绑定（AiJudge/TemplateMatch/多边形分割/OCR）；`AnnotationCanvas` 已改绑 `BoxShapeViewModel`（与 WPF 同契约）；画布**交互仍是空实现**（创建/编辑/撤销无行为）；未进图库时如实显示「暂无样本」 |
-| 训练 Training | `TrainingPage.axaml` 290 + `Controls/Training/TrainingRunPanel.axaml` | 是 | **是** `TrainingViewModel` | `inwin-training.png`（真 VM，空任务列表）+ `inwin-training-stub.png`（stub 视觉基线） | **0** | 裁掉 147 条无后端绑定；补回上游复制版弄丢的「模型架构」「检测参数」两组真实控件；修掉分类项目进不了分类增强的三层可见性门；无轮询 |
-| 推理 Inference | `InferencePage.axaml` 1103 | 是 | **是** `InferenceViewModel` | `inwin-inference.png` | **0** | 裁掉 IR 后端选择器 / 会话异常阈值等 6 条；`Stop`、`ChartMultiple` 用页内几何（`IvIcons` 无等价物）；`NumericBox` 步进按钮 30px 溢出属**源本身行为**（`NumericBox.cs` 与源只差命名空间）；不跑推理 |
-| 设置 Settings | `SettingsPage.axaml` 474 | 是 | **是** `SettingsViewModel` | `inwin-settings.png` | **0** | 整节「Python 环境」是 Avalonia 侧**自行发明**（WPF 与 Presentation 均 0 命中）→ 已整块删除；F12 解锁等仍是 stub 行为 |
+| 标记 Labeling | `LabelingPage.axaml` 574 | 是 | **是** `LabelingViewModel` | `inwin-labeling.png` | **0** | 裁掉 73 条无后端绑定（AiJudge/TemplateMatch/多边形分割/OCR）；`AnnotationCanvas` 已改绑 `BoxShapeViewModel`。本轮补齐真交互：拖拽建框、选中/移动/缩放、Delete/Esc/Ctrl+Z/Y、滚轮缩放/中键平移、快捷键、样本右键、检测轨缺失按钮；实机鼠标手势仍需人工点验；未进图库时如实显示「暂无样本」 |
+| 训练 Training | `TrainingPage.axaml` 291 + `Controls/Training/TrainingRunPanel.axaml` | 是 | **是** `TrainingViewModel` | `inwin-training.png`（真 VM，3 个历史任务）+ `inwin-training-stub.png`（stub 视觉基线） | **0** | 裁掉 147 条无后端绑定；补回「模型架构」「检测参数」；修掉分类项目进不了分类增强的三层可见性门；状态轮询/指标轮询走 Presentation 真实现。本轮补真 VM 日志自动滚动、Hyperparameters/EarlyStopping 输入、per-class 指标表、配置预览摘要；训练任务进 TaskCenter 因 WPF 也没有，未擅自加 |
+| 推理 Inference | `InferencePage.axaml` 1125 | 是 | **是** `InferenceViewModel` | `inwin-inference.png` | **0** | 裁掉 IR 后端选择器 / 会话异常阈值等 6 条；`Stop`、`ChartMultiple` 用页内几何；`NumericBox` 步进按钮 30px 溢出属源本身行为。本轮把右键 OK/NG/清除、采纳预测框、缩放写回真 VM、NMS IoU 输入接真命令；报告图表因没有跨平台 renderer，未做 |
+| 设置 Settings | `SettingsPage.axaml` 474 | 是 | **是** `SettingsViewModel` | `inwin-settings.png` | **0** | 整节「Python 环境」是 Avalonia 侧自行发明（WPF 与 Presentation 均 0 命中）→ 已整块删除；本轮补 `CHANGELOG.md` 到输出目录，修掉「关于」4 条绑定为 null（见 §7.9）；F12 解锁等仍是 stub 行为 |
 
-裁剪后的体量：7 个页面共 3,928 行（基线 4,609 行），嵌套控件与对话框内容视图 43 个 `.axaml`。
+裁剪后的体量：7 个页面共 3,960 行（裁剪收口时 3,928 行，本轮补交互控件后 +32 行；基线 4,609 行），嵌套控件与对话框内容视图 43 个 `.axaml`。
 
 接线落点固定三处：`Composition/AppComposition.cs`（注册 VM）、
 `Services/AvaloniaNavigationService.cs`（`CreatePage` 建页）、页面 code-behind（`DataContext` 来源）。
@@ -454,20 +421,22 @@ harness 还会报「文本重叠 / 被裁切」类 layout issue；同一个页�
 - `Shell/Services/ShellProcessLauncher.cs` ↔ `Shell.Avalonia/Services/AvaloniaProcessLauncher.cs`
 - 同名控件在多个目录各留一份（命名空间不同、内容非逐字节一致）：
   `BusyRing`（Misc / Training / Inference，3 份）、`ParamHelpButton`（Misc / Training）、
-  `ImageLightboxOverlay`（Misc / Training）、`CanvasViewToolbar` 与 `CanvasCornerFloat`（Inference / Labeling）。
-  改一处**不会**同步其它，视觉回归要逐份看。
+  `CanvasViewToolbar` 与 `CanvasCornerFloat`（Inference / Labeling）。
+  改一处**不会**同步其它，视觉回归要逐份看。`ImageLightboxOverlay` 已收敛为
+  `Controls/Training/ImageLightboxOverlay.axaml`，`Controls/Misc` 下未被引用的重复份已删。
 - 少数文件带着从 deepvision 一起复制过来的注释头，写着 `InCube.UI` 或「check CLAUDE.md」——
   本仓库没有 `CLAUDE.md`。基线命中 5 个文件：`Controls/Labeling/CanvasViewToolbar.axaml{,.cs}`、
   `Controls/Labeling/CanvasCornerFloat.axaml{,.cs}`、`Controls/Training/MetricLineChart.cs`。清掉即可。
 
-### 7.7 渲染取证仍不可复现（工程流程欠账）
+### 7.7 渲染取证已入仓
 
-- 渲染工厂 `ViewFactoryAvaloniaReal.cs` 与所有 `render-*.ps1` 都在 `C:/Users/yu/codes/temp/yuui/`（**仓库外**），
-  仓库里没有 Avalonia 的 `agent-render.json`。**这是目前最该还的一笔债**：证据在别人机器上等于没有证据。
-- 渲染宿主必须带全业务 DLL 与 SQLite 原生库（`runtimes/win-x64/native/SQLite.Interop.dll` 要手动同步进
-  宿主的 `out/`），否则退化成「查询失败 + 空列表」——**看起来像功能没接，其实是取证环境缺件**，
-  本次已因此误判过一次。
-- 待办：把 Avalonia 的渲染工厂 + 预设（`agent-render.json`，7 个路由各一条）提交进仓库。
+- 根目录 `agent-render.json` 的 `AvaloniaRealShell`、仓库内工厂 `scripts/agent-render/ViewFactoryAvaloniaReal.cs`
+  与包装脚本 `scripts/agent-render/render-avalonia-real.ps1` 已替代仓库外临时文件；默认 7 条路由 + stub training。
+- 工厂内的 `ResourceSources` 是唯一资源字典来源；脚本不再传 `-ResourceDictionary`，避免两处漂移。
+- 脚本动态收集业务 DLL，`yu-ui.avalonia.dll` 只取 `src/yu-ui.avalonia/bin/Debug/net10.0`，并由 `Sync-NativeDeps`
+  同步 `SQLite.Interop.dll`，避免「查询失败 + 空列表」的假象。
+- 产物落 `.outputs/agent-render/<timestamp>/`（已 gitignore），包含 `shots/`、`binding-errors/`、`summary/`、`report.json`；
+  截图依赖本机 `%LOCALAPPDATA%`，不是跨机器 fixture，生成物不要提交。
 
 ### 7.8 任务中心已挂，灯箱仍在页面内
 
@@ -475,8 +444,8 @@ harness 还会报「文本重叠 / 被裁切」类 layout issue；同一个页�
   右下角、`Margin 0,0,16,16`，**不是浮层遮罩**），`DataContext` 注入 `ShellTaskCenterViewModel`。
 - 灯箱：deepvision 的灯箱挂在 `TrainingRunPanel` **内部**（页面级，`ZIndex=1000`）。因此**不给它加 shell 级状态**
   （`IsImageLightboxOpen` / `ImageLightboxSource` / `CloseImageLightboxCommand` 那套是发明状态）。
-  待办：`Controls/Training/ImageLightboxOverlay.axaml` 缺 `Source` 绑定（照 `Controls/Misc` 的
-  `Source` 绑到自身 `ImageSource` 的写法补）；两处重复控件应合并成一份。
+  `Controls/Training/ImageLightboxOverlay.axaml` 已把 `Source` 绑到控件自身 `ImageSource`，
+  `Controls/Misc` 下未被引用的重复份已删除；灯箱仍留在页面内，没上提到 shell 层。
 
 ### 7.8.1 编排教训（多 lane 并行时必看）
 
@@ -491,18 +460,15 @@ harness 还会报「文本重叠 / 被裁切」类 layout issue；同一个页�
 6. 对 lane 的实测结论要复核再采信：本次两路各超时 30 分钟，但留下的代码都可编译；
    而 lane 报的「X 已修好」必须由父代理用命令复验。
 
-### 7.9 发布物缺件：设置页「关于」与 license 拿不到文件
+### 7.9 发布物缺件：Avalonia 的 CHANGELOG 已补齐，license 待确认
 
 `Presentation/Services/ChangeLogService.cs` 从 `AppDomain.CurrentDomain.BaseDirectory` 读 `CHANGELOG.md`
-（其次向上 5 级找仓库根，离屏/开发时靠这条 fallback）。WPF Shell 的 csproj 显式把它和 `license.txt` 复制到输出：
+（其次向上 5 级找仓库根）。WPF Shell 的 csproj 复制 `license.txt` 与 `CHANGELOG.md`；
+**Avalonia Shell 现在也已加 `CHANGELOG.md` 的 `CopyToOutputDirectory`**，否则接真 `SettingsViewModel` 后
+设置页「关于」拿不到数据（离屏渲染曾报 4 条 `CurrentChangeLogEntry.* Value is null`，已修到 0）。
 
-```xml
-<None Include="license.txt" CopyToOutputDirectory="PreserveNewest" />
-<None Include="..\..\CHANGELOG.md" Link="CHANGELOG.md" CopyToOutputDirectory="PreserveNewest" />
-```
-
-**Avalonia 壳的 csproj 没有这两条**。基线因为设置页还是 stub 看不出来；接上真 `SettingsViewModel` 后，
-发布版会因找不到 `CHANGELOG.md` 而显示空变更日志（开发目录里 fallback 恰好能碰到仓库根，所以本地跟不出来）。
+`license.txt` 当前只由 WPF 壳复制；Avalonia 设置页源码未发现读取它，且不复制不会造成绑定错误。
+若发行包要求 Avalonia 输出目录也带 license，需产品/打包流程明确后再加，不作为 UI 迁移的一部分。
 
 ### 7.10 没有自动化测试
 
@@ -522,8 +488,8 @@ harness 还会报「文本重叠 / 被裁切」类 layout issue；同一个页�
 - [ ] 7 个页面在 `MainWindow` 里导航渲染通过：`summary.json` 的 `bindingIssueCount == 0`，`layoutIssueCount` 每条都有「源就这样」的说明
 - [ ] 训练页「主指标说明」卡塌陷修复（§6）
 - [ ] 页面生命周期策略落地：切走后的 VM 能被回收（§7.5）
-- [ ] 任务中心挂到主窗口图层，截图取证（§7.8）
-- [ ] 灯箱能显示真实图像（`AvaloniaImageSourceFactory`），截图取证
+- [ ] 任务中心挂到主窗口图层（已挂，§7.8）；截图取证待父代理复验
+- [ ] 灯箱能显示真实图像（`AvaloniaImageSourceFactory`；`Source` 绑定与重复控件已收口），截图取证待复验
 - [ ] 20 种 `AppDialogKind` 的按钮语义逐项核对表（WPF 行为 / Avalonia 行为 / 是否一致）
 - [ ] 提示条 4 种语义 + 连续弹出替换行为与 WPF 一致
 - [ ] 主题切换（浅/深/跟随系统）与标题栏图标联动
@@ -542,14 +508,15 @@ harness 还会报「文本重叠 / 被裁切」类 layout issue；同一个页�
 
 **工程与流程**
 
-- [ ] 渲染工厂与 `agent-render.json` 进仓库，7 个路由可在干净环境复现出图（§7.7）
+- [x] 渲染工厂与 `agent-render.json` 进仓库（§7.7）；7 条路由的干净环境复验由父代理串行渲染确认
 - [ ] `dotnet build DeepVisionSharp.slnx -c Debug` 0 warning（`TreatWarningsAsErrors` 已强制）
 - [ ] 图标缺口收口（`Stop` / `ChartMultiple`：补齐几何或统一降级策略）
 - [ ] 26 个对话框内容视图清账：可达的接上，不可达的删掉或标注「源有、暂不接线」
-- [ ] 重复控件（`BusyRing` / `ParamHelpButton` / `ImageLightboxOverlay` / `CanvasViewToolbar` / `CanvasCornerFloat`）收敛或明确「各自维护」
+- [ ] 重复控件（`BusyRing` / `ParamHelpButton` / `CanvasViewToolbar` / `CanvasCornerFloat`）收敛或明确「各自维护」
 - [ ] 复制过来的注释头（`InCube.UI` / `CLAUDE.md`）清理
 - [ ] 站点/打包脚本（`packaging/`、`scripts/build_installer.ps1`）改为产出 Avalonia Shell 的可执行名与图标
-- [ ] 输出目录补齐 `CHANGELOG.md` 与 `license.txt`（见 §7.9）
+- [x] 输出目录补齐 Avalonia 的 `CHANGELOG.md`（设置页「关于」，见 §7.9；binding 实测 0）
+- [ ] license 是否也必须随 Avalonia 输出目录发布，待打包/产品流程确认
 - [ ] 单实例、文件名、AssemblyName（`DeepVisionSharp.Avalonia`）、进程名切换的兼容性确认（装过旧版的机器如何升级）
 
 **验证留档**

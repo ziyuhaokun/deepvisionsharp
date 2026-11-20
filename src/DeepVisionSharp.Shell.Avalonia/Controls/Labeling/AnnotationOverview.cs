@@ -4,7 +4,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
-using Avalonia.Media.Imaging;
 using DeepVisionSharp.Presentation.ViewModels.Labeling;
 
 namespace DeepVisionSharp.Shell.Avalonia.Controls.Labeling;
@@ -27,6 +26,12 @@ public sealed class AnnotationOverview : Control
     public static readonly StyledProperty<IImage?> ImageSourceProperty =
         AvaloniaProperty.Register<AnnotationOverview, IImage?>(nameof(ImageSource));
 
+    public static readonly StyledProperty<double> ImageWidthProperty =
+        AvaloniaProperty.Register<AnnotationOverview, double>(nameof(ImageWidth));
+
+    public static readonly StyledProperty<double> ImageHeightProperty =
+        AvaloniaProperty.Register<AnnotationOverview, double>(nameof(ImageHeight));
+
     public static readonly StyledProperty<Rect> ViewportProperty =
         AvaloniaProperty.Register<AnnotationOverview, Rect>(nameof(Viewport));
 
@@ -34,7 +39,8 @@ public sealed class AnnotationOverview : Control
 
     static AnnotationOverview()
     {
-        AffectsRender<AnnotationOverview>(BoxesProperty, ImageSourceProperty, ViewportProperty);
+        AffectsRender<AnnotationOverview>(
+            BoxesProperty, ImageSourceProperty, ImageWidthProperty, ImageHeightProperty, ViewportProperty);
     }
 
     public AnnotationOverview()
@@ -56,6 +62,19 @@ public sealed class AnnotationOverview : Control
     {
         get => GetValue(ImageSourceProperty);
         set => SetValue(ImageSourceProperty, value);
+    }
+
+    /// <summary>与主画布共用的真实图像坐标尺寸。</summary>
+    public double ImageWidth
+    {
+        get => GetValue(ImageWidthProperty);
+        set => SetValue(ImageWidthProperty, value);
+    }
+
+    public double ImageHeight
+    {
+        get => GetValue(ImageHeightProperty);
+        set => SetValue(ImageHeightProperty, value);
     }
 
     /// <summary>当前主画布可见区域（图像坐标系）。</summary>
@@ -80,15 +99,12 @@ public sealed class AnnotationOverview : Control
     {
         base.OnPointerReleased(e);
 
-        if (ImageSource is not { } source || Bounds.Width <= 0 || Bounds.Height <= 0)
+        if (ImageSource is null || Bounds.Width <= 0 || Bounds.Height <= 0)
         {
             return;
         }
 
-        var pixel = source is Bitmap bitmap
-            ? new Size(bitmap.PixelSize.Width, bitmap.PixelSize.Height)
-            : new Size(1280, 860);
-
+        var pixel = ImageSize;
         var scale = Math.Min(Bounds.Width / pixel.Width, Bounds.Height / pixel.Height);
         if (scale <= 0)
         {
@@ -115,9 +131,7 @@ public sealed class AnnotationOverview : Control
             return;
         }
 
-        var image = ImageSource is Bitmap bitmap
-            ? new Size(bitmap.PixelSize.Width, bitmap.PixelSize.Height)
-            : new Size(1280, 860);
+        var image = ImageSize;
 
         if (image.Width <= 0 || image.Height <= 0)
         {
@@ -159,6 +173,8 @@ public sealed class AnnotationOverview : Control
             AnnotationRenderer.DrawViewportIndicator(context, indicator);
         }
     }
+
+    private Size ImageSize => new(Math.Max(0, ImageWidth), Math.Max(0, ImageHeight));
 
     /// <summary>换了一份框集合：把变化通知接到新集合与新集合里的每个框上。</summary>
     private void TrackBoxes(

@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
 using System.Windows.Input;
 using Avalonia;
@@ -12,7 +13,7 @@ namespace DeepVisionSharp.Shell.Avalonia.ViewModels;
 
 /// <summary>
 /// 标记页 stub 上下文：绑定路径与真实的 <see cref="LabelingViewModel"/> 同名同层
-/// （Workspace / Editor / Labels / Samples / Inference / ActiveRailKind），值全部是造出来的假数据，命令点了不做事。
+/// （Workspace / Editor / Labels / Samples / Inference / ActiveRailKind），无容器时只做可视化兜底。
 /// 只在没有容器（设计时 / 无头渲染）时兜底；画布与框列表直接复用 Presentation 的
 /// <see cref="BoxShapeViewModel"/>，不再另起一套行类型。
 /// </summary>
@@ -33,6 +34,7 @@ public sealed class SampleLabelingContext : ObservableObject
     public SampleLabelingContext()
     {
         BackToGalleryCommand = new RelayCommand(() => { });
+        ImportYoloDatasetCommand = new RelayCommand(() => { });
     }
 
     /// <summary>左侧轨道的枚举名（Detection / Classification）：本仓库只有这两种工作流。</summary>
@@ -43,6 +45,9 @@ public sealed class SampleLabelingContext : ObservableObject
     }
 
     public ICommand BackToGalleryCommand { get; }
+
+    /// <summary>与真实 VM 同名的 YOLO 导入入口（无头样本上下文只保留可绑定入口）。</summary>
+    public ICommand ImportYoloDatasetCommand { get; }
 
     /// <summary>框列表点行时的选中入口，与真实 VM 的 SelectBoxCommand 同一动作。</summary>
     internal void SelectBox(BoxShapeViewModel box) => Editor.Select(box);
@@ -59,6 +64,12 @@ public sealed class SampleLabelingWorkspace
     public string ActiveFileName => "cold-roll_20251118_004317.jpg";
 
     public string ImageSizeText => "1280 × 860";
+
+    public double ImageWidth => 1280;
+
+    public double ImageHeight => 860;
+
+    public bool IsNotBusy => true;
 
     public IImage ImageSource { get; }
 
@@ -93,7 +104,10 @@ public sealed class SampleLabelingUiPolicy
 public sealed class SampleLabelingEditor : ObservableObject
 {
     private bool _showLabelNames = true;
+    private bool _isReviewed;
     private double _zoomScale = 1;
+    private object? _viewportRect;
+    private string? _activeBoxLabel;
     private BoxShapeViewModel? _selectedBox;
     private BoxToolMode _activeToolMode = BoxToolMode.Draw;
 
@@ -107,18 +121,34 @@ public sealed class SampleLabelingEditor : ObservableObject
             new BoxShapeViewModel("划伤", 348, 588, 286, 96) { Number = 4 },
         ];
 
+        ActiveBoxLabel = "划伤";
         Select(Boxes[0]);
 
-        ClearBoxesCommand = new RelayCommand(() => { });
-        DeleteBoxCommand = new RelayCommand<BoxShapeViewModel>(_ => { });
-        SelectBoxCommand = new RelayCommand<BoxShapeViewModel>(_ => { });
+        BeginBoxEditCommand = new RelayCommand(() => { });
+        ClearBoxesCommand = new RelayCommand(ClearBoxesCore);
+        DeleteBoxCommand = new RelayCommand<BoxShapeViewModel?>(DeleteBoxCore);
+        DeleteSelectedBoxCommand = new RelayCommand(DeleteSelectedBoxCore);
+        MarkNoObjectsCommand = new RelayCommand(MarkNoObjectsCore);
+        MarkReviewedCommand = new RelayCommand(MarkReviewedCore);
+        NotifyBoxesEditedCommand = new RelayCommand(() =>
+        {
+            IsReviewed = true;
+            NotifyBoxState();
+        });
+        SelectBoxCommand = new RelayCommand<BoxShapeViewModel?>(box =>
+        {
+            if (box is not null)
+            {
+                Select(box);
+            }
+        });
         SetRectangleToolCommand = new RelayCommand(() => { });
         SetSelectToolCommand = new RelayCommand(() => { });
         UndoCommand = new RelayCommand(() => { });
         RedoCommand = new RelayCommand(() => { });
     }
 
-    public IReadOnlyList<BoxShapeViewModel> Boxes { get; }
+    public ObservableCollection<BoxShapeViewModel> Boxes { get; }
 
     public bool HasBoxes => Boxes.Count > 0;
 
@@ -127,6 +157,10 @@ public sealed class SampleLabelingEditor : ObservableObject
     public bool CanUseEditor => true;
 
     public bool IsNotBusy => true;
+
+    public bool IsEditorReadOnly => false;
+
+    public bool IsBoxEditingEnabled => true;
 
     public bool CanUndo => true;
 
@@ -138,7 +172,27 @@ public sealed class SampleLabelingEditor : ObservableObject
 
     public bool IsRectangleTool => ActiveToolMode == BoxToolMode.Draw;
 
-    public BoxShapeViewModel? SelectedBox => _selectedBox;
+    public BoxShapeViewModel? SelectedBox
+    {
+        get => _selectedBox;
+        set => SelectCore(value);
+    }
+
+    public string? ActiveBoxLabel
+    {
+        get => _activeBoxLabel;
+        set => SetProperty(ref _activeBoxLabel, value);
+    }
+
+    public object? ViewportRect
+    {
+        get => _viewportRect;
+        set => SetProperty(ref _viewportRect, value);
+    }
+
+    public string DetectionStatusText => IsReviewed
+        ? (Boxes.Count == 0 ? "已标记：无目标" : $"已标注 {Boxes.Count} 个目标")
+        : "未标注";
 
     public bool ShowLabelNames
     {
@@ -160,9 +214,19 @@ public sealed class SampleLabelingEditor : ObservableObject
 
     public string ZoomText => ZoomScale.ToString("P0");
 
+    public ICommand BeginBoxEditCommand { get; }
+
     public ICommand ClearBoxesCommand { get; }
 
     public ICommand DeleteBoxCommand { get; }
+
+    public ICommand DeleteSelectedBoxCommand { get; }
+
+    public ICommand MarkNoObjectsCommand { get; }
+
+    public ICommand MarkReviewedCommand { get; }
+
+    public ICommand NotifyBoxesEditedCommand { get; }
 
     public ICommand SelectBoxCommand { get; }
 
@@ -174,8 +238,22 @@ public sealed class SampleLabelingEditor : ObservableObject
 
     public ICommand RedoCommand { get; }
 
+    public bool IsReviewed
+    {
+        get => _isReviewed;
+        set
+        {
+            if (SetProperty(ref _isReviewed, value))
+            {
+                OnPropertyChanged(nameof(DetectionStatusText));
+            }
+        }
+    }
+
     /// <summary>与真实编辑器的选中语义一致：同时只允许一个框处于选中态。</summary>
-    internal void Select(BoxShapeViewModel box)
+    internal void Select(BoxShapeViewModel box) => SelectCore(box);
+
+    private void SelectCore(BoxShapeViewModel? box)
     {
         foreach (var item in Boxes)
         {
@@ -185,6 +263,64 @@ public sealed class SampleLabelingEditor : ObservableObject
         _selectedBox = box;
         OnPropertyChanged(nameof(SelectedBox));
         OnPropertyChanged(nameof(HasSelectedBox));
+    }
+
+    private void ClearBoxesCore()
+    {
+        if (Boxes.Count == 0)
+        {
+            return;
+        }
+
+        Boxes.Clear();
+        SelectCore(null);
+        IsReviewed = true;
+        NotifyBoxState();
+    }
+
+    private void DeleteBoxCore(BoxShapeViewModel? box)
+    {
+        if (box is null)
+        {
+            return;
+        }
+
+        Boxes.Remove(box);
+        if (ReferenceEquals(SelectedBox, box))
+        {
+            SelectCore(null);
+        }
+
+        IsReviewed = true;
+        NotifyBoxState();
+    }
+
+    private void DeleteSelectedBoxCore()
+    {
+        if (SelectedBox is { } box)
+        {
+            DeleteBoxCore(box);
+        }
+    }
+
+    private void MarkNoObjectsCore()
+    {
+        Boxes.Clear();
+        SelectCore(null);
+        IsReviewed = true;
+        NotifyBoxState();
+    }
+
+    private void MarkReviewedCore()
+    {
+        IsReviewed = true;
+        NotifyBoxState();
+    }
+
+    private void NotifyBoxState()
+    {
+        OnPropertyChanged(nameof(HasBoxes));
+        OnPropertyChanged(nameof(DetectionStatusText));
     }
 }
 

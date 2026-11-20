@@ -194,6 +194,7 @@
                                             <iv:Icon Margin="6,0,0,0" FontSize="13" Foreground="{DynamicResource IvSuccessBrush}" Data="{x:Static ui:IvIcons.Check}" IsVisible="{Binding Config.IsDatasetConfigurationComplete}" />
                                         </StackPanel>
                                     </Button>
+                                    <Button Classes="trainingTab" Classes.active="{Binding Monitor.IsHyperparametersSectionActive}" Command="{Binding Monitor.ShowHyperparametersSectionCommand}" Content="超参数" IsVisible="{Binding Config.UsesNetworkInputSize}" />
                                     <Button Classes="trainingTab" Classes.active="{Binding Monitor.IsAdvancedSectionActive}" Command="{Binding Monitor.ShowAdvancedSectionCommand}" Content="高级参数" IsVisible="{Binding Config.UsesNetworkInputSize}" />
                                 </StackPanel>
 

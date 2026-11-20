@@ -209,9 +209,17 @@ public sealed class SampleTrainingConfig
 
     public double BatchSize => 16;
 
+    public int EarlyStoppingPatience { get; set; } = 0;
+
     public double LearningRate => 0.001;
 
     public string Optimizer => "SGD";
+
+    public string InferredModelTypeDisplay => ModelTypeNames.GetDisplayLabel(SelectedModelType);
+
+    public bool ShowsClassificationAugmentation => IsClassificationModelSelected;
+
+    public string ClassificationAugmentationSummary => Cls.BuildSummary(IsClassificationModelSelected);
 
     public IReadOnlyList<string> OptimizerOptions => ["SGD", "Adam", "AdamW", "NAdam"];
 
@@ -282,6 +290,11 @@ public sealed class SampleTrainingAugmentConfig
     public double FlipLeftRight => 0.5;
 
     public double FlipUpDown => 0;
+
+    public string BuildSummary(bool isClassificationModelSelected) =>
+        isClassificationModelSelected
+            ? $"fliplr={FlipLeftRight:0.##} · flipud={FlipUpDown:0.##}"
+            : "—";
 }
 
 /// <summary>输入尺寸 stub（对应 TrainingSpatialSettingsViewModel）：按模型固定边长。</summary>
@@ -328,6 +341,7 @@ public sealed class SampleTrainingMonitor
         ShowAdvancedSectionCommand = new RelayCommand(() => { });
         ShowBasicSectionCommand = new RelayCommand(() => { });
         ShowDatasetSectionCommand = new RelayCommand(() => { });
+        ShowHyperparametersSectionCommand = new RelayCommand(() => { });
         ShowOverviewSectionCommand = new RelayCommand(() => { });
         ShowConfigPreviewSectionCommand = new RelayCommand(() => { });
         ShowPreviewSectionCommand = new RelayCommand(() => { });
@@ -375,6 +389,8 @@ public sealed class SampleTrainingMonitor
 
     public bool IsDatasetSectionActive => false;
 
+    public bool IsHyperparametersSectionActive => false;
+
     public bool IsAdvancedSectionActive => false;
 
     public bool IsBestCheckpointSelected => true;
@@ -420,6 +436,8 @@ public sealed class SampleTrainingMonitor
     public ICommand ShowBasicSectionCommand { get; }
 
     public ICommand ShowDatasetSectionCommand { get; }
+
+    public ICommand ShowHyperparametersSectionCommand { get; }
 
     public ICommand ShowAdvancedSectionCommand { get; }
 
@@ -546,6 +564,39 @@ public sealed class SampleTrainingMetricsSummary
     public IReadOnlyList<TrainingChartSeries> LossChartSeries { get; }
 
     public IReadOnlyList<TrainingChartSeries> LrChartSeries { get; }
+
+    /// <summary>最新一轮 per-class 指标（对应 TrainingMetricsViewModel.PerClassRows）。</summary>
+    public IReadOnlyList<TrainingPerClassRow> PerClassRows { get; } =
+    [
+        new()
+        {
+            ClassName = "划伤",
+            PrecisionText = "0.842",
+            RecallText = "0.778",
+            F1Text = "0.809",
+            SupportText = "68",
+        },
+        new()
+        {
+            ClassName = "凹陷",
+            PrecisionText = "0.731",
+            RecallText = "0.695",
+            F1Text = "0.713",
+            SupportText = "42",
+        },
+        new()
+        {
+            ClassName = "污渍",
+            PrecisionText = "0.906",
+            RecallText = "0.861",
+            F1Text = "0.883",
+            SupportText = "86",
+        },
+    ];
+
+    public bool HasPerClassRows => PerClassRows.Count > 0;
+
+    public string PerClassPanelTitle => "检测指标（最新一轮）";
 
     public bool ShowMetricCards => true;
 

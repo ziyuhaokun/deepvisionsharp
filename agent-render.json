@@ -1,0 +1,27 @@
+{
+  "verifyOnStop": false,
+  "defaults": {
+    "stack": "avalonia"
+  },
+  "views": {
+    "AvaloniaRealShell": {
+      "stack": "avalonia",
+      "assemblyPaths": [
+        "src/DeepVisionSharp.Shell.Avalonia/bin/Debug/net10.0-windows/DeepVisionSharp.Avalonia.dll"
+      ],
+      "build": ["dotnet", "build", "DeepVisionSharp.slnx", "-c", "Debug", "--nologo"],
+      "factoryFile": "scripts/agent-render/ViewFactoryAvaloniaReal.cs",
+      "viewType": "DeepVisionSharp.Shell.Avalonia.MainWindow",
+      "themes": ["light"],
+      "width": 1600,
+      "height": 1000,
+      "background": "white",
+      "watch": [
+        "src/DeepVisionSharp.Shell.Avalonia/**",
+        "src/DeepVisionSharp.Presentation/**",
+        "src/yu-ui.avalonia/**",
+        "scripts/agent-render/ViewFactoryAvaloniaReal.cs"
+      ]
+    }
+  }
+}

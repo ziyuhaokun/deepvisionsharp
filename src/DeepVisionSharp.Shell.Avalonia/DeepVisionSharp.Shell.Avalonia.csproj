@@ -28,4 +28,9 @@
     <ProjectReference Include="..\yu-ui.avalonia\yu-ui.avalonia.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- 用户版变更日志（设置页「关于」唯一数据源）；开发者版 CHANGELOG.Developer.md 不复制。 -->
+    <None Include="..\..\CHANGELOG.md" Link="CHANGELOG.md" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

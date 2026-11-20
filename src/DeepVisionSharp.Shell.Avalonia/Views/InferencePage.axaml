@@ -507,19 +507,18 @@
                                      SelectedItem="{Binding SelectedImage, Mode=TwoWay}">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
-                                        <Grid ColumnDefinitions="40,*"
-                                              ContextRequested="OnImageItemContextRequested">
+                                        <Grid ColumnDefinitions="40,*">
                                             <Grid.ContextMenu>
                                                 <ContextMenu>
                                                     <MenuItem Header="预计：OK"
-                                                              Tag="expected-ok"
-                                                              Click="OnImageContextMenuClicked" />
+                                                              Command="{Binding $parent[UserControl].DataContext.SetExpectedOkCommand}"
+                                                              CommandParameter="{Binding}" />
                                                     <MenuItem Header="预计：NG"
-                                                              Tag="expected-ng"
-                                                              Click="OnImageContextMenuClicked" />
+                                                              Command="{Binding $parent[UserControl].DataContext.SetExpectedNgCommand}"
+                                                              CommandParameter="{Binding}" />
                                                     <MenuItem Header="清除预计标记"
-                                                              Tag="expected-clear"
-                                                              Click="OnImageContextMenuClicked" />
+                                                              Command="{Binding $parent[UserControl].DataContext.ClearExpectedCommand}"
+                                                              CommandParameter="{Binding}" />
                                                 </ContextMenu>
                                             </Grid.ContextMenu>
                                             <Border Width="40"
@@ -833,6 +832,21 @@
                                                                Value="{Binding MaxDetections, Mode=TwoWay}" />
                                             </StackPanel>
 
+                                            <StackPanel Margin="0,12,0,0" IsVisible="{Binding Runner.ShowsNmsIou}">
+                                                <TextBlock Classes="fieldLabel" Text="NMS IoU" />
+                                                <iv:NumericBox Height="34"
+                                                               Background="{DynamicResource IvControlFillBrush}"
+                                                               BorderBrush="{DynamicResource IvControlBorderBrush}"
+                                                               Maximum="0.95"
+                                                               Minimum="0.05"
+                                                               Step="0.05"
+                                                               Value="{Binding Runner.NmsIou, Mode=TwoWay}" />
+                                                <TextBlock Margin="0,5,0,0"
+                                                           Classes="muted"
+                                                           Text="IoU 越高保留的重叠框越少，检测模型默认 0.45。"
+                                                           TextWrapping="Wrap" />
+                                            </StackPanel>
+
                                         </StackPanel>
                                     </Border>
                                 </StackPanel>
@@ -913,6 +927,14 @@
                                                                    Text="{Binding ResultDetail}"
                                                                    TextWrapping="Wrap"
                                                                    IsVisible="{Binding ResultDetail, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
+                                                        <Button Margin="0,8,0,0"
+                                                                HorizontalAlignment="Left"
+                                                                AutomationProperties.AutomationId="dv.inference.adopt-boxes"
+                                                                Command="{Binding AdoptPredictedBoxesCommand}"
+                                                                Content="采纳预测框为标注"
+                                                                IsEnabled="{Binding CanAdoptPredictedBoxes}"
+                                                                IsVisible="{Binding CanAdoptPredictedBoxes}"
+                                                                Theme="{StaticResource WorkbenchPrimaryButtonStyle}" />
                                                         <StackPanel Margin="0,8,0,0"
                                                                     Orientation="Horizontal"
                                                                     IsVisible="{Binding SelectedImageHasPredicted}">

@@ -3,7 +3,6 @@ using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data.Converters;
-using Avalonia.Input;
 using Avalonia.Interactivity;
 
 using DeepVisionSharp.Presentation.ViewModels.Inference;
@@ -137,9 +136,15 @@ public partial class InferencePage : UserControl
             return;
         }
 
+        var zoomScale = _inferenceSurface.ZoomScale;
+        if (_viewModel is not null)
+        {
+            _viewModel.ZoomScale = zoomScale;
+        }
+
         if (_stub is not null)
         {
-            _stub.ZoomScale = _inferenceSurface.ZoomScale;
+            _stub.ZoomScale = zoomScale;
         }
     }
 
@@ -152,15 +157,6 @@ public partial class InferencePage : UserControl
     private void OnInspectorConfigTabClicked(object? sender, RoutedEventArgs e) => SetInspectorTab(0);
 
     private void OnInspectorResultTabClicked(object? sender, RoutedEventArgs e) => SetInspectorTab(1);
-
-    /// <summary>待推理列表项的右键菜单是本页的「预计 OK / NG」入口；stub 不回写标记，只保留菜单结构。</summary>
-    private void OnImageItemContextRequested(object? sender, ContextRequestedEventArgs e)
-    {
-    }
-
-    private void OnImageContextMenuClicked(object? sender, RoutedEventArgs e)
-    {
-    }
 
     private void SetInspectorTab(int index)
     {
