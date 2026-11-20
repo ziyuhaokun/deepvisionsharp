@@ -122,7 +122,6 @@
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
                             <TextBlock Grid.Row="0" Grid.Column="0"
@@ -144,14 +143,6 @@
                                        FontSize="12.5"
                                        Text="{Binding Config.Dataset.DatasetSummaryText}"
                                        TextWrapping="Wrap" />
-
-                            <TextBlock Grid.Row="2" Grid.Column="0"
-                                       Classes="fieldLabel"
-                                       Text="模型" />
-                            <TextBlock Grid.Row="2" Grid.Column="2"
-                                       FontSize="12.5"
-                                       Text="{Binding Config.SelectedLibraryModelSummary}"
-                                       TextWrapping="Wrap" />
                         </Grid>
                     </StackPanel>
                 </Border>
@@ -170,68 +161,45 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
                             <TextBlock Grid.Row="0" Grid.Column="0"
                                        Margin="0,0,0,8"
                                        Classes="fieldLabel"
-                                       Text="Epochs"
-                                       IsVisible="{Binding Config.ShowsYoloTrainHyperparameters}" />
+                                       Text="Epochs" />
                             <TextBlock Grid.Row="0" Grid.Column="2"
                                        Margin="0,0,0,8"
                                        FontFamily="{DynamicResource IvMonoFontFamily}"
                                        FontSize="12.5"
-                                       Text="{Binding Config.Epochs}"
-                                       IsVisible="{Binding Config.ShowsYoloTrainHyperparameters}" />
+                                       Text="{Binding Config.Epochs}" />
 
                             <TextBlock Grid.Row="1" Grid.Column="0"
                                        Margin="0,0,0,8"
                                        Classes="fieldLabel"
-                                       Text="Batch Size"
-                                       IsVisible="{Binding Config.ShowsBatchSizeHyperparameter}" />
+                                       Text="Batch Size" />
                             <TextBlock Grid.Row="1" Grid.Column="2"
                                        Margin="0,0,0,8"
                                        FontFamily="{DynamicResource IvMonoFontFamily}"
                                        FontSize="12.5"
-                                       Text="{Binding Config.BatchSize}"
-                                       IsVisible="{Binding Config.ShowsBatchSizeHyperparameter}" />
+                                       Text="{Binding Config.BatchSize}" />
 
                             <TextBlock Grid.Row="2" Grid.Column="0"
                                        Margin="0,0,0,8"
                                        Classes="fieldLabel"
-                                       Text="学习率"
-                                       IsVisible="{Binding Config.ShowsYoloTrainHyperparameters}" />
+                                       Text="学习率" />
                             <TextBlock Grid.Row="2" Grid.Column="2"
                                        Margin="0,0,0,8"
                                        FontFamily="{DynamicResource IvMonoFontFamily}"
                                        FontSize="12.5"
-                                       Text="{Binding Config.LearningRate}"
-                                       IsVisible="{Binding Config.ShowsYoloTrainHyperparameters}" />
+                                       Text="{Binding Config.LearningRate}" />
 
                             <TextBlock Grid.Row="3" Grid.Column="0"
-                                       Margin="0,0,0,8"
                                        Classes="fieldLabel"
-                                       Text="优化器 / Workers"
-                                       IsVisible="{Binding Config.ShowsYoloAdvancedTrainOptions}" />
-                            <StackPanel Grid.Row="3" Grid.Column="2"
-                                        Margin="0,0,0,8"
-                                        Orientation="Horizontal"
-                                        IsVisible="{Binding Config.ShowsYoloAdvancedTrainOptions}">
-                                <TextBlock FontSize="12.5" Text="{Binding Config.Optimizer}" />
-                                <TextBlock FontSize="12.5" Text=" / " />
-                                <TextBlock FontSize="12.5" Text="{Binding Config.NumWorkers}" />
-                            </StackPanel>
-
-                            <TextBlock Grid.Row="4" Grid.Column="0"
-                                       Classes="fieldLabel"
-                                       Text="数据增强"
-                                       IsVisible="{Binding Config.ShowsYoloAugmentation}" />
-                            <TextBlock Grid.Row="4" Grid.Column="2"
+                                       Text="优化器" />
+                            <TextBlock Grid.Row="3" Grid.Column="2"
+                                       FontFamily="{DynamicResource IvMonoFontFamily}"
                                        FontSize="12.5"
-                                       Text="{Binding Config.YoloAugmentationSummary}"
-                                       TextWrapping="Wrap"
-                                       IsVisible="{Binding Config.ShowsYoloAugmentation}" />
+                                       Text="{Binding Config.Optimizer}" />
                         </Grid>
                     </StackPanel>
                 </Border>
@@ -293,26 +261,6 @@
                 </Border>
 
                 <StackPanel VerticalAlignment="Top" IsVisible="{Binding Monitor.ShowResultsContent}">
-                    <Border Margin="0,0,0,12"
-                            Padding="16"
-                            Background="{DynamicResource IvSurface2Brush}"
-                            BorderBrush="{DynamicResource IvWarningBrush}"
-                            BorderThickness="1"
-                            CornerRadius="6"
-                            IsVisible="{Binding Monitor.HasOcrExportWarning}">
-                        <StackPanel>
-                            <TextBlock FontSize="13"
-                                       Foreground="{DynamicResource IvWarningTextBrush}"
-                                       Text="{Binding Monitor.OcrExportWarning}"
-                                       TextWrapping="Wrap" />
-                            <Button Margin="0,12,0,0"
-                                    HorizontalAlignment="Left"
-                                    Command="{Binding Monitor.ShowLogsSectionCommand}"
-                                    Content="查看训练日志"
-                                    Theme="{StaticResource TrainingSecondaryButtonStyle}" />
-                        </StackPanel>
-                    </Border>
-
                     <Border Classes="resultCard">
                         <StackPanel>
                             <StackPanel IsVisible="{Binding Monitor.ShowDualCheckpointResults}">
@@ -397,7 +345,7 @@
                                 <TextBlock Margin="0,8,0,0"
                                            FontFamily="{DynamicResource IvMonoFontFamily}"
                                            FontSize="11"
-                                           Text="{Binding JobList.SelectedJob.BestModelPath}"
+                                           Text="{Binding JobList.SelectedJobBestModelPath}"
                                            TextWrapping="Wrap" />
                                 <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                                     <TextBlock Foreground="{DynamicResource IvText2Brush}"
@@ -422,7 +370,7 @@
                                         Theme="{StaticResource TrainingSecondaryButtonStyle}" />
                                 <Button Command="{Binding Monitor.Preview.OpenTrainingPlotsFolderCommand}"
                                         Content="打开图表目录"
-                                        IsVisible="{Binding Monitor.IsSelectedJobYoloClassificationModel}"
+                                        IsVisible="{Binding Monitor.IsSelectedJobClassificationModel}"
                                         ToolTip.Tip="Ultralytics results / confusion matrix / 汇总曲线（output/plots）"
                                         Theme="{StaticResource TrainingSecondaryButtonStyle}" />
                             </StackPanel>
@@ -474,8 +422,7 @@
                         </StackPanel>
                     </Border>
 
-                    <Border Classes="resultCard"
-                            IsVisible="{Binding Config.ShowsBatchSizeHyperparameter}">
+                    <Border Classes="resultCard">
                         <StackPanel>
                             <TextBlock Classes="sectionTitle" Text="训练配置" />
                             <Grid Margin="0,10,0,0">
@@ -487,17 +434,14 @@
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
                                 <TextBlock Grid.Row="0" Grid.Column="0"
                                            Margin="0,0,12,6"
                                            Classes="fieldLabel"
-                                           Text="Epochs"
-                                           IsVisible="{Binding Config.ShowsYoloTrainHyperparameters}" />
+                                           Text="Epochs" />
                                 <TextBlock Grid.Row="0" Grid.Column="1"
                                            Margin="0,0,0,6"
-                                           Text="{Binding Config.Epochs}"
-                                           IsVisible="{Binding Config.ShowsYoloTrainHyperparameters}" />
+                                           Text="{Binding Config.Epochs}" />
                                 <TextBlock Grid.Row="1" Grid.Column="0"
                                            Margin="0,0,12,6"
                                            Classes="fieldLabel"
@@ -506,22 +450,11 @@
                                            Margin="0,0,0,6"
                                            Text="{Binding Config.BatchSize}" />
                                 <TextBlock Grid.Row="2" Grid.Column="0"
-                                           Margin="0,0,12,6"
-                                           Classes="fieldLabel"
-                                           Text="学习率"
-                                           IsVisible="{Binding Config.ShowsYoloTrainHyperparameters}" />
-                                <TextBlock Grid.Row="2" Grid.Column="1"
-                                           Margin="0,0,0,6"
-                                           Text="{Binding Config.LearningRate}"
-                                           IsVisible="{Binding Config.ShowsYoloTrainHyperparameters}" />
-                                <TextBlock Grid.Row="3" Grid.Column="0"
                                            Margin="0,0,12,0"
                                            Classes="fieldLabel"
-                                           Text="输入通道"
-                                           IsVisible="{Binding Config.ShowsYoloInputChannels}" />
-                                <TextBlock Grid.Row="3" Grid.Column="1"
-                                           Text="{Binding Config.Spatial.YoloInputChannelsDisplay}"
-                                           IsVisible="{Binding Config.ShowsYoloInputChannels}" />
+                                           Text="学习率" />
+                                <TextBlock Grid.Row="2" Grid.Column="1"
+                                           Text="{Binding Config.LearningRate}" />
                             </Grid>
                         </StackPanel>
                     </Border>
@@ -686,7 +619,7 @@
                 </Border>
 
                 <Grid>
-                    <StackPanel VerticalAlignment="Top" IsVisible="{Binding Monitor.Metrics.ShowYoloMetricsContent}">
+                    <StackPanel VerticalAlignment="Top" IsVisible="{Binding Monitor.Metrics.ShowProfileMetricsCards}">
                         <TextBlock Margin="0,0,0,10"
                                    FontSize="12.5"
                                    Foreground="{DynamicResource IvText2Brush}"
@@ -774,7 +707,7 @@
 
                         <Grid Margin="0,0,0,16"
                               ColumnDefinitions="*,*"
-                              IsVisible="{Binding Monitor.Metrics.ShowDetectionOrSegmentationMetricsCards}">
+                              IsVisible="{Binding Monitor.Metrics.ShowDetectionMetricsCards}">
                             <Border Grid.Column="0" Margin="0,0,6,0" Classes="metricCard">
                                 <StackPanel>
                                     <TextBlock Classes="sectionTitle" Text="{Binding Monitor.Metrics.QualityChartTitle}" />
@@ -803,7 +736,7 @@
 
                         <Grid Margin="0,0,0,16"
                               ColumnDefinitions="*,*,*"
-                              IsVisible="{Binding Monitor.Metrics.ShowQualityWithLearningRateCharts}">
+                              IsVisible="{Binding Monitor.Metrics.ShowClassificationMetricsCards}">
                             <Border Grid.Column="0" Margin="0,0,6,0" Classes="metricCard">
                                 <StackPanel>
                                     <TextBlock Classes="sectionTitle" Text="{Binding Monitor.Metrics.QualityChartTitle}" />
@@ -892,45 +825,6 @@
                                     </Grid>
                                 </Border>
 
-                                <Border Classes="historyTable"
-                                        MinWidth="686"
-                                        IsVisible="{Binding Monitor.Metrics.ShowSegmentationMetricsCards}">
-                                    <Grid RowDefinitions="Auto,*">
-                                        <Border Classes="historyHeaderRow">
-                                            <Grid ColumnDefinitions="64,100,100,100,100,100,100">
-                                                <TextBlock Classes="historyHeader" Text="轮次" />
-                                                <TextBlock Grid.Column="1" Classes="historyHeader" Text="训练损失" />
-                                                <TextBlock Grid.Column="2" Classes="historyHeader" Text="Mask mAP50" />
-                                                <TextBlock Grid.Column="3" Classes="historyHeader" Text="Mask mAP" />
-                                                <TextBlock Grid.Column="4" Classes="historyHeader" Text="Box mAP50" />
-                                                <TextBlock Grid.Column="5" Classes="historyHeader" Text="Box mAP" />
-                                                <TextBlock Grid.Column="6" Classes="historyHeader" Text="学习率" />
-                                            </Grid>
-                                        </Border>
-                                        <ScrollViewer Grid.Row="1"
-                                                      MaxHeight="240"
-                                                      HorizontalScrollBarVisibility="Disabled"
-                                                      VerticalScrollBarVisibility="Auto">
-                                            <ItemsControl ItemsSource="{Binding Monitor.Metrics.MetricHistory}">
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <Border Classes="historyRow">
-                                                            <Grid ColumnDefinitions="64,100,100,100,100,100,100">
-                                                                <TextBlock Classes="historyCell" Text="{Binding Epoch}" />
-                                                                <TextBlock Grid.Column="1" Classes="historyCell" Text="{Binding TrainLossText}" />
-                                                                <TextBlock Grid.Column="2" Classes="historyCell" Text="{Binding MaskMap50Text}" />
-                                                                <TextBlock Grid.Column="3" Classes="historyCell" Text="{Binding MaskMapText}" />
-                                                                <TextBlock Grid.Column="4" Classes="historyCell" Text="{Binding BoxMap50Text}" />
-                                                                <TextBlock Grid.Column="5" Classes="historyCell" Text="{Binding BoxMapText}" />
-                                                                <TextBlock Grid.Column="6" Classes="historyCell" Text="{Binding LrText}" />
-                                                            </Grid>
-                                                        </Border>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
-                                        </ScrollViewer>
-                                    </Grid>
-                                </Border>
 
                                 <Border Classes="historyTable"
                                         MinWidth="586"
@@ -970,79 +864,7 @@
                                     </Grid>
                                 </Border>
 
-                                <Border Classes="historyTable"
-                                        MinWidth="586"
-                                        IsVisible="{Binding Monitor.Metrics.ShowOcrDetectionMetricsCards}">
-                                    <Grid RowDefinitions="Auto,*">
-                                        <Border Classes="historyHeaderRow">
-                                            <Grid ColumnDefinitions="64,100,100,100,100,100">
-                                                <TextBlock Classes="historyHeader" Text="轮次" />
-                                                <TextBlock Grid.Column="1" Classes="historyHeader" Text="Hmean" />
-                                                <TextBlock Grid.Column="2" Classes="historyHeader" Text="Precision" />
-                                                <TextBlock Grid.Column="3" Classes="historyHeader" Text="Recall" />
-                                                <TextBlock Grid.Column="4" Classes="historyHeader" Text="训练损失" />
-                                                <TextBlock Grid.Column="5" Classes="historyHeader" Text="学习率" />
-                                            </Grid>
-                                        </Border>
-                                        <ScrollViewer Grid.Row="1"
-                                                      MaxHeight="240"
-                                                      HorizontalScrollBarVisibility="Disabled"
-                                                      VerticalScrollBarVisibility="Auto">
-                                            <ItemsControl ItemsSource="{Binding Monitor.Metrics.MetricHistory}">
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <Border Classes="historyRow">
-                                                            <Grid ColumnDefinitions="64,100,100,100,100,100">
-                                                                <TextBlock Classes="historyCell" Text="{Binding Epoch}" />
-                                                                <TextBlock Grid.Column="1" Classes="historyCell" Text="{Binding DetHmeanText}" />
-                                                                <TextBlock Grid.Column="2" Classes="historyCell" Text="{Binding DetPrecisionText}" />
-                                                                <TextBlock Grid.Column="3" Classes="historyCell" Text="{Binding DetRecallText}" />
-                                                                <TextBlock Grid.Column="4" Classes="historyCell" Text="{Binding TrainLossText}" />
-                                                                <TextBlock Grid.Column="5" Classes="historyCell" Text="{Binding LrText}" />
-                                                            </Grid>
-                                                        </Border>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
-                                        </ScrollViewer>
-                                    </Grid>
-                                </Border>
 
-                                <Border Classes="historyTable"
-                                        MinWidth="586"
-                                        IsVisible="{Binding Monitor.Metrics.ShowOcrMetricsCards}">
-                                    <Grid RowDefinitions="Auto,*">
-                                        <Border Classes="historyHeaderRow">
-                                            <Grid ColumnDefinitions="64,120,120,100,100">
-                                                <TextBlock Classes="historyHeader" Text="轮次" />
-                                                <TextBlock Grid.Column="1" Classes="historyHeader" Text="文字准确率" />
-                                                <TextBlock Grid.Column="2" Classes="historyHeader" Text="编辑相似度" />
-                                                <TextBlock Grid.Column="3" Classes="historyHeader" Text="训练损失" />
-                                                <TextBlock Grid.Column="4" Classes="historyHeader" Text="学习率" />
-                                            </Grid>
-                                        </Border>
-                                        <ScrollViewer Grid.Row="1"
-                                                      MaxHeight="240"
-                                                      HorizontalScrollBarVisibility="Disabled"
-                                                      VerticalScrollBarVisibility="Auto">
-                                            <ItemsControl ItemsSource="{Binding Monitor.Metrics.MetricHistory}">
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <Border Classes="historyRow">
-                                                            <Grid ColumnDefinitions="64,120,120,100,100">
-                                                                <TextBlock Classes="historyCell" Text="{Binding Epoch}" />
-                                                                <TextBlock Grid.Column="1" Classes="historyCell" Text="{Binding OcrAccuracyText}" />
-                                                                <TextBlock Grid.Column="2" Classes="historyCell" Text="{Binding OcrNormalizedEditSimilarityText}" />
-                                                                <TextBlock Grid.Column="3" Classes="historyCell" Text="{Binding TrainLossText}" />
-                                                                <TextBlock Grid.Column="4" Classes="historyCell" Text="{Binding LrText}" />
-                                                            </Grid>
-                                                        </Border>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
-                                        </ScrollViewer>
-                                    </Grid>
-                                </Border>
                             </StackPanel>
                         </ScrollViewer>
                     </StackPanel>

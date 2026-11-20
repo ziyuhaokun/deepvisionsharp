@@ -1,8 +1,10 @@
+using System.Collections.Specialized;
+using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using DeepVisionSharp.Shell.Avalonia.ViewModels;
+using DeepVisionSharp.Presentation.ViewModels.Labeling;
 
 namespace DeepVisionSharp.Shell.Avalonia.Controls.Labeling;
 
@@ -18,21 +20,10 @@ public sealed class AnnotationEditCompletedEventArgs(IReadOnlyList<Rect> snapsho
     public IReadOnlyList<Rect> Snapshots { get; } = snapshots;
 }
 
-/// <summary>新建多边形的事件参数（图像坐标系）。</summary>
-public sealed class SegmentationPolygonCreatedEventArgs(IReadOnlyList<Point> polygon) : EventArgs
-{
-    public IReadOnlyList<Point> Polygon { get; } = polygon;
-}
-
-/// <summary>多边形编辑完成的事件参数。</summary>
-public sealed class SegmentationPolygonEditCompletedEventArgs(IReadOnlyList<Point> changed) : EventArgs
-{
-    public IReadOnlyList<Point> Changed { get; } = changed;
-}
-
 /// <summary>
-/// 标注画布：把 Workspace 的图像按「适应窗口 × ZoomScale」画进控件，再叠上标注框与多边形。
-/// 本波只做静态渲染与缩放/适配，绘制与编辑手势、选择协调器留到接真实 ViewModel 时再补。
+/// 标注画布：把 Workspace 的图像按「适应窗口 × ZoomScale」画进控件，再叠上 <see cref="Boxes"/> 里的框。
+/// 框来自真实的 <see cref="BoxShapeViewModel"/> 集合（与 WPF <c>BoxOverlayCanvas.Boxes</c> 同一份数据），
+/// 集合增删与单框几何变化都会重画。绘制与编辑手势留到接交互层时再补。
 /// 几何一律用图像坐标，屏幕坐标由 （fit 比例 + 居中偏移 + 平移）换算。
 /// </summary>
 public sealed class AnnotationCanvas : Control
@@ -50,29 +41,25 @@ public sealed class AnnotationCanvas : Control
     public static readonly StyledProperty<string> ActiveLabelProperty =
         AvaloniaProperty.Register<AnnotationCanvas, string>(nameof(ActiveLabel), string.Empty);
 
-    public static readonly StyledProperty<bool> IsInstanceSegmentationProperty =
-        AvaloniaProperty.Register<AnnotationCanvas, bool>(nameof(IsInstanceSegmentation));
-
-    public static readonly StyledProperty<IReadOnlyList<SampleAnnotationRow>?> AnnotationsProperty =
-        AvaloniaProperty.Register<AnnotationCanvas, IReadOnlyList<SampleAnnotationRow>?>(nameof(Annotations));
+    public static readonly StyledProperty<IReadOnlyList<BoxShapeViewModel>?> BoxesProperty =
+        AvaloniaProperty.Register<AnnotationCanvas, IReadOnlyList<BoxShapeViewModel>?>(nameof(Boxes));
 
     public static readonly StyledProperty<IImage?> ImageSourceProperty =
         AvaloniaProperty.Register<AnnotationCanvas, IImage?>(nameof(ImageSource));
 
-    public static readonly StyledProperty<IReadOnlyList<SamplePolygonRow>?> SegmentationPolygonsProperty =
-        AvaloniaProperty.Register<AnnotationCanvas, IReadOnlyList<SamplePolygonRow>?>(nameof(SegmentationPolygons));
-
     public static readonly StyledProperty<bool> ShowLabelNamesProperty =
         AvaloniaProperty.Register<AnnotationCanvas, bool>(nameof(ShowLabelNames), true);
 
-    public static readonly StyledProperty<LabelingToolMode> ToolModeProperty =
-        AvaloniaProperty.Register<AnnotationCanvas, LabelingToolMode>(nameof(ToolMode));
+    public static readonly StyledProperty<BoxToolMode> ToolModeProperty =
+        AvaloniaProperty.Register<AnnotationCanvas, BoxToolMode>(nameof(ToolMode));
 
     public static readonly StyledProperty<bool> UseTransparentFillProperty =
         AvaloniaProperty.Register<AnnotationCanvas, bool>(nameof(UseTransparentFill));
 
     public static readonly StyledProperty<double> ZoomScaleProperty =
         AvaloniaProperty.Register<AnnotationCanvas, double>(nameof(ZoomScale), 1d);
+
+    private readonly List<BoxShapeViewModel> _trackedBoxes = new();
 
     private Vector _pan;
 
@@ -82,10 +69,8 @@ public sealed class AnnotationCanvas : Control
             ActiveColorProperty,
             ActiveLabelIdProperty,
             ActiveLabelProperty,
-            IsInstanceSegmentationProperty,
-            AnnotationsProperty,
+            BoxesProperty,
             ImageSourceProperty,
-            SegmentationPolygonsProperty,
             ShowLabelNamesProperty,
             ToolModeProperty,
             UseTransparentFillProperty,
@@ -101,13 +86,9 @@ public sealed class AnnotationCanvas : Control
     /// <summary>视口变化（缩放或平移）后触发，页面据此同步鸟瞰图。</summary>
     public event EventHandler? ViewportChanged;
 
-    // 以下四个是画布的绘制/编辑接线点：本波没有绘制与编辑手势，页面照旧接上，事件保留为空。
+    // 以下三个是画布绘制/编辑手势的接线点：本波没有手势，页面照旧接上，事件保留为空。
 #pragma warning disable CS0067
     public event EventHandler<AnnotationCreatedEventArgs>? AnnotationCreated;
-
-    public event EventHandler<SegmentationPolygonCreatedEventArgs>? SegmentationPolygonCreated;
-
-    public event EventHandler<SegmentationPolygonEditCompletedEventArgs>? SegmentationPolygonEditCompleted;
 
     public event EventHandler? AnnotationEditStarted;
 
@@ -132,16 +113,11 @@ public sealed class AnnotationCanvas : Control
         set => SetValue(ActiveLabelProperty, value);
     }
 
-    public bool IsInstanceSegmentation
+    /// <summary>当前样本的框（图像坐标），与侧栏框列表是同一份 <see cref="BoxShapeViewModel"/> 集合。</summary>
+    public IReadOnlyList<BoxShapeViewModel>? Boxes
     {
-        get => GetValue(IsInstanceSegmentationProperty);
-        set => SetValue(IsInstanceSegmentationProperty, value);
-    }
-
-    public IReadOnlyList<SampleAnnotationRow>? Annotations
-    {
-        get => GetValue(AnnotationsProperty);
-        set => SetValue(AnnotationsProperty, value);
+        get => GetValue(BoxesProperty);
+        set => SetValue(BoxesProperty, value);
     }
 
     public IImage? ImageSource
@@ -150,19 +126,13 @@ public sealed class AnnotationCanvas : Control
         set => SetValue(ImageSourceProperty, value);
     }
 
-    public IReadOnlyList<SamplePolygonRow>? SegmentationPolygons
-    {
-        get => GetValue(SegmentationPolygonsProperty);
-        set => SetValue(SegmentationPolygonsProperty, value);
-    }
-
     public bool ShowLabelNames
     {
         get => GetValue(ShowLabelNamesProperty);
         set => SetValue(ShowLabelNamesProperty, value);
     }
 
-    public LabelingToolMode ToolMode
+    public BoxToolMode ToolMode
     {
         get => GetValue(ToolModeProperty);
         set => SetValue(ToolModeProperty, value);
@@ -244,6 +214,17 @@ public sealed class AnnotationCanvas : Control
     /// <summary>本波没有绘制中的几何，永远返回 false。</summary>
     public bool CancelGeometryEdit() => false;
 
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+
+        if (change.Property == BoxesProperty)
+        {
+            TrackBoxes(change.GetOldValue<IReadOnlyList<BoxShapeViewModel>?>(),
+                change.GetNewValue<IReadOnlyList<BoxShapeViewModel>?>());
+        }
+    }
+
     public override void Render(DrawingContext context)
     {
         base.Render(context);
@@ -260,74 +241,81 @@ public sealed class AnnotationCanvas : Control
             context.DrawImage(source, drawn);
         }
 
-        DrawPolygons(context, scale, drawn);
-        DrawAnnotations(context, scale, drawn);
+        DrawBoxes(context, scale, drawn);
     }
 
-    private void DrawPolygons(DrawingContext context, double scale, Rect drawn)
+    /// <summary>换了一份框集合：把变化通知接到新集合与新集合里的每个框上。</summary>
+    private void TrackBoxes(
+        IReadOnlyList<BoxShapeViewModel>? previous,
+        IReadOnlyList<BoxShapeViewModel>? current)
     {
-        if (SegmentationPolygons is not { Count: > 0 } polygons)
+        if (previous is INotifyCollectionChanged oldCollection)
+        {
+            oldCollection.CollectionChanged -= OnBoxesCollectionChanged;
+        }
+
+        SyncTrackedBoxes(current);
+
+        if (current is INotifyCollectionChanged newCollection)
+        {
+            newCollection.CollectionChanged += OnBoxesCollectionChanged;
+        }
+
+        InvalidateVisual();
+    }
+
+    private void SyncTrackedBoxes(IReadOnlyList<BoxShapeViewModel>? boxes)
+    {
+        foreach (var box in _trackedBoxes)
+        {
+            box.PropertyChanged -= OnBoxPropertyChanged;
+        }
+
+        _trackedBoxes.Clear();
+        if (boxes is null)
         {
             return;
         }
 
-        foreach (var polygon in polygons)
+        foreach (var box in boxes)
         {
-            if (polygon.Points.Count < 3)
-            {
-                continue;
-            }
-
-            var points = polygon.Points
-                .Select(point => new Point(drawn.Left + (point.X * scale), drawn.Top + (point.Y * scale)))
-                .ToList();
-
-            var color = polygon.Color is ISolidColorBrush solid
-                ? solid.Color
-                : Color.FromRgb(0xF5, 0x9E, 0x0B);
-
-            AnnotationRenderer.DrawCanvasQuad(
-                context,
-                points,
-                points.Aggregate(new Rect(points[0], points[0]), (rect, p) => rect.Union(new Rect(p, p))),
-                color,
-                selected: false,
-                primary: false,
-                showLabel: ShowLabelNames,
-                text: polygon.Label,
-                handleSize: HandleSize,
-                transparentFill: UseTransparentFill);
+            box.PropertyChanged += OnBoxPropertyChanged;
+            _trackedBoxes.Add(box);
         }
     }
 
-    private void DrawAnnotations(DrawingContext context, double scale, Rect drawn)
+    private void OnBoxesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        if (Annotations is not { Count: > 0 } rows)
+        SyncTrackedBoxes(Boxes);
+        InvalidateVisual();
+    }
+
+    private void OnBoxPropertyChanged(object? sender, PropertyChangedEventArgs e) => InvalidateVisual();
+
+    private void DrawBoxes(DrawingContext context, double scale, Rect drawn)
+    {
+        if (Boxes is not { Count: > 0 } boxes)
         {
             return;
         }
 
         var placer = new AnnotationLabelPlacer();
-        foreach (var row in rows)
+        foreach (var box in boxes)
         {
             var screenRect = new Rect(
-                drawn.Left + (row.Bounds.X * scale),
-                drawn.Top + (row.Bounds.Y * scale),
-                row.Bounds.Width * scale,
-                row.Bounds.Height * scale);
-
-            var color = row.Color is ISolidColorBrush solid
-                ? solid.Color
-                : Color.FromRgb(0x3B, 0x82, 0xF6);
+                drawn.Left + (box.X * scale),
+                drawn.Top + (box.Y * scale),
+                box.Width * scale,
+                box.Height * scale);
 
             AnnotationRenderer.DrawCanvasAnnotation(
                 context,
                 screenRect,
-                color,
-                selected: row.IsSelected,
-                primary: row.IsSelected,
+                AnnotationRenderer.ParseColor(box.Color),
+                selected: box.IsSelected,
+                primary: box.IsSelected,
                 showLabel: ShowLabelNames,
-                label: row.Label,
+                label: box.Label,
                 handleSize: HandleSize,
                 transparentFill: UseTransparentFill,
                 placer: placer);

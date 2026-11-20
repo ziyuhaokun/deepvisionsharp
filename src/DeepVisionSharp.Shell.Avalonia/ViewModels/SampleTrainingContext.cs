@@ -2,6 +2,9 @@ using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
+using DeepVisionSharp.Application.Models;
+using DeepVisionSharp.Presentation.ViewModels;
+
 namespace DeepVisionSharp.Shell.Avalonia.ViewModels;
 
 /// <summary>
@@ -85,6 +88,12 @@ public sealed class SampleTrainingJobList : ObservableObject
 
     public int JobCount => Jobs.Count;
 
+    /// <summary>任务头副标题（与真 VM 同口径的空安全投影）。</summary>
+    public string SelectedJobMetaText => SelectedJob?.MetaText ?? string.Empty;
+
+    /// <summary>结果区「最佳模型」路径（与真 VM 同口径的空安全投影）。</summary>
+    public string SelectedJobBestModelPath => SelectedJob?.BestModelPath ?? string.Empty;
+
     public bool IsTrainingWorkflow => true;
 
     public bool ShowYoloJobDetail => true;
@@ -94,8 +103,6 @@ public sealed class SampleTrainingJobList : ObservableObject
     public bool ShowDetailPreparing => false;
 
     public bool ShowProjectRequired => false;
-
-    public bool ShowSegmentationTrainingPlaceholder => false;
 
     public bool HasEmptyJobList => Jobs.Count == 0;
 
@@ -135,15 +142,6 @@ public sealed class SampleTrainingConfig
 {
     public SampleTrainingConfig()
     {
-        ApplyParameterPresetCommand = new RelayCommand<string>(_ => { });
-        ResetBatchSizeCommand = new RelayCommand(() => { });
-        ResetCacheRamCommand = new RelayCommand(() => { });
-        ResetEpochsCommand = new RelayCommand(() => { });
-        ResetLearningRateCommand = new RelayCommand(() => { });
-        ResetNumWorkersCommand = new RelayCommand(() => { });
-        ResetOptimizerCommand = new RelayCommand(() => { });
-        ResetUseAmpCommand = new RelayCommand(() => { });
-        ResetValIntervalCommand = new RelayCommand(() => { });
         StartTrainingCommand = new RelayCommand(() => { });
         StopTrainingCommand = new RelayCommand(() => { });
         ResumeTrainingCommand = new RelayCommand(() => { });
@@ -152,13 +150,9 @@ public sealed class SampleTrainingConfig
 
     public SampleTrainingDatasetConfig Dataset { get; } = new();
 
-    public SampleTrainingAugmentConfig Det { get; } = new();
-
     public SampleTrainingAugmentConfig Cls { get; } = new();
 
     public SampleTrainingSpatialConfig Spatial { get; } = new();
-
-    public SampleTrainingGeometryConfig Geometry { get; } = new();
 
     public string ModelName => "冷轧线划伤检测 · yolo11n";
 
@@ -176,181 +170,50 @@ public sealed class SampleTrainingConfig
 
     public bool IsFormEditable => false;
 
+    /// <summary>检测 / 分类两族模型都走同一个「高级参数」页签。</summary>
     public bool IsYoloModelSelected => true;
 
-    public bool IsYoloDetectionModelSelected => true;
+    public bool IsClassificationModelSelected => false;
 
-    public bool IsYoloClassificationModelSelected => false;
+    /// <summary>检测专属参数（NMS IoU / 评估置信度 / 最大框数 / 水平翻转）的可见性。</summary>
+    public bool ShowsDetectionOptions => true;
 
-    public bool IsAnomalibModelSelected => false;
+    public string SelectedModelType => ModelTypeNames.DefaultDetection;
 
-    public bool IsPpOcrDetectionModelSelected => false;
+    public IReadOnlyList<ModelTypeOption> AvailableModelTypes =>
+    [
+        new(ModelTypeNames.DefaultDetection, ModelTypeNames.GetDisplayLabel(ModelTypeNames.DefaultDetection)),
+    ];
 
-    public bool IsPpOcrRecognitionModelSelected => false;
+    public bool UsesNetworkInputSize => Spatial.UsesNetworkInputSize;
 
-    public bool ShowLibraryModelSelector => true;
+    public double DetectionNmsIou => 0.45;
 
-    public string SelectedLibraryModelSummary => "yolo11n.pt（COCO 预训练，80 类）";
+    public double DetectionConfidence => 0.25;
 
-    public string SelectedModelType => "YoloDetection";
+    public int DetectionMaxDetections => 100;
 
-    public string SelectedLibraryModelId => "yolo11n";
-
-    public IReadOnlyList<string> LibraryModelOptions => [];
+    public bool DetectionHorizontalFlip => true;
 
     public bool IsBasicConfigurationComplete => true;
 
     public bool IsDatasetConfigurationComplete => true;
 
-    public bool HasAdvancedModifications => false;
-
-    public int AdvancedModifiedParameterCount => 0;
-
-    public bool HasModifiedParameters => false;
-
-    public string ModifiedParametersText => string.Empty;
-
     public bool HasStartTrainingBlockReason => false;
 
     public string StartTrainingBlockReason => string.Empty;
 
-    public bool HasDraftRunSummary => true;
-
-    public string DraftRunSummary => "yolo11n · 50 轮 · bs 16 · 训练 1,120 / 验证 128";
-
     public bool ShowDatasetSplitControls => true;
-
-    public bool ShowsParameterPresets => true;
-
-    public IReadOnlyList<string> ParameterPresets => [];
 
     public double Epochs => 50;
 
-    public bool IsEpochsModified => false;
-
-    public string EpochsDefaultHint => "默认 100";
-
     public double BatchSize => 16;
-
-    public bool IsBatchSizeModified => false;
-
-    public string BatchSizeDefaultHint => "默认 16";
-
-    public bool ShowsBatchSizeHyperparameter => true;
 
     public double LearningRate => 0.001;
 
-    public bool IsLearningRateModified => false;
-
-    public string LearningRateDefaultHint => "默认 0.01";
-
-    public double NumWorkers => 8;
-
-    public bool IsNumWorkersModified => false;
-
-    public string NumWorkersDefaultHint => "默认 8";
-
     public string Optimizer => "SGD";
 
-    public bool IsOptimizerModified => false;
-
-    public string OptimizerDefaultHint => "默认 SGD";
-
     public IReadOnlyList<string> OptimizerOptions => ["SGD", "Adam", "AdamW", "NAdam"];
-
-    public bool UseAmp => true;
-
-    public bool IsUseAmpModified => false;
-
-    public string UseAmpDefaultHint => "默认开启";
-
-    public bool CacheRam => false;
-
-    public bool IsCacheRamModified => false;
-
-    public string CacheRamDefaultHint => "默认关闭";
-
-    public double ValInterval => 1;
-
-    public bool IsValIntervalModified => false;
-
-    public string ValIntervalDefaultHint => "默认 1";
-
-    public bool ShowsYoloTrainHyperparameters => true;
-
-    public bool ShowsYoloAdvancedTrainOptions => true;
-
-    public bool ShowsYoloAugmentation => true;
-
-    public bool ShowsYoloDetectionAugmentation => true;
-
-    public bool ShowsScaleChangingYoloAugmentation => true;
-
-    public bool ShowsYoloInputChannels => true;
-
-    public bool ShowsNoYoloAugmentationNotice => false;
-
-    public string NoYoloAugmentationNotice => string.Empty;
-
-    public string YoloAugmentationSummary => "HSV 0.015 / 0.7 / 0.4 · 翻转 · 平移 0.1 · 缩放 0.5";
-
-    public string YoloGeometryAugmentationTitle => "几何增强";
-
-    public string YoloGeometryAugmentationHint => "mosaic / mixup / degrees / shear / perspective 都在训练开始时冻结";
-
-    public double OcrInputWidth => 640;
-
-    public double OcrInputHeight => 640;
-
-    public double OcrCropMargin => 0;
-
-    public bool OcrExportOpenVino => false;
-
-    public bool OcrQuantizeInt8 => false;
-
-    public bool ShowsNetworkInputDimensions => true;
-
-    public bool ShowsAnomalibParams => false;
-
-    public bool ShowsAnomalibEpochs => false;
-
-    public bool ShowsEfficientAdParams => false;
-
-    public bool ShowsFastflowParams => false;
-
-    public bool ShowsPadimOrStfpmParams => false;
-
-    public bool ShowsPatchCoreParams => false;
-
-    public string AnomalibLayers => string.Empty;
-
-    public string AnomalibBackbone => string.Empty;
-
-    public string AnomalibModelSize => string.Empty;
-
-    public bool AnomalibPreTrained => true;
-
-    public double AnomalibMaxEpochs => 0;
-
-    public double AnomalibFlowSteps => 0;
-
-    public double AnomalibHiddenRatio => 0;
-
-    public double AnomalibCoresetSamplingRatio => 0;
-
-    public double AnomalibNumNeighbors => 0;
-
-    public IReadOnlyList<SampleTrainingValueOption> AnomalibAlgorithmOptions =>
-    [
-        new("padim", "PaDiM"),
-        new("patchcore", "PatchCore"),
-        new("fastflow", "FastFlow"),
-        new("efficientad", "EfficientAD"),
-    ];
-
-    public IReadOnlyList<string> AnomalibBackboneOptions => [];
-
-    public IReadOnlyList<string> AnomalibModelSizeOptions => [];
 
     public string StartTrainingToolTip => "用当前配置开始训练";
 
@@ -359,24 +222,6 @@ public sealed class SampleTrainingConfig
     public string ResumeTrainingToolTip => "从中断处继续训练";
 
     public string SaveAsModelToolTip => "把选中的 checkpoint 存进模型库";
-
-    public ICommand ApplyParameterPresetCommand { get; }
-
-    public ICommand ResetBatchSizeCommand { get; }
-
-    public ICommand ResetCacheRamCommand { get; }
-
-    public ICommand ResetEpochsCommand { get; }
-
-    public ICommand ResetLearningRateCommand { get; }
-
-    public ICommand ResetNumWorkersCommand { get; }
-
-    public ICommand ResetOptimizerCommand { get; }
-
-    public ICommand ResetUseAmpCommand { get; }
-
-    public ICommand ResetValIntervalCommand { get; }
 
     public ICommand StartTrainingCommand { get; }
 
@@ -392,12 +237,12 @@ public sealed class SampleTrainingDatasetConfig
 {
     public SampleTrainingDatasetConfig()
     {
-        SwitchToAutoSplitModeCommand = new RelayCommand(() => { });
+        SetGalleryTrainingCommand = new RelayCommand(() => { });
+        SetGalleryValidationCommand = new RelayCommand(() => { });
+        SetGalleryTrainingAndValidationCommand = new RelayCommand(() => { });
+        SetGalleryNoneCommand = new RelayCommand(() => { });
         SwitchToPurposeAssignmentModeCommand = new RelayCommand(() => { });
-        SetGalleryNoneCommand = new RelayCommand<string>(_ => { });
-        SetGalleryTrainingCommand = new RelayCommand<string>(_ => { });
-        SetGalleryValidationCommand = new RelayCommand<string>(_ => { });
-        SetGalleryTrainingAndValidationCommand = new RelayCommand<string>(_ => { });
+        SwitchToAutoSplitModeCommand = new RelayCommand(() => { });
     }
 
     public string DatasetSummaryText => "训练 1,120 张 · 验证 128 张（按用途划分）";
@@ -410,93 +255,39 @@ public sealed class SampleTrainingDatasetConfig
 
     public bool IsPurposeAssignmentMode => true;
 
-    public bool ShowsAnomalyFixedDataset => false;
-
     public bool ShowsInteractiveGalleryPicker => true;
 
     public bool ShowsStandardGalleryRoles => true;
 
-    public double TrainRatioPercent => 90;
-
     public double ValidationRatioPercent => 10;
 
-    public ICommand SwitchToAutoSplitModeCommand { get; }
-
-    public ICommand SwitchToPurposeAssignmentModeCommand { get; }
-
-    public ICommand SetGalleryNoneCommand { get; }
+    public double TrainRatioPercent => 90;
 
     public ICommand SetGalleryTrainingCommand { get; }
 
     public ICommand SetGalleryValidationCommand { get; }
 
     public ICommand SetGalleryTrainingAndValidationCommand { get; }
+
+    public ICommand SetGalleryNoneCommand { get; }
+
+    public ICommand SwitchToPurposeAssignmentModeCommand { get; }
+
+    public ICommand SwitchToAutoSplitModeCommand { get; }
 }
 
-/// <summary>增强参数 stub（对应 TrainingAugmentConfigViewModel），检测与分类各用一份。</summary>
+/// <summary>分类增强 stub（对应 TrainingClassificationAugmentationViewModel）：本仓库只有翻转概率。</summary>
 public sealed class SampleTrainingAugmentConfig
 {
-    public double HsvH => 0.015;
-
-    public double HsvS => 0.7;
-
-    public double HsvV => 0.4;
-
-    public double Degrees => 0;
-
-    public double Translate => 0.1;
-
-    public double Scale => 0.5;
-
-    public double Shear => 0;
-
-    public double Perspective => 0;
-
     public double FlipLeftRight => 0.5;
 
     public double FlipUpDown => 0;
-
-    public double Mosaic => 1;
-
-    public double MixUp => 0;
-
-    public double CopyPaste => 0;
-
-    public double CloseMosaic => 10;
-
-    public double Erasing => 0.4;
-
-    public string AutoAugment => "randaugment";
-
-    public IReadOnlyList<SampleTrainingValueOption> AutoAugmentOptions =>
-    [
-        new("none", "关闭"),
-        new("randaugment", "RandAugment"),
-        new("autoaugment", "AutoAugment"),
-    ];
 }
 
-/// <summary>输入尺寸策略 stub（对应 TrainingSpatialConfigViewModel）。</summary>
+/// <summary>输入尺寸 stub（对应 TrainingSpatialSettingsViewModel）：按模型固定边长。</summary>
 public sealed class SampleTrainingSpatialConfig
 {
-    public SampleTrainingLabelOption SelectedSpatialInputModeOption { get; } = new("按模型固定");
-
-    public IReadOnlyList<SampleTrainingLabelOption> SpatialInputModeOptions =>
-    [
-        new("按模型固定"),
-        new("自定义宽高"),
-        new("推断时取长边"),
-    ];
-
-    public bool AllowsOdSpatialChoice => true;
-
-    public bool UsesYoloSpatialPolicy => true;
-
-    public bool ShowsInferSize => true;
-
-    public bool ShowsMaxInferSide => true;
-
-    public double NetworkInputSize => 640;
+    public bool UsesNetworkInputSize => true;
 
     public double NetworkInputWidth => 640;
 
@@ -509,52 +300,7 @@ public sealed class SampleTrainingSpatialConfig
     public double NetworkInputSizeStep => 32;
 
     public string NetworkInputSizeHint => "必须是 32 的整数倍";
-
-    public double MaxInferSide => 1280;
-
-    public double YoloInferSize => 640;
-
-    public double YoloNmsIouThreshold => 0.7;
-
-    public string YoloInputChannelsDisplay => "3";
-
-    public string YoloSpatialPolicySummary => "训练 640 / 推理 640，长边缩放到 1280 为止";
-}
-
-/// <summary>标注几何体检 stub（对应 TrainingGeometryConfigViewModel）；本波没有标注数据，只给空列表。</summary>
-public sealed class SampleTrainingGeometryConfig
-{
-    public SampleTrainingGeometryConfig()
-    {
-        ToggleExpandedCommand = new RelayCommand(() => { });
-    }
-
-    public bool IsVisible => true;
-
-    public bool IsExpanded => false;
-
-    public bool IsLoading => false;
-
-    public string StatusText => "几何检查未运行";
-
-    public string ExpandToggleText => "展开";
-
-    public bool HasWarnings => false;
-
-    public bool HasErrors => false;
-
-    public bool HasLoadError => false;
-
-    public string LoadErrorMessage => string.Empty;
-
-    public IReadOnlyList<string> StatLines => [];
-
-    public IReadOnlyList<string> Findings => [];
-
-    public ICommand ToggleExpandedCommand { get; }
-}
-
-/// <summary>训练监控 stub（对应 TrainingMonitorViewModel）：本波固定在「运行模式 / 指标」分区。</summary>
+}/// <summary>训练监控 stub（对应 TrainingMonitorViewModel）：本波固定在「运行模式 / 指标」分区。</summary>
 public sealed class SampleTrainingMonitor
 {
     public SampleTrainingMonitor()
@@ -635,7 +381,7 @@ public sealed class SampleTrainingMonitor
 
     public bool IsLastCheckpointSelected => false;
 
-    public bool IsSelectedJobYoloClassificationModel => false;
+    public bool IsSelectedJobClassificationModel => false;
 
     public bool ShowResultsContent => true;
 
@@ -652,10 +398,6 @@ public sealed class SampleTrainingMonitor
     public string FailureSummary => string.Empty;
 
     public string FailureTraceback => string.Empty;
-
-    public bool HasOcrExportWarning => false;
-
-    public string OcrExportWarning => string.Empty;
 
     public string TrainingStartedAtText => "2025-11-18 09:12:04";
 
@@ -805,23 +547,13 @@ public sealed class SampleTrainingMetricsSummary
 
     public IReadOnlyList<TrainingChartSeries> LrChartSeries { get; }
 
-    public bool ShowYoloMetricsContent => true;
-
     public bool ShowMetricCards => true;
+
+    public bool ShowProfileMetricsCards => true;
 
     public bool ShowDetectionMetricsCards => true;
 
-    public bool ShowSegmentationMetricsCards => false;
-
     public bool ShowClassificationMetricsCards => false;
-
-    public bool ShowOcrMetricsCards => false;
-
-    public bool ShowOcrDetectionMetricsCards => false;
-
-    public bool ShowDetectionOrSegmentationMetricsCards => true;
-
-    public bool ShowQualityWithLearningRateCharts => false;
 
     /// <summary>
     /// 恒为 false：真实 presenter 里 Detection / Classification 都带「主指标说明」文案，
@@ -1066,9 +798,3 @@ public sealed record SampleTrainingValueOption(string Value, string DisplayText)
 
 /// <summary>只有显示文案的选项（输入尺寸策略用）。</summary>
 public sealed record SampleTrainingLabelOption(string Label);
-
-/// <summary>训练指标曲线的数据点（与 Presentation 的 TrainingChartPoint 同名同形）。</summary>
-public sealed record TrainingChartPoint(int Epoch, double Value);
-
-/// <summary>训练指标曲线的一条序列（与 Presentation 的 TrainingChartSeries 同名同形）。</summary>
-public sealed record TrainingChartSeries(string Name, IReadOnlyList<TrainingChartPoint> Points);

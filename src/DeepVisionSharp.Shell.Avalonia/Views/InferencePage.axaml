@@ -618,10 +618,9 @@
                         ClipToBounds="True">
                     <Grid MinHeight="0" ClipToBounds="True">
                         <dv:AnnotationCanvas x:Name="InferenceSurface"
-                                             Annotations="{Binding OverlayAnnotations}"
+                                             Annotations="{Binding Canvas.BoxOverlays}"
                                              ImageSource="{Binding PreviewImage}"
                                              IsReadOnly="True"
-                                             SegmentationPolygons="{Binding OverlayPolygons}"
                                              ShowLabelNames="{Binding ShowLabelNames}"
                                              ShowPlaceholderWhenEmpty="False"
                                              ToolMode="select"
@@ -665,16 +664,16 @@
                                             <TextBlock FontSize="9.5"
                                                        FontWeight="SemiBold"
                                                        Foreground="{DynamicResource IvText1Brush}"
-                                                       Text="{Binding SelectedImage.PredictedLabelText}" />
+                                                       Text="{Binding SelectedImagePredictedLabelText}" />
                                         </Border>
                                         <TextBlock Margin="6,0,0,0"
                                                    Classes="evalTag"
-                                                   Classes.hit="{Binding SelectedImage.EvaluationTag, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter=命中}"
-                                                   Classes.correct="{Binding SelectedImage.EvaluationTag, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter=正确}"
-                                                   Classes.miss="{Binding SelectedImage.EvaluationTag, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter=漏检}"
-                                                   Classes.falseAlarm="{Binding SelectedImage.EvaluationTag, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter=误报}"
+                                                   Classes.hit="{Binding SelectedImageEvaluationTag, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter=命中}"
+                                                   Classes.correct="{Binding SelectedImageEvaluationTag, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter=正确}"
+                                                   Classes.miss="{Binding SelectedImageEvaluationTag, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter=漏检}"
+                                                   Classes.falseAlarm="{Binding SelectedImageEvaluationTag, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter=误报}"
                                                    FontSize="10"
-                                                   Text="{Binding SelectedImage.EvaluationTag}" />
+                                                   Text="{Binding SelectedImageEvaluationTag}" />
                                     </StackPanel>
                                 </StackPanel>
                             </dv:CanvasCornerFloat.Body>
@@ -776,7 +775,7 @@
                                                       IsEnabled="{Binding HasProjectContext}"
                                                       ItemsSource="{Binding Models}"
                                                       SelectedItem="{Binding SelectedModel, Mode=TwoWay}"
-                                                      ToolTip.Tip="{Binding SelectedModel.DisplayText}">
+                                                      ToolTip.Tip="{Binding SelectedModelDisplayText}">
                                                 <ComboBox.ItemTemplate>
                                                     <DataTemplate>
                                                         <TextBlock Text="{Binding DisplayText}" TextTrimming="CharacterEllipsis" />
@@ -786,30 +785,15 @@
                                             <TextBlock Margin="0,5,0,0"
                                                        FontSize="10.5"
                                                        Foreground="{DynamicResource IvText3Brush}"
-                                                       Text="{Binding SelectedModel.SpatialSummary}"
+                                                       Text="{Binding SelectedModelSpatialSummary}"
                                                        TextWrapping="Wrap"
-                                                       IsVisible="{Binding SelectedModel.ShowsSpatialSummary}" />
+                                                       IsVisible="{Binding ShowsSelectedModelSpatialSummary}" />
                                         </StackPanel>
                                     </Border>
 
                                     <Border Classes="inspectorSection">
                                         <StackPanel>
                                             <TextBlock Classes="sectionTitle" Text="运行参数" />
-
-                                            <StackPanel IsVisible="{Binding ShowsIrBackendSelector}">
-                                                <TextBlock Classes="fieldLabel" Text="运行方式" />
-                                                <ComboBox Height="34"
-                                                          AutomationProperties.AutomationId="dv.inference.backend"
-                                                          IsEnabled="{Binding HasProjectContext}"
-                                                          ItemsSource="{Binding IrBackendOptions}"
-                                                          SelectedItem="{Binding SelectedIrBackend, Mode=TwoWay}">
-                                                    <ComboBox.ItemTemplate>
-                                                        <DataTemplate>
-                                                            <TextBlock Text="{Binding DisplayName}" />
-                                                        </DataTemplate>
-                                                    </ComboBox.ItemTemplate>
-                                                </ComboBox>
-                                            </StackPanel>
 
                                             <StackPanel Margin="0,12,0,0" IsVisible="{Binding ShowsInferenceDeviceSelector}">
                                                 <TextBlock Classes="fieldLabel" Text="推理设备" />
@@ -849,33 +833,6 @@
                                                                Value="{Binding MaxDetections, Mode=TwoWay}" />
                                             </StackPanel>
 
-                                            <StackPanel Margin="0,12,0,0" IsVisible="{Binding ShowsAnomalySessionThreshold}">
-                                                <TextBlock Classes="fieldLabel" Text="会话异常阈值（临时）" />
-                                                <Grid Margin="0,0,0,8" ColumnDefinitions="*,Auto">
-                                                    <TextBlock VerticalAlignment="Center"
-                                                               Classes="fieldLabel"
-                                                               Margin="0"
-                                                               Text="启用阈值" />
-                                                    <ToggleButton Grid.Column="1"
-                                                                  VerticalAlignment="Center"
-                                                                  AutomationProperties.AutomationId="dv.inference.anomaly-threshold-enabled"
-                                                                  IsChecked="{Binding HasAnomalySessionThreshold, Mode=TwoWay}"
-                                                                  Theme="{StaticResource IvSwitchStyle}" />
-                                                </Grid>
-                                                <iv:NumericBox Height="34"
-                                                               AutomationProperties.AutomationId="dv.inference.anomaly-threshold"
-                                                               Background="{DynamicResource IvControlFillBrush}"
-                                                               BorderBrush="{DynamicResource IvControlBorderBrush}"
-                                                               IsEnabled="{Binding HasAnomalySessionThreshold}"
-                                                               Minimum="0"
-                                                               Step="0.1"
-                                                               Value="{Binding AnomalySessionThresholdInput, Mode=TwoWay}" />
-                                                <TextBlock Margin="0,5,0,0"
-                                                           FontSize="10.5"
-                                                           Foreground="{DynamicResource IvText3Brush}"
-                                                           Text="启用后按该阈值在本会话判 OK / NG；关闭则只显示 raw score。不写入模型。"
-                                                           TextWrapping="Wrap" />
-                                            </StackPanel>
                                         </StackPanel>
                                     </Border>
                                 </StackPanel>
@@ -898,7 +855,7 @@
                                                            VerticalAlignment="Center"
                                                            FontSize="10.5"
                                                            Foreground="{DynamicResource IvText3Brush}"
-                                                           Text="{Binding SelectedImage.SourceLabel}"
+                                                           Text="{Binding SelectedImageSourceLabel}"
                                                            TextTrimming="CharacterEllipsis" />
                                             </Grid>
                                             <TextBlock FontSize="13"
@@ -958,20 +915,20 @@
                                                                    IsVisible="{Binding ResultDetail, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
                                                         <StackPanel Margin="0,8,0,0"
                                                                     Orientation="Horizontal"
-                                                                    IsVisible="{Binding SelectedImage.HasPredicted}">
+                                                                    IsVisible="{Binding SelectedImageHasPredicted}">
                                                             <Border Classes="tagPill">
                                                                 <TextBlock FontSize="10.5"
                                                                            Foreground="{DynamicResource IvText1Brush}"
-                                                                           Text="{Binding SelectedImage.PredictedLabelText}" />
+                                                                           Text="{Binding SelectedImagePredictedLabelText}" />
                                                             </Border>
                                                             <TextBlock Margin="8,0,0,0"
                                                                        Classes="evalTag"
-                                                                       Classes.hit="{Binding SelectedImage.EvaluationTag, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter=命中}"
-                                                                       Classes.correct="{Binding SelectedImage.EvaluationTag, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter=正确}"
-                                                                       Classes.miss="{Binding SelectedImage.EvaluationTag, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter=漏检}"
-                                                                       Classes.falseAlarm="{Binding SelectedImage.EvaluationTag, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter=误报}"
+                                                                       Classes.hit="{Binding SelectedImageEvaluationTag, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter=命中}"
+                                                                       Classes.correct="{Binding SelectedImageEvaluationTag, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter=正确}"
+                                                                       Classes.miss="{Binding SelectedImageEvaluationTag, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter=漏检}"
+                                                                       Classes.falseAlarm="{Binding SelectedImageEvaluationTag, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter=误报}"
                                                                        FontSize="10.5"
-                                                                       Text="{Binding SelectedImage.EvaluationTag}" />
+                                                                       Text="{Binding SelectedImageEvaluationTag}" />
                                                         </StackPanel>
                                                     </StackPanel>
                                                 </Grid>

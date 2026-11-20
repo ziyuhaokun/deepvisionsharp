@@ -111,14 +111,6 @@ public partial class LabelingPage : UserControl
     {
     }
 
-    private void OnSegmentationPolygonCreated(object? sender, SegmentationPolygonCreatedEventArgs e)
-    {
-    }
-
-    private void OnSegmentationPolygonEditCompleted(object? sender, SegmentationPolygonEditCompletedEventArgs e)
-    {
-    }
-
     private void OnZoomInClicked(object? sender, RoutedEventArgs e) => AnnotationSurface.ZoomIn();
 
     private void OnZoomOutClicked(object? sender, RoutedEventArgs e) => AnnotationSurface.ZoomOut();
@@ -207,8 +199,6 @@ public partial class LabelingPage : UserControl
             return;
         }
 
-        // 本仓库没有 AI 判定：标准样本菜单在真实 VM 下始终隐藏。
-        var aiJudgeVisible = _viewModel is null && ((SampleLabelingContext)DataContext!).AiJudge.IsVisible;
         var isAnchor = element.DataContext is LabelingSampleRow realRow
             ? realRow.IsAnchor
             : (element.DataContext as SampleLabelingSampleRow)?.IsAnchor == true;
@@ -222,9 +212,6 @@ public partial class LabelingPage : UserControl
 
             switch (control.Tag)
             {
-                case "ai-judge":
-                    control.IsVisible = aiJudgeVisible;
-                    break;
                 case "anchor-set":
                     control.IsVisible = !isAnchor;
                     break;
@@ -245,14 +232,6 @@ public partial class LabelingPage : UserControl
     }
 
     private void OnClearSampleAnchorMenuItemClicked(object? sender, RoutedEventArgs e)
-    {
-    }
-
-    private void OnAddSampleAsOkStandardMenuItemClicked(object? sender, RoutedEventArgs e)
-    {
-    }
-
-    private void OnAddSampleAsNgStandardMenuItemClicked(object? sender, RoutedEventArgs e)
     {
     }
 

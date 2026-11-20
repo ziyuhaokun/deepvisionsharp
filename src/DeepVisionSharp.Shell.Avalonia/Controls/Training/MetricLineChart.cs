@@ -4,10 +4,10 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 
-using DeepVisionSharp.Shell.Avalonia.ViewModels;
+using DeepVisionSharp.Presentation.ViewModels;
 
 /**
- * [INPUT]: depends on TrainingChartSeries / TrainingChartPoint from Vision.DeepVision.Shell.ViewModels; depends on Avalonia Control / StyledProperty / DrawingContext / FormattedText APIs; reads IvText2Brush and IvStrokeBrush from Application.Current resources
+ * [INPUT]: depends on TrainingChartSeries / TrainingChartPoint from DeepVisionSharp.Presentation.ViewModels; depends on Avalonia Control / StyledProperty / DrawingContext / FormattedText APIs; reads IvText2Brush and IvStrokeBrush from Application.Current resources
  * [OUTPUT]: exports the MetricLineChart control, the MetricChartYScale enum, and the SeriesSource / MinimumY / MaximumY / YScale / EmptyText styled properties
  * [POS]: Avalonia port of Shell/Views/Training/Controls/MetricLineChart; the self-drawn line chart for training metrics. TrainingRunPanel hosts it. It paints legend, grid, axis labels, polyline series and the log-scale mapping itself, with no child visuals.
  * [PROTOCOL]: Update this header on change, then check CLAUDE.md

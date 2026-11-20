@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 
 namespace DeepVisionSharp.Shell.Avalonia.Controls.Labeling;
 
@@ -16,9 +17,6 @@ public partial class LabelingEditActionsCard : UserControl
 
     public static readonly StyledProperty<bool> ShowAutoFitProperty =
         AvaloniaProperty.Register<LabelingEditActionsCard, bool>(nameof(ShowAutoFit));
-
-    public static readonly StyledProperty<bool> ShowTemplateProperty =
-        AvaloniaProperty.Register<LabelingEditActionsCard, bool>(nameof(ShowTemplate));
 
     public static readonly StyledProperty<bool> ShowYoloInferProperty =
         AvaloniaProperty.Register<LabelingEditActionsCard, bool>(nameof(ShowYoloInfer));
@@ -52,15 +50,14 @@ public partial class LabelingEditActionsCard : UserControl
         set => SetValue(ShowAutoFitProperty, value);
     }
 
-    public bool ShowTemplate
-    {
-        get => GetValue(ShowTemplateProperty);
-        set => SetValue(ShowTemplateProperty, value);
-    }
-
     public bool ShowYoloInfer
     {
         get => GetValue(ShowYoloInferProperty);
         set => SetValue(ShowYoloInferProperty, value);
     }
+
+    /// <summary>画布复位属于页面能力（AnnotationCanvas.FitToView），卡片只把点击往上抛。</summary>
+    public event EventHandler<RoutedEventArgs>? AutoFitRequested;
+
+    private void OnAutoFitClick(object? sender, RoutedEventArgs e) => AutoFitRequested?.Invoke(this, e);
 }

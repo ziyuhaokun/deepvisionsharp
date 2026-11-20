@@ -3,6 +3,7 @@
                 xmlns:iv="clr-namespace:YuUI.Controls;assembly=yu-ui.avalonia"
                 xmlns:local="clr-namespace:DeepVisionSharp.Shell.Avalonia"
                 xmlns:ui="clr-namespace:YuUI;assembly=yu-ui.avalonia"
+                xmlns:views="clr-namespace:DeepVisionSharp.Shell.Avalonia.Views.Controls"
                 x:Class="DeepVisionSharp.Shell.Avalonia.MainWindow"
                 Title="DeepVisionSharp"
                 Width="1600"
@@ -384,6 +385,14 @@
                 </Transitions>
             </ContentControl.Transitions>
         </ContentControl>
+
+        <!-- 任务中心：与 deepvision MainWindow 同位（内容区右下角，Margin 0,0,16,16），不是浮层遮罩 -->
+        <views:TaskCenterPanel Name="ShellTaskCenter"
+                               Grid.Row="1"
+                               Grid.Column="1"
+                               HorizontalAlignment="Right"
+                               VerticalAlignment="Bottom"
+                               Margin="0,0,16,16" />
 
         <!-- 提示条：右下角，由 AvaloniaSnackbarHost 的事件驱动（ShellSnackbarNotifier → ISnackbarHost → 这里） -->
         <Border Name="SnackbarLayer"

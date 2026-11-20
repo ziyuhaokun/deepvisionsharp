@@ -1,9 +1,11 @@
+using System.Collections.Specialized;
+using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using DeepVisionSharp.Shell.Avalonia.ViewModels;
+using DeepVisionSharp.Presentation.ViewModels.Labeling;
 
 namespace DeepVisionSharp.Shell.Avalonia.Controls.Labeling;
 
@@ -14,13 +16,13 @@ public sealed class OverviewNavigateEventArgs(Point imagePoint) : EventArgs
 }
 
 /// <summary>
-/// 鸟瞰图：把整张图缩进小方框里，叠加全部标注框与当前视口框。
-/// 本波只做静态渲染，点击导航的事件保留但由页面自行决定要不要用。
+/// 鸟瞰图：把整张图缩进小方框里，叠加 <see cref="Boxes"/> 里的全部框与当前视口框。
+/// 框与主画布、侧栏框列表同源（<see cref="BoxShapeViewModel"/> 集合），集合增删与单框几何变化都会重画。
 /// </summary>
 public sealed class AnnotationOverview : Control
 {
-    public static readonly StyledProperty<IReadOnlyList<SampleAnnotationRow>?> AnnotationsProperty =
-        AvaloniaProperty.Register<AnnotationOverview, IReadOnlyList<SampleAnnotationRow>?>(nameof(Annotations));
+    public static readonly StyledProperty<IReadOnlyList<BoxShapeViewModel>?> BoxesProperty =
+        AvaloniaProperty.Register<AnnotationOverview, IReadOnlyList<BoxShapeViewModel>?>(nameof(Boxes));
 
     public static readonly StyledProperty<IImage?> ImageSourceProperty =
         AvaloniaProperty.Register<AnnotationOverview, IImage?>(nameof(ImageSource));
@@ -28,9 +30,11 @@ public sealed class AnnotationOverview : Control
     public static readonly StyledProperty<Rect> ViewportProperty =
         AvaloniaProperty.Register<AnnotationOverview, Rect>(nameof(Viewport));
 
+    private readonly List<BoxShapeViewModel> _trackedBoxes = new();
+
     static AnnotationOverview()
     {
-        AffectsRender<AnnotationOverview>(AnnotationsProperty, ImageSourceProperty, ViewportProperty);
+        AffectsRender<AnnotationOverview>(BoxesProperty, ImageSourceProperty, ViewportProperty);
     }
 
     public AnnotationOverview()
@@ -41,10 +45,11 @@ public sealed class AnnotationOverview : Control
     /// <summary>点击鸟瞰图时给出对应的图像坐标，页面据此把主画布居中到该点。</summary>
     public event EventHandler<OverviewNavigateEventArgs>? NavigateRequested;
 
-    public IReadOnlyList<SampleAnnotationRow>? Annotations
+    /// <summary>当前样本的框（图像坐标），与主画布、侧栏框列表是同一份集合。</summary>
+    public IReadOnlyList<BoxShapeViewModel>? Boxes
     {
-        get => GetValue(AnnotationsProperty);
-        set => SetValue(AnnotationsProperty, value);
+        get => GetValue(BoxesProperty);
+        set => SetValue(BoxesProperty, value);
     }
 
     public IImage? ImageSource
@@ -58,6 +63,17 @@ public sealed class AnnotationOverview : Control
     {
         get => GetValue(ViewportProperty);
         set => SetValue(ViewportProperty, value);
+    }
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+
+        if (change.Property == BoxesProperty)
+        {
+            TrackBoxes(change.GetOldValue<IReadOnlyList<BoxShapeViewModel>?>(),
+                change.GetNewValue<IReadOnlyList<BoxShapeViewModel>?>());
+        }
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
@@ -118,21 +134,17 @@ public sealed class AnnotationOverview : Control
             context.DrawImage(source, drawn);
         }
 
-        if (Annotations is { Count: > 0 } rows)
+        if (Boxes is { Count: > 0 } boxes)
         {
-            foreach (var row in rows)
+            foreach (var box in boxes)
             {
-                var color = row.Color is ISolidColorBrush solid
-                    ? solid.Color
-                    : Color.FromRgb(0x3B, 0x82, 0xF6);
-
                 var rect = new Rect(
-                    drawn.Left + (row.Bounds.X * scale),
-                    drawn.Top + (row.Bounds.Y * scale),
-                    row.Bounds.Width * scale,
-                    row.Bounds.Height * scale);
+                    drawn.Left + (box.X * scale),
+                    drawn.Top + (box.Y * scale),
+                    box.Width * scale,
+                    box.Height * scale);
 
-                AnnotationRenderer.DrawOverviewAnnotation(context, rect, color);
+                AnnotationRenderer.DrawOverviewAnnotation(context, rect, AnnotationRenderer.ParseColor(box.Color));
             }
         }
 
@@ -147,4 +159,52 @@ public sealed class AnnotationOverview : Control
             AnnotationRenderer.DrawViewportIndicator(context, indicator);
         }
     }
+
+    /// <summary>换了一份框集合：把变化通知接到新集合与新集合里的每个框上。</summary>
+    private void TrackBoxes(
+        IReadOnlyList<BoxShapeViewModel>? previous,
+        IReadOnlyList<BoxShapeViewModel>? current)
+    {
+        if (previous is INotifyCollectionChanged oldCollection)
+        {
+            oldCollection.CollectionChanged -= OnBoxesCollectionChanged;
+        }
+
+        SyncTrackedBoxes(current);
+
+        if (current is INotifyCollectionChanged newCollection)
+        {
+            newCollection.CollectionChanged += OnBoxesCollectionChanged;
+        }
+
+        InvalidateVisual();
+    }
+
+    private void SyncTrackedBoxes(IReadOnlyList<BoxShapeViewModel>? boxes)
+    {
+        foreach (var box in _trackedBoxes)
+        {
+            box.PropertyChanged -= OnBoxPropertyChanged;
+        }
+
+        _trackedBoxes.Clear();
+        if (boxes is null)
+        {
+            return;
+        }
+
+        foreach (var box in boxes)
+        {
+            box.PropertyChanged += OnBoxPropertyChanged;
+            _trackedBoxes.Add(box);
+        }
+    }
+
+    private void OnBoxesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        SyncTrackedBoxes(Boxes);
+        InvalidateVisual();
+    }
+
+    private void OnBoxPropertyChanged(object? sender, PropertyChangedEventArgs e) => InvalidateVisual();
 }

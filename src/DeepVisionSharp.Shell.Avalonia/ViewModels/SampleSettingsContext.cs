@@ -1,17 +1,14 @@
 using System.Collections.ObjectModel;
 using System.Windows.Input;
-using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DeepVisionSharp.Presentation.Services;
-using YuUI;
 
 namespace DeepVisionSharp.Shell.Avalonia.ViewModels;
 
 /// <summary>设置分区（对应 deepvision 的 SettingsCategory）。</summary>
 public enum SampleSettingsCategory
 {
-    Python,
     Appearance,
     Storage,
     About,
@@ -20,7 +17,7 @@ public enum SampleSettingsCategory
 
 /// <summary>
 /// 设置页 stub 上下文：绑定路径与 deepvision 的 SettingsViewModel 同名同层，值全部是假数据，
-/// 命令只改本对象的属性（不落盘、不打开目录、不检测 Python）。
+/// 命令只改本对象的属性（不落盘、不打开目录）。
 /// </summary>
 public sealed class SampleSettingsContext : ObservableObject
 {
@@ -28,18 +25,15 @@ public sealed class SampleSettingsContext : ObservableObject
     private ShellThemePreference _selectedTheme = ShellThemePreference.Light;
     private bool _showNotifications = true;
     private bool _isDebugUnlocked;
-    private string _pythonPath = @"C:\Python312\python.exe";
-    private bool _isPythonPathDirty;
 
     public SampleSettingsContext()
     {
         Categories =
         [
-            new SampleSettingsCategoryItem(SampleSettingsCategory.Python, "Python 环境", IvIcons.Calculator),
-            new SampleSettingsCategoryItem(SampleSettingsCategory.Appearance, "外观与通知", IvIcons.Palette),
-            new SampleSettingsCategoryItem(SampleSettingsCategory.Storage, "存储", IvIcons.Folder),
-            new SampleSettingsCategoryItem(SampleSettingsCategory.About, "关于", IvIcons.Info),
-            new SampleSettingsCategoryItem(SampleSettingsCategory.Advanced, "高级", IvIcons.Settings),
+            new SampleSettingsCategoryItem(SampleSettingsCategory.Appearance, "外观与通知", "Palette"),
+            new SampleSettingsCategoryItem(SampleSettingsCategory.Storage, "存储", "Folder"),
+            new SampleSettingsCategoryItem(SampleSettingsCategory.About, "关于", "Info"),
+            new SampleSettingsCategoryItem(SampleSettingsCategory.Advanced, "高级", "Settings"),
         ];
 
         SelectThemeCommand = new RelayCommand<ShellThemePreference>(preference =>
@@ -56,10 +50,6 @@ public sealed class SampleSettingsContext : ObservableObject
             IsDebugUnlocked = true;
         });
 
-        CheckPythonEnvironmentCommand = new RelayCommand(() => { });
-        BrowsePythonPathCommand = new RelayCommand(() => { });
-        AutoDetectPythonCommand = new RelayCommand(() => { });
-        ApplyPythonPathCommand = new RelayCommand(() => IsPythonPathDirty = false);
         OpenAppDataFolderCommand = new RelayCommand(() => { });
         OpenModelsFolderCommand = new RelayCommand(() => { });
         OpenLogsFolderCommand = new RelayCommand(() => { });
@@ -79,7 +69,6 @@ public sealed class SampleSettingsContext : ObservableObject
         {
             if (SetProperty(ref _selectedCategory, value))
             {
-                OnPropertyChanged(nameof(IsPythonEnvironmentSelected));
                 OnPropertyChanged(nameof(IsAppearanceSelected));
                 OnPropertyChanged(nameof(IsStorageSelected));
                 OnPropertyChanged(nameof(IsAboutSelected));
@@ -100,24 +89,6 @@ public sealed class SampleSettingsContext : ObservableObject
         set => SetProperty(ref _showNotifications, value);
     }
 
-    public string PythonPath
-    {
-        get => _pythonPath;
-        set
-        {
-            if (SetProperty(ref _pythonPath, value))
-            {
-                IsPythonPathDirty = true;
-            }
-        }
-    }
-
-    public bool IsPythonPathDirty
-    {
-        get => _isPythonPathDirty;
-        set => SetProperty(ref _isPythonPathDirty, value);
-    }
-
     public bool IsDebugUnlocked
     {
         get => _isDebugUnlocked;
@@ -129,8 +100,6 @@ public sealed class SampleSettingsContext : ObservableObject
             }
         }
     }
-
-    public bool IsPythonEnvironmentSelected => SelectedCategory == SampleSettingsCategory.Python;
 
     public bool IsAppearanceSelected => SelectedCategory == SampleSettingsCategory.Appearance;
 
@@ -149,23 +118,6 @@ public sealed class SampleSettingsContext : ObservableObject
     public bool IsNotCleaningCache => !IsCleaningCache;
 
     public bool IsNotRunningDataRepair => !IsRunningDataRepair;
-
-    public string PythonStatusText => "Python 3.12.10";
-
-    public string PythonStatusDescription =>
-        "解释器可用，训练与推理所需的依赖齐全（torch 2.9.0 / ultralytics 8.3.40 / openvino 2025.3.0）。";
-
-    public bool IsCheckingPythonVisible => false;
-
-    public bool HasPythonPreflightIssues => true;
-
-    public IReadOnlyList<SamplePythonPreflightIssue> PythonPreflightIssues { get; } =
-    [
-        new(
-            "警告",
-            "未检测到 CUDA 设备，训练会退到 CPU。",
-            "安装 NVIDIA 驱动并在设置里重新检测环境。"),
-    ];
 
     public string AppDataSize => "1.24 GB";
 
@@ -244,14 +196,6 @@ public sealed class SampleSettingsContext : ObservableObject
 
     public ICommand ShowDebugAccessCommand { get; }
 
-    public ICommand CheckPythonEnvironmentCommand { get; }
-
-    public ICommand BrowsePythonPathCommand { get; }
-
-    public ICommand AutoDetectPythonCommand { get; }
-
-    public ICommand ApplyPythonPathCommand { get; }
-
     public ICommand OpenAppDataFolderCommand { get; }
 
     public ICommand OpenModelsFolderCommand { get; }
@@ -269,11 +213,8 @@ public sealed class SampleSettingsContext : ObservableObject
     public ICommand CopyTextCommand { get; }
 }
 
-/// <summary>设置分区条目：deepvision 用 SettingsCategoryIconConverter 按枚举取图标，这里把图标直接挂在条目上。</summary>
-public sealed record SampleSettingsCategoryItem(SampleSettingsCategory Id, string Title, Geometry Icon);
-
-/// <summary>环境预检问题（对应 PythonPreflightIssue）。</summary>
-public sealed record SamplePythonPreflightIssue(string Severity, string Message, string Remediation);
+/// <summary>设置分区条目：与 SettingsCategoryItem 一样只给图标名，图形由 SettingsCategoryIconConverter 换成 Geometry。</summary>
+public sealed record SampleSettingsCategoryItem(SampleSettingsCategory Id, string Title, string Icon);
 
 /// <summary>更新日志条目（对应 ChangeLogEntry）。</summary>
 public sealed class SampleChangeLogEntry

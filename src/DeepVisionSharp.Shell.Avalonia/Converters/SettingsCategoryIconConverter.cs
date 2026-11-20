@@ -12,7 +12,7 @@ namespace DeepVisionSharp.Shell.Avalonia.Converters;
 /// <para>
 /// 表现层的设置分区只声明「用哪个图标」（Appearance → <c>Palette</c>、Storage → <c>Folder</c>、
 /// About → <c>Info</c>、Advanced → <c>Settings</c>），具体画成什么由 Shell 决定，
-/// 表现层不引用任何图形库。
+/// 表现层不引用任何图形库；表里没有的图标名画空，不编造图形。
 /// </para>
 /// <para>
 /// 用法（页面上声明一次，再在绑定上引用）：
@@ -28,13 +28,5 @@ public sealed class SettingsCategoryIconConverter : IValueConverter
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 
-    private static Geometry? Resolve(string name) => name switch
-    {
-        "Palette" => IvIcons.Palette,
-        "Folder" => IvIcons.Folder,
-        "Info" => IvIcons.Info,
-        "Settings" => IvIcons.Settings,
-        "Calculator" => IvIcons.Calculator,
-        _ => null,
-    };
+    private static Geometry? Resolve(string name) => IvIcons.All.TryGetValue(name, out var icon) ? icon : null;
 }

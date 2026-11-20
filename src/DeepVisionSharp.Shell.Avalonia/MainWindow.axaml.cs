@@ -102,6 +102,9 @@ public partial class MainWindow : ThemedWindow, IPageHost
         InitializeComponent();
         ApplyNavState(IsNavCollapsed);
 
+        // 任务中心与 WPF 一致：壳层单例 VM，面板自己画在内容区右下角。
+        ShellTaskCenter.DataContext = Resolve<ShellTaskCenterViewModel>();
+
         // 导航项只在 XAML 里声明，选中即切页：构造期统一挂 IsCheckedChanged，XAML 里的 IsChecked 不会先于内容宿主触发。
         foreach (var button in NavRail.GetLogicalDescendants().OfType<RadioButton>())
         {

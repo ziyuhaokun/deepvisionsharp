@@ -5,10 +5,14 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 
+using System.Collections.Specialized;
+
+using DeepVisionSharp.Presentation.ViewModels.Labeling;
+
 namespace DeepVisionSharp.Shell.Avalonia.Controls.Inference;
 
 /// <summary>
-/// 推理页的只读图像叠加画布：画底、图像、检测框、分割多边形，支持适应窗口与缩放。
+/// 推理页的只读图像叠加画布：画底、图像、检测框，支持适应窗口与缩放。
 /// 视口换算常量（0.05~32 倍缩、28px 适配留边）取自 deepvision 的 AnnotationViewport；
 /// 指针交互（画框、拖动、选中、滚轮平移）不在本版范围内。
 /// </summary>
@@ -21,11 +25,9 @@ public sealed class AnnotationCanvas : Control
     public static readonly StyledProperty<object?> ImageSourceProperty =
         AvaloniaProperty.Register<AnnotationCanvas, object?>(nameof(ImageSource));
 
-    public static readonly StyledProperty<IEnumerable<AnnotationRow>?> AnnotationsProperty =
-        AvaloniaProperty.Register<AnnotationCanvas, IEnumerable<AnnotationRow>?>(nameof(Annotations));
-
-    public static readonly StyledProperty<IEnumerable<SegmentationPolygonRow>?> SegmentationPolygonsProperty =
-        AvaloniaProperty.Register<AnnotationCanvas, IEnumerable<SegmentationPolygonRow>?>(nameof(SegmentationPolygons));
+    /// <summary>检测框叠加层；元素与推理结果画布同源（Presentation 的 <see cref="BoxShapeViewModel"/>）。</summary>
+    public static readonly StyledProperty<IEnumerable<BoxShapeViewModel>?> AnnotationsProperty =
+        AvaloniaProperty.Register<AnnotationCanvas, IEnumerable<BoxShapeViewModel>?>(nameof(Annotations));
 
     public static readonly StyledProperty<bool> ShowLabelNamesProperty =
         AvaloniaProperty.Register<AnnotationCanvas, bool>(nameof(ShowLabelNames), true);
@@ -54,18 +56,19 @@ public sealed class AnnotationCanvas : Control
     private double _panY;
     private bool _viewportInitialized;
     private IBrush? _backgroundBrush;
+    private INotifyCollectionChanged? _watchedAnnotations;
 
     static AnnotationCanvas()
     {
         AffectsRender<AnnotationCanvas>(
             ImageSourceProperty,
             AnnotationsProperty,
-            SegmentationPolygonsProperty,
             ShowLabelNamesProperty,
             UseTransparentFillProperty,
             ShowPlaceholderWhenEmptyProperty);
 
         ImageSourceProperty.Changed.AddClassHandler<AnnotationCanvas>((control, _) => control.OnImageChanged());
+        AnnotationsProperty.Changed.AddClassHandler<AnnotationCanvas>((control, _) => control.OnAnnotationsChanged());
     }
 
     public AnnotationCanvas()
@@ -83,16 +86,10 @@ public sealed class AnnotationCanvas : Control
         set => SetValue(ImageSourceProperty, value);
     }
 
-    public IEnumerable<AnnotationRow>? Annotations
+    public IEnumerable<BoxShapeViewModel>? Annotations
     {
         get => GetValue(AnnotationsProperty);
         set => SetValue(AnnotationsProperty, value);
-    }
-
-    public IEnumerable<SegmentationPolygonRow>? SegmentationPolygons
-    {
-        get => GetValue(SegmentationPolygonsProperty);
-        set => SetValue(SegmentationPolygonsProperty, value);
     }
 
     public bool ShowLabelNames
@@ -187,7 +184,7 @@ public sealed class AnnotationCanvas : Control
             {
                 AnnotationRenderer.DrawBox(
                     context,
-                    ImageToScreenRect(annotation.Bounds),
+                    ImageToScreenRect(new Rect(annotation.X, annotation.Y, annotation.Width, annotation.Height)),
                     AnnotationRenderer.ParseColor(annotation.Color),
                     UseTransparentFill,
                     ShowLabelNames,
@@ -195,8 +192,6 @@ public sealed class AnnotationCanvas : Control
                     placer);
             }
         }
-
-        DrawSegmentationPolygons(context, placer);
     }
 
     protected override void OnSizeChanged(SizeChangedEventArgs e)
@@ -255,50 +250,27 @@ public sealed class AnnotationCanvas : Control
         InvalidateVisual();
     }
 
-    private void DrawSegmentationPolygons(DrawingContext context, AnnotationLabelPlacer placer)
+    /// <summary>
+    /// 推理结果的叠加层是稳定的 ObservableCollection（VM 原地增删），属性本身不变，
+    /// 所以还要盯集合变更，否则新结果出来画布不会重画。
+    /// </summary>
+    private void OnAnnotationsChanged()
     {
-        if (SegmentationPolygons is null)
+        if (_watchedAnnotations is not null)
         {
-            return;
+            _watchedAnnotations.CollectionChanged -= OnAnnotationsCollectionChanged;
         }
 
-        foreach (var polygon in SegmentationPolygons)
+        _watchedAnnotations = Annotations as INotifyCollectionChanged;
+        if (_watchedAnnotations is not null)
         {
-            if (polygon.Points.Count < 3)
-            {
-                continue;
-            }
-
-            var color = AnnotationRenderer.ParseColor(polygon.Color);
-            var screenPoints = polygon.Points.Select(ImagePointToScreen).ToArray();
-            var geometry = new StreamGeometry();
-            using (var geometryContext = geometry.Open())
-            {
-                geometryContext.BeginFigure(screenPoints[0], true);
-                foreach (var point in screenPoints.Skip(1))
-                {
-                    geometryContext.LineTo(point);
-                }
-
-                geometryContext.EndFigure(true);
-            }
-
-            context.DrawGeometry(
-                new SolidColorBrush(Color.FromArgb(64, color.R, color.G, color.B)),
-                new Pen(new SolidColorBrush(color), 2),
-                geometry);
-
-            if (ShowLabelNames && !IsReadOnly)
-            {
-                AnnotationRenderer.DrawShapeLabel(
-                    context,
-                    polygon.Label,
-                    color,
-                    GetPointsBounds(screenPoints),
-                    placer);
-            }
+            _watchedAnnotations.CollectionChanged += OnAnnotationsCollectionChanged;
         }
+
+        InvalidateVisual();
     }
+
+    private void OnAnnotationsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) => InvalidateVisual();
 
     private void DrawPlaceholder(DrawingContext context)
     {
@@ -309,9 +281,6 @@ public sealed class AnnotationCanvas : Control
             FindBrush("IvText2Brush", Brushes.Gray),
             16);
     }
-
-    private Point ImagePointToScreen(Point imagePoint)
-        => new(_panX + imagePoint.X * _scale, _panY + imagePoint.Y * _scale);
 
     private Rect ImageToScreenRect(Rect imageRect)
         => new(
@@ -336,22 +305,5 @@ public sealed class AnnotationCanvas : Control
         }
 
         return fallback;
-    }
-
-    private static Rect GetPointsBounds(IReadOnlyList<Point> points)
-    {
-        var left = double.MaxValue;
-        var top = double.MaxValue;
-        var right = double.MinValue;
-        var bottom = double.MinValue;
-        foreach (var point in points)
-        {
-            left = Math.Min(left, point.X);
-            top = Math.Min(top, point.Y);
-            right = Math.Max(right, point.X);
-            bottom = Math.Max(bottom, point.Y);
-        }
-
-        return new Rect(left, top, right - left, bottom - top);
     }
 }

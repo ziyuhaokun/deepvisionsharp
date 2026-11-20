@@ -4,13 +4,13 @@ using Avalonia;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DeepVisionSharp.Shell.Avalonia.Controls.Inference;
+using DeepVisionSharp.Presentation.ViewModels.Labeling;
 
 namespace DeepVisionSharp.Shell.Avalonia.ViewModels;
 
 /// <summary>
 /// 推理页 stub 上下文：绑定路径与 deepvision 的 InferenceViewModel 同名同层
-/// （Images / SelectedImage / ResultRows / OverlayAnnotations / StatusBar* 等），值全部是假数据，命令点了不做事。
+/// （Images / SelectedImage / ResultRows / BoxOverlays / StatusBar* 等），值全部是假数据，命令点了不做事。
 /// 右侧检查器默认停在「推理结果」页签，好让结果行与检测明细在截图里可见。
 /// </summary>
 public sealed class SampleInferenceContext : ObservableObject
@@ -19,13 +19,10 @@ public sealed class SampleInferenceContext : ObservableObject
     private int _selectedRightTabIndex = 1;
     private double _confidenceThreshold = 0.25;
     private int _maxDetections = 100;
-    private bool _hasAnomalySessionThreshold;
-    private double _anomalySessionThresholdInput = 0.5;
     private bool _showLabelNames = true;
     private SampleInferenceImage? _selectedImage;
     private SampleInferenceModel? _selectedModel;
     private SampleInferenceDevice? _selectedDevice;
-    private SampleInferenceIrBackend? _selectedIrBackend;
     private SampleInferenceDetectionRow? _selectedResultRow;
 
     public SampleInferenceContext()
@@ -44,12 +41,6 @@ public sealed class SampleInferenceContext : ObservableObject
                 SpatialSummary = "整图 224×224 · 不做 pad",
                 ShowsSpatialSummary = true,
             },
-        ];
-
-        IrBackendOptions =
-        [
-            new SampleInferenceIrBackend { DisplayName = "C# 原生（TorchSharp）" },
-            new SampleInferenceIrBackend { DisplayName = "Python 运行时" },
         ];
 
         DeviceOptions =
@@ -122,7 +113,6 @@ public sealed class SampleInferenceContext : ObservableObject
 
         _selectedImage = Images[0];
         _selectedModel = Models[0];
-        _selectedIrBackend = IrBackendOptions[0];
         _selectedDevice = DeviceOptions[1];
 
         ResultRows =
@@ -147,27 +137,9 @@ public sealed class SampleInferenceContext : ObservableObject
             },
         ];
 
-        OverlayAnnotations =
-        [
-            new AnnotationRow(Guid.Empty, "划伤", "#EF4444", 412, 168, 680, 264),
-            new AnnotationRow(Guid.Empty, "凹坑", "#EF4444", 724, 372, 872, 504),
-            new AnnotationRow(Guid.Empty, "锈斑", "#EF4444", 196, 566, 508, 730),
-        ];
-
-        OverlayPolygons =
-        [
-            new SegmentationPolygonRow(
-                Guid.Empty,
-                "氧化皮",
-                "#22C55E",
-                [
-                    new Point(920, 560),
-                    new Point(1128, 604),
-                    new Point(1096, 704),
-                    new Point(884, 668),
-                ]),
-        ];
-
+        Canvas.BoxOverlays.Add(new BoxShapeViewModel("划伤", 412, 168, 268, 96));
+        Canvas.BoxOverlays.Add(new BoxShapeViewModel("凹坑", 724, 372, 148, 132));
+        Canvas.BoxOverlays.Add(new BoxShapeViewModel("锈斑", 196, 566, 312, 164));
         PreviewImage = SampleInferenceArtwork.CreatePreview();
 
         ShowImageSourceDialogCommand = new RelayCommand(() => { });
@@ -198,7 +170,16 @@ public sealed class SampleInferenceContext : ObservableObject
     public SampleInferenceImage? SelectedImage
     {
         get => _selectedImage;
-        set => SetProperty(ref _selectedImage, value);
+        set
+        {
+            if (SetProperty(ref _selectedImage, value))
+            {
+                OnPropertyChanged(nameof(SelectedImageSourceLabel));
+                OnPropertyChanged(nameof(SelectedImageHasPredicted));
+                OnPropertyChanged(nameof(SelectedImagePredictedLabelText));
+                OnPropertyChanged(nameof(SelectedImageEvaluationTag));
+            }
+        }
     }
 
     public ObservableCollection<SampleInferenceModel> Models { get; }
@@ -211,19 +192,19 @@ public sealed class SampleInferenceContext : ObservableObject
             if (SetProperty(ref _selectedModel, value))
             {
                 OnPropertyChanged(nameof(ShowsInferenceDeviceSelector));
+                OnPropertyChanged(nameof(SelectedModelDisplayText));
+                OnPropertyChanged(nameof(SelectedModelSpatialSummary));
+                OnPropertyChanged(nameof(ShowsSelectedModelSpatialSummary));
             }
         }
     }
 
-    public bool ShowsIrBackendSelector => true;
+    /// <summary>模型下拉的悬停提示（与真 VM 同口径的空安全投影）。</summary>
+    public string SelectedModelDisplayText => SelectedModel?.DisplayText ?? string.Empty;
 
-    public ObservableCollection<SampleInferenceIrBackend> IrBackendOptions { get; }
+    public string SelectedModelSpatialSummary => SelectedModel?.SpatialSummary ?? string.Empty;
 
-    public SampleInferenceIrBackend? SelectedIrBackend
-    {
-        get => _selectedIrBackend;
-        set => SetProperty(ref _selectedIrBackend, value);
-    }
+    public bool ShowsSelectedModelSpatialSummary => SelectedModel?.ShowsSpatialSummary ?? false;
 
     public bool ShowsInferenceDeviceSelector => SelectedModel is not null;
 
@@ -249,20 +230,6 @@ public sealed class SampleInferenceContext : ObservableObject
     {
         get => _maxDetections;
         set => SetProperty(ref _maxDetections, value);
-    }
-
-    public bool ShowsAnomalySessionThreshold => false;
-
-    public bool HasAnomalySessionThreshold
-    {
-        get => _hasAnomalySessionThreshold;
-        set => SetProperty(ref _hasAnomalySessionThreshold, value);
-    }
-
-    public double AnomalySessionThresholdInput
-    {
-        get => _anomalySessionThresholdInput;
-        set => SetProperty(ref _anomalySessionThresholdInput, value);
     }
 
     public int SelectedRightTabIndex
@@ -300,9 +267,17 @@ public sealed class SampleInferenceContext : ObservableObject
         set => SetProperty(ref _selectedResultRow, value);
     }
 
-    public ObservableCollection<AnnotationRow> OverlayAnnotations { get; }
+    /// <summary>画布的叠加层宿主（对应真 VM 的 <c>Canvas</c> 子 VM）：推理页只读画布只读这一路。</summary>
+    public SampleInferenceCanvas Canvas { get; } = new();
 
-    public ObservableCollection<SegmentationPolygonRow> OverlayPolygons { get; }
+    /// <summary>当前样本来源标签（与真 VM 同口径的空安全投影）。</summary>
+    public string SelectedImageSourceLabel => SelectedImage?.SourceLabel ?? string.Empty;
+
+    public bool SelectedImageHasPredicted => SelectedImage?.HasPredicted ?? false;
+
+    public string SelectedImagePredictedLabelText => SelectedImage?.PredictedLabelText ?? string.Empty;
+
+    public string SelectedImageEvaluationTag => SelectedImage?.EvaluationTag ?? string.Empty;
 
     public bool ShowLabelNames
     {
@@ -364,6 +339,12 @@ public sealed class SampleInferenceImage
     public IImage? Preview { get; init; }
 }
 
+/// <summary>画布叠加层宿主 stub（对应 InferenceCanvasViewModel）：推理页只读这一路。</summary>
+public sealed class SampleInferenceCanvas
+{
+    public ObservableCollection<BoxShapeViewModel> BoxOverlays { get; } = [];
+}
+
 /// <summary>模型下拉项 stub（对应 InferencePageModelOption）。</summary>
 public sealed class SampleInferenceModel
 {
@@ -372,12 +353,6 @@ public sealed class SampleInferenceModel
     public required string SpatialSummary { get; init; }
 
     public bool ShowsSpatialSummary { get; init; }
-}
-
-/// <summary>运行方式下拉项 stub（对应 InferenceIrBackendOption）。</summary>
-public sealed class SampleInferenceIrBackend
-{
-    public required string DisplayName { get; init; }
 }
 
 /// <summary>推理设备下拉项 stub（对应 InferenceDeviceOption）。</summary>

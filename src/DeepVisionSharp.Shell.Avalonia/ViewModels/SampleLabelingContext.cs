@@ -6,13 +6,15 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DeepVisionSharp.Presentation.ViewModels.Labeling;
 
 namespace DeepVisionSharp.Shell.Avalonia.ViewModels;
 
 /// <summary>
-/// 标记页 stub 上下文：绑定路径与 deepvision 的 LabelingViewModel 同名同层
-/// （Workspace / Editor / Labels / Samples / AiJudge / TemplateMatch / Inference / ActiveRailKind），
-/// 值全部是造出来的假数据，命令点了不做事。
+/// 标记页 stub 上下文：绑定路径与真实的 <see cref="LabelingViewModel"/> 同名同层
+/// （Workspace / Editor / Labels / Samples / Inference / ActiveRailKind），值全部是造出来的假数据，命令点了不做事。
+/// 只在没有容器（设计时 / 无头渲染）时兜底；画布与框列表直接复用 Presentation 的
+/// <see cref="BoxShapeViewModel"/>，不再另起一套行类型。
 /// </summary>
 public sealed class SampleLabelingContext : ObservableObject
 {
@@ -26,10 +28,6 @@ public sealed class SampleLabelingContext : ObservableObject
 
     public SampleLabelingSamples Samples { get; } = new();
 
-    public SampleLabelingAiJudge AiJudge { get; } = new();
-
-    public SampleTemplateMatch TemplateMatch { get; } = new();
-
     public SampleLabelingInference Inference { get; } = new();
 
     public SampleLabelingContext()
@@ -37,23 +35,20 @@ public sealed class SampleLabelingContext : ObservableObject
         BackToGalleryCommand = new RelayCommand(() => { });
     }
 
-    /// <summary>左侧轨道的枚举名（Detection / TextRecognition / Classification / Segmentation / Variation / Anomaly）。</summary>
+    /// <summary>左侧轨道的枚举名（Detection / Classification）：本仓库只有这两种工作流。</summary>
     public string ActiveRailKind
     {
         get => _activeRailKind;
         set => SetProperty(ref _activeRailKind, value);
     }
 
-    public bool ShowAnnotationModeTools => true;
-
-    public bool ShowAnomalySystemMoveTools => false;
-
-    public string ReviewedBackgroundButtonText => "标记纯背景";
-
     public ICommand BackToGalleryCommand { get; }
+
+    /// <summary>框列表点行时的选中入口，与真实 VM 的 SelectBoxCommand 同一动作。</summary>
+    internal void SelectBox(BoxShapeViewModel box) => Editor.Select(box);
 }
 
-/// <summary>标注工作区 stub（对应 LabelingWorkspaceViewModel）。</summary>
+/// <summary>标注工作区 stub（对应 LabelingWorkspaceContext）。</summary>
 public sealed class SampleLabelingWorkspace
 {
     public SampleLabelingWorkspace()
@@ -74,18 +69,12 @@ public sealed class SampleLabelingWorkspace
     public SampleLabelingUiPolicy UiPolicy { get; } = new();
 }
 
-/// <summary>项目画像 stub（对应 ProjectProfile）：决定页面上哪些工具可见。</summary>
+/// <summary>项目画像 stub（对应 ProjectCapabilityProfile）：决定页面上哪些工具可见。</summary>
 public sealed class SampleLabelingProjectProfile
 {
-    public bool RequiresInstanceIdOnPolygons => false;
-
     public bool SupportsClassLabels => true;
 
     public bool SupportsImageClass => false;
-
-    public bool SupportsMasks => true;
-
-    public bool SupportsTextRecognition => false;
 }
 
 /// <summary>界面策略 stub（对应 LabelingUiPolicy）。</summary>
@@ -93,138 +82,63 @@ public sealed class SampleLabelingUiPolicy
 {
     public bool CanClearAllAnnotations => true;
 
-    public bool CanDeleteGeometry => true;
-
     public bool CanUseAutoFit => true;
-
-    public bool CanUsePolygonTool => true;
 
     public bool CanUseRectangleTool => true;
 
-    public bool ShowsOkNgShortcuts => false;
+    public bool ShowsAnnotationModeTools => true;
 }
 
-/// <summary>画布工具模式：与 deepvision 的 LabelingToolMode 同名同值。</summary>
-public enum LabelingToolMode
-{
-    Select = 0,
-    Rectangle = 1,
-    Polygon = 2
-}
-
-/// <summary>标注编辑器 stub（对应 LabelingEditorViewModel）：画布上的 4 个框与多边形列表都从这里出。</summary>
+/// <summary>标注编辑器 stub（对应 LabelingEditorViewModel）：画布与框列表的框都从这里出。</summary>
 public sealed class SampleLabelingEditor : ObservableObject
 {
     private bool _showLabelNames = true;
     private double _zoomScale = 1;
-    private bool _ocrConfirmed = true;
+    private BoxShapeViewModel? _selectedBox;
+    private BoxToolMode _activeToolMode = BoxToolMode.Draw;
 
     public SampleLabelingEditor()
     {
-        AnnotationRows =
+        Boxes =
         [
-            new SampleAnnotationRow
-            {
-                Id = "ann-1",
-                Label = "划伤",
-                Color = SampleLabelingPalette.Brush(SampleLabelingPalette.LabelColors[0]),
-                Bounds = new Rect(212, 168, 318, 132),
-                IsSelected = true,
-            },
-            new SampleAnnotationRow
-            {
-                Id = "ann-2",
-                Label = "凹坑",
-                Color = SampleLabelingPalette.Brush(SampleLabelingPalette.LabelColors[1]),
-                Bounds = new Rect(612, 246, 196, 164),
-            },
-            new SampleAnnotationRow
-            {
-                Id = "ann-3",
-                Label = "锈斑",
-                Color = SampleLabelingPalette.Brush(SampleLabelingPalette.LabelColors[2]),
-                Bounds = new Rect(884, 470, 244, 168),
-            },
-            new SampleAnnotationRow
-            {
-                Id = "ann-4",
-                Label = "划伤",
-                Color = SampleLabelingPalette.Brush(SampleLabelingPalette.LabelColors[0]),
-                Bounds = new Rect(348, 588, 286, 96),
-            },
+            new BoxShapeViewModel("划伤", 212, 168, 318, 132) { Number = 1 },
+            new BoxShapeViewModel("凹坑", 612, 246, 196, 164) { Number = 2 },
+            new BoxShapeViewModel("锈斑", 884, 470, 244, 168) { Number = 3 },
+            new BoxShapeViewModel("划伤", 348, 588, 286, 96) { Number = 4 },
         ];
 
-        SegmentationPolygons =
-        [
-            new SamplePolygonRow
-            {
-                Id = "poly-1",
-                Label = "划伤",
-                Color = SampleLabelingPalette.Brush(SampleLabelingPalette.LabelColors[0]),
-                Points = [new Point(232, 196), new Point(508, 172), new Point(524, 268), new Point(248, 292)],
-            },
-        ];
+        Select(Boxes[0]);
 
-        AutoFitCommand = new RelayCommand(() => { });
-        ClearAnnotationsCommand = new RelayCommand(() => { });
-        DeleteAnnotationCommand = new RelayCommand<string>(_ => { });
-        DeletePolygonCommand = new RelayCommand<string>(_ => { });
-        MarkReviewedBackgroundCommand = new RelayCommand(() => { });
-        SelectAnnotationCommand = new RelayCommand<string>(_ => { });
-        SetImageClassNgCommand = new RelayCommand(() => { });
-        SetImageClassOkCommand = new RelayCommand(() => { });
-        SetPolygonToolCommand = new RelayCommand(() => { });
+        ClearBoxesCommand = new RelayCommand(() => { });
+        DeleteBoxCommand = new RelayCommand<BoxShapeViewModel>(_ => { });
+        SelectBoxCommand = new RelayCommand<BoxShapeViewModel>(_ => { });
         SetRectangleToolCommand = new RelayCommand(() => { });
         SetSelectToolCommand = new RelayCommand(() => { });
         UndoCommand = new RelayCommand(() => { });
         RedoCommand = new RelayCommand(() => { });
     }
 
-    public IReadOnlyList<SampleAnnotationRow> AnnotationRows { get; }
+    public IReadOnlyList<BoxShapeViewModel> Boxes { get; }
 
-    public IReadOnlyList<SamplePolygonRow> SegmentationPolygons { get; }
+    public bool HasBoxes => Boxes.Count > 0;
 
-    public bool HasAnnotations => AnnotationRows.Count > 0;
-
-    public bool HasSelectedAnnotations => true;
-
-    public string SelectedAnnotationSummary => "划伤 · 318 × 132";
-
-    public SampleAnnotationRow SelectedAnnotation => AnnotationRows[0];
-
-    public int SelectedAnnotationCount => 1;
-
-    public string ImageClassSummary => "OK";
-
-    public bool IsImageClassOk => true;
-
-    public bool IsImageClassNg => false;
-
-    public bool IsReviewedBackground => false;
+    public bool HasSelectedBox => SelectedBox is not null;
 
     public bool CanUseEditor => true;
+
+    public bool IsNotBusy => true;
 
     public bool CanUndo => true;
 
     public bool CanRedo => false;
 
-    public bool CanClearAnnotations => true;
+    public BoxToolMode ActiveToolMode => _activeToolMode;
 
-    public bool CanAutoFit => true;
+    public bool IsSelectTool => ActiveToolMode == BoxToolMode.Select;
 
-    public LabelingToolMode ToolMode => LabelingToolMode.Rectangle;
+    public bool IsRectangleTool => ActiveToolMode == BoxToolMode.Draw;
 
-    public bool IsSelectTool => false;
-
-    public bool IsRectangleTool => true;
-
-    public bool IsPolygonTool => false;
-
-    public bool OcrConfirmed
-    {
-        get => _ocrConfirmed;
-        set => SetProperty(ref _ocrConfirmed, value);
-    }
+    public BoxShapeViewModel? SelectedBox => _selectedBox;
 
     public bool ShowLabelNames
     {
@@ -246,23 +160,11 @@ public sealed class SampleLabelingEditor : ObservableObject
 
     public string ZoomText => ZoomScale.ToString("P0");
 
-    public ICommand AutoFitCommand { get; }
+    public ICommand ClearBoxesCommand { get; }
 
-    public ICommand ClearAnnotationsCommand { get; }
+    public ICommand DeleteBoxCommand { get; }
 
-    public ICommand DeleteAnnotationCommand { get; }
-
-    public ICommand DeletePolygonCommand { get; }
-
-    public ICommand MarkReviewedBackgroundCommand { get; }
-
-    public ICommand SelectAnnotationCommand { get; }
-
-    public ICommand SetImageClassNgCommand { get; }
-
-    public ICommand SetImageClassOkCommand { get; }
-
-    public ICommand SetPolygonToolCommand { get; }
+    public ICommand SelectBoxCommand { get; }
 
     public ICommand SetRectangleToolCommand { get; }
 
@@ -271,58 +173,19 @@ public sealed class SampleLabelingEditor : ObservableObject
     public ICommand UndoCommand { get; }
 
     public ICommand RedoCommand { get; }
-}
 
-/// <summary>画布上的一行标注（对应 AnnotationRow）：几何用图像坐标，画布自己换算到屏幕。</summary>
-public sealed class SampleAnnotationRow : ObservableObject
-{
-    private bool _isSelected;
-    private bool _ignoreForTraining;
-    private string _transcription = string.Empty;
-
-    public required string Id { get; init; }
-
-    public required string Label { get; init; }
-
-    public required IBrush Color { get; init; }
-
-    public required Rect Bounds { get; init; }
-
-    public double Width => Bounds.Width;
-
-    public double Height => Bounds.Height;
-
-    public string Transcription
+    /// <summary>与真实编辑器的选中语义一致：同时只允许一个框处于选中态。</summary>
+    internal void Select(BoxShapeViewModel box)
     {
-        get => _transcription;
-        set => SetProperty(ref _transcription, value);
+        foreach (var item in Boxes)
+        {
+            item.IsSelected = ReferenceEquals(item, box);
+        }
+
+        _selectedBox = box;
+        OnPropertyChanged(nameof(SelectedBox));
+        OnPropertyChanged(nameof(HasSelectedBox));
     }
-
-    public bool IgnoreForTraining
-    {
-        get => _ignoreForTraining;
-        set => SetProperty(ref _ignoreForTraining, value);
-    }
-
-    public bool IsSelected
-    {
-        get => _isSelected;
-        set => SetProperty(ref _isSelected, value);
-    }
-}
-
-/// <summary>画布上的一个多边形（对应 SegmentationPolygonRow）。</summary>
-public sealed class SamplePolygonRow
-{
-    public required string Id { get; init; }
-
-    public required string Label { get; init; }
-
-    public required IBrush Color { get; init; }
-
-    public required IReadOnlyList<Point> Points { get; init; }
-
-    public int PointCount => Points.Count;
 }
 
 /// <summary>类别列表 stub（对应 LabelingLabelsViewModel）。</summary>
@@ -332,34 +195,10 @@ public sealed class SampleLabelingLabels
     {
         LabelOptions =
         [
-            new SampleLabelOption
-            {
-                Id = "label-1",
-                Name = "划伤",
-                HotkeyText = "1",
-                Color = SampleLabelingPalette.Brush(SampleLabelingPalette.LabelColors[0]),
-            },
-            new SampleLabelOption
-            {
-                Id = "label-2",
-                Name = "凹坑",
-                HotkeyText = "2",
-                Color = SampleLabelingPalette.Brush(SampleLabelingPalette.LabelColors[1]),
-            },
-            new SampleLabelOption
-            {
-                Id = "label-3",
-                Name = "锈斑",
-                HotkeyText = "3",
-                Color = SampleLabelingPalette.Brush(SampleLabelingPalette.LabelColors[2]),
-            },
-            new SampleLabelOption
-            {
-                Id = "label-4",
-                Name = "压痕",
-                HotkeyText = "4",
-                Color = SampleLabelingPalette.Brush(SampleLabelingPalette.LabelColors[3]),
-            },
+            new SampleLabelOption { Id = "label-1", Name = "划伤", HotkeyText = "1", Color = "#F59E0B" },
+            new SampleLabelOption { Id = "label-2", Name = "凹坑", HotkeyText = "2", Color = "#3B82F6" },
+            new SampleLabelOption { Id = "label-3", Name = "锈斑", HotkeyText = "3", Color = "#EF4444" },
+            new SampleLabelOption { Id = "label-4", Name = "压痕", HotkeyText = "4", Color = "#22C55E" },
         ];
 
         ActiveLabelId = LabelOptions[0].Id;
@@ -379,7 +218,7 @@ public sealed class SampleLabelingLabels
 
     public string ActiveLabelName { get; }
 
-    public IBrush ActiveLabelColor { get; }
+    public string ActiveLabelColor { get; }
 
     public SampleLabelOption? SelectedLabel { get; }
 
@@ -394,7 +233,7 @@ public sealed class SampleLabelingLabels
     public ICommand ShowEditLabelColorDialogCommand { get; }
 }
 
-/// <summary>一个类别（对应 LabelOption）。</summary>
+/// <summary>一个类别（对应 LabelOptionRow）：颜色是 #RRGGBB，由控件侧解析。</summary>
 public sealed class SampleLabelOption
 {
     public required string Id { get; init; }
@@ -403,10 +242,10 @@ public sealed class SampleLabelOption
 
     public required string HotkeyText { get; init; }
 
-    public required IBrush Color { get; init; }
+    public required string Color { get; init; }
 }
 
-/// <summary>样本条 stub（对应 LabelingSamplesViewModel）：胶片条上的 5 张缩略图从这里出。</summary>
+/// <summary>样本条 stub（对应 LabelingSampleListViewModel）：胶片条上的 5 张缩略图从这里出。</summary>
 public sealed class SampleLabelingSamples : ObservableObject
 {
     private bool _isSamplePanelExpanded = true;
@@ -425,11 +264,6 @@ public sealed class SampleLabelingSamples : ObservableObject
                 IsActive = true,
                 IsAnnotated = true,
                 IsAnchor = true,
-                AiBadgeTone = "ok",
-                HasAiBadge = true,
-                AiBadgeText = "OK",
-                AiBadgeDiffers = false,
-                AiBadgeToolTip = "AI 判定：OK（置信度 0.98）",
             },
             new SampleLabelingSampleRow
             {
@@ -439,11 +273,6 @@ public sealed class SampleLabelingSamples : ObservableObject
                 Thumbnail = SampleLabelingImages.CreateThumbnail(
                     SampleLabelingPalette.ThumbFrom, SampleLabelingPalette.ThumbTo),
                 IsAnnotated = true,
-                AiBadgeTone = "ng",
-                HasAiBadge = true,
-                AiBadgeText = "NG",
-                AiBadgeDiffers = true,
-                AiBadgeToolTip = "AI 判定：NG（置信度 0.87），与人工标注不一致",
             },
             new SampleLabelingSampleRow
             {
@@ -453,10 +282,6 @@ public sealed class SampleLabelingSamples : ObservableObject
                 Thumbnail = SampleLabelingImages.CreateThumbnail(
                     SampleLabelingPalette.ThumbFrom, SampleLabelingPalette.ThumbTo),
                 IsAnnotated = true,
-                AiBadgeTone = "warn",
-                HasAiBadge = true,
-                AiBadgeText = "?",
-                AiBadgeToolTip = "AI 置信度偏低，建议人工复核",
             },
             new SampleLabelingSampleRow
             {
@@ -481,14 +306,9 @@ public sealed class SampleLabelingSamples : ObservableObject
         ImportImagesCommand = new RelayCommand(() => { });
         GoToNextSamplePageCommand = new RelayCommand(() => { });
         GoToPreviousSamplePageCommand = new RelayCommand(() => { });
-        MoveCurrentToTestDefectCommand = new RelayCommand(() => { });
-        MoveCurrentToTestGoodCommand = new RelayCommand(() => { });
-        MoveCurrentToTrainGoodCommand = new RelayCommand(() => { });
         NavigateNextSampleCommand = new RelayCommand(() => { });
         NavigatePreviousSampleCommand = new RelayCommand(() => { });
-        SetImageClassNgAndMoveCommand = new RelayCommand(() => { });
         ShowMoveSamplesDialogCommand = new RelayCommand(() => { });
-        ShowNgMoveTargetDialogCommand = new RelayCommand(() => { });
         ToggleSamplePanelCommand = new RelayCommand(() => { });
     }
 
@@ -506,15 +326,7 @@ public sealed class SampleLabelingSamples : ObservableObject
 
     public bool CanImportImages => true;
 
-    public bool CanMoveCurrentToAnomalySystemGallery => false;
-
     public bool CanMoveSelectedSamples => true;
-
-    public bool CanSetImageClassNgAndMove => false;
-
-    public bool HasNgMoveTarget => false;
-
-    public string NgAndMoveButtonToolTip => "标为 NG 并移入 NG 集";
 
     public bool IsSamplePanelExpanded
     {
@@ -534,21 +346,11 @@ public sealed class SampleLabelingSamples : ObservableObject
 
     public ICommand GoToPreviousSamplePageCommand { get; }
 
-    public ICommand MoveCurrentToTestDefectCommand { get; }
-
-    public ICommand MoveCurrentToTestGoodCommand { get; }
-
-    public ICommand MoveCurrentToTrainGoodCommand { get; }
-
     public ICommand NavigateNextSampleCommand { get; }
 
     public ICommand NavigatePreviousSampleCommand { get; }
 
-    public ICommand SetImageClassNgAndMoveCommand { get; }
-
     public ICommand ShowMoveSamplesDialogCommand { get; }
-
-    public ICommand ShowNgMoveTargetDialogCommand { get; }
 
     public ICommand ToggleSamplePanelCommand { get; }
 }
@@ -573,16 +375,6 @@ public sealed class SampleLabelingSampleRow : ObservableObject
 
     public bool HasError { get; init; }
 
-    public bool HasAiBadge { get; init; }
-
-    public string AiBadgeTone { get; init; } = "ok";
-
-    public string AiBadgeText { get; init; } = string.Empty;
-
-    public string AiBadgeToolTip { get; init; } = string.Empty;
-
-    public bool AiBadgeDiffers { get; init; }
-
     public bool IsActive
     {
         get => _isActive;
@@ -594,158 +386,6 @@ public sealed class SampleLabelingSampleRow : ObservableObject
         get => _isSelected;
         set => SetProperty(ref _isSelected, value);
     }
-}
-
-/// <summary>AI 判定 stub（对应 LabelingAiJudgeViewModel）：变差分类轨道与右栏结果卡都从这里取值。</summary>
-public sealed class SampleLabelingAiJudge
-{
-    public SampleLabelingAiJudge()
-    {
-        Evidence =
-        [
-            "被测区域与 OK 标准的纹理分布差异集中在右上角",
-            "最接近的标准样本为 ok-standard_014.png，相似度 0.83",
-            "判定阈值：相似度低于 0.90 判为 NG",
-        ];
-
-        ClosestStandardImage = SampleLabelingImages.CreateThumbnail(
-            SampleLabelingPalette.ThumbFrom, SampleLabelingPalette.ThumbTo);
-
-        AddCurrentAsNgStandardCommand = new RelayCommand(() => { });
-        AddCurrentAsOkStandardCommand = new RelayCommand(() => { });
-        AdoptCommand = new RelayCommand(() => { });
-        CancelBatchCommand = new RelayCommand(() => { });
-        CancelJudgeCommand = new RelayCommand(() => { });
-        JudgeCommand = new RelayCommand(() => { });
-        RejudgeCommand = new RelayCommand(() => { });
-        ShowBatchDialogCommand = new RelayCommand(() => { });
-        ShowModelSettingsDialogCommand = new RelayCommand(() => { });
-        ShowReviewDialogCommand = new RelayCommand(() => { });
-        ShowStandardsDialogCommand = new RelayCommand(() => { });
-    }
-
-    public SampleLabelingAiJudgeBatch Batch { get; } = new();
-
-    public IReadOnlyList<string> Evidence { get; }
-
-    public IImage? ClosestStandardImage { get; }
-
-    public bool IsVisible => true;
-
-    public bool IsJudging => false;
-
-    public bool HasOutcome => true;
-
-    public bool HasMessage => false;
-
-    public bool HasEvidence => true;
-
-    public bool HasStaleReason => false;
-
-    public bool HasClosestStandard => true;
-
-    public bool HasConfidence => true;
-
-    public bool HasAdoptedText => true;
-
-    public bool CanAdopt => true;
-
-    public bool HasBatchSummaryHere => true;
-
-    public bool HasReadinessHint => false;
-
-    public bool IsBatchRunningElsewhere => false;
-
-    public string VerdictText => "NG";
-
-    public string ResultTone => "ng";
-
-    public string ConfidenceText => "0.87";
-
-    public string ClosestStandardText => "ok-standard_014.png · 相似度 0.83";
-
-    public string ElapsedText => "耗时 1.2 s";
-
-    public string ResultMetaText => "模型 ai-judge-swin-v3 · 1280 × 860";
-
-    public string SuggestionSummary => "建议人工复核：差异区域靠近边缘，可能受光照影响";
-
-    public string StaleReason => string.Empty;
-
-    public string AdoptedText => "已采纳为 NG";
-
-    public string ModelSummary => "ai-judge-swin-v3（NG 标准 42 张 / OK 标准 96 张）";
-
-    public string StandardSummary => "OK 标准 96 张 · NG 标准 42 张";
-
-    public string ReadinessHint => string.Empty;
-
-    public string RemainingText => "剩余 0 张";
-
-    public string SummaryText => "本页已判定 24 张：OK 19 / NG 5";
-
-    public string UsageText => "本次会话已判定 128 张";
-
-    public string EndpointTag => "local";
-
-    public ICommand AddCurrentAsNgStandardCommand { get; }
-
-    public ICommand AddCurrentAsOkStandardCommand { get; }
-
-    public ICommand AdoptCommand { get; }
-
-    public ICommand CancelBatchCommand { get; }
-
-    public ICommand CancelJudgeCommand { get; }
-
-    public ICommand JudgeCommand { get; }
-
-    public ICommand RejudgeCommand { get; }
-
-    public ICommand ShowBatchDialogCommand { get; }
-
-    public ICommand ShowModelSettingsDialogCommand { get; }
-
-    public ICommand ShowReviewDialogCommand { get; }
-
-    public ICommand ShowStandardsDialogCommand { get; }
-}
-
-/// <summary>AI 判定批处理 stub（对应 LabelingAiJudgeBatchViewModel）。</summary>
-public sealed class SampleLabelingAiJudgeBatch
-{
-    public bool IsRunning => false;
-
-    public string LastRunSummary => "上次批处理：24 张 / 用时 38 s";
-
-    public double ProgressPercent => 62;
-
-    public string ProgressText => "15 / 24";
-
-    public string StatisticsText => "OK 19 · NG 5 · 待复核 3";
-}
-
-/// <summary>模板匹配 stub（对应 LabelingTemplateMatchViewModel）。</summary>
-public sealed class SampleTemplateMatch
-{
-    public SampleTemplateMatch()
-    {
-        SetTemplateCommand = new RelayCommand(() => { });
-        ShowTemplateMatchDialogCommand = new RelayCommand(() => { });
-        TemplateMatchCommand = new RelayCommand(() => { });
-    }
-
-    public bool IsVisible => true;
-
-    public bool CanSetTemplate => true;
-
-    public bool CanTemplateMatch => true;
-
-    public ICommand SetTemplateCommand { get; }
-
-    public ICommand ShowTemplateMatchDialogCommand { get; }
-
-    public ICommand TemplateMatchCommand { get; }
 }
 
 /// <summary>自动推理 stub（对应 LabelingInferenceViewModel）。</summary>
@@ -776,19 +416,9 @@ public sealed class SampleLabelingInference
 /// <summary>stub 用色板与占位图：缩略图是画出来的渐变，画布图像是写出来的像素。</summary>
 internal static class SampleLabelingPalette
 {
-    public static readonly Color[] LabelColors =
-    [
-        Color.FromRgb(0xF5, 0x9E, 0x0B),
-        Color.FromRgb(0x3B, 0x82, 0xF6),
-        Color.FromRgb(0xEF, 0x44, 0x44),
-        Color.FromRgb(0x10, 0xB9, 0x81),
-    ];
-
     public static readonly Color ThumbFrom = Color.FromRgb(0x33, 0x41, 0x55);
 
     public static readonly Color ThumbTo = Color.FromRgb(0x8B, 0x9C, 0xB0);
-
-    public static IBrush Brush(Color color) => new SolidColorBrush(color);
 }
 
 /// <summary>占位图像：缩略图走渐变矩形，画布图像走真实的 WriteableBitmap 像素。</summary>

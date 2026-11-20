@@ -14,7 +14,11 @@ public sealed partial class LabelingWorkspaceContext : ObservableObject
     public LabelingWorkspaceContext(IImageSourceFactory imageSources)
     {
         _imageSources = imageSources;
+        UiPolicy = new LabelingUiPolicy(this);
     }
+
+    /// <summary>界面策略：XAML 直接绑定这个对象决定工具行/按钮的可不可用。</summary>
+    public LabelingUiPolicy UiPolicy { get; }
 
     [ObservableProperty]
     private ProjectGallery? _gallery;
@@ -128,6 +132,7 @@ public sealed partial class LabelingWorkspaceContext : ObservableObject
     {
         OnPropertyChanged(nameof(IsClassificationProject));
         OnPropertyChanged(nameof(IsDetectionProject));
+        UiPolicy.NotifyWorkflowChanged();
     }
 
     private void NotifyBusyState()

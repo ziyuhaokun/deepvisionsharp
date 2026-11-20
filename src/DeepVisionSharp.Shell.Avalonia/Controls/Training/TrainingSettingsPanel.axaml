@@ -28,25 +28,12 @@
             <Setter Property="FontSize" Value="11" />
             <Setter Property="Foreground" Value="{DynamicResource IvText3Brush}" />
         </Style>
-        <Style Selector="TextBlock.fieldDefaultHint">
-            <Setter Property="Margin" Value="8,0,0,0" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="FontSize" Value="11" />
-            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
-        </Style>
         <Style Selector="Border.formSection">
             <Setter Property="Padding" Value="0" />
             <Setter Property="Margin" Value="0" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="CornerRadius" Value="0" />
-        </Style>
-        <Style Selector="Border.panelCard">
-            <Setter Property="Padding" Value="12" />
-            <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="6" />
         </Style>
         <Style Selector="Border.jobLockCard">
             <Setter Property="Margin" Value="0,0,0,8" />
@@ -63,37 +50,6 @@
             <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="6" />
-        </Style>
-        <Style Selector="Button.presetButton">
-            <Setter Property="Margin" Value="0,0,4,0" />
-            <Setter Property="Padding" Value="9,3" />
-            <Setter Property="MinHeight" Value="0" />
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="FontSize" Value="11.5" />
-            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
-        </Style>
-        <Style Selector="Button.presetButton.active">
-            <Setter Property="Background" Value="{DynamicResource IvAccentSubtleBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource IvAccentBrush}" />
-            <Setter Property="Foreground" Value="{DynamicResource IvAccentTextBrush}" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-        </Style>
-        <Style Selector="Button.fieldReset">
-            <Setter Property="Margin" Value="8,0,0,0" />
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="MinWidth" Value="0" />
-            <Setter Property="MinHeight" Value="0" />
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="FontSize" Value="11" />
-            <Setter Property="Foreground" Value="{DynamicResource IvAccentTextBrush}" />
-        </Style>
-        <Style Selector="Button.fieldReset:pointerover">
-            <Setter Property="Background" Value="Transparent" />
         </Style>
         <Style Selector="Border.galleryRow">
             <Setter Property="Padding" Value="10,7" />
@@ -168,87 +124,16 @@
             <Setter Property="Foreground" Value="{DynamicResource IvAccentTextBrush}" />
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
-        <Style Selector="TextBlock.geometryStatus">
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="FontSize" Value="12" />
-            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
-        </Style>
-        <Style Selector="TextBlock.geometryStatus.warning">
-            <Setter Property="Foreground" Value="{DynamicResource IvWarningBrush}" />
-        </Style>
-        <Style Selector="TextBlock.geometryStatus.error">
-            <Setter Property="Foreground" Value="{DynamicResource IvDangerBrush}" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-        </Style>
-        <Style Selector="Border.findingBadge">
-            <Setter Property="Margin" Value="0,1,8,0" />
-            <Setter Property="Padding" Value="6,1" />
-            <Setter Property="VerticalAlignment" Value="Top" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="BorderBrush" Value="{DynamicResource IvText3Brush}" />
-        </Style>
-        <Style Selector="Border.findingBadge.warning">
-            <Setter Property="BorderBrush" Value="{DynamicResource IvWarningBrush}" />
-        </Style>
-        <Style Selector="Border.findingBadge.error">
-            <Setter Property="BorderBrush" Value="{DynamicResource IvDangerBrush}" />
-        </Style>
-        <Style Selector="TextBlock.findingSeverity">
-            <Setter Property="FontSize" Value="11" />
-            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
-        </Style>
-        <Style Selector="TextBlock.findingSeverity.warning">
-            <Setter Property="Foreground" Value="{DynamicResource IvWarningBrush}" />
-        </Style>
-        <Style Selector="TextBlock.findingSeverity.error">
-            <Setter Property="Foreground" Value="{DynamicResource IvDangerBrush}" />
-        </Style>
     </UserControl.Styles>
 
     <Grid x:Name="SettingsContentHost"
           Margin="16,6,16,0"
           MinHeight="0"
           VerticalAlignment="Stretch"
-          RowDefinitions="Auto,Auto,*"
+          RowDefinitions="Auto,*"
           IsVisible="{Binding Monitor.IsSettingsMode}">
 
-        <WrapPanel Grid.Row="0"
-                   Margin="0,0,0,10"
-                   VerticalAlignment="Center"
-                   IsVisible="{Binding Config.ShowsParameterPresets}">
-            <TextBlock VerticalAlignment="Center"
-                       FontSize="11.5"
-                       FontWeight="SemiBold"
-                       Foreground="{DynamicResource IvText2Brush}"
-                       Text="参数预设" />
-            <TextBlock Margin="10,0,0,0"
-                       VerticalAlignment="Center"
-                       FontSize="11.5"
-                       Foreground="{DynamicResource IvText3Brush}"
-                       Text="{Binding Config.ModifiedParametersText}"
-                       IsVisible="{Binding Config.HasModifiedParameters}" />
-            <ItemsControl Margin="8,0,0,0" ItemsSource="{Binding Config.ParameterPresets}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <StackPanel Orientation="Horizontal" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Button Classes="presetButton"
-                                Classes.active="{Binding IsActive}"
-                                Command="{Binding $parent[UserControl].DataContext.Config.ApplyParameterPresetCommand}"
-                                CommandParameter="{Binding}"
-                                ToolTip.Tip="{Binding Description}">
-                            <TextBlock Text="{Binding Label}" />
-                        </Button>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </WrapPanel>
-
-        <Border Grid.Row="1"
+        <Border Grid.Row="0"
                 Classes="jobLockCard"
                 IsVisible="{Binding Config.IsJobLocked}">
             <TextBlock FontSize="12"
@@ -256,7 +141,7 @@
                        Text="任务已开始，参数已锁定。如需调整请新建任务。" />
         </Border>
 
-        <Grid Grid.Row="2" MinHeight="0" IsEnabled="{Binding Config.IsFormEditable}">
+        <Grid Grid.Row="1" MinHeight="0" IsEnabled="{Binding Config.IsFormEditable}">
 
             <ScrollViewer Margin="0,4,0,12"
                           HorizontalScrollBarVisibility="Disabled"
@@ -276,151 +161,37 @@
                             <TextBox Text="{Binding Config.ModelName, Mode=TwoWay}" />
                         </StackPanel>
 
-                        <StackPanel Margin="0,12,0,0" IsVisible="{Binding Config.ShowLibraryModelSelector}">
-                            <TextBlock Classes="fieldLabel" Text="初始化模型" />
-                            <ComboBox AutomationProperties.AutomationId="dv.training.library-model"
-                                      ItemsSource="{Binding Config.LibraryModelOptions}"
-                                      SelectedValue="{Binding Config.SelectedLibraryModelId, Mode=TwoWay}"
-                                      SelectedValueBinding="{Binding Id}"
-                                      ToolTip.Tip="{Binding Config.SelectedLibraryModelSummary}">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding DisplayText}" />
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
-                            <TextBlock Classes="fieldHint"
-                                       Text="{Binding Config.SelectedLibraryModelSummary}"
-                                       TextWrapping="Wrap" />
-                        </StackPanel>
-
-                        <StackPanel Margin="0,10,0,0" IsVisible="{Binding Config.IsPpOcrDetectionModelSelected}">
-                            <TextBlock Classes="fieldLabel" Text="PP-OCR Detection 输入边长" />
-                            <iv:NumericBox Minimum="32" Maximum="4096" Step="32" DecimalPlaces="0"
-                                          IsEnabled="{Binding Config.IsFormEditable}"
-                                          Value="{Binding Config.Spatial.NetworkInputSize, Mode=TwoWay}" />
-                            <TextBlock Classes="fieldHint"
-                                       Text="整图训练，默认 640；文字框与忽略区域随整图保存。"
-                                       TextWrapping="Wrap" />
-                        </StackPanel>
-
-                        <StackPanel Margin="0,10,0,0" IsVisible="{Binding Config.IsPpOcrRecognitionModelSelected}">
-                            <TextBlock Classes="fieldLabel" Text="PP-OCR Recognition 参数" />
-                            <Grid Margin="0,6,0,0" ColumnDefinitions="*,10,*">
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Classes="fieldHint" Text="输入高度" />
-                                    <iv:NumericBox IsEnabled="False" Value="{Binding Config.OcrInputHeight, Mode=TwoWay}" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="2">
-                                    <TextBlock Classes="fieldHint" Text="输入宽度" />
-                                    <iv:NumericBox IsEnabled="False" Value="{Binding Config.OcrInputWidth, Mode=TwoWay}" />
-                                </StackPanel>
-                            </Grid>
-                            <TextBlock Margin="0,8,0,0" Classes="fieldHint" Text="裁剪边距（像素）" />
-                            <iv:NumericBox Minimum="0" Maximum="64"
-                                          Value="{Binding Config.OcrCropMargin, Mode=TwoWay}" />
-                            <CheckBox Margin="0,8,0,0"
-                                      Content="训练后导出 OpenVINO IR"
-                                      IsChecked="{Binding Config.OcrExportOpenVino, Mode=TwoWay}" />
-                            <CheckBox Margin="0,4,0,0"
-                                      Content="生成 INT8（待实现）"
-                                      IsEnabled="False"
-                                      IsChecked="{Binding Config.OcrQuantizeInt8, Mode=TwoWay}" />
-                        </StackPanel>
-
-                        <StackPanel Margin="0,10,0,0" IsVisible="{Binding Config.IsAnomalibModelSelected}">
+                        <StackPanel Margin="0,12,0,0">
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                                 <TextBlock VerticalAlignment="Center"
                                            Classes="fieldLabel"
                                            Margin="0"
-                                           Text="异常检测算法" />
-                                <dv:ParamHelpButton Title="异常检测算法"
-                                                    HelpText="仅用良品图训练；输出 raw anomaly score。算法与 checkpoint 的分数量纲不可互换。" />
+                                           Text="模型架构" />
+                                <dv:ParamHelpButton Title="模型架构"
+                                                    HelpText="按项目类型选择架构：分类支持 ResNet 与 YOLO26-cls，检测支持 YOLO26-det" />
                             </StackPanel>
-                            <ComboBox ItemsSource="{Binding Config.AnomalibAlgorithmOptions}"
+                            <ComboBox ItemsSource="{Binding Config.AvailableModelTypes}"
                                       SelectedValue="{Binding Config.SelectedModelType, Mode=TwoWay}"
-                                      SelectedValueBinding="{Binding Value}">
+                                      SelectedValueBinding="{Binding Value}"
+                                      IsEnabled="{Binding Config.IsFormEditable}">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding DisplayText}" />
+                                        <TextBlock Text="{Binding Label}" />
                                     </DataTemplate>
                                 </ComboBox.ItemTemplate>
                             </ComboBox>
-                        </StackPanel>
-
-                        <StackPanel Margin="0,10,0,0" IsVisible="{Binding Config.ShowsAnomalibParams}">
-                            <TextBlock Classes="fieldLabel" Text="算法参数" />
-                            <StackPanel Margin="0,6,0,0" IsVisible="{Binding Config.ShowsPatchCoreParams}">
-                                <TextBlock Classes="fieldHint" Text="Backbone" />
-                                <ComboBox ItemsSource="{Binding Config.AnomalibBackboneOptions}"
-                                          SelectedItem="{Binding Config.AnomalibBackbone, Mode=TwoWay}" />
-                                <Grid Margin="0,8,0,0" ColumnDefinitions="*,10,*">
-                                    <StackPanel Grid.Column="0">
-                                        <TextBlock Classes="fieldHint" Text="Coreset 采样比" />
-                                        <iv:NumericBox Maximum="1" Minimum="0.01"
-                                                      Value="{Binding Config.AnomalibCoresetSamplingRatio, Mode=TwoWay}" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="2">
-                                        <TextBlock Classes="fieldHint" Text="邻居数 k" />
-                                        <iv:NumericBox Minimum="1"
-                                                      Value="{Binding Config.AnomalibNumNeighbors, Mode=TwoWay}" />
-                                    </StackPanel>
-                                </Grid>
-                            </StackPanel>
-                            <StackPanel Margin="0,6,0,0" IsVisible="{Binding Config.ShowsPadimOrStfpmParams}">
-                                <TextBlock Classes="fieldHint" Text="Backbone" />
-                                <ComboBox ItemsSource="{Binding Config.AnomalibBackboneOptions}"
-                                          SelectedItem="{Binding Config.AnomalibBackbone, Mode=TwoWay}" />
-                                <TextBlock Margin="0,8,0,0" Classes="fieldHint" Text="特征层（逗号分隔）" />
-                                <TextBox Text="{Binding Config.AnomalibLayers, Mode=TwoWay}" />
-                            </StackPanel>
-                            <StackPanel Margin="0,6,0,0" IsVisible="{Binding Config.ShowsEfficientAdParams}">
-                                <TextBlock Classes="fieldHint" Text="Model size" />
-                                <ComboBox ItemsSource="{Binding Config.AnomalibModelSizeOptions}"
-                                          SelectedItem="{Binding Config.AnomalibModelSize, Mode=TwoWay}" />
-                            </StackPanel>
-                            <StackPanel Margin="0,6,0,0" IsVisible="{Binding Config.ShowsFastflowParams}">
-                                <TextBlock Classes="fieldHint" Text="Backbone" />
-                                <ComboBox ItemsSource="{Binding Config.AnomalibBackboneOptions}"
-                                          SelectedItem="{Binding Config.AnomalibBackbone, Mode=TwoWay}" />
-                                <Grid Margin="0,8,0,0" ColumnDefinitions="*,10,*">
-                                    <StackPanel Grid.Column="0">
-                                        <TextBlock Classes="fieldHint" Text="Flow steps" />
-                                        <iv:NumericBox Minimum="1"
-                                                      Value="{Binding Config.AnomalibFlowSteps, Mode=TwoWay}" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="2">
-                                        <TextBlock Classes="fieldHint" Text="Hidden ratio" />
-                                        <iv:NumericBox Maximum="4" Minimum="0.1"
-                                                      Value="{Binding Config.AnomalibHiddenRatio, Mode=TwoWay}" />
-                                    </StackPanel>
-                                </Grid>
-                                <CheckBox Margin="0,8,0,0"
-                                          Content="使用预训练 Backbone"
-                                          IsChecked="{Binding Config.AnomalibPreTrained, Mode=TwoWay}" />
-                            </StackPanel>
-                            <StackPanel Margin="0,8,0,0" IsVisible="{Binding Config.ShowsAnomalibEpochs}">
-                                <TextBlock Classes="fieldHint" Text="Max epochs" />
-                                <iv:NumericBox Minimum="1"
-                                              Value="{Binding Config.AnomalibMaxEpochs, Mode=TwoWay}" />
-                            </StackPanel>
                         </StackPanel>
 
                         <Border Height="1" Margin="0,18,0,18" Background="{DynamicResource IvStrokeSubtleBrush}" />
 
                         <StackPanel>
                             <TextBlock Classes="sectionTitle" Text="训练参数" />
-                            <Grid IsVisible="{Binding Config.ShowsYoloTrainHyperparameters}" ColumnDefinitions="*,16,*,16,*">
+                            <Grid ColumnDefinitions="*,16,*,16,*">
 
                                 <StackPanel Grid.Column="0">
                                     <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
                                         <TextBlock Margin="0" VerticalAlignment="Center" Classes="fieldLabel" Text="Epochs" />
                                         <dv:ParamHelpButton Title="Epochs" HelpText="范围 1–100000" />
-                                        <TextBlock Classes="fieldDefaultHint" Text="{Binding Config.EpochsDefaultHint}" />
-                                        <Button Command="{Binding Config.ResetEpochsCommand}"
-                                                Content="恢复默认"
-                                                Classes="fieldReset"
-                                                IsVisible="{Binding Config.IsEpochsModified}" />
                                     </StackPanel>
                                     <iv:NumericBox Minimum="1" DecimalPlaces="0"
                                                   Tag="Epochs"
@@ -431,11 +202,6 @@
                                     <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
                                         <TextBlock Margin="0" VerticalAlignment="Center" Classes="fieldLabel" Text="Batch Size" />
                                         <dv:ParamHelpButton Title="Batch Size" HelpText="范围 1–32" />
-                                        <TextBlock Classes="fieldDefaultHint" Text="{Binding Config.BatchSizeDefaultHint}" />
-                                        <Button Command="{Binding Config.ResetBatchSizeCommand}"
-                                                Content="恢复默认"
-                                                Classes="fieldReset"
-                                                IsVisible="{Binding Config.IsBatchSizeModified}" />
                                     </StackPanel>
                                     <iv:NumericBox Minimum="1" DecimalPlaces="0"
                                                   Tag="BatchSize"
@@ -446,33 +212,12 @@
                                     <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
                                         <TextBlock Margin="0" VerticalAlignment="Center" Classes="fieldLabel" Text="学习率" />
                                         <dv:ParamHelpButton Title="学习率" HelpText="范围 0.00005–0.005" />
-                                        <TextBlock Classes="fieldDefaultHint" Text="{Binding Config.LearningRateDefaultHint}" />
-                                        <Button Command="{Binding Config.ResetLearningRateCommand}"
-                                                Content="恢复默认"
-                                                Classes="fieldReset"
-                                                IsVisible="{Binding Config.IsLearningRateModified}" />
                                     </StackPanel>
                                     <iv:NumericBox Maximum="0.005" Minimum="0.00005" Step="0.0001" DecimalPlaces="4"
                                                   Tag="LearningRate"
                                                   Value="{Binding Config.LearningRate, Mode=TwoWay}" />
                                 </StackPanel>
                             </Grid>
-
-                            <StackPanel IsVisible="{Binding Config.IsAnomalibModelSelected}">
-                                <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
-                                    <TextBlock Margin="0" VerticalAlignment="Center" Classes="fieldLabel" Text="Batch Size" />
-                                    <dv:ParamHelpButton Title="Batch Size"
-                                                        HelpText="特征提取 / 训练 DataLoader 的 batch。PatchCore/PaDiM 无 epoch 训练；EfficientAd 等会强制部分约束。" />
-                                    <TextBlock Classes="fieldDefaultHint" Text="{Binding Config.BatchSizeDefaultHint}" />
-                                    <Button Command="{Binding Config.ResetBatchSizeCommand}"
-                                            Content="恢复默认"
-                                            Classes="fieldReset"
-                                            IsVisible="{Binding Config.IsBatchSizeModified}" />
-                                </StackPanel>
-                                <iv:NumericBox Minimum="1" DecimalPlaces="0"
-                                              Tag="BatchSize"
-                                              Value="{Binding Config.BatchSize, Mode=TwoWay}" />
-                            </StackPanel>
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -644,39 +389,6 @@
                         </ScrollViewer>
                     </Border>
 
-                    <Border Grid.Row="2"
-                            MinHeight="0"
-                            Margin="0,0,0,6"
-                            Padding="8"
-                            Background="{DynamicResource IvSurface2Brush}"
-                            BorderBrush="{DynamicResource IvStrokeBrush}"
-                            BorderThickness="1"
-                            CornerRadius="6"
-                            IsVisible="{Binding Config.Dataset.ShowsAnomalyFixedDataset}">
-                        <ItemsControl AutomationProperties.AutomationId="dv.training.anomaly-galleries"
-                                      ItemsSource="{Binding JobList.Galleries}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid Margin="0,0,0,8" ColumnDefinitions="*,Auto">
-                                        <TextBlock VerticalAlignment="Center"
-                                                   FontWeight="SemiBold"
-                                                   Text="{Binding DisplayText}" />
-                                        <Border Grid.Column="1"
-                                                Padding="8,2"
-                                                Background="{DynamicResource IvControlFillBrush}"
-                                                BorderBrush="{DynamicResource IvStrokeBrush}"
-                                                BorderThickness="1"
-                                                CornerRadius="4">
-                                            <TextBlock FontSize="11"
-                                                       Foreground="{DynamicResource IvText2Brush}"
-                                                       Text="{Binding FixedRoleLabel}" />
-                                        </Border>
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </Border>
-
                     <Grid Grid.Row="3" VerticalAlignment="Bottom" ColumnDefinitions="*,12,Auto">
 
                         <StackPanel Grid.Column="0" VerticalAlignment="Center">
@@ -696,12 +408,6 @@
                                        Text="训&amp;验会让同一批样本同时进入训练集和验证集，验证指标存在数据重合，仅建议用于小样本训练。"
                                        TextWrapping="Wrap"
                                        IsVisible="{Binding Config.Dataset.ShowsStandardGalleryRoles}" />
-                            <TextBlock Margin="0,3,0,0"
-                                       FontSize="11"
-                                       Foreground="{DynamicResource IvText2Brush}"
-                                       Text="异常检测使用系统图库：训练 / 测试良品 / 测试缺陷（草稿不参与）。样本归属即语义，无需框标注或手动选库。"
-                                       TextWrapping="Wrap"
-                                       IsVisible="{Binding Config.Dataset.ShowsAnomalyFixedDataset}" />
                         </StackPanel>
 
                         <Border Grid.Column="2"
@@ -731,83 +437,18 @@
                 <Border Margin="0" Classes="formSection">
                     <StackPanel MaxWidth="900" HorizontalAlignment="Stretch">
                         <TextBlock Classes="sectionTitle" Text="训练策略" />
-                        <Grid IsVisible="{Binding Config.ShowsYoloAdvancedTrainOptions}" ColumnDefinitions="*,16,*,16,*">
+                        <Grid ColumnDefinitions="*">
 
                             <StackPanel Grid.Column="0">
                                 <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
                                     <TextBlock Margin="0" VerticalAlignment="Center" Classes="fieldLabel" Text="优化器" />
-                                    <TextBlock Classes="fieldDefaultHint" Text="{Binding Config.OptimizerDefaultHint}" />
-                                    <Button Command="{Binding Config.ResetOptimizerCommand}"
-                                            Content="恢复默认"
-                                            Classes="fieldReset"
-                                            IsVisible="{Binding Config.IsOptimizerModified}" />
                                 </StackPanel>
                                 <ComboBox ItemsSource="{Binding Config.OptimizerOptions}"
                                           SelectedItem="{Binding Config.Optimizer, Mode=TwoWay}" />
                             </StackPanel>
-
-                            <StackPanel Grid.Column="2">
-                                <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
-                                    <TextBlock Margin="0" VerticalAlignment="Center" Classes="fieldLabel" Text="Num Workers" />
-                                    <TextBlock Classes="fieldDefaultHint" Text="{Binding Config.NumWorkersDefaultHint}" />
-                                    <Button Command="{Binding Config.ResetNumWorkersCommand}"
-                                            Content="恢复默认"
-                                            Classes="fieldReset"
-                                            IsVisible="{Binding Config.IsNumWorkersModified}" />
-                                </StackPanel>
-                                <iv:NumericBox Minimum="0" DecimalPlaces="0"
-                                              Tag="NumWorkers"
-                                              Value="{Binding Config.NumWorkers, Mode=TwoWay}" />
-                            </StackPanel>
-
-                            <StackPanel Grid.Column="4" IsVisible="{Binding Config.IsYoloDetectionModelSelected}">
-                                <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
-                                    <TextBlock Margin="0" VerticalAlignment="Center" Classes="fieldLabel" Text="验证间隔" />
-                                    <TextBlock Classes="fieldDefaultHint" Text="{Binding Config.ValIntervalDefaultHint}" />
-                                    <Button Command="{Binding Config.ResetValIntervalCommand}"
-                                            Content="恢复默认"
-                                            Classes="fieldReset"
-                                            IsVisible="{Binding Config.IsValIntervalModified}" />
-                                </StackPanel>
-                                <iv:NumericBox Maximum="100" Minimum="1" DecimalPlaces="0"
-                                              Tag="ValInterval"
-                                              Value="{Binding Config.ValInterval, Mode=TwoWay}" />
-                            </StackPanel>
                         </Grid>
 
-                        <CheckBox Margin="0,16,0,0"
-                                  IsChecked="{Binding Config.UseAmp, Mode=TwoWay}"
-                                  ToolTip.Tip="启用 GPU FP16 半精度加速，大幅提升训练吞吐并降低显存占用（默认开启）。"
-                                  IsVisible="{Binding Config.ShowsYoloAdvancedTrainOptions}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center"
-                                           Foreground="{DynamicResource IvText1Brush}"
-                                           Text="自动混合精度训练（AMP / FP16）" />
-                                <TextBlock Classes="fieldDefaultHint" Text="{Binding Config.UseAmpDefaultHint}" />
-                                <Button Command="{Binding Config.ResetUseAmpCommand}"
-                                        Content="恢复默认"
-                                        Classes="fieldReset"
-                                        IsVisible="{Binding Config.IsUseAmpModified}" />
-                            </StackPanel>
-                        </CheckBox>
-
-                        <CheckBox Margin="0,10,0,0"
-                                  IsChecked="{Binding Config.CacheRam, Mode=TwoWay}"
-                                  ToolTip.Tip="将训练图像全部缓存在系统内存（RAM）中，彻底消除磁盘读取等待。适合小中样本（≤2000 张）且系统内存充足的场景（默认关闭）。"
-                                  IsVisible="{Binding Config.IsYoloModelSelected}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center"
-                                           Foreground="{DynamicResource IvText1Brush}"
-                                           Text="内存缓存图像（RAM Cache）" />
-                                <TextBlock Classes="fieldDefaultHint" Text="{Binding Config.CacheRamDefaultHint}" />
-                                <Button Command="{Binding Config.ResetCacheRamCommand}"
-                                        Content="恢复默认"
-                                        Classes="fieldReset"
-                                        IsVisible="{Binding Config.IsCacheRamModified}" />
-                            </StackPanel>
-                        </CheckBox>
-
-                        <StackPanel Margin="0,12,0,0" IsVisible="{Binding Config.ShowsNetworkInputDimensions}">
+                        <StackPanel Margin="0,12,0,0" IsVisible="{Binding Config.UsesNetworkInputSize}">
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                                 <TextBlock VerticalAlignment="Center"
                                            Classes="fieldLabel"
@@ -843,155 +484,17 @@
                             </Grid>
                         </StackPanel>
 
-                        <StackPanel Margin="0,18,0,0" IsVisible="{Binding Config.ShowsYoloDetectionAugmentation}">
-                            <Border Height="1" Margin="0,0,0,14" Background="{DynamicResource IvStrokeSubtleBrush}" />
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                <TextBlock VerticalAlignment="Center"
-                                           Classes="sectionTitle"
-                                           Margin="0"
-                                           Text="{Binding Config.YoloGeometryAugmentationTitle}" />
-                                <dv:ParamHelpButton Title="{Binding Config.YoloGeometryAugmentationTitle}"
-                                                    HelpText="{Binding Config.YoloGeometryAugmentationHint}" />
-                            </StackPanel>
-
-                            <Grid Margin="0,10,0,0" ColumnDefinitions="*,12,*,12,*">
-                                <StackPanel Grid.Column="0">
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                        <TextBlock VerticalAlignment="Center" Classes="fieldLabel" Margin="0" Text="水平翻转概率" />
-                                        <dv:ParamHelpButton Title="水平翻转概率" HelpText="0–1，默认 0" />
-                                    </StackPanel>
-                                    <iv:NumericBox Maximum="1" Minimum="0" Step="0.05" Value="{Binding Config.Det.FlipLeftRight, Mode=TwoWay}" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="2">
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                        <TextBlock VerticalAlignment="Center" Classes="fieldLabel" Margin="0" Text="垂直翻转概率" />
-                                        <dv:ParamHelpButton Title="垂直翻转概率" HelpText="0–1，默认 0" />
-                                    </StackPanel>
-                                    <iv:NumericBox Maximum="1" Minimum="0" Step="0.05" Value="{Binding Config.Det.FlipUpDown, Mode=TwoWay}" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="4" IsVisible="{Binding Config.ShowsScaleChangingYoloAugmentation}">
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                        <TextBlock VerticalAlignment="Center" Classes="fieldLabel" Margin="0" Text="Mosaic 概率" />
-                                        <dv:ParamHelpButton Title="Mosaic 概率" HelpText="多图拼接，默认 0" />
-                                    </StackPanel>
-                                    <iv:NumericBox Maximum="1" Minimum="0" Step="0.05" Value="{Binding Config.Det.Mosaic, Mode=TwoWay}" />
-                                </StackPanel>
-                            </Grid>
-
-                            <Grid Margin="0,10,0,0" ColumnDefinitions="*,12,*,12,*">
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Classes="fieldLabel" Text="HSV-H" />
-                                    <iv:NumericBox Maximum="0.1" Minimum="0" Step="0.005" DecimalPlaces="3"
-                                                  Value="{Binding Config.Det.HsvH, Mode=TwoWay}" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="2">
-                                    <TextBlock Classes="fieldLabel" Text="HSV-S" />
-                                    <iv:NumericBox Maximum="1" Minimum="0" Step="0.05" Value="{Binding Config.Det.HsvS, Mode=TwoWay}" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="4">
-                                    <TextBlock Classes="fieldLabel" Text="HSV-V" />
-                                    <iv:NumericBox Maximum="1" Minimum="0" Step="0.05" Value="{Binding Config.Det.HsvV, Mode=TwoWay}" />
-                                </StackPanel>
-                            </Grid>
-
-                            <Grid Margin="0,10,0,0"
-                                  ColumnDefinitions="*,12,*,12,*"
-                                  IsVisible="{Binding Config.ShowsScaleChangingYoloAugmentation}">
-                                <StackPanel Grid.Column="0">
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                        <TextBlock VerticalAlignment="Center" Classes="fieldLabel" Margin="0" Text="旋转角度" />
-                                        <dv:ParamHelpButton Title="旋转角度" HelpText="±角度，默认 0°" />
-                                    </StackPanel>
-                                    <iv:NumericBox Maximum="180" Minimum="0" Step="1" DecimalPlaces="0"
-                                                  Value="{Binding Config.Det.Degrees, Mode=TwoWay}" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="2">
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                        <TextBlock VerticalAlignment="Center" Classes="fieldLabel" Margin="0" Text="Translate" />
-                                        <dv:ParamHelpButton Title="Translate" HelpText="平移比例 0–0.5" />
-                                    </StackPanel>
-                                    <iv:NumericBox Maximum="0.5" Minimum="0" Step="0.02" Value="{Binding Config.Det.Translate, Mode=TwoWay}" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="4">
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                        <TextBlock VerticalAlignment="Center" Classes="fieldLabel" Margin="0" Text="Scale" />
-                                        <dv:ParamHelpButton Title="Scale" HelpText="缩放幅度 0–1" />
-                                    </StackPanel>
-                                    <iv:NumericBox Maximum="1" Minimum="0" Step="0.05" Value="{Binding Config.Det.Scale, Mode=TwoWay}" />
-                                </StackPanel>
-                            </Grid>
-
-                            <Grid Margin="0,10,0,0"
-                                  ColumnDefinitions="*,12,*,12,*"
-                                  IsVisible="{Binding Config.ShowsScaleChangingYoloAugmentation}">
-                                <StackPanel Grid.Column="0">
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                        <TextBlock VerticalAlignment="Center" Classes="fieldLabel" Margin="0" Text="Shear" />
-                                        <dv:ParamHelpButton Title="Shear" HelpText="剪切角度 0–45°" />
-                                    </StackPanel>
-                                    <iv:NumericBox Maximum="45" Minimum="0" Step="1" DecimalPlaces="0"
-                                                  Value="{Binding Config.Det.Shear, Mode=TwoWay}" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="2">
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                        <TextBlock VerticalAlignment="Center" Classes="fieldLabel" Margin="0" Text="Perspective" />
-                                        <dv:ParamHelpButton Title="Perspective" HelpText="透视强度 0–0.001" />
-                                    </StackPanel>
-                                    <iv:NumericBox Maximum="0.001" Minimum="0" Step="0.0001" DecimalPlaces="4"
-                                                  Value="{Binding Config.Det.Perspective, Mode=TwoWay}" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="4">
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                        <TextBlock VerticalAlignment="Center" Classes="fieldLabel" Margin="0" Text="MixUp 概率" />
-                                        <dv:ParamHelpButton Title="MixUp 概率" HelpText="样本混合，默认 0" />
-                                    </StackPanel>
-                                    <iv:NumericBox Maximum="1" Minimum="0" Step="0.05" Value="{Binding Config.Det.MixUp, Mode=TwoWay}" />
-                                </StackPanel>
-                            </Grid>
-
-                            <Grid Margin="0,10,0,0"
-                                  ColumnDefinitions="*,12,*,12,*"
-                                  IsVisible="{Binding Config.ShowsScaleChangingYoloAugmentation}">
-                                <StackPanel Grid.Column="0">
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                        <TextBlock VerticalAlignment="Center" Classes="fieldLabel" Margin="0" Text="Copy-Paste 概率" />
-                                        <dv:ParamHelpButton Title="Copy-Paste 概率" HelpText="实例粘贴增强，分割更常用；默认 0" />
-                                    </StackPanel>
-                                    <iv:NumericBox Maximum="1" Minimum="0" Step="0.05" Value="{Binding Config.Det.CopyPaste, Mode=TwoWay}" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="2">
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                        <TextBlock VerticalAlignment="Center" Classes="fieldLabel" Margin="0" Text="Close Mosaic（末 N 轮）" />
-                                        <dv:ParamHelpButton Title="Close Mosaic（末 N 轮）" HelpText="最后 N 个 epoch 关闭 Mosaic；0=不特殊处理" />
-                                    </StackPanel>
-                                    <iv:NumericBox Maximum="1000" Minimum="0" Step="1" DecimalPlaces="0"
-                                                  Value="{Binding Config.Det.CloseMosaic, Mode=TwoWay}" />
-                                </StackPanel>
-                            </Grid>
-                        </StackPanel>
-
-                        <StackPanel Margin="0,18,0,0" IsVisible="{Binding Config.ShowsNoYoloAugmentationNotice}">
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                <TextBlock VerticalAlignment="Center"
-                                           Classes="sectionTitle"
-                                           Margin="0"
-                                           Text="数据增强" />
-                                <dv:ParamHelpButton Title="数据增强"
-                                                    HelpText="{Binding Config.NoYoloAugmentationNotice}" />
-                            </StackPanel>
-                        </StackPanel>
-
-                        <StackPanel Margin="0,18,0,0" IsVisible="{Binding Config.IsYoloClassificationModelSelected}">
+                        <StackPanel Margin="0,18,0,0" IsVisible="{Binding Config.IsClassificationModelSelected}">
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                                 <TextBlock VerticalAlignment="Center"
                                            Classes="sectionTitle"
                                            Margin="0"
                                            Text="数据增强（Classification）" />
                                 <dv:ParamHelpButton Title="数据增强（Classification）"
-                                                    HelpText="默认全部关闭，适合工业固定相机 OK/NG。开启后请用 train_batch 与验证指标复核，避免擦掉或扭曲缺陷区域。" />
+                                                    HelpText="0–1，默认关闭。当前仅支持左右翻转和上下翻转。" />
                             </StackPanel>
 
-                            <Grid Margin="0,10,0,0" ColumnDefinitions="*,12,*,12,*">
+                            <Grid Margin="0,10,0,0" ColumnDefinitions="*,12,*">
                                 <StackPanel Grid.Column="0">
                                     <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                                         <TextBlock VerticalAlignment="Center" Classes="fieldLabel" Margin="0" Text="水平翻转概率" />
@@ -1006,203 +509,57 @@
                                     </StackPanel>
                                     <iv:NumericBox Maximum="1" Minimum="0" Step="0.05" Value="{Binding Config.Cls.FlipUpDown, Mode=TwoWay}" />
                                 </StackPanel>
-                                <StackPanel Grid.Column="4">
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                        <TextBlock VerticalAlignment="Center" Classes="fieldLabel" Margin="0" Text="随机擦除概率" />
-                                        <dv:ParamHelpButton Title="随机擦除概率" HelpText="0–1，默认 0（建议谨慎）" />
-                                    </StackPanel>
-                                    <iv:NumericBox Maximum="1" Minimum="0" Step="0.05" Value="{Binding Config.Cls.Erasing, Mode=TwoWay}" />
-                                </StackPanel>
-                            </Grid>
-
-                            <Grid Margin="0,10,0,0" ColumnDefinitions="*,12,*,12,*">
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Classes="fieldLabel" Text="HSV-H" />
-                                    <iv:NumericBox Maximum="0.1" Minimum="0" Step="0.005" DecimalPlaces="3"
-                                                  Value="{Binding Config.Cls.HsvH, Mode=TwoWay}" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="2">
-                                    <TextBlock Classes="fieldLabel" Text="HSV-S" />
-                                    <iv:NumericBox Maximum="1" Minimum="0" Step="0.05" Value="{Binding Config.Cls.HsvS, Mode=TwoWay}" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="4">
-                                    <TextBlock Classes="fieldLabel" Text="HSV-V" />
-                                    <iv:NumericBox Maximum="1" Minimum="0" Step="0.05" Value="{Binding Config.Cls.HsvV, Mode=TwoWay}" />
-                                </StackPanel>
-                            </Grid>
-
-                            <Grid Margin="0,10,0,0" ColumnDefinitions="*,12,*,12,*">
-                                <StackPanel Grid.Column="0">
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                        <TextBlock VerticalAlignment="Center" Classes="fieldLabel" Margin="0" Text="Scale" />
-                                        <dv:ParamHelpButton Title="Scale" HelpText="随机缩放幅度 0–1" />
-                                    </StackPanel>
-                                    <iv:NumericBox Maximum="1" Minimum="0" Step="0.05" Value="{Binding Config.Cls.Scale, Mode=TwoWay}" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="2">
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                        <TextBlock VerticalAlignment="Center" Classes="fieldLabel" Margin="0" Text="Translate" />
-                                        <dv:ParamHelpButton Title="Translate" HelpText="平移幅度 0–0.5" />
-                                    </StackPanel>
-                                    <iv:NumericBox Maximum="0.5" Minimum="0" Step="0.02" Value="{Binding Config.Cls.Translate, Mode=TwoWay}" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="4">
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                        <TextBlock VerticalAlignment="Center" Classes="fieldLabel" Margin="0" Text="AutoAugment" />
-                                        <dv:ParamHelpButton Title="AutoAugment" HelpText="默认关闭；工业场景慎用 RandAugment" />
-                                    </StackPanel>
-                                    <ComboBox ItemsSource="{Binding Config.Cls.AutoAugmentOptions}"
-                                              SelectedValue="{Binding Config.Cls.AutoAugment, Mode=TwoWay}"
-                                              SelectedValueBinding="{Binding Value}">
-                                        <ComboBox.ItemTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding DisplayText}" />
-                                            </DataTemplate>
-                                        </ComboBox.ItemTemplate>
-                                    </ComboBox>
-                                </StackPanel>
                             </Grid>
                         </StackPanel>
 
-                        <Border Margin="0,12,0,0"
-                                Classes="panelCard"
-                                IsVisible="{Binding Config.Spatial.UsesYoloSpatialPolicy}">
-                            <StackPanel>
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                    <TextBlock VerticalAlignment="Center" Classes="fieldLabel" Margin="0" Text="目标检测模式" />
-                                    <dv:ParamHelpButton Title="目标检测模式"
-                                                        HelpText="动态 pad32：训练裁窗、推理整图只 pad 到 32。静态画布：同样裁窗训练，推理把原图右/下补到固定边长（不缩放；原图超过画布会被拒绝），形状固定、延迟更稳。差异分类检测固定整图 pad32。" />
+                        <StackPanel Margin="0,18,0,0" IsVisible="{Binding Config.ShowsDetectionOptions}">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <TextBlock VerticalAlignment="Center"
+                                           Classes="sectionTitle"
+                                           Margin="0"
+                                           Text="检测参数" />
+                                <dv:ParamHelpButton Title="检测参数"
+                                                    HelpText="NMS IoU 与评估置信度决定验证集上的框匹配与 mAP；最大框数限制单图输出。" />
+                            </StackPanel>
+
+                            <Grid Margin="0,10,0,0" ColumnDefinitions="*,12,*">
+                                <StackPanel Grid.Column="0">
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                        <TextBlock VerticalAlignment="Center" Classes="fieldLabel" Margin="0" Text="NMS IoU" />
+                                        <dv:ParamHelpButton Title="NMS IoU" HelpText="0.05–0.95，默认 0.45" />
+                                    </StackPanel>
+                                    <iv:NumericBox Maximum="0.95" Minimum="0.05" Step="0.05"
+                                                  IsEnabled="{Binding Config.IsFormEditable}"
+                                                  Value="{Binding Config.DetectionNmsIou, Mode=TwoWay}" />
                                 </StackPanel>
-                                <ComboBox Margin="0,4,0,0"
+                                <StackPanel Grid.Column="2">
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                        <TextBlock VerticalAlignment="Center" Classes="fieldLabel" Margin="0" Text="评估置信度" />
+                                        <dv:ParamHelpButton Title="评估置信度" HelpText="0.01–0.99，默认 0.25" />
+                                    </StackPanel>
+                                    <iv:NumericBox Maximum="0.99" Minimum="0.01" Step="0.05"
+                                                  IsEnabled="{Binding Config.IsFormEditable}"
+                                                  Value="{Binding Config.DetectionConfidence, Mode=TwoWay}" />
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid Margin="0,10,0,0" ColumnDefinitions="*,12,*">
+                                <StackPanel Grid.Column="0">
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                        <TextBlock VerticalAlignment="Center" Classes="fieldLabel" Margin="0" Text="最大框数" />
+                                        <dv:ParamHelpButton Title="最大框数" HelpText="1–1000，默认 100" />
+                                    </StackPanel>
+                                    <iv:NumericBox Maximum="1000" Minimum="1" Step="10" DecimalPlaces="0"
+                                                  IsEnabled="{Binding Config.IsFormEditable}"
+                                                  Value="{Binding Config.DetectionMaxDetections, Mode=TwoWay}" />
+                                </StackPanel>
+                                <CheckBox Grid.Column="2"
+                                          VerticalAlignment="Bottom"
+                                          Content="水平翻转（框随图镜像）"
                                           IsEnabled="{Binding Config.IsFormEditable}"
-                                          ItemsSource="{Binding Config.Spatial.SpatialInputModeOptions}"
-                                          SelectedItem="{Binding Config.Spatial.SelectedSpatialInputModeOption, Mode=TwoWay}"
-                                          IsVisible="{Binding Config.Spatial.AllowsOdSpatialChoice}">
-                                    <ComboBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding Label}" />
-                                        </DataTemplate>
-                                    </ComboBox.ItemTemplate>
-                                </ComboBox>
-                                <TextBlock Margin="0,2,0,0"
-                                           Classes="fieldHint"
-                                           Text="{Binding Config.Spatial.YoloSpatialPolicySummary}"
-                                           TextWrapping="Wrap" />
-                                <Grid Margin="0,10,0,0" ColumnDefinitions="*,16,*">
-                                    <StackPanel Grid.Column="0">
-                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                            <TextBlock VerticalAlignment="Center" Classes="fieldLabel" Margin="0" Text="NMS IoU 阈值" />
-                                            <dv:ParamHelpButton Title="NMS IoU 阈值"
-                                                                HelpText="推理后处理时合并重叠检测框的 IoU 阈值。值越大保留的重叠框越多，值越小抑制越强。" />
-                                        </StackPanel>
-                                        <iv:NumericBox Maximum="1" Minimum="0.01" Step="0.05"
-                                                      Value="{Binding Config.Spatial.YoloNmsIouThreshold, Mode=TwoWay}" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="2" IsVisible="{Binding Config.Spatial.ShowsMaxInferSide}">
-                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                            <TextBlock VerticalAlignment="Center" Classes="fieldLabel" Margin="0" Text="推理长边上限" />
-                                            <dv:ParamHelpButton Title="推理长边上限"
-                                                                HelpText="原图 max(H,W) 超过此值则硬失败，不切块。默认 3072（约 8GB 卡）；工业 5120 图须手动提高到 ≥5120。须为 32 倍数，且不小于训练窗长边、不大于 8192。" />
-                                        </StackPanel>
-                                        <iv:NumericBox Maximum="8192" Minimum="64" Step="32" DecimalPlaces="0"
-                                                      IsEnabled="{Binding Config.IsFormEditable}"
-                                                      Value="{Binding Config.Spatial.MaxInferSide, Mode=TwoWay}" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="2" IsVisible="{Binding Config.Spatial.ShowsInferSize}">
-                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                            <TextBlock VerticalAlignment="Center" Classes="fieldLabel" Margin="0" Text="推理输入边长" />
-                                            <dv:ParamHelpButton Title="推理输入边长"
-                                                                HelpText="静态画布正方形边长。默认取训练窗长边并对齐到 32。推理把原图右/下补到该边（不缩放）；原图超过该边会被拒绝，请改用动态 pad32。" />
-                                        </StackPanel>
-                                        <iv:NumericBox Minimum="{Binding Config.Spatial.NetworkInputSizeMin}"
-                                                      Maximum="{Binding Config.Spatial.NetworkInputSizeMax}"
-                                                      Step="{Binding Config.Spatial.NetworkInputSizeStep}"
-                                                      DecimalPlaces="0"
-                                                      IsEnabled="{Binding Config.IsFormEditable}"
-                                                      Value="{Binding Config.Spatial.YoloInferSize, Mode=TwoWay}" />
-                                    </StackPanel>
-                                </Grid>
-                            </StackPanel>
-                        </Border>
-
-                        <Border Margin="0,12,0,0"
-                                Classes="panelCard"
-                                IsVisible="{Binding Config.Geometry.IsVisible}">
-                            <StackPanel>
-                                <Grid ColumnDefinitions="Auto,*,Auto">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock VerticalAlignment="Center"
-                                                   Classes="fieldLabel"
-                                                   Margin="0"
-                                                   Text="数据尺寸体检" />
-                                        <dv:ParamHelpButton Title="数据尺寸体检"
-                                                            HelpText="按导出规则统计会进入训练集的图和标注框，对照当前训练窗、推理长边上限或静态画布给出结论。错误项在开始训练时会被直接拦截；警告不拦截。修改图库或尺寸设置后自动重算。" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="1"
-                                                Margin="12,0,0,0"
-                                                VerticalAlignment="Center"
-                                                Orientation="Horizontal">
-                                        <dv:BusyRing Width="14"
-                                                     Height="14"
-                                                     Margin="0,0,6,0"
-                                                     IsVisible="{Binding Config.Geometry.IsLoading}" />
-                                        <TextBlock Classes="geometryStatus"
-                                                   Classes.warning="{Binding Config.Geometry.HasWarnings}"
-                                                   Classes.error="{Binding Config.Geometry.HasErrors}"
-                                                   Text="{Binding Config.Geometry.StatusText}" />
-                                    </StackPanel>
-                                    <Button Grid.Column="2"
-                                            Padding="8,2"
-                                            Command="{Binding Config.Geometry.ToggleExpandedCommand}"
-                                            Content="{Binding Config.Geometry.ExpandToggleText}"
-                                            FontSize="12"
-                                            Theme="{StaticResource IvSubtleButtonStyle}" />
-                                </Grid>
-
-                                <StackPanel Margin="0,6,0,0" IsVisible="{Binding Config.Geometry.IsExpanded}">
-                                    <TextBlock Foreground="{DynamicResource IvDangerBrush}"
-                                               Text="{Binding Config.Geometry.LoadErrorMessage}"
-                                               TextWrapping="Wrap"
-                                               IsVisible="{Binding Config.Geometry.HasLoadError}" />
-                                    <ItemsControl ItemsSource="{Binding Config.Geometry.StatLines}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Classes="fieldHint"
-                                                           Text="{Binding}"
-                                                           TextWrapping="Wrap" />
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                    <ItemsControl Margin="0,6,0,0" ItemsSource="{Binding Config.Geometry.Findings}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Grid Margin="0,6,0,0" ColumnDefinitions="Auto,*">
-                                                    <Border Classes="findingBadge"
-                                                            Classes.warning="{Binding IsWarning}"
-                                                            Classes.error="{Binding IsError}">
-                                                        <TextBlock Classes="findingSeverity"
-                                                                   Classes.warning="{Binding IsWarning}"
-                                                                   Classes.error="{Binding IsError}"
-                                                                   Text="{Binding SeverityLabel}" />
-                                                    </Border>
-                                                    <StackPanel Grid.Column="1">
-                                                        <TextBlock FontSize="12"
-                                                                   FontWeight="SemiBold"
-                                                                   Foreground="{DynamicResource IvText1Brush}"
-                                                                   Text="{Binding Title}"
-                                                                   TextWrapping="Wrap" />
-                                                        <TextBlock Classes="fieldHint"
-                                                                   Margin="0,2,0,0"
-                                                                   Text="{Binding Detail}"
-                                                                   TextWrapping="Wrap" />
-                                                    </StackPanel>
-                                                </Grid>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </StackPanel>
-                            </StackPanel>
-                        </Border>
+                                          IsChecked="{Binding Config.DetectionHorizontalFlip, Mode=TwoWay}" />
+                            </Grid>
+                        </StackPanel>
                     </StackPanel>
                 </Border>
             </ScrollViewer>

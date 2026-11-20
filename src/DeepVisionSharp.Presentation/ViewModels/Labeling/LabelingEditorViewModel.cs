@@ -503,6 +503,7 @@ public sealed partial class LabelingEditorViewModel : ObservableObject,
         OnPropertyChanged(nameof(HasBoxes));
         OnPropertyChanged(nameof(BoxCount));
         OnPropertyChanged(nameof(DetectionStatusText));
+        _context.UiPolicy.TrackBoxes(HasBoxes);
     }
 
     private void OnContextPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)

@@ -125,6 +125,12 @@ public sealed partial class TrainingJobsViewModel : ObservableObject
     /// <summary>deepvision 把右栏叫「YOLO 任务详情」；本仓库只有这一个详情面板（检测 / 分类共用）。</summary>
     public bool ShowYoloJobDetail => ShowJobDetail;
 
+    /// <summary>任务头副标题（当前任务的样本 / 图库概览）；未选任务时为空串。</summary>
+    public string SelectedJobMetaText => SelectedJob?.MetaText ?? string.Empty;
+
+    /// <summary>结果区「最佳模型」路径；未选任务时为空串。</summary>
+    public string SelectedJobBestModelPath => SelectedJob?.BestModelPath ?? string.Empty;
+
 
     public event Action<TrainingJobListItem?>? SelectedJobChanged;
 
@@ -840,6 +846,8 @@ public sealed partial class TrainingJobsViewModel : ObservableObject
         OnPropertyChanged(nameof(ShowDetailPreparing));
         OnPropertyChanged(nameof(ShowJobDetail));
         OnPropertyChanged(nameof(ShowYoloJobDetail));
+        OnPropertyChanged(nameof(SelectedJobMetaText));
+        OnPropertyChanged(nameof(SelectedJobBestModelPath));
         OnPropertyChanged(nameof(IsTrainingWorkflow));
     }
 

@@ -35,7 +35,7 @@
     </UserControl.Styles>
 
     <Border Classes="toolSection"
-            IsVisible="{Binding ShowAnnotationModeTools}">
+            IsVisible="{Binding Workspace.UiPolicy.ShowsAnnotationModeTools}">
         <StackPanel>
             <TextBlock Classes="sectionTitle" Text="标注模式" />
             <Grid Margin="0,7,0,0" ColumnDefinitions="*,*">
@@ -57,51 +57,26 @@
                     </StackPanel>
                 </Button>
 
-                <Panel Grid.Column="1"
-                       Margin="5,0,0,0"
-                       IsVisible="{Binding $parent[UserControl].ShowRectangle}">
-                    <Button HorizontalAlignment="Stretch"
-                            AutomationProperties.AutomationId="dv.labeling.tool.rectangle"
-                            Classes="toolMode"
-                            Classes.selected="{Binding Editor.IsRectangleTool}"
-                            Command="{Binding Editor.SetRectangleToolCommand}"
-                            IsVisible="{Binding Workspace.UiPolicy.CanUseRectangleTool}"
-                            ToolTip.Tip="矩形工具：使用「矩形」工具绘制框；需先在类别列表中选中当前类别。">
-                        <StackPanel Orientation="Horizontal">
-                            <iv:Icon VerticalAlignment="Center"
-                                     FontSize="15"
-                                     Data="{x:Static ui:IvIcons.BorderOuter}" />
-                            <TextBlock Margin="6,0,0,0"
-                                       VerticalAlignment="Center"
-                                       FontSize="12"
-                                       Foreground="{Binding $parent[Button].Foreground}"
-                                       Text="矩形" />
-                        </StackPanel>
-                    </Button>
-                </Panel>
-
-                <Panel Grid.Column="1"
-                       Margin="5,0,0,0"
-                       IsVisible="{Binding $parent[UserControl].ShowPolygon}">
-                    <Button HorizontalAlignment="Stretch"
-                            AutomationProperties.AutomationId="dv.labeling.tool.polygon"
-                            Classes="toolMode"
-                            Classes.selected="{Binding Editor.IsPolygonTool}"
-                            Command="{Binding Editor.SetPolygonToolCommand}"
-                            IsVisible="{Binding Workspace.UiPolicy.CanUsePolygonTool}"
-                            ToolTip.Tip="多边形工具：选择类别后左键逐点绘制；双击或 Enter 闭合，Esc 或右键取消。">
-                        <StackPanel Orientation="Horizontal">
-                            <iv:Icon VerticalAlignment="Center"
-                                     FontSize="15"
-                                     Data="{x:Static ui:IvIcons.Edit}" />
-                            <TextBlock Margin="6,0,0,0"
-                                       VerticalAlignment="Center"
-                                       FontSize="12"
-                                       Foreground="{Binding $parent[Button].Foreground}"
-                                       Text="多边形" />
-                        </StackPanel>
-                    </Button>
-                </Panel>
+                <Button Grid.Column="1"
+                        Margin="5,0,0,0"
+                        HorizontalAlignment="Stretch"
+                        AutomationProperties.AutomationId="dv.labeling.tool.rectangle"
+                        Classes="toolMode"
+                        Classes.selected="{Binding Editor.IsRectangleTool}"
+                        Command="{Binding Editor.SetRectangleToolCommand}"
+                        IsVisible="{Binding Workspace.UiPolicy.CanUseRectangleTool}"
+                        ToolTip.Tip="矩形工具：使用「矩形」工具绘制框；需先在类别列表中选中当前类别。">
+                    <StackPanel Orientation="Horizontal">
+                        <iv:Icon VerticalAlignment="Center"
+                                 FontSize="15"
+                                 Data="{x:Static ui:IvIcons.BorderOuter}" />
+                        <TextBlock Margin="6,0,0,0"
+                                   VerticalAlignment="Center"
+                                   FontSize="12"
+                                   Foreground="{Binding $parent[Button].Foreground}"
+                                   Text="矩形" />
+                    </StackPanel>
+                </Button>
             </Grid>
         </StackPanel>
     </Border>

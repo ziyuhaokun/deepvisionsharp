@@ -4,7 +4,12 @@
              xmlns:ui="clr-namespace:YuUI;assembly=yu-ui.avalonia"
              xmlns:dv="clr-namespace:DeepVisionSharp.Shell.Avalonia.Controls"
              xmlns:svc="clr-namespace:DeepVisionSharp.Presentation.Services;assembly=DeepVisionSharp.Presentation"
+             xmlns:conv="clr-namespace:DeepVisionSharp.Shell.Avalonia.Converters"
              x:Class="DeepVisionSharp.Shell.Avalonia.Views.SettingsPage">
+
+    <UserControl.Resources>
+        <conv:SettingsCategoryIconConverter x:Key="SettingsCategoryIcon" />
+    </UserControl.Resources>
 
     <UserControl.KeyBindings>
         <KeyBinding Gesture="F12" Command="{Binding ShowDebugAccessCommand}" />
@@ -93,7 +98,7 @@
                                 <iv:Icon HorizontalAlignment="Center"
                                          VerticalAlignment="Center"
                                          FontSize="16"
-                                         Data="{Binding Icon}" />
+                                         Data="{Binding Icon, Converter={StaticResource SettingsCategoryIcon}}" />
                             </Border>
                             <TextBlock Grid.Column="1"
                                        Margin="10,0,0,0"
@@ -110,114 +115,6 @@
                           HorizontalScrollBarVisibility="Disabled"
                           VerticalScrollBarVisibility="Auto">
                 <StackPanel MaxWidth="900">
-
-                    <!-- ===== Python 环境 ===== -->
-                    <StackPanel IsVisible="{Binding IsPythonEnvironmentSelected}">
-                        <TextBlock Classes="sectionTitle" Text="环境健康" />
-                        <Border Classes="settingsCard">
-                            <StackPanel>
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <StackPanel>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Border Padding="10,4"
-                                                    Background="{DynamicResource IvControlFillBrush}"
-                                                    CornerRadius="6">
-                                                <TextBlock FontSize="12"
-                                                           FontWeight="SemiBold"
-                                                           Foreground="{DynamicResource IvText1Brush}"
-                                                           Text="{Binding PythonStatusText}" />
-                                            </Border>
-                                            <dv:BusyRing Width="18"
-                                                         Height="18"
-                                                         Margin="10,0,0,0"
-                                                         IsVisible="{Binding IsCheckingPythonVisible}" />
-                                        </StackPanel>
-                                        <TextBlock Margin="0,10,0,0"
-                                                   Classes="rowSubtitle"
-                                                   Text="{Binding PythonStatusDescription}" />
-                                    </StackPanel>
-                                    <Button Grid.Column="1"
-                                            VerticalAlignment="Top"
-                                            Command="{Binding CheckPythonEnvironmentCommand}"
-                                            Theme="{StaticResource IvPrimaryButtonStyle}">
-                                        <StackPanel Orientation="Horizontal">
-                                            <iv:Icon Margin="0,0,6,0" VerticalAlignment="Center" FontSize="16" Data="{x:Static ui:IvIcons.Success}" />
-                                            <TextBlock VerticalAlignment="Center" Text="检测环境" />
-                                        </StackPanel>
-                                    </Button>
-                                </Grid>
-
-                                <ItemsControl Margin="0,14,0,0"
-                                              ItemsSource="{Binding PythonPreflightIssues}"
-                                              IsVisible="{Binding HasPythonPreflightIssues}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border Margin="0,0,0,8"
-                                                    Padding="12,10"
-                                                    Background="{DynamicResource IvSurface2Brush}"
-                                                    BorderBrush="{DynamicResource IvWarningBrush}"
-                                                    BorderThickness="1"
-                                                    CornerRadius="4">
-                                                <StackPanel>
-                                                    <TextBlock FontWeight="SemiBold" Text="{Binding Severity}" />
-                                                    <TextBlock Margin="0,4,0,0" Text="{Binding Message}" TextWrapping="Wrap" />
-                                                    <TextBlock Margin="0,4,0,0"
-                                                               Foreground="{DynamicResource IvText2Brush}"
-                                                               Text="{Binding Remediation}"
-                                                               TextWrapping="Wrap" />
-                                                </StackPanel>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </StackPanel>
-                        </Border>
-
-                        <TextBlock Classes="sectionTitle" Text="Python 解释器" />
-                        <Border Classes="settingsCard">
-                            <Border Classes="settingsRow">
-                                <Grid ColumnDefinitions="Auto,*">
-                                    <Border Classes="iconTile">
-                                        <iv:Icon HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Data="{x:Static ui:IvIcons.Calculator}" />
-                                    </Border>
-                                    <StackPanel Grid.Column="1" Margin="12,0,0,0">
-                                        <TextBlock Classes="rowTitle" Text="解释器路径" />
-                                        <Grid Margin="0,10,0,0" ColumnDefinitions="*,Auto,Auto">
-                                            <TextBox PlaceholderText="选择 Python 解释器路径…"
-                                                     Text="{Binding PythonPath, Mode=TwoWay}" />
-                                            <Button Grid.Column="1"
-                                                    Margin="8,0,0,0"
-                                                    Command="{Binding BrowsePythonPathCommand}"
-                                                    Theme="{StaticResource IvSubtleButtonStyle}">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <iv:Icon Margin="0,0,6,0" VerticalAlignment="Center" FontSize="14" Data="{x:Static ui:IvIcons.FolderOpen}" />
-                                                    <TextBlock VerticalAlignment="Center" Text="浏览" />
-                                                </StackPanel>
-                                            </Button>
-                                            <Button Grid.Column="2"
-                                                    Margin="8,0,0,0"
-                                                    Command="{Binding ApplyPythonPathCommand}"
-                                                    IsVisible="{Binding IsPythonPathDirty}"
-                                                    Theme="{StaticResource IvPrimaryButtonStyle}">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <iv:Icon Margin="0,0,6,0" VerticalAlignment="Center" FontSize="16" Data="{x:Static ui:IvIcons.Check}" />
-                                                    <TextBlock VerticalAlignment="Center" Text="应用" />
-                                                </StackPanel>
-                                            </Button>
-                                        </Grid>
-                                        <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                            <Button Command="{Binding AutoDetectPythonCommand}" Theme="{StaticResource IvSubtleButtonStyle}">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <iv:Icon Margin="0,0,6,0" VerticalAlignment="Center" FontSize="16" Data="{x:Static ui:IvIcons.Sparkles}" />
-                                                    <TextBlock VerticalAlignment="Center" Text="自动检测" />
-                                                </StackPanel>
-                                            </Button>
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Grid>
-                            </Border>
-                        </Border>
-                    </StackPanel>
 
                     <!-- ===== 外观 ===== -->
                     <StackPanel IsVisible="{Binding IsAppearanceSelected}">

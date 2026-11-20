@@ -37,6 +37,7 @@ public sealed partial class InferenceViewModel : ObservableObject, IDisposable
     private readonly ILogger<InferenceViewModel> _logger;
 
     private CancellationTokenSource? _loadCts;
+    private InferenceImageItem? _watchedSelectedImage;
     private bool _disposed;
     private bool _isActive;
 
@@ -147,6 +148,9 @@ public sealed partial class InferenceViewModel : ObservableObject, IDisposable
             if (e.PropertyName == nameof(InferenceRunnerViewModel.SelectedModel))
             {
                 OnPropertyChanged(nameof(SelectedModel));
+                OnPropertyChanged(nameof(SelectedModelDisplayText));
+                OnPropertyChanged(nameof(SelectedModelSpatialSummary));
+                OnPropertyChanged(nameof(ShowsSelectedModelSpatialSummary));
                 OnPropertyChanged(nameof(ShowsConfidenceThreshold));
                 OnPropertyChanged(nameof(ShowsMaxDetections));
                 OnPropertyChanged(nameof(ShowsInferenceDeviceSelector));
@@ -453,6 +457,27 @@ public sealed partial class InferenceViewModel : ObservableObject, IDisposable
             ? ResultPerformance
             : "性能 — 运行推理后显示预检 / 加载 / 推理耗时";
 
+    // 选中项文本投影：未选中模型 / 图片时为空值，让页面上的标题、标签不靠 IsVisible 遮住 null 子路径。
+
+    /// <summary>模型下拉的悬停提示；未选模型时为空串。</summary>
+    public string SelectedModelDisplayText => SelectedModel?.DisplayText ?? string.Empty;
+
+    /// <summary>模型输入尺寸摘要（模型卡片下的小字）；未选模型时为空串。</summary>
+    public string SelectedModelSpatialSummary => SelectedModel?.SpatialSummary ?? string.Empty;
+
+    public bool ShowsSelectedModelSpatialSummary => SelectedModel?.ShowsSpatialSummary ?? false;
+
+    /// <summary>当前样本来源标签（图库名 / 外部文件）；未选图片时为空串。</summary>
+    public string SelectedImageSourceLabel => SelectedImage?.SourceLabel ?? string.Empty;
+
+    public bool SelectedImageHasPredicted => SelectedImage?.HasPredicted ?? false;
+
+    /// <summary>当前样本的预测类别标签；未选图片或未推理时为空串。</summary>
+    public string SelectedImagePredictedLabelText => SelectedImage?.PredictedLabelText ?? string.Empty;
+
+    /// <summary>当前样本的评估标签（命中 / 正确 / 漏检 / 误报）；未评估时为空串，样式类都不命中。</summary>
+    public string SelectedImageEvaluationTag => SelectedImage?.EvaluationTag ?? string.Empty;
+
     private void NotifyCanRun()
     {
         OnPropertyChanged(nameof(CanRun));
@@ -475,6 +500,19 @@ public sealed partial class InferenceViewModel : ObservableObject, IDisposable
 
     private void OnSelectedImageChanged(InferenceImageItem? value)
     {
+        // 选中项自己的标签会随推理/评估变化（如 PredictedLabelText / EvaluationTag），
+        // 页面上的空安全投影只在选中变化时重算，这里把选中项的属性变化也转发一份。
+        if (_watchedSelectedImage is not null)
+        {
+            _watchedSelectedImage.PropertyChanged -= OnSelectedImageItemPropertyChanged;
+        }
+
+        _watchedSelectedImage = value;
+        if (_watchedSelectedImage is not null)
+        {
+            _watchedSelectedImage.PropertyChanged += OnSelectedImageItemPropertyChanged;
+        }
+
         // Decode full-resolution image on demand for the canvas; worklist items keep lightweight thumbnails.
         // 像素尺寸必须跟解码一起取回：图像对象由宿主 shell 提供（WPF 是 BitmapImage，Avalonia 是 Bitmap），这一层读不到它的宽高。
         object? image = null;
@@ -498,6 +536,10 @@ public sealed partial class InferenceViewModel : ObservableObject, IDisposable
         // Facade computed flags must be raised explicitly for empty-state bindings.
         OnPropertyChanged(nameof(HasPreviewImage));
         OnPropertyChanged(nameof(PreviewImage));
+        OnPropertyChanged(nameof(SelectedImageSourceLabel));
+        OnPropertyChanged(nameof(SelectedImageHasPredicted));
+        OnPropertyChanged(nameof(SelectedImagePredictedLabelText));
+        OnPropertyChanged(nameof(SelectedImageEvaluationTag));
 
         if (value?.LastResultSummary is { } cached)
         {
@@ -512,6 +554,18 @@ public sealed partial class InferenceViewModel : ObservableObject, IDisposable
         NotifyStatusBar();
         OnPropertyChanged(nameof(CanAdoptPredictedBoxes));
         AdoptPredictedBoxesCommand.NotifyCanExecuteChanged();
+    }
+
+    private void OnSelectedImageItemPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(InferenceImageItem.HasPredicted)
+            or nameof(InferenceImageItem.PredictedLabelText)
+            or nameof(InferenceImageItem.EvaluationTag))
+        {
+            OnPropertyChanged(nameof(SelectedImageHasPredicted));
+            OnPropertyChanged(nameof(SelectedImagePredictedLabelText));
+            OnPropertyChanged(nameof(SelectedImageEvaluationTag));
+        }
     }
 
     /// <summary>True when the current image comes from a gallery and the result carries boxes.</summary>

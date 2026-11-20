@@ -15,6 +15,10 @@ public sealed record ProjectCapabilityProfile
     /// </summary>
     public bool SupportsImageClass => Workflow == ProjectWorkflowKind.Classification;
 
+    /// <summary>
+    /// 标注页是否显示类别列表：分类按整图类别、检测按框类别，两种工作流都要维护类别表。
+    /// </summary>
+    public bool SupportsClassLabels => true;
 }
 
 public static class ProjectCapabilityCatalog

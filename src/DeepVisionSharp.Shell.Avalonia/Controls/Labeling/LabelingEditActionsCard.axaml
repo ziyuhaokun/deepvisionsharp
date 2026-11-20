@@ -68,8 +68,8 @@
 
                 <Panel Margin="0,0,4,0"
                        IsVisible="{Binding $parent[UserControl].ShowClear}">
-                    <Button Command="{Binding Editor.ClearAnnotationsCommand}"
-                            IsEnabled="{Binding Editor.CanClearAnnotations}"
+                    <Button Command="{Binding Editor.ClearBoxesCommand}"
+                            IsEnabled="{Binding Editor.HasBoxes}"
                             IsVisible="{Binding Workspace.UiPolicy.CanClearAllAnnotations}"
                             Theme="{StaticResource EditToolButtonStyle}"
                             ToolTip.Tip="清空当前样本标注">
@@ -81,46 +81,14 @@
 
                 <Panel Margin="0,0,4,0"
                        IsVisible="{Binding $parent[UserControl].ShowAutoFit}">
-                    <Button Command="{Binding Editor.AutoFitCommand}"
-                            IsEnabled="{Binding Editor.CanAutoFit}"
+                    <Button Click="OnAutoFitClick"
+                            IsEnabled="{Binding Editor.IsNotBusy}"
                             IsVisible="{Binding Workspace.UiPolicy.CanUseAutoFit}"
                             Theme="{StaticResource EditToolButtonStyle}"
-                            ToolTip.Tip="自动贴合（优先框中心目标，只收紧；快捷键 F）">
+                            ToolTip.Tip="适应窗口：把这个样本缩放到正好铺满画布（100%）">
                         <iv:Icon VerticalAlignment="Center"
                                  FontSize="15"
                                  Data="{x:Static ui:IvIcons.Target}" />
-                    </Button>
-                </Panel>
-
-                <Panel Margin="0,0,4,0"
-                       IsVisible="{Binding $parent[UserControl].ShowTemplate}">
-                    <Button Command="{Binding TemplateMatch.SetTemplateCommand}"
-                            IsEnabled="{Binding TemplateMatch.CanSetTemplate}"
-                            IsVisible="{Binding TemplateMatch.IsVisible}"
-                            Theme="{StaticResource EditToolButtonStyle}"
-                            ToolTip.Tip="设为模板">
-                        <iv:Icon VerticalAlignment="Center"
-                                 FontSize="15"
-                                 Data="{x:Static ui:IvIcons.Check}" />
-                    </Button>
-                </Panel>
-
-                <Panel Margin="0,0,4,0"
-                       IsVisible="{Binding $parent[UserControl].ShowTemplate}">
-                    <Button Command="{Binding TemplateMatch.TemplateMatchCommand}"
-                            IsEnabled="{Binding TemplateMatch.CanTemplateMatch}"
-                            IsVisible="{Binding TemplateMatch.IsVisible}"
-                            Theme="{StaticResource EditToolButtonStyle}"
-                            ToolTip.Tip="模板匹配（右键设置参数）">
-                        <iv:Icon VerticalAlignment="Center"
-                                 FontSize="15"
-                                 Data="{x:Static ui:IvIcons.Search}" />
-                        <Button.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Command="{Binding TemplateMatch.ShowTemplateMatchDialogCommand}"
-                                          Header="匹配参数..." />
-                            </ContextMenu>
-                        </Button.ContextMenu>
                     </Button>
                 </Panel>
             </WrapPanel>

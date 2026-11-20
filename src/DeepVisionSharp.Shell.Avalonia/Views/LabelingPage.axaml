@@ -119,42 +119,6 @@
             <Setter Property="Fill" Value="#EF4444" />
             <Setter Property="ToolTip.Tip" Value="异常" />
         </Style>
-        <Style Selector="Border.aiBadge">
-            <Setter Property="Margin" Value="0,0,4,4" />
-            <Setter Property="Padding" Value="4,0" />
-            <Setter Property="HorizontalAlignment" Value="Right" />
-            <Setter Property="VerticalAlignment" Value="Bottom" />
-            <Setter Property="CornerRadius" Value="3" />
-            <Setter Property="Background" Value="#9964748B" />
-            <Setter Property="BorderBrush" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="1" />
-        </Style>
-        <Style Selector="Border.aiBadge.ok">
-            <Setter Property="Background" Value="{DynamicResource IvSuccessBrush}" />
-        </Style>
-        <Style Selector="Border.aiBadge.ng">
-            <Setter Property="Background" Value="{DynamicResource IvDangerBrush}" />
-        </Style>
-        <Style Selector="Border.aiBadge.warn">
-            <Setter Property="Background" Value="{DynamicResource IvWarningBrush}" />
-        </Style>
-        <Style Selector="Border.aiBadge.differs">
-            <Setter Property="BorderBrush" Value="White" />
-        </Style>
-        <Style Selector="TextBlock.aiBadgeText">
-            <Setter Property="FontSize" Value="10" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Foreground" Value="White" />
-        </Style>
-        <Style Selector="TextBlock.aiBadgeText.ok">
-            <Setter Property="Foreground" Value="{DynamicResource IvTextOnAccentBrush}" />
-        </Style>
-        <Style Selector="TextBlock.aiBadgeText.ng">
-            <Setter Property="Foreground" Value="{DynamicResource IvTextOnAccentBrush}" />
-        </Style>
-        <Style Selector="TextBlock.aiBadgeText.warn">
-            <Setter Property="Foreground" Value="{DynamicResource IvTextOnAccentBrush}" />
-        </Style>
         <Style Selector="Border.sampleProgressBadge">
             <Setter Property="Margin" Value="7,0,0,0" />
             <Setter Property="Padding" Value="6,2" />
@@ -170,16 +134,6 @@
             <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="8" />
-        </Style>
-        <Style Selector="Border.reviewedBadge">
-            <Setter Property="Margin" Value="12,72,0,0" />
-            <Setter Property="Padding" Value="8,5" />
-            <Setter Property="HorizontalAlignment" Value="Left" />
-            <Setter Property="VerticalAlignment" Value="Top" />
-            <Setter Property="Background" Value="#CC166534" />
-            <Setter Property="BorderBrush" Value="#FF22C55E" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="6" />
         </Style>
     </UserControl.Styles>
 
@@ -235,13 +189,9 @@
                                         <Separator />
                                         <MenuItem Header="Ctrl + S：保存当前标注" IsEnabled="False" />
                                         <MenuItem Header="Ctrl + Z / Y：撤销 / 重做" IsEnabled="False" />
-                                        <MenuItem Header="Ctrl + A：全选标注框" IsEnabled="False" />
                                         <MenuItem Header="Delete：删除选中的标注" IsEnabled="False" />
-                                        <MenuItem Header="F：自适应当前标注框贴边" IsEnabled="False" />
                                         <MenuItem Header="← / →：切换上一张 / 下一张样本" IsEnabled="False" />
                                         <MenuItem Header="数字键 1~9：快速选择对应序号的标签类别" IsEnabled="False" />
-                                        <MenuItem Header="多边形：点击起点闭合，Backspace 撤销上一个点，Esc 取消" IsEnabled="False" />
-                                        <MenuItem Header="差异分类：1=OK, 2=NG, 3=NG并移动, Tab=下一张" IsEnabled="False" />
                                     </ContextMenu>
                                 </Button.ContextMenu>
                             </Button>
@@ -268,20 +218,12 @@
                                   VerticalScrollBarVisibility="Auto"
                                   IsVisible="{Binding ActiveRailKind, Converter={StaticResource RailKindMatches}, ConverterParameter=Detection}">
                         <StackPanel>
-                            <cards:LabelingDrawToolsCard ShowPolygon="False" />
-                            <cards:LabelingEditActionsCard ShowClear="True" ShowAutoFit="True" ShowTemplate="True" ShowYoloInfer="True" />
+                            <cards:LabelingDrawToolsCard />
+                            <cards:LabelingEditActionsCard ShowClear="True"
+                                                           ShowAutoFit="True"
+                                                           ShowYoloInfer="True"
+                                                           AutoFitRequested="OnFitClicked" />
                             <cards:LabelingClassListCard />
-                        </StackPanel>
-                    </ScrollViewer>
-
-                    <!-- TextRecognition -->
-                    <ScrollViewer Padding="12,12,12,8"
-                                  HorizontalScrollBarVisibility="Disabled"
-                                  VerticalScrollBarVisibility="Auto"
-                                  IsVisible="{Binding ActiveRailKind, Converter={StaticResource RailKindMatches}, ConverterParameter=TextRecognition}">
-                        <StackPanel>
-                            <cards:LabelingDrawToolsCard ShowPolygon="False" />
-                            <cards:LabelingEditActionsCard ShowClear="True" ShowYoloInfer="True" />
                         </StackPanel>
                     </ScrollViewer>
 
@@ -291,44 +233,8 @@
                                   VerticalScrollBarVisibility="Auto"
                                   IsVisible="{Binding ActiveRailKind, Converter={StaticResource RailKindMatches}, ConverterParameter=Classification}">
                         <StackPanel>
-                            <cards:LabelingEditActionsCard ShowYoloInfer="True" />
+                            <cards:LabelingEditActionsCard ShowYoloInfer="True" AutoFitRequested="OnFitClicked" />
                             <cards:LabelingClassListCard />
-                        </StackPanel>
-                    </ScrollViewer>
-
-                    <!-- Segmentation -->
-                    <ScrollViewer Padding="12,12,12,8"
-                                  HorizontalScrollBarVisibility="Disabled"
-                                  VerticalScrollBarVisibility="Auto"
-                                  IsVisible="{Binding ActiveRailKind, Converter={StaticResource RailKindMatches}, ConverterParameter=Segmentation}">
-                        <StackPanel>
-                            <cards:LabelingDrawToolsCard ShowRectangle="False" />
-                            <cards:LabelingEditActionsCard ShowClear="True" ShowYoloInfer="True" />
-                            <cards:LabelingMaskReviewCard />
-                            <cards:LabelingClassListCard />
-                        </StackPanel>
-                    </ScrollViewer>
-
-                    <!-- Variation -->
-                    <ScrollViewer Padding="12,12,12,8"
-                                  HorizontalScrollBarVisibility="Disabled"
-                                  VerticalScrollBarVisibility="Auto"
-                                  IsVisible="{Binding ActiveRailKind, Converter={StaticResource RailKindMatches}, ConverterParameter=Variation}">
-                        <StackPanel>
-                            <cards:LabelingOkNgCard />
-                            <cards:LabelingAiJudgeCard />
-                            <cards:LabelingEditActionsCard ShowYoloInfer="True" />
-                        </StackPanel>
-                    </ScrollViewer>
-
-                    <!-- Anomaly -->
-                    <ScrollViewer Padding="12,12,12,8"
-                                  HorizontalScrollBarVisibility="Disabled"
-                                  VerticalScrollBarVisibility="Auto"
-                                  IsVisible="{Binding ActiveRailKind, Converter={StaticResource RailKindMatches}, ConverterParameter=Anomaly}">
-                        <StackPanel>
-                            <cards:LabelingAnomalyRouteCard />
-                            <cards:LabelingEditActionsCard />
                         </StackPanel>
                     </ScrollViewer>
                 </Grid>
@@ -344,19 +250,15 @@
                                          ActiveColor="{Binding Labels.ActiveLabelColor}"
                                          ActiveLabelId="{Binding Labels.ActiveLabelId}"
                                          ActiveLabel="{Binding Labels.ActiveLabelName}"
-                                         IsInstanceSegmentation="{Binding Workspace.ProjectProfile.RequiresInstanceIdOnPolygons}"
-                                         Annotations="{Binding Editor.AnnotationRows}"
+                                         Boxes="{Binding Editor.Boxes}"
                                          ImageSource="{Binding Workspace.ImageSource}"
-                                         SegmentationPolygons="{Binding Editor.SegmentationPolygons}"
                                          ShowLabelNames="{Binding Editor.ShowLabelNames}"
-                                         ToolMode="{Binding Editor.ToolMode}"
+                                         ToolMode="{Binding Editor.ActiveToolMode}"
                                          UseTransparentFill="{Binding Workspace.ProjectProfile.SupportsImageClass}"
                                          ZoomScale="{Binding Editor.ZoomScale, Mode=OneWay}"
                                          AnnotationCreated="OnAnnotationCreated"
                                          AnnotationEditStarted="OnAnnotationEditStarted"
-                                         AnnotationEditCompleted="OnAnnotationEditCompleted"
-                                         SegmentationPolygonCreated="OnSegmentationPolygonCreated"
-                                         SegmentationPolygonEditCompleted="OnSegmentationPolygonEditCompleted" />
+                                         AnnotationEditCompleted="OnAnnotationEditCompleted" />
 
                     <dv:CanvasCornerFloat ZIndex="10" PinId="tl" Placement="TopLeft">
                         <dv:CanvasCornerFloat.Body>
@@ -378,10 +280,6 @@
                             </StackPanel>
                         </dv:CanvasCornerFloat.Body>
                     </dv:CanvasCornerFloat>
-
-                    <Border Classes="reviewedBadge" IsVisible="{Binding Editor.IsReviewedBackground}">
-                        <TextBlock FontWeight="SemiBold" Foreground="White" Text="已复核纯背景（无多边形）" />
-                    </Border>
 
                     <dv:CanvasViewToolbar ZIndex="10"
                                           CanRedo="{Binding Editor.CanRedo}"
@@ -562,16 +460,6 @@
                                                     <MenuItem Header="取消标注锚点"
                                                               Tag="anchor-clear"
                                                               Click="OnClearSampleAnchorMenuItemClicked" />
-                                                    <Separator Tag="ai-judge" />
-                                                    <MenuItem Header="加入 OK 标准"
-                                                              Tag="ai-judge"
-                                                              Click="OnAddSampleAsOkStandardMenuItemClicked"
-                                                              ToolTip.Tip="把该图片的副本加入 AI 判定 OK 标准，不改变它的标注" />
-                                                    <MenuItem Header="加入 NG 标准"
-                                                              Tag="ai-judge"
-                                                              Click="OnAddSampleAsNgStandardMenuItemClicked"
-                                                              ToolTip.Tip="把该图片的副本加入 AI 判定 NG 标准，不改变它的标注" />
-                                                    <Separator Tag="ai-judge" />
                                                     <MenuItem Header="删除样本"
                                                               Click="OnDeleteSampleMenuItemClicked" />
                                                 </ContextMenu>
@@ -618,19 +506,6 @@
                                                                  Classes.error="{Binding HasError}" />
                                                     </StackPanel>
 
-                                                    <Border Classes="aiBadge"
-                                                            Classes.ok="{Binding AiBadgeTone, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter=ok}"
-                                                            Classes.ng="{Binding AiBadgeTone, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter=ng}"
-                                                            Classes.warn="{Binding AiBadgeTone, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter=warn}"
-                                                            Classes.differs="{Binding AiBadgeDiffers}"
-                                                            IsVisible="{Binding HasAiBadge}"
-                                                            ToolTip.Tip="{Binding AiBadgeToolTip}">
-                                                        <TextBlock Classes="aiBadgeText"
-                                                                   Classes.ok="{Binding AiBadgeTone, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter=ok}"
-                                                                   Classes.ng="{Binding AiBadgeTone, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter=ng}"
-                                                                   Classes.warn="{Binding AiBadgeTone, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter=warn}"
-                                                                   Text="{Binding AiBadgeText}" />
-                                                    </Border>
                                                 </Grid>
 
                                                 <Border Grid.Row="1"
@@ -676,17 +551,15 @@
                             ClipToBounds="True"
                             CornerRadius="4">
                         <dv:AnnotationOverview x:Name="OverviewSurface"
-                                               Annotations="{Binding Editor.AnnotationRows}"
+                                               Boxes="{Binding Editor.Boxes}"
                                                ImageSource="{Binding Workspace.ImageSource}"
                                                NavigateRequested="OnOverviewNavigateRequested" />
                     </Border>
                 </StackPanel>
 
-                <Grid Grid.Row="1">
-                    <cards:LabelingBoxListCard IsVisible="{Binding ActiveRailKind, Converter={StaticResource RailKindMatches}, ConverterParameter=BoxList}" />
-                    <cards:LabelingPolygonListCard IsVisible="{Binding ActiveRailKind, Converter={StaticResource RailKindMatches}, ConverterParameter=Segmentation}" />
-                    <cards:LabelingAiJudgeResultCard IsVisible="{Binding ActiveRailKind, Converter={StaticResource RailKindMatches}, ConverterParameter=Variation}" />
-                </Grid>
+                <!-- 右栏详情：检测工作流是当前样本的框列表；分类项目按整图打类，右栏留空（与 WPF 版一致）。 -->
+                <cards:LabelingBoxListCard Grid.Row="1"
+                                           IsVisible="{Binding ActiveRailKind, Converter={StaticResource RailKindMatches}, ConverterParameter=Detection}" />
             </Grid>
         </Border>
     </Grid>
