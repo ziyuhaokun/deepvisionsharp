@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:iv="clr-namespace:YuUI.Controls;assembly=yu-ui.avalonia"
+             xmlns:local="clr-namespace:DeepVisionSharp.Shell.Avalonia.Controls.Training"
              xmlns:ui="clr-namespace:YuUI;assembly=yu-ui.avalonia"
              x:Class="DeepVisionSharp.Shell.Avalonia.Controls.Training.ImageLightboxOverlay"
              Focusable="True">
@@ -9,7 +10,10 @@
                 Background="Transparent"
                 ClipToBounds="True"
                 Cursor="SizeAll">
-            <Image Name="LightboxImage" Stretch="Fill">
+            <!-- DataContext 是业务 VM，图源必须取本控件的 ImageSource（与 Controls/Misc 同名控件一致）。
+                 code-behind 只负责换图后重新居中，不负责赋 Source。 -->
+            <Image Name="LightboxImage" Stretch="Fill"
+                   Source="{Binding $parent[local:ImageLightboxOverlay].ImageSource}">
             </Image>
         </Canvas>
 
