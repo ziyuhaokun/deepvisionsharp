@@ -29,7 +29,8 @@
         </Style>
     </UserControl.Styles>
 
-    <Grid HorizontalAlignment="Right"
+    <Grid Margin="0,0,18,18"
+          HorizontalAlignment="Right"
           VerticalAlignment="Bottom"
           IsVisible="{Binding HasVisibleTasks}">
         <Border MinWidth="300"

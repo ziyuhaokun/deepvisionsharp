@@ -1,9 +1,11 @@
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Styling;
 using Avalonia.Threading;
+using DeepVisionSharp.Presentation.Automation;
 using DeepVisionSharp.Presentation.Services.Dialogs;
 using YuUI.Controls;
 
@@ -11,8 +13,9 @@ namespace DeepVisionSharp.Shell.Avalonia.Services;
 
 /// <summary>
 /// 对话框宿主：把内容控件塞进主窗口的 <c>RootDialog</c>，生成底部按钮并回传结果。
-/// 行为对齐 WPF 版 <c>AppDialogService</c>：按钮顺序 关闭/次要/主要；主按钮可绑定启用条件；
-/// Esc 与关闭按钮都返回 None；取消令牌触发时以 None 关闭。
+/// 行为对齐 WPF 版 <c>MainWindow.IDialogHost.ShowAsync</c> + <c>AppDialogService</c>：
+/// 按钮顺序 主要/次要/关闭（左→右，整排右对齐）；默认按钮缺位时回落到主按钮；
+/// Esc 与关闭按钮都返回 None；令牌进来前就已取消则不弹框直接返回 None。
 /// </summary>
 public static class AvaloniaDialogHost
 {
@@ -28,25 +31,22 @@ public static class AvaloniaDialogHost
         var dialog = owner.FindControl<Dialog>("RootDialog")
             ?? throw new InvalidOperationException("主窗口缺少 RootDialog。");
 
+        // 令牌进来前就已取消：不能进 await（对话框没机会关，永远等不到结果）。
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return AppDialogResult.None;
+        }
+
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
 
-        Button? close = null;
         Button? primary = null;
-
-        if (!string.IsNullOrEmpty(options.CloseButtonText))
-        {
-            close = CreateButton(options.CloseButtonText, DialogChoice.None, themeKey: null);
-            buttons.Children.Add(close);
-        }
-
-        if (!string.IsNullOrWhiteSpace(options.SecondaryButtonText))
-        {
-            buttons.Children.Add(CreateButton(options.SecondaryButtonText, DialogChoice.Secondary, themeKey: null));
-        }
+        Button? secondary = null;
+        Button? close = null;
 
         if (!string.IsNullOrEmpty(options.PrimaryButtonText))
         {
             primary = CreateButton(options.PrimaryButtonText, DialogChoice.Primary, "IvPrimaryButtonStyle");
+            AutomationProperties.SetAutomationId(primary, UiAutomationIds.Dialog.Primary);
 
             if (!string.IsNullOrWhiteSpace(options.PrimaryButtonIsEnabledBindingPath))
             {
@@ -56,25 +56,41 @@ public static class AvaloniaDialogHost
                     {
                         Source = dataContext,
                         Mode = BindingMode.OneWay,
-                        FallbackValue = false,
                     });
             }
 
             buttons.Children.Add(primary);
         }
 
-        var closeIsDefault = close is not null && options.DefaultButton == AppDialogDefaultButton.Close;
-        if (primary is not null)
+        if (!string.IsNullOrWhiteSpace(options.SecondaryButtonText))
         {
-            primary.IsDefault = !closeIsDefault;
+            secondary = CreateButton(options.SecondaryButtonText, DialogChoice.Secondary, themeKey: null);
+            AutomationProperties.SetAutomationId(secondary, UiAutomationIds.Dialog.Secondary);
+            buttons.Children.Add(secondary);
         }
 
-        if (close is not null)
+        if (!string.IsNullOrEmpty(options.CloseButtonText))
         {
-            close.IsDefault = closeIsDefault;
+            close = CreateButton(options.CloseButtonText, DialogChoice.None, themeKey: null);
+            AutomationProperties.SetAutomationId(close, UiAutomationIds.Dialog.Close);
+            buttons.Children.Add(close);
+        }
+
+        // 原 ContentDialog.DefaultButton 的语义：回车落到默认按钮上；该按钮不存在时回落到主按钮。
+        var defaultButton = (options.DefaultButton switch
+        {
+            AppDialogDefaultButton.Secondary => secondary,
+            AppDialogDefaultButton.Close => close,
+            _ => primary,
+        } ?? primary);
+
+        if (defaultButton is not null)
+        {
+            defaultButton.IsDefault = true;
         }
 
         dialog.Title = options.Title ?? string.Empty;
+        AutomationProperties.SetAutomationId(dialog, UiAutomationIds.Dialog.Host);
         dialog.Content = content;
         dialog.Footer = buttons;
 
@@ -88,7 +104,7 @@ public static class AvaloniaDialogHost
                     return;
                 }
 
-                var focusTarget = closeIsDefault ? close : primary ?? close;
+                var focusTarget = defaultButton ?? close;
                 if (focusTarget is { IsEffectivelyEnabled: true })
                 {
                     focusTarget.Focus();

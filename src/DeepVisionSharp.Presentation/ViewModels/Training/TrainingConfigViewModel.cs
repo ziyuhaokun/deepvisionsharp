@@ -208,6 +208,19 @@ public sealed partial class TrainingConfigViewModel : ObservableObject,
 
     public bool ShowsDetectionOptions => IsDetectionModelSelected;
 
+    /// <summary>
+    /// deepvision 的「高级参数」页签是否出现：那边只有 YOLO（检测）模型有额外参数。
+    /// 本仓库模型同样分检测 / 分类两类，检测类就是 YOLO 族。
+    /// </summary>
+    public bool IsYoloModelSelected => IsDetectionModelSelected;
+
+    /// <summary>「基本配置」页签的完成勾：模型名与模型类型都填了。</summary>
+    public bool IsBasicConfigurationComplete =>
+        !string.IsNullOrWhiteSpace(ModelName) && !string.IsNullOrWhiteSpace(SelectedModelType);
+
+    /// <summary>「数据集」页签的完成勾：与开始训练的校验口径一致（数据集配置有效）。</summary>
+    public bool IsDatasetConfigurationComplete => Dataset.IsDatasetConfigValid;
+
     public string ClsAugmentationSummary =>
         Cls.BuildSummary(IsClassificationModelSelected);
 
@@ -450,6 +463,8 @@ public sealed partial class TrainingConfigViewModel : ObservableObject,
         OnPropertyChanged(nameof(StopTrainingToolTip));
         OnPropertyChanged(nameof(SaveAsModelToolTip));
         OnPropertyChanged(nameof(DeleteJobToolTip));
+        OnPropertyChanged(nameof(IsBasicConfigurationComplete));
+        OnPropertyChanged(nameof(IsDatasetConfigurationComplete));
     }
 
     public void NotifyDetailState()

@@ -2,7 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:iv="clr-namespace:YuUI.Controls;assembly=yu-ui.avalonia"
              xmlns:ui="clr-namespace:YuUI;assembly=yu-ui.avalonia"
-             xmlns:controls="clr-namespace:DeepVisionSharp.Shell.Avalonia.Controls"
              x:Class="DeepVisionSharp.Shell.Avalonia.Views.Dialogs.Contents.ClassificationAutoInferenceDialogContent"
              MinWidth="480" MaxWidth="580"
              TextElement.Foreground="{DynamicResource IvText1Brush}">
@@ -17,16 +16,9 @@
     <StackPanel>
         <TextBlock Text="{Binding InferenceDialogDescription}" TextWrapping="Wrap" />
 
-        <!-- 字符识别复用本对话框：OCR 参数区内部按 ShowOcrParameters 显隐 -->
-        <controls:OcrInferenceSettings />
-
-        <TextBlock Margin="0,18,0,0" Theme="{StaticResource DialogFieldLabelStyle}" Text="选择模型"
-                   IsVisible="{Binding !ShowOcrParameters}" />
-        <TextBlock Margin="0,18,0,0" Theme="{StaticResource DialogFieldLabelStyle}" Text="文字识别模型"
-                   IsVisible="{Binding ShowOcrParameters}" />
+        <TextBlock Margin="0,18,0,0" Theme="{StaticResource DialogFieldLabelStyle}" Text="选择模型" />
         <ComboBox Margin="0,8,0,0"
                   HorizontalAlignment="Stretch"
-                  ToolTip.Tip="{Binding SelectedInferenceModel.DisplayText}"
                   IsEnabled="{Binding HasInferenceModels}"
                   ItemsSource="{Binding InferenceModels}"
                   SelectedItem="{Binding SelectedInferenceModel, Mode=TwoWay}">
@@ -47,7 +39,7 @@
             </StackPanel>
         </Border>
 
-        <StackPanel IsVisible="{Binding ShowsInferenceDeviceSelector}">
+        <StackPanel>
             <TextBlock Margin="0,20,0,0" Theme="{StaticResource DialogFieldLabelStyle}" Text="推理设备" />
             <ComboBox Margin="0,8,0,0"
                       ItemsSource="{Binding InferenceDeviceOptions}"
@@ -57,12 +49,8 @@
                 </ComboBox.ItemTemplate>
             </ComboBox>
         </StackPanel>
-        <StackPanel IsVisible="{Binding !ShowsInferenceDeviceSelector}">
-            <TextBlock Margin="0,20,0,0" Theme="{StaticResource DialogFieldLabelStyle}" Text="推理设备" />
-            <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="{Binding OpenVinoDeviceDisplayText}" />
-        </StackPanel>
 
-        <TextBlock Margin="0,20,0,0" Theme="{StaticResource DialogFieldLabelStyle}" Text="{Binding ConfidenceThresholdLabel}" />
+        <TextBlock Margin="0,20,0,0" Theme="{StaticResource DialogFieldLabelStyle}" Text="置信度阈值（top-1）" />
         <Grid Margin="0,8,0,0" ColumnDefinitions="*,48">
             <Slider IsSnapToTickEnabled="True" Maximum="0.95" Minimum="0.1" TickFrequency="0.05"
                     Value="{Binding InferenceConfidence, Mode=TwoWay}" />
@@ -85,7 +73,7 @@
         <TextBlock Margin="0,12,0,0" Theme="{StaticResource DialogHintStyle}"
                    Text="{Binding InferenceParametersFooterHint}" TextWrapping="Wrap" />
         <TextBlock Margin="0,4,0,0" Theme="{StaticResource DialogHintStyle}"
-                   Text="{Binding InferenceFixedBatchHint}" />
+                   Text="TorchSharp 分类模型固定单图推理，无批次与最大结果数参数。" TextWrapping="Wrap" />
 
         <Border Margin="0,12,0,0" Padding="12"
                 Background="{DynamicResource IvSurface3Brush}" CornerRadius="8"

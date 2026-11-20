@@ -22,25 +22,8 @@
             <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="{Binding EditingModelStatus}" />
         </StackPanel>
 
-        <StackPanel Margin="0,18,0,0" IsVisible="{Binding ShowCreateModelTypePicker}">
-            <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="规格" />
-            <ComboBox Margin="0,8,0,0"
-                      AutomationProperties.AutomationId="dv.dialog.model-type"
-                      ItemsSource="{Binding ModelTypeOptions}"
-                      SelectedValue="{Binding DraftModelType, Mode=TwoWay}"
-                      SelectedValueBinding="{Binding Value}">
-                <ComboBox.ItemTemplate>
-                    <DataTemplate><TextBlock Text="{Binding Label}" /></DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
-        </StackPanel>
-
-        <StackPanel Margin="0,18,0,0" IsVisible="{Binding ShowCreateModelTypeFixed}">
-            <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="类型" />
-            <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="{Binding DraftModelTypeDisplay}" />
-        </StackPanel>
-
-        <StackPanel Margin="0,18,0,0" IsVisible="{Binding IsEditingModel}">
+        <!-- 类型只读（模型由训练产生，创建后不可改） -->
+        <StackPanel Margin="0,18,0,0">
             <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="类型" />
             <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="{Binding DraftModelTypeDisplay}" />
         </StackPanel>
@@ -79,16 +62,6 @@
 
             <TextBlock Margin="0,8,0,0" Theme="{StaticResource DialogHintStyle}"
                        Text="暂无类别" IsVisible="{Binding !HasEditingClasses}" />
-        </StackPanel>
-
-        <StackPanel Margin="0,18,0,0" IsVisible="{Binding ShowsDraftInputChannelsOption}">
-            <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="输入通道" />
-            <CheckBox Margin="0,8,0,0"
-                      AutomationProperties.AutomationId="dv.dialog.model-grayscale-input"
-                      Content="灰度输入（单通道）"
-                      IsChecked="{Binding DraftYoloGrayscaleInput, Mode=TwoWay}" />
-            <TextBlock Margin="0,6,0,0" Theme="{StaticResource DialogHintStyle}"
-                       Text="创建时选定，训练与推理将沿用该通道模式；未勾选则为 RGB 三通道。" />
         </StackPanel>
 
         <TextBlock Margin="0,18,0,0" Theme="{StaticResource DialogFieldLabelStyle}" Text="备注" />

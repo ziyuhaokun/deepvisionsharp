@@ -823,7 +823,11 @@ public sealed class SampleTrainingMetricsSummary
 
     public bool ShowQualityWithLearningRateCharts => false;
 
-    public bool ShowSecondaryTrainLossRow => true;
+    /// <summary>
+    /// 恒为 false：真实 presenter 里 Detection / Classification 都带「主指标说明」文案，
+    /// 同时把 ShowsSecondaryTrainLossRow 传成 false —— 两行是互斥的，同格同时可见会叠在一起。
+    /// </summary>
+    public bool ShowSecondaryTrainLossRow => false;
 
     public bool ShowMetricsEmptyState => false;
 

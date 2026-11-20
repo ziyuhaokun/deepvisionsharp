@@ -168,6 +168,10 @@ public sealed partial class LabelingInferenceViewModel : ObservableObject, ILabe
 
     public string InferenceButtonToolTip => ActiveSession.FormatButtonToolTip(CreateBuildContext());
 
+    /// <summary>自动推理按钮上的动作文案（deepvision 页面绑定它）：按项目能力取词，本仓库只有自动标注一条路。</summary>
+    public string InferenceActionLabel =>
+        _context.ProjectProfile.SupportsImageClass ? "分类自动标注" : "YOLO 自动标注";
+
     public string InferenceDialogDescription => ActiveSession.Description;
 
     public string InferenceNoModelsHint => ActiveSession.NoModelsHint;
@@ -427,6 +431,7 @@ public sealed partial class LabelingInferenceViewModel : ObservableObject, ILabe
         OnPropertyChanged(nameof(InferenceSpatialPolicySummary));
         OnPropertyChanged(nameof(InferencePolicySectionTitle));
         OnPropertyChanged(nameof(InferenceButtonToolTip));
+        OnPropertyChanged(nameof(InferenceActionLabel));
         OnPropertyChanged(nameof(IsClassificationModelSelected));
         OnPropertyChanged(nameof(ShowMaxDetectionsParameter));
         OnPropertyChanged(nameof(ShowBatchSizeParameter));

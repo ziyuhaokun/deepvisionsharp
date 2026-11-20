@@ -5,22 +5,15 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace DeepVisionSharp.Shell.Avalonia.Services;
 
-/// <summary>对话框描述：内容视图类型与默认标题/按钮文案，与 WPF 的 <c>DialogCatalog</c> 一一对应。</summary>
-internal sealed record AvaloniaDialogDescriptor(
-    Type ContentViewType,
-    string Title,
-    string PrimaryButtonText,
-    string? CloseButtonText = "取消",
-    string? SecondaryButtonText = null);
-
 /// <summary>
 /// Avalonia 对话框服务：按 <see cref="AppDialogKind"/> 取内容视图，DataContext 设成调用方给的 VM，
 /// 交给 <see cref="AvaloniaDialogHost"/> 显示并回传结果。
+/// 描述表与 WPF 的 <c>DialogCatalog</c> 逐项一致，共用框架无关的 <see cref="DialogDescriptor"/>。
 /// </summary>
 public sealed class AvaloniaDialogService : IAppDialogService
 {
-    private static readonly IReadOnlyDictionary<AppDialogKind, AvaloniaDialogDescriptor> Descriptors =
-        new Dictionary<AppDialogKind, AvaloniaDialogDescriptor>
+    private static readonly IReadOnlyDictionary<AppDialogKind, DialogDescriptor> Descriptors =
+        new Dictionary<AppDialogKind, DialogDescriptor>
         {
             [AppDialogKind.AddLabel] = new(typeof(AddLabelDialogContent), "添加类别", "添加"),
             [AppDialogKind.EditLabelColor] = new(typeof(AddLabelDialogContent), "修改类别颜色", "保存"),

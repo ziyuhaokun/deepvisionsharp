@@ -127,6 +127,15 @@ public sealed partial class LabelingViewModel : ObservableObject
 
     public LabelingInferenceViewModel Inference { get; }
 
+    /// <summary>
+    /// 左侧轨道名（deepvision 页面用 <c>RailKindMatchesConverter</c> 逐项切换）。
+    /// 本仓库只有检测 / 分类两种工作流，文字识别 / 分割 / 变化 / 异常四条轨道不存在，
+    /// 所以这里只会回 Detection / Classification。
+    /// </summary>
+    public string ActiveRailKind => Workspace.WorkflowKind == ProjectWorkflowKind.Detection
+        ? "Detection"
+        : "Classification";
+
     [RelayCommand]
     private async Task LoadAsync(CancellationToken cancellationToken)
     {
@@ -482,6 +491,7 @@ public sealed partial class LabelingViewModel : ObservableObject
     private void NotifyWorkflowProperties()
     {
         OnPropertyChanged(nameof(Workspace));
+        OnPropertyChanged(nameof(ActiveRailKind));
     }
 
     private void OnWorkspacePropertyChanged(object? sender, PropertyChangedEventArgs e)

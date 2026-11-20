@@ -32,12 +32,7 @@
             </Border>
 
             <StackPanel IsVisible="{Binding IsConfigView}">
-                <controls:OcrInferenceSettings IsEnabled="{Binding IsConfigInteractive}" />
-
-                <TextBlock Margin="0,18,0,0" Theme="{StaticResource DialogFieldLabelStyle}" Text="选择模型"
-                           IsVisible="{Binding !ShowOcrParameters}" />
-                <TextBlock Margin="0,18,0,0" Theme="{StaticResource DialogFieldLabelStyle}" Text="文字识别模型"
-                           IsVisible="{Binding ShowOcrParameters}" />
+                <TextBlock Margin="0,18,0,0" Theme="{StaticResource DialogFieldLabelStyle}" Text="选择模型" />
                 <ComboBox Margin="0,8,0,0"
                           HorizontalAlignment="Stretch"
                           IsEnabled="{Binding IsConfigInteractive}"

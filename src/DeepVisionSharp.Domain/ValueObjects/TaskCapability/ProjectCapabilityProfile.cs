@@ -8,6 +8,13 @@ public sealed record ProjectCapabilityProfile
     }
 
     public ProjectWorkflowKind Workflow { get; }
+
+    /// <summary>
+    /// 标注画布是否用透明填充（分类工作流按整图打类，框只做提示）。
+    /// deepvision 按 <c>AnnotationMode</c> 判定，本仓库只有分类 / 检测两种工作流。
+    /// </summary>
+    public bool SupportsImageClass => Workflow == ProjectWorkflowKind.Classification;
+
 }
 
 public static class ProjectCapabilityCatalog

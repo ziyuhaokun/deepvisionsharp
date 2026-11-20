@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:iv="clr-namespace:YuUI.Controls;assembly=yu-ui.avalonia"
              xmlns:ui="clr-namespace:YuUI;assembly=yu-ui.avalonia"
+             xmlns:local="clr-namespace:DeepVisionSharp.Shell.Avalonia.Controls"
              x:Class="DeepVisionSharp.Shell.Avalonia.Controls.ImageLightboxOverlay"
              Focusable="True">
     <Grid Background="#E6000000">
@@ -9,8 +10,11 @@
                 Background="Transparent"
                 ClipToBounds="True"
                 Cursor="SizeAll">
-            <Image Name="LightboxImage" Stretch="Fill">
-            </Image>
+            <!-- 与 WPF 版一致：画布里的 Image 直接取本控件的 ImageSource（DataContext 是业务 VM，不能用裸 Binding）。 -->
+            <Image Name="LightboxImage"
+                   RenderOptions.BitmapInterpolationMode="HighQuality"
+                   Source="{Binding $parent[local:ImageLightboxOverlay].ImageSource}"
+                   Stretch="Fill" />
         </Canvas>
 
         <Button Width="36"

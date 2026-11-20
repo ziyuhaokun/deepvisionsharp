@@ -34,6 +34,17 @@ public sealed partial class InferenceCanvasViewModel : ObservableObject
     [ObservableProperty]
     private string _imageSizeText = string.Empty;
 
+    /// <summary>画布上是否画检测框标签（推理页左下角「显示标签名称」开关）。</summary>
+    [ObservableProperty]
+    private bool _showLabelNames = true;
+
+    /// <summary>画布缩放比例；页面在视口变化时写回，画布以 OneWay 读它。</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ZoomText))]
+    private double _zoomScale = 1;
+
+    public string ZoomText => $"{ZoomScale * 100:0}%";
+
     public bool HasPreviewImage => PreviewImage is not null;
 
     public bool ShowResultRowList => ResultRows.Count > 0;

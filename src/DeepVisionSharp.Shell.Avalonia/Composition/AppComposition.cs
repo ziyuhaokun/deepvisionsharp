@@ -1,14 +1,19 @@
 using DeepVisionSharp.Application.Galleries;
 using DeepVisionSharp.Application.Ports;
 using DeepVisionSharp.Bootstrap;
+using DeepVisionSharp.Presentation.Logging;
 using DeepVisionSharp.Presentation.Ports;
 using DeepVisionSharp.Presentation.Services;
 using DeepVisionSharp.Presentation.Services.Dialogs;
 using DeepVisionSharp.Presentation.Services.Labeling.WriteBack;
 using DeepVisionSharp.Presentation.Services.Navigation;
+using DeepVisionSharp.Presentation.Services.Training;
 using DeepVisionSharp.Presentation.ViewModels;
 using DeepVisionSharp.Presentation.ViewModels.Dashboard;
+using DeepVisionSharp.Presentation.ViewModels.Inference;
+using DeepVisionSharp.Presentation.ViewModels.Labeling;
 using DeepVisionSharp.Presentation.ViewModels.Models;
+using DeepVisionSharp.Presentation.ViewModels.Training;
 using DeepVisionSharp.Shell.Avalonia.Services;
 using DeepVisionSharp.Shell.Avalonia.Views;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,8 +26,7 @@ namespace DeepVisionSharp.Shell.Avalonia.Composition;
 /// Avalonia Shell 的组合根：业务层注册全部来自框架无关的 <see cref="DependencyInjection.AddDeepVision"/>，
 /// 这里只补齐「Avalonia 版端口实现 + 表现层服务 + 页面」。
 /// <para>
-/// 与 WPF Shell 的 <c>ShellHost</c> 逐项对应，去掉 WPF 专属部分（文件日志、单实例、WER dump、
-/// 训练工作区注册、未迁移页面的 VM）。
+/// 与 WPF Shell 的 <c>ShellHost</c> 逐项对应，去掉 WPF 专属部分（文件日志 provider、单实例、WER dump）。
 /// </para>
 /// </summary>
 public static class AppComposition
@@ -57,8 +61,8 @@ public static class AppComposition
     }
 
     /// <summary>
-    /// Shell 层注册：Avalonia 端口实现、表现层服务、已迁移页面与主窗口。
-    /// 后续页面（标注 / 训练 / 推理 / 设置）的 VM、页面与壳服务也在这个方法里追加。
+    /// Shell 层注册：Avalonia 端口实现、表现层服务、页面 ViewModel / 页面与主窗口。
+    /// 生命周期照 WPF <c>ShellHost</c>：首页 Dashboard 单例，其余页面 VM 与页面都是 Transient。
     /// </summary>
     public static IServiceCollection AddAvaloniaShell(this IServiceCollection services, DeepVisionLaunchOptions options)
     {
@@ -85,15 +89,32 @@ public static class AppComposition
         services.AddSingleton<ShellTaskCenterViewModel>();
         services.AddSingleton<MainWindowViewModel>();
 
-        // ---- 已迁移页面的 ViewModel ----
+        // 设置页读日志保留预算。文件日志 provider 归本 Shell 的日志接线，两边解析到同一个实例。
+        services.AddSingleton(new FileLoggerOptions());
+
+        // ---- 训练工作区（照 WPF 的 TrainingWorkspaceRegistration；资源监控复用 Avalonia 端口实现）----
+        services.AddTransient<TrainingMetricsPoller>();
+        services.AddTransient<TrainingPreviewPoller>();
+        services.AddTransient<TrainingResourcePoller>();
+        services.AddTransient<TrainingWorkspaceCoordinator>();
+        services.AddTransient<TrainingViewModel>();
+
+        // ---- 页面 ViewModel ----
         services.AddSingleton<DashboardViewModel>();
         services.AddTransient<GalleryViewModel>();
+        services.AddTransient<LabelingViewModel>();
         services.AddTransient<ModelsViewModel>();
+        services.AddTransient<InferenceViewModel>();
+        services.AddTransient<SettingsViewModel>();
 
         // ---- 页面与外壳 ----
         services.AddTransient<DashboardPage>();
         services.AddTransient<GalleryPage>();
+        services.AddTransient<LabelingPage>();
         services.AddTransient<ModelsPage>();
+        services.AddTransient<TrainingPage>();
+        services.AddTransient<InferencePage>();
+        services.AddTransient<SettingsPage>();
         services.AddSingleton<AvaloniaNavigationService>();
         services.AddSingleton<IAppNavigationService>(sp => sp.GetRequiredService<AvaloniaNavigationService>());
         services.AddSingleton<MainWindow>();

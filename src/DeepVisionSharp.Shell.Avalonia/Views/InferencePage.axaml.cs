@@ -6,21 +6,25 @@ using Avalonia.Data.Converters;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 
+using DeepVisionSharp.Presentation.ViewModels.Inference;
 using DeepVisionSharp.Shell.Avalonia.Controls.Inference;
 using DeepVisionSharp.Shell.Avalonia.ViewModels;
 
 namespace DeepVisionSharp.Shell.Avalonia.Views;
 
 /// <summary>
-/// 推理工作台页：deepvision 版 InferencePage 的 Avalonia 移植，DataContext 换成本项目 stub，
-/// 保留三栏自适应、画布缩放与检查器页签切换；不跑推理、不改工作列表状态。
+/// 推理工作台页：deepvision 版 InferencePage 的 Avalonia 移植。
+/// DataContext 来自容器的 <see cref="InferenceViewModel"/>；没有容器（设计时 / 无头渲染）时
+/// 退回 <see cref="SampleInferenceContext"/>，绑定路径不变。
+/// 三栏自适应、画布缩放与检查器页签切换照原样保留。
 /// </summary>
 public partial class InferencePage : UserControl
 {
     private const double TitleBarHeight = 44;
     private const double SourceSummaryBreakpoint = 820;
 
-    private readonly SampleInferenceContext _context;
+    private readonly InferenceViewModel? _viewModel;
+    private readonly SampleInferenceContext? _stub;
 
     private readonly Grid? _pageRoot;
     private readonly Grid? _workbenchGrid;
@@ -33,11 +37,17 @@ public partial class InferencePage : UserControl
     private readonly AnnotationCanvas? _inferenceSurface;
 
     public InferencePage()
+        : this(null)
+    {
+    }
+
+    public InferencePage(InferenceViewModel? viewModel)
     {
         InitializeComponent();
 
-        _context = new SampleInferenceContext();
-        DataContext = _context;
+        _viewModel = viewModel;
+        _stub = viewModel is null ? new SampleInferenceContext() : null;
+        DataContext = (object?)viewModel ?? _stub;
 
         _pageRoot = this.FindControl<Grid>("PageRoot");
         _workbenchGrid = this.FindControl<Grid>("WorkbenchGrid");
@@ -77,6 +87,31 @@ public partial class InferencePage : UserControl
         UpdateViewportConstraints();
         UpdateToolbarDensity();
         FitCanvas();
+
+        if (_viewModel is not null)
+        {
+            LoadViewModelAsync();
+        }
+    }
+
+    /// <summary>async void 里的加载：异常就地记下，不往外抛到 UI 线程。</summary>
+    private async void LoadViewModelAsync()
+    {
+        try
+        {
+            _viewModel!.Activate();
+            await _viewModel.OnPageLoadedAsync();
+        }
+        catch (OperationCanceledException)
+        {
+            // 导航走了／页面被取消，下一次进入会重新加载。
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"InferencePage load failed: {ex}");
+        }
+
+        FitCanvas();
     }
 
     private void OnUnloaded(object? sender, RoutedEventArgs e)
@@ -85,6 +120,8 @@ public partial class InferencePage : UserControl
         {
             _inferenceSurface.ViewportChanged -= OnViewportChanged;
         }
+
+        _viewModel?.Deactivate();
     }
 
     private void OnPageSizeChanged(object? sender, SizeChangedEventArgs e)
@@ -95,9 +132,14 @@ public partial class InferencePage : UserControl
 
     private void OnViewportChanged(object? sender, EventArgs e)
     {
-        if (_inferenceSurface is not null)
+        if (_inferenceSurface is null)
         {
-            _context.ZoomScale = _inferenceSurface.ZoomScale;
+            return;
+        }
+
+        if (_stub is not null)
+        {
+            _stub.ZoomScale = _inferenceSurface.ZoomScale;
         }
     }
 
@@ -120,17 +162,31 @@ public partial class InferencePage : UserControl
     {
     }
 
-    private void SetInspectorTab(int index) => _context.SelectedRightTabIndex = index;
+    private void SetInspectorTab(int index)
+    {
+        if (_viewModel is not null)
+        {
+            _viewModel.SelectedRightTabIndex = index;
+            return;
+        }
+
+        _stub!.SelectedRightTabIndex = index;
+    }
 
     private void FitCanvas()
     {
-        if (_context.PreviewImage is null || _inferenceSurface is null)
+        var previewImage = _viewModel is not null ? _viewModel.PreviewImage : _stub!.PreviewImage;
+        if (previewImage is null || _inferenceSurface is null)
         {
             return;
         }
 
         _inferenceSurface.FitToView();
-        _context.ZoomScale = _inferenceSurface.ZoomScale;
+
+        if (_stub is not null)
+        {
+            _stub.ZoomScale = _inferenceSurface.ZoomScale;
+        }
     }
 
     /// <summary>页面高度锁到「窗口客户区减标题栏减页边距」，让三栏区自己滚动而不是把整页撑出窗口。</summary>

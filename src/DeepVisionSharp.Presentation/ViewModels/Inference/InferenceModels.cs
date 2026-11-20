@@ -187,6 +187,9 @@ public sealed class InferenceDetectionRow
     public string GeometryText => HasBox
         ? $"({X:0}, {Y:0})  {Width:0}×{Height:0}"
         : string.Empty;
+
+    /// <summary>结果行副标题（deepvision 页面绑定的名字），内容就是 <see cref="GeometryText"/>。</summary>
+    public string BoxText => GeometryText;
 }
 
 public sealed record InferenceDetectionClassCount(string ClassName, int Count);

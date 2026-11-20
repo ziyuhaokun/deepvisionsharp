@@ -122,6 +122,10 @@ public sealed partial class TrainingJobsViewModel : ObservableObject
 
     public bool ShowJobDetail => HasSelectedJob && IsDetailFormReady;
 
+    /// <summary>deepvision 把右栏叫「YOLO 任务详情」；本仓库只有这一个详情面板（检测 / 分类共用）。</summary>
+    public bool ShowYoloJobDetail => ShowJobDetail;
+
+
     public event Action<TrainingJobListItem?>? SelectedJobChanged;
 
     public event Action<Guid>? JobCreated;
@@ -835,6 +839,7 @@ public sealed partial class TrainingJobsViewModel : ObservableObject
         OnPropertyChanged(nameof(ShowSelectJobPrompt));
         OnPropertyChanged(nameof(ShowDetailPreparing));
         OnPropertyChanged(nameof(ShowJobDetail));
+        OnPropertyChanged(nameof(ShowYoloJobDetail));
         OnPropertyChanged(nameof(IsTrainingWorkflow));
     }
 

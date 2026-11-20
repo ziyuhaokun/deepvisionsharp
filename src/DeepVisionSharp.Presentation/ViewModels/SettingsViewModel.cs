@@ -205,7 +205,6 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     public bool IsNotRunningDataRepair => !IsRunningDataRepair;
 
-
     [RelayCommand]
     private async Task LoadAsync()
     {
@@ -660,4 +659,15 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 public sealed record ThemeOption(ShellThemePreference Value, string Label, string Description);
 
-public sealed record SettingsCategoryItem(SettingsCategory Id, string Title);
+public sealed record SettingsCategoryItem(SettingsCategory Id, string Title)
+{
+    /// <summary>分区图标名（Palette / Folder / Info / Settings / Calculator），由宿主 shell 换成图形。</summary>
+    public string Icon => Id switch
+    {
+        SettingsCategory.Appearance => "Palette",
+        SettingsCategory.Storage => "Folder",
+        SettingsCategory.About => "Info",
+        SettingsCategory.Advanced => "Settings",
+        _ => "Calculator",
+    };
+}

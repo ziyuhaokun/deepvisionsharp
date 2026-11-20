@@ -128,9 +128,16 @@ public sealed partial class InferenceViewModel : ObservableObject, IDisposable
                 || e.PropertyName == nameof(InferenceCanvasViewModel.ActiveFileName)
                 || e.PropertyName == nameof(InferenceCanvasViewModel.ImageSizeText)
                 || e.PropertyName == nameof(InferenceCanvasViewModel.HasPreviewImage)
-                || e.PropertyName == nameof(InferenceCanvasViewModel.ShowResultRowList))
+                || e.PropertyName == nameof(InferenceCanvasViewModel.ShowResultRowList)
+                || e.PropertyName == nameof(InferenceCanvasViewModel.ShowLabelNames)
+                || e.PropertyName == nameof(InferenceCanvasViewModel.ZoomScale))
             {
                 OnPropertyChanged(e.PropertyName);
+                if (e.PropertyName == nameof(InferenceCanvasViewModel.ZoomScale))
+                {
+                    OnPropertyChanged(nameof(ZoomText));
+                }
+
                 NotifyStatusBar();
             }
         };
@@ -302,6 +309,22 @@ public sealed partial class InferenceViewModel : ObservableObject, IDisposable
     public bool ShowsMaxDetections => Runner.ShowsMaxDetections;
 
     public bool ShowsInferenceDeviceSelector => Runner.ShowsInferenceDeviceSelector;
+
+    /// <summary>画布上是否画检测框标签（推理页的「显示标签名称」开关与画布共用这一路状态）。</summary>
+    public bool ShowLabelNames
+    {
+        get => Canvas.ShowLabelNames;
+        set => Canvas.ShowLabelNames = value;
+    }
+
+    /// <summary>画布缩放比例；由页面在视口变化时写回，画布另以 OneWay 读回。</summary>
+    public double ZoomScale
+    {
+        get => Canvas.ZoomScale;
+        set => Canvas.ZoomScale = value;
+    }
+
+    public string ZoomText => Canvas.ZoomText;
 
     public int SelectedRightTabIndex
     {
