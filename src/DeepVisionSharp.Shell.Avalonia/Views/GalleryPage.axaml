@@ -250,6 +250,7 @@
                           VerticalScrollBarVisibility="Auto"
                           IsVisible="{Binding List.HasFilteredGalleries}">
                 <ItemsControl Margin="0,4,0,8"
+                              VerticalAlignment="Top"
                               ItemsSource="{Binding List.FilteredGalleries}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
