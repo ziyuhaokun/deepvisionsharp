@@ -1,8 +1,8 @@
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Threading;
+using DeepVisionSharp.Presentation.ViewModels.Training;
 
-using DeepVisionSharp.Shell.ViewModels.Training;
 
 namespace DeepVisionSharp.Shell.Views.Training.Sections;
 

@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Input;
 
 using DeepVisionSharp.Shell.Services;
-using DeepVisionSharp.Shell.ViewModels.Labeling;
+using DeepVisionSharp.Presentation.ViewModels.Labeling;
 
 namespace DeepVisionSharp.Shell.Views.Pages.Sections;
 

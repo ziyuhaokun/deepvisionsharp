@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 
 using DeepVisionSharp.Shell.Services;
-using DeepVisionSharp.Shell.ViewModels.Dashboard;
+using DeepVisionSharp.Presentation.ViewModels.Dashboard;
 
 namespace DeepVisionSharp.Shell.Views.Pages;
 

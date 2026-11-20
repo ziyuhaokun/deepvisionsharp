@@ -5,6 +5,8 @@ using System.Windows.Threading;
 using Microsoft.Extensions.Logging;
 
 using DeepVisionSharp.Shell.Logging;
+using DeepVisionSharp.Presentation.Logging;
+using DeepVisionSharp.Presentation.Services;
 
 namespace DeepVisionSharp.Shell.Services;
 

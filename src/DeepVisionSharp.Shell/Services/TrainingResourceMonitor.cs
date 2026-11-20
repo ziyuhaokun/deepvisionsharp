@@ -1,21 +1,17 @@
+
 using Microsoft.Extensions.Logging;
 
 using System.Diagnostics;
+using DeepVisionSharp.Presentation.Ports;
+using DeepVisionSharp.Presentation.Services;
 
 namespace DeepVisionSharp.Shell.Services;
 
-public sealed class TrainingResourceUsage
-{
-    public double CpuPercent { get; set; }
-
-    public double MemoryPercent { get; set; }
-
-    public double GpuUtilization { get; set; }
-
-    public bool HasGpu { get; set; }
-}
-
-public sealed class TrainingResourceMonitor
+/// <summary>
+/// Windows 性能计数器 + <c>nvidia-smi</c> 实现的负载采样；计数器只在 Windows shell 里读，
+/// 共享表现层只看到 <see cref="ISystemResourceMonitor"/>。
+/// </summary>
+public sealed class TrainingResourceMonitor : ISystemResourceMonitor
 {
     private readonly ILogger<TrainingResourceMonitor> _logger;
 

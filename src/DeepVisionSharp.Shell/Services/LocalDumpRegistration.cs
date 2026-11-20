@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.IO;
 using Microsoft.Win32;
+using DeepVisionSharp.Presentation.Services;
 
 namespace DeepVisionSharp.Shell.Services;
 
@@ -15,10 +16,7 @@ public static class LocalDumpRegistration
     /// <summary>WER DumpType: 1 = Mini dump.</summary>
     public const int MiniDumpType = 1;
 
-    public static string CrashDumpDirectory { get; } = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "DeepVisionSharp",
-        "CrashDumps");
+    public static string CrashDumpDirectory { get; } = ShellRuntimePaths.DefaultCrashDumpDirectory;
 
     public static LocalDumpRegistrationResult EnsureEnabled()
     {

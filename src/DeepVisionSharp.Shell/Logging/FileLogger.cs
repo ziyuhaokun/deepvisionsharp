@@ -1,6 +1,7 @@
 using System.Text;
 
 using Microsoft.Extensions.Logging;
+using DeepVisionSharp.Presentation.Logging;
 
 namespace DeepVisionSharp.Shell.Logging;
 

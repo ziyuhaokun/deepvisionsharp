@@ -1,0 +1,441 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iv="clr-namespace:YuUI.Controls;assembly=yu-ui.avalonia"
+             xmlns:ui="clr-namespace:YuUI;assembly=yu-ui.avalonia"
+             x:Class="DeepVisionSharp.Shell.Avalonia.Views.ModelsPage">
+
+    <UserControl.Resources>
+        <ControlTheme x:Key="ModelToolbarButtonStyle" TargetType="Button"
+                      BasedOn="{StaticResource IvButtonBaseStyle}">
+            <Setter Property="Height" Value="34" />
+            <Setter Property="Padding" Value="13,0" />
+            <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeBrush}" />
+            <Setter Property="FontSize" Value="13" />
+            <Style Selector="^:pointerover">
+                <Setter Property="Background" Value="{DynamicResource IvSurface3Brush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource IvControlBorderHoverBrush}" />
+            </Style>
+        </ControlTheme>
+    </UserControl.Resources>
+
+    <UserControl.Styles>
+        <Style Selector="Border.modelCard">
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="Margin" Value="0,0,12,12" />
+            <Setter Property="Width" Value="420" />
+            <Setter Property="MinHeight" Value="280" />
+            <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+        </Style>
+        <Style Selector="Border.modelCard:pointerover">
+            <Setter Property="BorderBrush" Value="{DynamicResource IvAccentBorderBrush}" />
+        </Style>
+        <Style Selector="Border.metaPill">
+            <Setter Property="Padding" Value="7,3" />
+            <Setter Property="Margin" Value="0,0,8,8" />
+            <Setter Property="Background" Value="{DynamicResource IvControlFillBrush}" />
+            <Setter Property="CornerRadius" Value="4" />
+        </Style>
+        <Style Selector="Border.statusBadge">
+            <Setter Property="Padding" Value="8,3" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Background" Value="{DynamicResource IvControlFillBrush}" />
+        </Style>
+        <Style Selector="Button.cardAction">
+            <Setter Property="Height" Value="30" />
+            <Setter Property="Padding" Value="10,0" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+        <Style Selector="TextBlock.cardTitle">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        </Style>
+        <Style Selector="TextBlock.cardText">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+        </Style>
+        <Style Selector="TextBlock.cardMeta">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+        </Style>
+        <Style Selector="TextBlock.cardBadge">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+        </Style>
+        <Style Selector="TextBlock.cardMetrics">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+        </Style>
+        <Style Selector="TextBlock.cardPath">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontFamily" Value="{DynamicResource IvMonoFontFamily}" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid>
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="32,28">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock FontFamily="{DynamicResource IvDisplayFontFamily}"
+                                   FontSize="24"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource IvText1Brush}"
+                                   Text="模型" />
+                        <TextBlock Margin="0,5,0,0"
+                                   FontSize="12.5"
+                                   Foreground="{DynamicResource IvText2Brush}"
+                                   Text="{Binding List.OverviewSummary}" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Orientation="Horizontal">
+                        <Button Margin="0,0,8,0"
+                                Command="{Binding LoadCommand}"
+                                Theme="{StaticResource ModelToolbarButtonStyle}">
+                            <StackPanel Orientation="Horizontal">
+                                <iv:Icon Margin="0,0,6,0"
+                                         VerticalAlignment="Center"
+                                         FontSize="15"
+                                         Data="{x:Static ui:IvIcons.Refresh}" />
+                                <TextBlock VerticalAlignment="Center" Text="刷新" />
+                            </StackPanel>
+                        </Button>
+                        <Button Height="34"
+                                Padding="14,0"
+                                Command="{Binding Editor.ShowCreateModelDialogCommand}"
+                                IsEnabled="{Binding List.CanCreateModels}"
+                                Theme="{StaticResource IvPrimaryButtonStyle}"
+                                ToolTip.Tip="为当前项目创建兼容模型">
+                            <StackPanel Orientation="Horizontal">
+                                <iv:Icon Margin="0,0,6,0"
+                                         VerticalAlignment="Center"
+                                         FontSize="16"
+                                         Data="{x:Static ui:IvIcons.Add}" />
+                                <TextBlock VerticalAlignment="Center" Text="新建模型" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <StackPanel Margin="0,20,0,0" Orientation="Horizontal">
+                    <Grid Width="380">
+                        <TextBox Height="34"
+                                 Padding="34,0,10,0"
+                                 VerticalContentAlignment="Center"
+                                 FontSize="13"
+                                 PlaceholderText="搜索模型名称或描述..."
+                                 Text="{Binding List.Keyword, Mode=TwoWay}" />
+                        <iv:Icon Width="16"
+                                 Height="16"
+                                 Margin="11,0,0,0"
+                                 HorizontalAlignment="Left"
+                                 VerticalAlignment="Center"
+                                 FontSize="15"
+                                 IsHitTestVisible="False"
+                                 Foreground="{DynamicResource IvText3Brush}"
+                                 Data="{x:Static ui:IvIcons.Search}" />
+                    </Grid>
+
+                    <ComboBox Width="176"
+                              Height="34"
+                              Margin="10,0,0,0"
+                              VerticalAlignment="Center"
+                              ItemsSource="{Binding List.StatusOptions}"
+                              SelectedValue="{Binding List.SelectedStatus, Mode=TwoWay}"
+                              SelectedValueBinding="{Binding Value}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Label}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+
+                    <Button Width="28"
+                            Height="28"
+                            Margin="6,0,0,0"
+                            VerticalAlignment="Center"
+                            Command="{Binding List.ClearFiltersCommand}"
+                            Theme="{StaticResource IvIconButtonStyle}"
+                            ToolTip.Tip="清除筛选">
+                        <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Refresh}" />
+                    </Button>
+                </StackPanel>
+
+                <Border MinHeight="300"
+                        Margin="0,16,0,0"
+                        Padding="28"
+                        Background="{DynamicResource IvSurface2Brush}"
+                        BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        IsVisible="{Binding List.HasEmptyState}">
+                    <StackPanel MaxWidth="420"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center">
+                        <Border Width="56"
+                                Height="56"
+                                HorizontalAlignment="Center"
+                                Background="{DynamicResource IvControlFillBrush}"
+                                CornerRadius="28">
+                            <iv:Icon HorizontalAlignment="Center"
+                                     VerticalAlignment="Center"
+                                     FontSize="26"
+                                     Foreground="{DynamicResource IvText2Brush}"
+                                     Data="{x:Static ui:IvIcons.Grid}" />
+                        </Border>
+                        <TextBlock Margin="0,16,0,0"
+                                   HorizontalAlignment="Center"
+                                   FontSize="17"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource IvText1Brush}"
+                                   Text="{Binding List.EmptyStateTitle}" />
+                        <TextBlock Margin="0,6,0,0"
+                                   HorizontalAlignment="Center"
+                                   FontSize="12.5"
+                                   Foreground="{DynamicResource IvText2Brush}"
+                                   Text="{Binding List.EmptyStateDescription}"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap" />
+                        <Button Height="34"
+                                Padding="14,0"
+                                Margin="0,18,0,0"
+                                HorizontalAlignment="Center"
+                                Command="{Binding Editor.ShowCreateModelDialogCommand}"
+                                Theme="{StaticResource IvPrimaryButtonStyle}"
+                                IsVisible="{Binding Editor.ShowEmptyCreateAction}">
+                            <StackPanel Orientation="Horizontal">
+                                <iv:Icon Margin="0,0,6,0"
+                                         VerticalAlignment="Center"
+                                         FontSize="16"
+                                         Data="{x:Static ui:IvIcons.Add}" />
+                                <TextBlock VerticalAlignment="Center" Text="创建模型" />
+                            </StackPanel>
+                        </Button>
+                        <Button Height="34"
+                                Padding="14,0"
+                                Margin="0,18,0,0"
+                                HorizontalAlignment="Center"
+                                Command="{Binding List.ClearFiltersCommand}"
+                                Theme="{StaticResource IvPrimaryButtonStyle}"
+                                IsVisible="{Binding List.HasModels}">
+                            <StackPanel Orientation="Horizontal">
+                                <iv:Icon Margin="0,0,6,0"
+                                         VerticalAlignment="Center"
+                                         FontSize="15"
+                                         Data="{x:Static ui:IvIcons.Refresh}" />
+                                <TextBlock VerticalAlignment="Center" Text="清除筛选" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Border>
+
+                <ItemsControl Margin="0,16,0,0"
+                              ItemsSource="{Binding List.FilteredModels}"
+                              IsVisible="{Binding List.HasFilteredModels}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Classes="modelCard">
+                                <Grid RowDefinitions="Auto,*,Auto,Auto">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Border Classes="statusBadge">
+                                            <TextBlock Classes="cardBadge" Text="{Binding Status}" />
+                                        </Border>
+                                        <Button Grid.Column="1"
+                                                Width="28"
+                                                Height="28"
+                                                Padding="0"
+                                                Command="{Binding $parent[UserControl].DataContext.List.OpenModelFolderCommand}"
+                                                CommandParameter="{Binding Id}"
+                                                Theme="{StaticResource IvIconButtonStyle}"
+                                                ToolTip.Tip="打开模型目录">
+                                            <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.FolderOpen}" />
+                                        </Button>
+                                    </Grid>
+
+                                    <StackPanel Grid.Row="1" Margin="0,18,0,0">
+                                        <TextBlock Classes="cardTitle"
+                                                   Text="{Binding Name}"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Classes="cardText"
+                                                   MaxHeight="42"
+                                                   Margin="0,8,0,0"
+                                                   Text="{Binding Description}"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   TextWrapping="Wrap" />
+
+                                        <WrapPanel Margin="0,14,0,-8">
+                                            <Border Classes="metaPill">
+                                                <TextBlock Classes="cardMeta"
+                                                           Text="{Binding ModelTypeDisplay}"
+                                                           TextTrimming="CharacterEllipsis" />
+                                            </Border>
+                                            <Border Classes="metaPill">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <iv:Icon FontSize="14"
+                                                             Foreground="{DynamicResource IvText3Brush}"
+                                                             Data="{x:Static ui:IvIcons.Flag}" />
+                                                    <TextBlock Margin="5,0,0,0"
+                                                               VerticalAlignment="Center"
+                                                               Classes="cardMeta"
+                                                               Text="{Binding ClassCountText}" />
+                                                </StackPanel>
+                                            </Border>
+                                            <Border Classes="metaPill" IsVisible="{Binding ShowsInputChannelsBadge}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <iv:Icon FontSize="14"
+                                                             Foreground="{DynamicResource IvText3Brush}"
+                                                             Data="{x:Static ui:IvIcons.Image}" />
+                                                    <TextBlock Margin="5,0,0,0"
+                                                               VerticalAlignment="Center"
+                                                               Classes="cardMeta"
+                                                               Text="{Binding InputChannelsDisplay}" />
+                                                </StackPanel>
+                                            </Border>
+                                            <Border Classes="metaPill" IsVisible="{Binding ShowsOpenVinoBadge}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <iv:Icon FontSize="14"
+                                                             Foreground="{DynamicResource IvText3Brush}"
+                                                             Data="{x:Static ui:IvIcons.Cube}" />
+                                                    <TextBlock Margin="5,0,0,0"
+                                                               VerticalAlignment="Center"
+                                                               Classes="cardMeta"
+                                                               Text="{Binding OpenVinoBadgeText}" />
+                                                </StackPanel>
+                                            </Border>
+                                            <Border Classes="metaPill" IsVisible="{Binding ShowsSpatialBadge}">
+                                                <TextBlock Classes="cardMeta" Text="{Binding SpatialBadgeText}" />
+                                            </Border>
+                                        </WrapPanel>
+
+                                        <Border Margin="0,16,0,0"
+                                                Padding="10"
+                                                Background="{DynamicResource IvControlFillBrush}"
+                                                CornerRadius="4">
+                                            <StackPanel>
+                                                <TextBlock Classes="cardMetrics" Text="{Binding MetricsText}" />
+                                                <TextBlock Margin="0,4,0,0"
+                                                           Classes="cardMeta"
+                                                           Text="{Binding SummaryText}" />
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+
+                                    <Grid Grid.Row="2" Margin="0,18,0,0" ColumnDefinitions="*,Auto">
+                                        <TextBlock Classes="cardPath"
+                                                   Text="{Binding CheckpointPath}"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Grid.Column="1"
+                                                   Margin="12,0,0,0"
+                                                   Classes="cardPath"
+                                                   Text="{Binding CreatedText}" />
+                                    </Grid>
+
+                                    <Border Grid.Row="3"
+                                            Margin="0,16,0,0"
+                                            Padding="0,12,0,0"
+                                            BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                                            BorderThickness="0,1,0,0">
+                                        <Grid ColumnDefinitions="Auto,*,Auto">
+                                            <Button Classes="cardAction"
+                                                    Command="{Binding $parent[UserControl].DataContext.List.ExportModelCommand}"
+                                                    CommandParameter="{Binding Id}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <iv:Icon Margin="0,0,6,0"
+                                                             VerticalAlignment="Center"
+                                                             FontSize="14"
+                                                             Data="{x:Static ui:IvIcons.ArrowDown}" />
+                                                    <TextBlock VerticalAlignment="Center" Text="导出模型" />
+                                                </StackPanel>
+                                            </Button>
+
+                                            <!-- deepvision 的 ContextMenuButton 只为左键弹出菜单，这里先用普通按钮保住外观 -->
+                                            <Button Grid.Column="2"
+                                                    Width="30"
+                                                    Height="30"
+                                                    Margin="8,0,0,0"
+                                                    Padding="0"
+                                                    Theme="{StaticResource IvIconButtonStyle}"
+                                                    ToolTip.Tip="更多模型操作">
+                                                <iv:Icon FontSize="16" Data="{x:Static ui:IvIcons.More}" />
+                                                <Button.ContextMenu>
+                                                    <ContextMenu>
+                                                        <MenuItem Header="重新生成 Paddle 检测模型"
+                                                                  Command="{Binding $parent[UserControl].DataContext.List.RetryPpOcrDetectionExportCommand}"
+                                                                  CommandParameter="{Binding Id}"
+                                                                  IsVisible="{Binding CanExportPpOcrDetection}" />
+                                                        <MenuItem Header="导出 Paddle 检测 bundle"
+                                                                  Command="{Binding $parent[UserControl].DataContext.List.ExportPpOcrDetectionBundleCommand}"
+                                                                  CommandParameter="{Binding Id}"
+                                                                  IsVisible="{Binding CanExportPpOcrDetection}" />
+                                                        <MenuItem Header="转化 IR 模型"
+                                                                  Command="{Binding $parent[UserControl].DataContext.List.ConvertOpenVinoCommand}"
+                                                                  CommandParameter="{Binding Id}"
+                                                                  IsVisible="{Binding CanConvertOpenVino}" />
+                                                        <MenuItem Header="量化 IR 模型 (INT8)"
+                                                                  Command="{Binding $parent[UserControl].DataContext.List.QuantizeOpenVinoInt8Command}"
+                                                                  CommandParameter="{Binding Id}"
+                                                                  IsVisible="{Binding CanQuantizeOpenVinoInt8}" />
+                                                        <MenuItem Header="导出 IR 模型"
+                                                                  Command="{Binding $parent[UserControl].DataContext.List.ExportOpenVinoCommand}"
+                                                                  CommandParameter="{Binding Id}"
+                                                                  IsVisible="{Binding CanExportOpenVino}" />
+                                                        <MenuItem Header="打开目录"
+                                                                  Command="{Binding $parent[UserControl].DataContext.List.OpenModelFolderCommand}"
+                                                                  CommandParameter="{Binding Id}" />
+                                                        <MenuItem Header="编辑"
+                                                                  Command="{Binding $parent[UserControl].DataContext.Editor.ShowEditModelDialogCommand}"
+                                                                  CommandParameter="{Binding}" />
+                                                        <Separator />
+                                                        <MenuItem Header="删除"
+                                                                  Command="{Binding $parent[UserControl].DataContext.List.ConfirmDeleteModelCommand}"
+                                                                  CommandParameter="{Binding Id}" />
+                                                    </ContextMenu>
+                                                </Button.ContextMenu>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </ScrollViewer>
+
+        <Border Padding="24"
+                ZIndex="90"
+                Background="{DynamicResource IvOverlayBrush}"
+                IsVisible="{Binding List.IsConvertingOpenVino}">
+            <Border Padding="24" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Width="280">
+                    <TextBlock HorizontalAlignment="Center"
+                               FontSize="28"
+                               FontWeight="SemiBold"
+                               Text="{Binding List.OpenVinoConversionProgressText}" />
+                    <ProgressBar Height="8"
+                                 Margin="0,16,0,0"
+                                 Maximum="100"
+                                 Value="{Binding List.OpenVinoConversionProgress, Mode=OneWay}" />
+                    <TextBlock Margin="0,8,0,0"
+                               HorizontalAlignment="Center"
+                               Foreground="{DynamicResource IvText2Brush}"
+                               Text="...IR 模型转换中..." />
+                </StackPanel>
+            </Border>
+        </Border>
+    </Grid>
+</UserControl>

@@ -10,10 +10,14 @@ using DeepVisionSharp.Shell.Services;
 using DeepVisionSharp.Shell.Services.Dialogs;
 using DeepVisionSharp.Shell.Services.Hosting;
 using DeepVisionSharp.Shell.Services.Navigation;
-using DeepVisionSharp.Shell.ViewModels;
 using Microsoft.Extensions.Logging;
 using YuUI;
 using YuUI.Controls;
+using DeepVisionSharp.Presentation.Ports;
+using DeepVisionSharp.Presentation.Services;
+using DeepVisionSharp.Presentation.Services.Dialogs;
+using DeepVisionSharp.Presentation.Services.Navigation;
+using DeepVisionSharp.Presentation.ViewModels;
 
 namespace DeepVisionSharp.Shell;
 

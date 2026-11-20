@@ -1,8 +1,8 @@
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Threading;
+using DeepVisionSharp.Presentation.ViewModels.Inference;
 
-using DeepVisionSharp.Shell.ViewModels.Inference;
 
 namespace DeepVisionSharp.Shell.Views.Pages.Sections;
 

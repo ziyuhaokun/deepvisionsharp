@@ -2,6 +2,8 @@ using DeepVisionSharp.Shell.Services.Hosting;
 using DeepVisionSharp.Shell.Views.Pages;
 using DeepVisionSharp.Domain.ValueObjects;
 using Microsoft.Extensions.DependencyInjection;
+using DeepVisionSharp.Presentation.Services;
+using DeepVisionSharp.Presentation.Services.Navigation;
 
 namespace DeepVisionSharp.Shell.Services.Navigation;
 

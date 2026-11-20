@@ -1,13 +1,14 @@
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
-using DeepVisionSharp.Shell.Automation;
 using DeepVisionSharp.Shell.Services.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using YuUI.Controls;
 using WpfBinding = System.Windows.Data.Binding;
 using WpfBindingMode = System.Windows.Data.BindingMode;
 using WpfButton = System.Windows.Controls.Button;
+using DeepVisionSharp.Presentation.Services.Dialogs;
+using DeepVisionSharp.Presentation.Automation;
 
 namespace DeepVisionSharp.Shell.Services.Dialogs;
 

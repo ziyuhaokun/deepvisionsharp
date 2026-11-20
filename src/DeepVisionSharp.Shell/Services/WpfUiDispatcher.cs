@@ -1,10 +1,12 @@
+
 using System.Windows;
 using System.Windows.Threading;
+using DeepVisionSharp.Presentation.Ports;
 
 namespace DeepVisionSharp.Shell.Services;
 
 /// <summary>
-/// WPF <see cref="Dispatcher"/> adapter. Keep all Application.Current usage here.
+/// WPF <see cref="Dispatcher"/> adapter for the UI-thread port. Keep all Application.Current usage here.
 /// </summary>
 public sealed class WpfUiDispatcher : IUiDispatcher
 {
@@ -60,7 +62,7 @@ public sealed class WpfUiDispatcher : IUiDispatcher
         return dispatcher.InvokeAsync(action).Task.Unwrap();
     }
 
-    public Task InvokeAsync(Action action, DispatcherPriority priority)
+    public Task InvokeAsync(Action action, UiDispatchPriority priority)
     {
         ArgumentNullException.ThrowIfNull(action);
 
@@ -73,10 +75,10 @@ public sealed class WpfUiDispatcher : IUiDispatcher
 
         // Always queue (even when already on the UI thread) so ApplicationIdle / Background
         // semantics hold and the action runs after pending layout/bind operations.
-        return dispatcher.InvokeAsync(action, priority).Task;
+        return dispatcher.InvokeAsync(action, ToDispatcherPriority(priority)).Task;
     }
 
-    public Task InvokeAsync(Func<Task> action, DispatcherPriority priority)
+    public Task InvokeAsync(Func<Task> action, UiDispatchPriority priority)
     {
         ArgumentNullException.ThrowIfNull(action);
 
@@ -86,7 +88,7 @@ public sealed class WpfUiDispatcher : IUiDispatcher
             return action();
         }
 
-        return dispatcher.InvokeAsync(action, priority).Task.Unwrap();
+        return dispatcher.InvokeAsync(action, ToDispatcherPriority(priority)).Task.Unwrap();
     }
 
     public void Invoke(Action action)
@@ -102,4 +104,11 @@ public sealed class WpfUiDispatcher : IUiDispatcher
 
         dispatcher.Invoke(action);
     }
+
+    private static DispatcherPriority ToDispatcherPriority(UiDispatchPriority priority) => priority switch
+    {
+        UiDispatchPriority.Background => DispatcherPriority.Background,
+        UiDispatchPriority.ApplicationIdle => DispatcherPriority.ApplicationIdle,
+        _ => DispatcherPriority.Normal
+    };
 }

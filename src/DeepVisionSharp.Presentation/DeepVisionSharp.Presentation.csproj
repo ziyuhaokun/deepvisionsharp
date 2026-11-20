@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\DeepVisionSharp.Domain\DeepVisionSharp.Domain.csproj" />
+    <ProjectReference Include="..\DeepVisionSharp.Application\DeepVisionSharp.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+  </ItemGroup>
+
+  <!-- 共享表现层：只装 ViewModel / 应用服务 / 框架无关端口，绝不引用任何 UI 框架（WPF、Avalonia、yu-ui）。 -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>DeepVisionSharp.Presentation</AssemblyName>
+    <RootNamespace>DeepVisionSharp.Presentation</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>14.0</LangVersion>
+  </PropertyGroup>
+
+</Project>

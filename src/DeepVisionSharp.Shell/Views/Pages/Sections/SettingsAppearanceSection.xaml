@@ -4,7 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters"
-    xmlns:services="clr-namespace:DeepVisionSharp.Shell.Services"
+    xmlns:services="clr-namespace:DeepVisionSharp.Presentation.Services;assembly=DeepVisionSharp.Presentation"
     xmlns:yu="http://schemas.yu-ui/xaml"
     FontFamily="{DynamicResource IvFontFamily}"
     FontSize="{DynamicResource IvFontSizeBody}"

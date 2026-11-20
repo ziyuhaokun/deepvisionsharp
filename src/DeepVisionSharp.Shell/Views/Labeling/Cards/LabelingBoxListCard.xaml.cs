@@ -1,8 +1,8 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using DeepVisionSharp.Presentation.ViewModels.Labeling;
 
-using DeepVisionSharp.Shell.ViewModels.Labeling;
 
 namespace DeepVisionSharp.Shell.Views.Labeling.Cards;
 

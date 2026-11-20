@@ -3,8 +3,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 
 using DeepVisionSharp.Shell.Services;
-using DeepVisionSharp.Shell.ViewModels.Labeling;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
+using DeepVisionSharp.Presentation.ViewModels.Labeling;
 
 namespace DeepVisionSharp.Shell.Views.Pages;
 
@@ -62,7 +62,9 @@ public partial class LabelingPage : Page
         {
             // Held arrow keys fire repeatedly; without this guard every repeat starts a concurrent
             // navigation that reads the same active index and only advances one sample.
-            if (await _viewModel.TryHandleKeyboardShortcutAsync(e.Key, Keyboard.Modifiers))
+            if (await _viewModel.TryHandleKeyboardShortcutAsync(
+                WpfInputMapping.ToUiKey(e.Key),
+                WpfInputMapping.ToUiModifierKeys(Keyboard.Modifiers)))
             {
                 e.Handled = true;
             }

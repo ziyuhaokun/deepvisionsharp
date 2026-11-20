@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using DeepVisionSharp.Application.Ports;
-using DeepVisionSharp.Shell.ViewModels.Gallery;
+using DeepVisionSharp.Presentation.ViewModels.Gallery;
 
 namespace DeepVisionSharp.Shell.Rendering;
 

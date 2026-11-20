@@ -1,5 +1,6 @@
 using System.IO;
 using System.Text.Json;
+using DeepVisionSharp.Presentation.Services;
 
 namespace DeepVisionSharp.Shell.Services;
 

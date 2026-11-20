@@ -1,0 +1,543 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iv="clr-namespace:YuUI.Controls;assembly=yu-ui.avalonia"
+             xmlns:ui="clr-namespace:YuUI;assembly=yu-ui.avalonia"
+             x:Class="DeepVisionSharp.Shell.Avalonia.Views.GalleryPage">
+
+    <UserControl.Resources>
+        <ControlTheme x:Key="GalleryToolbarButtonStyle" TargetType="Button"
+                      BasedOn="{StaticResource IvButtonBaseStyle}">
+            <Setter Property="Height" Value="34" />
+            <Setter Property="Padding" Value="13,0" />
+            <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeBrush}" />
+            <Setter Property="FontSize" Value="13" />
+            <Style Selector="^:pointerover">
+                <Setter Property="Background" Value="{DynamicResource IvStateHoverBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource IvControlBorderHoverBrush}" />
+            </Style>
+        </ControlTheme>
+    </UserControl.Resources>
+
+    <UserControl.Styles>
+        <Style Selector="Border.galleryCard">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0,0,12,12" />
+            <Setter Property="Height" Value="212" />
+            <Setter Property="ClipToBounds" Value="True" />
+            <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+        </Style>
+        <Style Selector="Border.galleryCard:pointerover">
+            <Setter Property="BorderBrush" Value="{DynamicResource IvAccentBorderBrush}" />
+        </Style>
+        <Style Selector="Border.galleryCard.selected">
+            <Setter Property="BorderBrush" Value="{DynamicResource IvAccentBorderBrush}" />
+        </Style>
+        <Style Selector="TextBlock.galleryTitle">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        </Style>
+        <Style Selector="TextBlock.galleryText">
+            <Setter Property="FontSize" Value="12.5" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        </Style>
+        <Style Selector="TextBlock.galleryMeta">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+        </Style>
+        <Style Selector="Button.coverIcon">
+            <Setter Property="Width" Value="28" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="Background" Value="#66000000" />
+            <Setter Property="BorderBrush" Value="#26FFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="#F2F5F8" />
+        </Style>
+        <Style Selector="Button.coverIcon:pointerover">
+            <Setter Property="Background" Value="#A6000000" />
+        </Style>
+        <Style Selector="Border.overlayCard">
+            <Setter Property="Padding" Value="24" />
+            <Setter Property="Width" Value="420" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid Margin="32,28" RowDefinitions="Auto,Auto,Auto,*">
+        <Grid ColumnDefinitions="*,Auto">
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock FontFamily="{DynamicResource IvDisplayFontFamily}"
+                           FontSize="24"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource IvText1Brush}"
+                           Text="图库" />
+                <TextBlock Margin="0,5,0,0"
+                           FontSize="12.5"
+                           Foreground="{DynamicResource IvText2Brush}"
+                           Text="{Binding List.OverviewSummary}" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" Orientation="Horizontal">
+                <Button Margin="0,0,8,0"
+                        Command="{Binding List.ShowProjectLabelStatisticsDialogCommand}"
+                        IsEnabled="{Binding Transfer.IsNotImporting}"
+                        IsVisible="{Binding List.ShowsGalleryLabelStatistics}"
+                        Theme="{StaticResource GalleryToolbarButtonStyle}">
+                    <StackPanel Orientation="Horizontal">
+                        <iv:Icon Margin="0,0,6,0" VerticalAlignment="Center" FontSize="15" Data="{x:Static ui:IvIcons.Grid}" />
+                        <TextBlock VerticalAlignment="Center" Text="标签统计" />
+                    </StackPanel>
+                </Button>
+
+                <Button Margin="0,0,8,0"
+                        Command="{Binding List.ToggleGallerySelectionModeCommand}"
+                        IsEnabled="{Binding Transfer.IsNotImporting}"
+                        Theme="{StaticResource GalleryToolbarButtonStyle}">
+                    <Button.Content>
+                        <Panel>
+                            <TextBlock Text="多选" IsVisible="{Binding !List.IsGallerySelectionMode}" />
+                            <TextBlock Text="退出多选" IsVisible="{Binding List.IsGallerySelectionMode}" />
+                        </Panel>
+                    </Button.Content>
+                </Button>
+
+                <Button Margin="0,0,8,0"
+                        Command="{Binding Transfer.ImportGalleryCommand}"
+                        IsEnabled="{Binding Transfer.IsNotImporting}"
+                        Theme="{StaticResource GalleryToolbarButtonStyle}">
+                    <StackPanel Orientation="Horizontal">
+                        <iv:Icon Margin="0,0,6,0" VerticalAlignment="Center" FontSize="15" Data="{x:Static ui:IvIcons.ArrowUp}" />
+                        <TextBlock VerticalAlignment="Center" Text="导入图库" />
+                    </StackPanel>
+                </Button>
+
+                <Button Height="34"
+                        Padding="14,0"
+                        Command="{Binding Editor.ShowCreateGalleryDialogCommand}"
+                        IsEnabled="{Binding Transfer.IsNotImporting}"
+                        Theme="{StaticResource IvPrimaryButtonStyle}">
+                    <StackPanel Orientation="Horizontal">
+                        <iv:Icon Margin="0,0,6,0" VerticalAlignment="Center" FontSize="15" Data="{x:Static ui:IvIcons.Add}" />
+                        <TextBlock VerticalAlignment="Center" Text="新建图库" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <StackPanel Grid.Row="1" Margin="0,20,0,0">
+            <Grid Width="420" HorizontalAlignment="Left">
+                <TextBox Height="34"
+                         Padding="34,0,10,0"
+                         VerticalContentAlignment="Center"
+                         FontSize="13"
+                         PlaceholderText="搜索图库名称或描述…"
+                         Text="{Binding List.Keyword, Mode=TwoWay}" />
+                <iv:Icon Width="16"
+                         Height="16"
+                         Margin="11,0,0,0"
+                         HorizontalAlignment="Left"
+                         VerticalAlignment="Center"
+                         FontSize="15"
+                         IsHitTestVisible="False"
+                         Foreground="{DynamicResource IvText3Brush}"
+                         Data="{x:Static ui:IvIcons.Search}" />
+            </Grid>
+        </StackPanel>
+
+        <Border Grid.Row="2"
+                Height="34"
+                Margin="0,10,0,0"
+                Padding="12,0"
+                Background="{DynamicResource IvAccentSubtleBrush}"
+                BorderBrush="{DynamicResource IvAccentBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="4"
+                IsVisible="{Binding List.IsGallerySelectionMode}">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock VerticalAlignment="Center"
+                           FontSize="12"
+                           Foreground="{DynamicResource IvText1Brush}"
+                           Text="{Binding List.SelectedGalleryCount, StringFormat='已选 {0} 个图库'}" />
+                <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal">
+                    <Button Content="全选"
+                            Command="{Binding List.SelectAllGalleriesCommand}"
+                            IsEnabled="{Binding Transfer.IsNotImporting}"
+                            Theme="{StaticResource IvSubtleButtonStyle}" />
+                    <Button Margin="2,0,0,0"
+                            Content="取消全选"
+                            Command="{Binding List.DeselectAllGalleriesCommand}"
+                            IsEnabled="{Binding Transfer.IsNotImporting}"
+                            Theme="{StaticResource IvSubtleButtonStyle}" />
+                    <Button Margin="2,0,0,0"
+                            Content="合并选中图库"
+                            Command="{Binding Reorganize.ShowMergeGalleriesDialogCommand}"
+                            IsEnabled="{Binding Reorganize.CanMergeGalleries}"
+                            Theme="{StaticResource IvSubtleButtonStyle}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <ScrollViewer Grid.Row="3"
+                      Margin="0,16,0,0"
+                      HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="0,4,0,8">
+                <Border MinHeight="300"
+                        Padding="28"
+                        Background="{DynamicResource IvSurface2Brush}"
+                        BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        IsVisible="{Binding List.HasEmptyState}">
+                    <StackPanel MaxWidth="420" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Border Width="56"
+                                Height="56"
+                                HorizontalAlignment="Center"
+                                Background="{DynamicResource IvControlFillBrush}"
+                                CornerRadius="28">
+                            <iv:Icon HorizontalAlignment="Center"
+                                     VerticalAlignment="Center"
+                                     FontSize="26"
+                                     Foreground="{DynamicResource IvText2Brush}"
+                                     Data="{x:Static ui:IvIcons.FolderOpen}" />
+                        </Border>
+                        <TextBlock Margin="0,16,0,0"
+                                   HorizontalAlignment="Center"
+                                   FontSize="17"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource IvText1Brush}"
+                                   Text="{Binding List.EmptyStateTitle}" />
+                        <TextBlock Margin="0,6,0,0"
+                                   HorizontalAlignment="Center"
+                                   FontSize="12.5"
+                                   Foreground="{DynamicResource IvText2Brush}"
+                                   Text="{Binding List.EmptyStateDescription}"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap" />
+                        <StackPanel Margin="0,18,0,0" HorizontalAlignment="Center" Orientation="Horizontal">
+                            <Button Height="34"
+                                    Padding="14,0"
+                                    Command="{Binding List.ClearSearchCommand}"
+                                    Theme="{StaticResource IvPrimaryButtonStyle}"
+                                    IsVisible="{Binding List.HasGalleries}">
+                                <StackPanel Orientation="Horizontal">
+                                    <iv:Icon Margin="0,0,6,0" VerticalAlignment="Center" FontSize="15" Data="{x:Static ui:IvIcons.Refresh}" />
+                                    <TextBlock VerticalAlignment="Center" Text="清除搜索" />
+                                </StackPanel>
+                            </Button>
+                            <Button Height="34"
+                                    Padding="14,0"
+                                    Command="{Binding Editor.ShowCreateGalleryDialogCommand}"
+                                    Theme="{StaticResource IvPrimaryButtonStyle}"
+                                    IsVisible="{Binding !List.HasGalleries}">
+                                <StackPanel Orientation="Horizontal">
+                                    <iv:Icon Margin="0,0,6,0" VerticalAlignment="Center" FontSize="15" Data="{x:Static ui:IvIcons.Add}" />
+                                    <TextBlock VerticalAlignment="Center" Text="新建图库" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <ItemsControl ItemsSource="{Binding List.FilteredGalleries}"
+                              IsVisible="{Binding List.HasFilteredGalleries}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="{Binding CardColumns}" HorizontalAlignment="Stretch" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Classes="galleryCard" Classes.selected="{Binding IsSelected}">
+                                <Grid ColumnDefinitions="40*,60*">
+                                    <Border Grid.Column="0"
+                                            ClipToBounds="True"
+                                            CornerRadius="5,0,0,5"
+                                            Background="{DynamicResource IvControlFillBrush}">
+                                        <Grid>
+                                            <Image Width="{Binding $parent[Border].Bounds.Width}"
+                                                   Height="{Binding $parent[Border].Bounds.Height}"
+                                                   Source="{Binding Thumbnail}"
+                                                   Stretch="Fill"
+                                                   IsVisible="{Binding HasThumbnail}"
+                                                   Opacity="0.55">
+                                                <Image.Effect>
+                                                    <BlurEffect Radius="14" />
+                                                </Image.Effect>
+                                            </Image>
+
+                                            <Border Background="#66000000"
+                                                    CornerRadius="5,0,0,5"
+                                                    IsVisible="{Binding HasThumbnail}" />
+
+                                            <Image Margin="9"
+                                                   Source="{Binding Thumbnail}"
+                                                   Stretch="Uniform"
+                                                   IsVisible="{Binding HasThumbnail}" />
+
+                                            <iv:Icon HorizontalAlignment="Center"
+                                                     VerticalAlignment="Center"
+                                                     FontSize="30"
+                                                     Foreground="{DynamicResource IvText3Brush}"
+                                                     IsVisible="{Binding !HasThumbnail}"
+                                                     Data="{x:Static ui:IvIcons.Folder}" />
+
+                                            <Grid Margin="8"
+                                                  VerticalAlignment="Top"
+                                                  ColumnDefinitions="Auto,Auto,*,Auto,Auto">
+                                                <Border Grid.Column="0"
+                                                        Padding="3"
+                                                        Background="#80000000"
+                                                        CornerRadius="3"
+                                                        IsVisible="{Binding $parent[UserControl].DataContext.List.IsGallerySelectionMode}">
+                                                    <CheckBox VerticalAlignment="Center"
+                                                              IsChecked="{Binding IsSelected, Mode=TwoWay}" />
+                                                </Border>
+
+                                                <Border Grid.Column="1"
+                                                        Margin="6,0,0,0"
+                                                        Padding="7,2"
+                                                        VerticalAlignment="Center"
+                                                        Background="#B30E1012"
+                                                        BorderBrush="#26FFFFFF"
+                                                        BorderThickness="1"
+                                                        CornerRadius="4"
+                                                        IsVisible="{Binding IsSystem}">
+                                                    <TextBlock FontSize="10.5"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="#DCE8F7"
+                                                               Text="{Binding SystemKindBadge}" />
+                                                </Border>
+
+                                                <Button Grid.Column="3"
+                                                        Classes="coverIcon"
+                                                        Command="{Binding $parent[UserControl].DataContext.Editor.ShowEditGalleryDialogCommand}"
+                                                        CommandParameter="{Binding Id}"
+                                                        IsVisible="{Binding $parent[UserControl].DataContext.List.ShowsGalleryEdit}"
+                                                        ToolTip.Tip="编辑图库">
+                                                    <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Edit}" />
+                                                </Button>
+
+                                                <Button Grid.Column="4"
+                                                        Margin="4,0,0,0"
+                                                        Classes="coverIcon"
+                                                        Command="{Binding $parent[UserControl].DataContext.List.OpenGalleryFolderCommand}"
+                                                        CommandParameter="{Binding Id}"
+                                                        ToolTip.Tip="打开目录">
+                                                    <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.FolderOpen}" />
+                                                </Button>
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+
+                                    <Grid Grid.Column="1" Margin="16,12,14,12" RowDefinitions="Auto,Auto,Auto,*,Auto,Auto">
+                                        <TextBlock Margin="0,0,32,0"
+                                                   Classes="galleryTitle"
+                                                   Text="{Binding Name}"
+                                                   TextTrimming="CharacterEllipsis" />
+
+                                        <TextBlock Grid.Row="1"
+                                                   MaxHeight="37"
+                                                   Margin="0,6,0,0"
+                                                   Classes="galleryText"
+                                                   Text="{Binding Description}" />
+
+                                        <StackPanel Grid.Row="2" Margin="0,10,0,0">
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <TextBlock FontSize="12"
+                                                           Foreground="{DynamicResource IvText3Brush}"
+                                                           Text="标注进度" />
+                                                <TextBlock Grid.Column="1"
+                                                           FontSize="12"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource IvText2Brush}"
+                                                           Text="{Binding ProgressText}" />
+                                            </Grid>
+                                            <ProgressBar Margin="0,6,0,0"
+                                                         Height="4"
+                                                         Maximum="1"
+                                                         Value="{Binding Progress, Mode=OneWay}" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Row="4" Margin="0,10,0,0" Orientation="Horizontal">
+                                            <StackPanel Margin="0,0,16,0" Orientation="Horizontal">
+                                                <iv:Icon VerticalAlignment="Center"
+                                                         FontSize="14"
+                                                         Foreground="{DynamicResource IvText3Brush}"
+                                                         Data="{x:Static ui:IvIcons.Image}" />
+                                                <TextBlock Margin="5,0,0,0"
+                                                           VerticalAlignment="Center"
+                                                           Classes="galleryMeta"
+                                                           Text="{Binding SampleCountText}" />
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <iv:Icon VerticalAlignment="Center"
+                                                         FontSize="14"
+                                                         Foreground="{DynamicResource IvText3Brush}"
+                                                         Data="{x:Static ui:IvIcons.Success}" />
+                                                <TextBlock Margin="5,0,0,0"
+                                                           VerticalAlignment="Center"
+                                                           Classes="galleryMeta"
+                                                           Text="{Binding AnnotatedCountText}" />
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                        <Grid Grid.Row="5" Margin="0,8,0,0" ColumnDefinitions="*,Auto">
+                                            <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                                <iv:Icon VerticalAlignment="Center"
+                                                         FontSize="14"
+                                                         Foreground="{DynamicResource IvText3Brush}"
+                                                         Data="{x:Static ui:IvIcons.Clock}" />
+                                                <TextBlock Margin="5,0,0,0"
+                                                           VerticalAlignment="Center"
+                                                           FontSize="12"
+                                                           Foreground="{DynamicResource IvText2Brush}"
+                                                           Text="{Binding LastUpdatedText}" />
+                                            </StackPanel>
+                                            <Button Grid.Column="1"
+                                                    Command="{Binding $parent[UserControl].DataContext.List.EnterGalleryCommand}"
+                                                    CommandParameter="{Binding Id}"
+                                                    Theme="{StaticResource IvSubtleButtonStyle}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock VerticalAlignment="Center" Text="进入图库" />
+                                                    <iv:Icon Margin="6,0,0,0" VerticalAlignment="Center" FontSize="14" Data="{x:Static ui:IvIcons.ArrowRight}" />
+                                                </StackPanel>
+                                            </Button>
+                                        </Grid>
+
+                                        <!-- deepvision 的 ContextMenuButton 只为左键弹出菜单，这里先用普通按钮保住外观 -->
+                                        <Button HorizontalAlignment="Right"
+                                                VerticalAlignment="Top"
+                                                Width="28"
+                                                Height="28"
+                                                Padding="0"
+                                                Theme="{StaticResource IvIconButtonStyle}"
+                                                ToolTip.Tip="更多操作">
+                                            <iv:Icon FontSize="16" Data="{x:Static ui:IvIcons.More}" />
+                                            <Button.ContextMenu>
+                                                <ContextMenu>
+                                                    <MenuItem Header="导入图像"
+                                                              Command="{Binding $parent[UserControl].DataContext.Transfer.ImportImagesCommand}"
+                                                              CommandParameter="{Binding Id}" />
+                                                    <MenuItem Header="导入目录"
+                                                              Command="{Binding $parent[UserControl].DataContext.Transfer.ImportFolderCommand}"
+                                                              CommandParameter="{Binding Id}" />
+                                                    <MenuItem Header="导出图库"
+                                                              Command="{Binding $parent[UserControl].DataContext.Transfer.ExportGalleryCommand}"
+                                                              CommandParameter="{Binding Id}" />
+                                                    <MenuItem Header="导入 PPOCRLabel"
+                                                              IsVisible="{Binding $parent[UserControl].DataContext.List.IsTextRecognitionProject}">
+                                                        <MenuItem Header="跳过已有标注"
+                                                                  Command="{Binding $parent[UserControl].DataContext.Transfer.ImportPpOcrSkipCommand}"
+                                                                  CommandParameter="{Binding Id}" />
+                                                        <MenuItem Header="追加到已有标注"
+                                                                  Command="{Binding $parent[UserControl].DataContext.Transfer.ImportPpOcrAppendCommand}"
+                                                                  CommandParameter="{Binding Id}" />
+                                                        <MenuItem Header="替换已有标注…"
+                                                                  Command="{Binding $parent[UserControl].DataContext.Transfer.ImportPpOcrReplaceCommand}"
+                                                                  CommandParameter="{Binding Id}" />
+                                                    </MenuItem>
+                                                    <MenuItem Header="导出 PPOCRLabel"
+                                                              Command="{Binding $parent[UserControl].DataContext.Transfer.ExportPpOcrLabelsCommand}"
+                                                              CommandParameter="{Binding Id}"
+                                                              IsVisible="{Binding $parent[UserControl].DataContext.List.IsTextRecognitionProject}" />
+                                                    <MenuItem Header="图库推理…"
+                                                              Command="{Binding $parent[UserControl].DataContext.BatchInference.ShowDialogCommand}"
+                                                              CommandParameter="{Binding Id}"
+                                                              IsVisible="{Binding $parent[UserControl].DataContext.List.ShowsGalleryBatchInference}" />
+                                                    <MenuItem Header="标签统计"
+                                                              Command="{Binding $parent[UserControl].DataContext.List.ShowGalleryLabelStatisticsDialogCommand}"
+                                                              CommandParameter="{Binding Id}"
+                                                              IsVisible="{Binding $parent[UserControl].DataContext.List.ShowsGalleryLabelStatistics}" />
+                                                    <MenuItem Header="清空标注"
+                                                              Command="{Binding $parent[UserControl].DataContext.Editor.ConfirmClearAnnotationsCommand}"
+                                                              CommandParameter="{Binding Id}"
+                                                              IsVisible="{Binding $parent[UserControl].DataContext.List.ShowsGalleryLabelStatistics}" />
+                                                    <MenuItem Header="拆分图库"
+                                                              Command="{Binding $parent[UserControl].DataContext.Reorganize.ShowSplitGalleryDialogCommand}"
+                                                              CommandParameter="{Binding Id}"
+                                                              IsVisible="{Binding $parent[UserControl].DataContext.List.ShowsGallerySplit}" />
+                                                    <MenuItem Header="删除图库"
+                                                              Command="{Binding $parent[UserControl].DataContext.Editor.ConfirmDeleteGalleryCommand}"
+                                                              CommandParameter="{Binding Id}"
+                                                              IsVisible="{Binding CanDelete}" />
+                                                </ContextMenu>
+                                            </Button.ContextMenu>
+                                        </Button>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- 保存遮罩（deepvision 的 BusyRing 用不确定态 ProgressBar 占位） -->
+        <Border Grid.RowSpan="4"
+                ZIndex="90"
+                Background="{DynamicResource IvOverlayBrush}"
+                IsVisible="{Binding Editor.IsSavingGallery}">
+            <Border Padding="20,16"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Background="{DynamicResource IvSurface2Brush}"
+                    BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6">
+                <StackPanel Orientation="Horizontal">
+                    <ProgressBar Width="30" Height="30" IsIndeterminate="True" />
+                    <TextBlock Margin="14,0,0,0"
+                               VerticalAlignment="Center"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource IvText1Brush}"
+                               Text="正在处理图库…" />
+                </StackPanel>
+            </Border>
+        </Border>
+
+        <!-- 导入遮罩 -->
+        <Border Grid.RowSpan="4"
+                ZIndex="100"
+                Background="{DynamicResource IvOverlayBrush}"
+                IsVisible="{Binding Transfer.IsImporting}">
+            <Border Classes="overlayCard" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel>
+                    <Grid ColumnDefinitions="Auto,*">
+                        <ProgressBar Width="40" Height="40" VerticalAlignment="Top" IsIndeterminate="True" />
+                        <StackPanel Grid.Column="1" Margin="16,0,0,0">
+                            <TextBlock FontSize="18" FontWeight="SemiBold" Text="{Binding Transfer.ImportStage}" />
+                            <TextBlock Margin="0,6,0,0"
+                                       FontFamily="{DynamicResource IvMonoFontFamily}"
+                                       FontSize="13"
+                                       Foreground="{DynamicResource IvText2Brush}"
+                                       Text="{Binding Transfer.ImportCurrentFile}"
+                                       TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                    </Grid>
+                    <ProgressBar Height="6"
+                                 Margin="0,22,0,0"
+                                 Maximum="1"
+                                 Value="{Binding Transfer.ImportProgressValue, Mode=OneWay}" />
+                    <TextBlock Margin="0,8,0,0"
+                               HorizontalAlignment="Right"
+                               FontSize="13"
+                               Foreground="{DynamicResource IvText2Brush}"
+                               Text="{Binding Transfer.ImportProgressText}" />
+                </StackPanel>
+            </Border>
+        </Border>
+    </Grid>
+</UserControl>

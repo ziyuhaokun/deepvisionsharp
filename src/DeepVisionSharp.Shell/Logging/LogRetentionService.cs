@@ -3,6 +3,7 @@ using System.IO;
 
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using DeepVisionSharp.Presentation.Logging;
 
 namespace DeepVisionSharp.Shell.Logging;
 

@@ -2,7 +2,6 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Media;
 
-using DeepVisionSharp.Shell.ViewModels;
 
 using Brush = System.Windows.Media.Brush;
 using Brushes = System.Windows.Media.Brushes;
@@ -10,6 +9,7 @@ using Color = System.Windows.Media.Color;
 using Pen = System.Windows.Media.Pen;
 using Point = System.Windows.Point;
 using SolidColorBrush = System.Windows.Media.SolidColorBrush;
+using DeepVisionSharp.Presentation.ViewModels;
 
 namespace DeepVisionSharp.Shell.Views.Training.Controls;
 

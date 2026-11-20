@@ -6,7 +6,7 @@
     xmlns:controls="clr-namespace:DeepVisionSharp.Shell.Views.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:nav="clr-namespace:DeepVisionSharp.Shell.Services.Navigation"
+    xmlns:nav="clr-namespace:DeepVisionSharp.Presentation.Services.Navigation;assembly=DeepVisionSharp.Presentation"
     xmlns:yu="http://schemas.yu-ui/xaml"
     Title="{Binding Title}"
     Width="1600"

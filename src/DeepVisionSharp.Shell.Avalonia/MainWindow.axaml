@@ -2,7 +2,6 @@
                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                 xmlns:iv="clr-namespace:YuUI.Controls;assembly=yu-ui.avalonia"
                 xmlns:local="clr-namespace:DeepVisionSharp.Shell.Avalonia"
-                xmlns:pages="clr-namespace:DeepVisionSharp.Shell.Avalonia.Views"
                 xmlns:ui="clr-namespace:YuUI;assembly=yu-ui.avalonia"
                 x:Class="DeepVisionSharp.Shell.Avalonia.MainWindow"
                 Title="DeepVisionSharp"
@@ -111,6 +110,32 @@
             <Setter Property="FontSize" Value="10.5" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Foreground" Value="{DynamicResource IvText3Brush}" />
+        </ControlTheme>
+
+        <!-- 迁移中占位页：图标取导航项 Tag，文案取 Content（「<名称> · 迁移中」） -->
+        <ControlTheme x:Key="PlaceholderPageTheme" TargetType="ContentControl">
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Panel Background="{DynamicResource IvBackgroundBrush}">
+                        <StackPanel HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Spacing="{DynamicResource IvSpace3}">
+                            <iv:Icon Width="40"
+                                     Height="40"
+                                     HorizontalAlignment="Center"
+                                     Data="{TemplateBinding Tag}"
+                                     FontSize="40"
+                                     Foreground="{DynamicResource IvText3Brush}" />
+                            <TextBlock HorizontalAlignment="Center"
+                                       FontFamily="{DynamicResource IvDisplayFontFamily}"
+                                       FontSize="{DynamicResource IvFontSizeSubtitle}"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource IvText2Brush}"
+                                       Text="{TemplateBinding Content}" />
+                        </StackPanel>
+                    </Panel>
+                </ControlTemplate>
+            </Setter>
         </ControlTheme>
 
     </iv:ThemedWindow.Resources>
@@ -258,7 +283,7 @@
                         Click="OnToggleTheme">
                     <iv:Icon Name="ThemeToggleIcon"
                              FontSize="16"
-                             Data="{x:Static ui:IvIcons.Palette}"
+                             Data="{x:Static ui:IvIcons.Sparkles}"
                              Foreground="{Binding $parent[Button].Foreground}" />
                 </Button>
             </Grid>
@@ -351,14 +376,13 @@
             </DockPanel>
         </Border>
 
-        <!-- ===== 内容区（页面迁移中） ===== -->
+        <!-- ===== 内容区：由导航在 MainWindow.axaml.cs 里填页面实例（每个路由只建一次） ===== -->
         <ContentControl Name="ContentHost" Grid.Row="1" Grid.Column="1">
             <ContentControl.Transitions>
                 <Transitions>
                     <DoubleTransition Property="Opacity" Duration="0:0:0.12" />
                 </Transitions>
             </ContentControl.Transitions>
-            <pages:DashboardPage />
         </ContentControl>
 
         <!-- 对话框宿主：与 WPF 版一致，覆盖整个窗口、默认隐藏、ZIndex 最高 -->

@@ -1,3 +1,5 @@
+using DeepVisionSharp.Presentation.Logging;
+
 namespace DeepVisionSharp.Shell.Logging;
 
 /// <summary>

@@ -1,6 +1,7 @@
+
 using System.IO;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using DeepVisionSharp.Presentation.Ports;
 
 namespace DeepVisionSharp.Shell.Services;
 
@@ -9,12 +10,12 @@ namespace DeepVisionSharp.Shell.Services;
 /// </summary>
 public sealed class WpfImageSourceFactory : IImageSourceFactory
 {
-    public ImageSource? FromFile(string imagePath)
+    public object? FromFile(string imagePath)
     {
         return TryLoadFromFile(imagePath, out var image, out _, out _) ? image : null;
     }
 
-    public ImageSource? FromFileThumbnail(string imagePath, int decodePixelWidth)
+    public object? FromFileThumbnail(string imagePath, int decodePixelWidth)
     {
         if (string.IsNullOrWhiteSpace(imagePath)
             || decodePixelWidth < 1
@@ -45,7 +46,7 @@ public sealed class WpfImageSourceFactory : IImageSourceFactory
         }
     }
 
-    public ImageSource? FromBytes(byte[]? bytes)
+    public object? FromBytes(byte[]? bytes)
     {
         if (bytes is null || bytes.Length == 0)
         {
@@ -71,7 +72,7 @@ public sealed class WpfImageSourceFactory : IImageSourceFactory
 
     public bool TryLoadFromFile(
         string imagePath,
-        out ImageSource? image,
+        out object? image,
         out int pixelWidth,
         out int pixelHeight)
     {

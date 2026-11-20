@@ -1,4 +1,5 @@
 using DeepVisionSharp.Shell.Views.Dialogs.Contents;
+using DeepVisionSharp.Presentation.Services.Dialogs;
 
 namespace DeepVisionSharp.Shell.Services.Dialogs;
 

@@ -1,5 +1,6 @@
 using DeepVisionSharp.Shell.Services.Dialogs;
 using YuUI.Controls;
+using DeepVisionSharp.Presentation.Services.Dialogs;
 
 namespace DeepVisionSharp.Shell.Services.Hosting;
 

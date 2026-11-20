@@ -3,8 +3,8 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using DeepVisionSharp.Presentation.ViewModels.Labeling;
 
-using DeepVisionSharp.Shell.ViewModels.Labeling;
 
 namespace DeepVisionSharp.Shell.Controls;
 

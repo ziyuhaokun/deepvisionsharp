@@ -1,7 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using DeepVisionSharp.Shell.Services;
-using DeepVisionSharp.Shell.ViewModels.Training;
+using DeepVisionSharp.Presentation.ViewModels.Training;
 
 namespace DeepVisionSharp.Shell.Views.Pages;
 

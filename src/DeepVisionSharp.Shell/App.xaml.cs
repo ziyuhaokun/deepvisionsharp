@@ -6,6 +6,7 @@ using System.Windows.Threading;
 using DeepVisionSharp.Application.Ports;
 using DeepVisionSharp.Shell.Services;
 using DeepVisionSharp.Shell.Views.Dialogs;
+using DeepVisionSharp.Presentation.Services;
 namespace DeepVisionSharp.Shell;
 
 public partial class App : System.Windows.Application

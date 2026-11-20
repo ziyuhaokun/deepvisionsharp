@@ -2,10 +2,11 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Layout;
+using Avalonia.LogicalTree;
+using Avalonia.Media;
 using Avalonia.Styling;
-using Avalonia.VisualTree;
 using DeepVisionSharp.Shell.Avalonia.Views;
+using YuUI;
 using YuUI.Controls;
 
 namespace DeepVisionSharp.Shell.Avalonia;
@@ -15,7 +16,11 @@ public partial class MainWindow : ThemedWindow
 {
     private const double ExpandedNavWidth = 208;
     private const double CollapsedNavWidth = 64;
-    private const string DashboardLabel = "项目";
+
+    // 导航项文案同时是内容路由的键（与 XAML 里的 Content 一一对应）。
+    private const string DashboardRoute = "项目";
+    private const string GalleryRoute = "图库";
+    private const string ModelsRoute = "模型";
 
     public static readonly StyledProperty<bool> IsNavCollapsedProperty =
         AvaloniaProperty.Register<MainWindow, bool>(nameof(IsNavCollapsed));
@@ -37,6 +42,9 @@ public partial class MainWindow : ThemedWindow
     public static readonly StyledProperty<bool> HasCurrentProjectProperty =
         AvaloniaProperty.Register<MainWindow, bool>(nameof(HasCurrentProject));
 
+    /// <summary>路由 → 页面实例：切回同一导航项时复用，不重建页面。</summary>
+    private readonly Dictionary<string, Control> _pages = new();
+
     static MainWindow()
     {
         IsNavCollapsedProperty.Changed.AddClassHandler<MainWindow>(
@@ -48,18 +56,14 @@ public partial class MainWindow : ThemedWindow
         InitializeComponent();
         ApplyNavState(IsNavCollapsed);
 
-        Loaded += (_, _) =>
+        // 导航项只在 XAML 里声明，选中即切页：构造期统一挂 IsCheckedChanged，XAML 里的 IsChecked 不会先于内容宿主触发。
+        foreach (var button in NavRail.GetLogicalDescendants().OfType<RadioButton>())
         {
-            foreach (var button in this.GetVisualDescendants().OfType<RadioButton>())
-            {
-                button.IsCheckedChanged += OnNavChecked;
-            }
+            button.IsCheckedChanged += OnNavChecked;
+        }
 
-            if (this.GetVisualDescendants().OfType<RadioButton>().FirstOrDefault(b => b.IsChecked == true) is { } initial)
-            {
-                OnNavChecked(initial, new RoutedEventArgs());
-            }
-        };
+        ShowRoute(DashboardRoute, IvIcons.Home);
+        ApplyThemeIcon(Application.Current?.ActualThemeVariant == ThemeVariant.Dark);
     }
 
     public bool IsNavCollapsed
@@ -117,32 +121,53 @@ public partial class MainWindow : ThemedWindow
     /// <summary>主题偏好没有持久化，本波只在浅色/深色之间切换。</summary>
     private void OnToggleTheme(object? sender, RoutedEventArgs e)
     {
-        if (Application.Current is { } app)
-        {
-            app.RequestedThemeVariant = app.ActualThemeVariant == ThemeVariant.Dark
-                ? ThemeVariant.Light
-                : ThemeVariant.Dark;
-        }
-    }
-
-    /// <summary>导航只切内容宿主里的页面：本波只有项目页，其余路由给占位页。</summary>
-    private void OnNavChecked(object? sender, RoutedEventArgs e)
-    {
-        if (sender is not RadioButton { IsChecked: true } button)
+        if (Application.Current is not { } app)
         {
             return;
         }
 
-        var label = button.Content?.ToString() ?? string.Empty;
-        ContentHost.Content = label == DashboardLabel
-            ? ContentHost.Content as DashboardPage ?? new DashboardPage()
-            : CreatePlaceholderPage(label);
+        var useDark = app.ActualThemeVariant != ThemeVariant.Dark;
+        app.RequestedThemeVariant = useDark ? ThemeVariant.Dark : ThemeVariant.Light;
+        ApplyThemeIcon(useDark);
     }
 
-    private static TextBlock CreatePlaceholderPage(string label) => new()
+    /// <summary>
+    /// 图标表示「点下去会切到哪一档」：浅色档显示 Sparkles（IvIcons 没有月亮，用星夜顶替），深色档显示 Lamp（没有太阳，用灯顶替）。
+    /// </summary>
+    private void ApplyThemeIcon(bool useDark) => ThemeToggleIcon.Data = useDark ? IvIcons.Lamp : IvIcons.Sparkles;
+
+    /// <summary>导航选中即切内容区：标记/训练/推理/设置还没有 Avalonia 页面，先给占位页。</summary>
+    private void OnNavChecked(object? sender, RoutedEventArgs e)
     {
-        Text = $"{label}页面（迁移中）",
-        HorizontalAlignment = HorizontalAlignment.Center,
-        VerticalAlignment = VerticalAlignment.Center,
+        if (sender is RadioButton { IsChecked: true } button)
+        {
+            ShowRoute(button.Content?.ToString() ?? string.Empty, button.Tag as Geometry);
+        }
+    }
+
+    private void ShowRoute(string route, Geometry? icon)
+    {
+        if (!_pages.TryGetValue(route, out var page))
+        {
+            page = CreatePage(route, icon);
+            _pages.Add(route, page);
+        }
+
+        ContentHost.Content = page;
+    }
+
+    private Control CreatePage(string route, Geometry? icon) => route switch
+    {
+        DashboardRoute => new DashboardPage(),
+        GalleryRoute => new GalleryPage(),
+        ModelsRoute => new ModelsPage(),
+        _ => CreatePlaceholderPage(route, icon),
+    };
+
+    private ContentControl CreatePlaceholderPage(string route, Geometry? icon) => new()
+    {
+        Theme = this.TryFindResource("PlaceholderPageTheme", out var theme) ? theme as ControlTheme : null,
+        Content = $"{route} · 迁移中",
+        Tag = icon,
     };
 }

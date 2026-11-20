@@ -1,5 +1,6 @@
 using System.Text.Json;
 using DeepVisionSharp.Shell.Logging;
+using DeepVisionSharp.Presentation.Services;
 
 namespace DeepVisionSharp.Shell.Services;
 
