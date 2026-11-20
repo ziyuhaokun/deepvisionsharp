@@ -188,70 +188,69 @@
             </Grid>
         </Border>
 
-        <ScrollViewer Grid.Row="3"
-                      Margin="0,16,0,0"
-                      HorizontalScrollBarVisibility="Disabled"
-                      VerticalScrollBarVisibility="Auto">
-            <StackPanel Margin="0,4,0,8">
-                <Border MinHeight="300"
-                        Padding="28"
-                        Background="{DynamicResource IvSurface2Brush}"
-                        BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
-                        BorderThickness="1"
-                        CornerRadius="6"
-                        IsVisible="{Binding List.HasEmptyState}">
-                    <StackPanel MaxWidth="420" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <Border Width="56"
-                                Height="56"
-                                HorizontalAlignment="Center"
-                                Background="{DynamicResource IvControlFillBrush}"
-                                CornerRadius="28">
-                            <iv:Icon HorizontalAlignment="Center"
-                                     VerticalAlignment="Center"
-                                     FontSize="26"
-                                     Foreground="{DynamicResource IvText2Brush}"
-                                     Data="{x:Static ui:IvIcons.FolderOpen}" />
-                        </Border>
-                        <TextBlock Margin="0,16,0,0"
-                                   HorizontalAlignment="Center"
-                                   FontSize="17"
-                                   FontWeight="SemiBold"
-                                   Foreground="{DynamicResource IvText1Brush}"
-                                   Text="{Binding List.EmptyStateTitle}" />
-                        <TextBlock Margin="0,6,0,0"
-                                   HorizontalAlignment="Center"
-                                   FontSize="12.5"
-                                   Foreground="{DynamicResource IvText2Brush}"
-                                   Text="{Binding List.EmptyStateDescription}"
-                                   TextAlignment="Center"
-                                   TextWrapping="Wrap" />
-                        <StackPanel Margin="0,18,0,0" HorizontalAlignment="Center" Orientation="Horizontal">
-                            <Button Height="34"
-                                    Padding="14,0"
-                                    Command="{Binding List.ClearSearchCommand}"
-                                    Theme="{StaticResource IvPrimaryButtonStyle}"
-                                    IsVisible="{Binding List.HasGalleries}">
-                                <StackPanel Orientation="Horizontal">
-                                    <iv:Icon Margin="0,0,6,0" VerticalAlignment="Center" FontSize="15" Data="{x:Static ui:IvIcons.Refresh}" />
-                                    <TextBlock VerticalAlignment="Center" Text="清除搜索" />
-                                </StackPanel>
-                            </Button>
-                            <Button Height="34"
-                                    Padding="14,0"
-                                    Command="{Binding Editor.ShowCreateGalleryDialogCommand}"
-                                    Theme="{StaticResource IvPrimaryButtonStyle}"
-                                    IsVisible="{Binding !List.HasGalleries}">
-                                <StackPanel Orientation="Horizontal">
-                                    <iv:Icon Margin="0,0,6,0" VerticalAlignment="Center" FontSize="15" Data="{x:Static ui:IvIcons.Add}" />
-                                    <TextBlock VerticalAlignment="Center" Text="新建图库" />
-                                </StackPanel>
-                            </Button>
-                        </StackPanel>
+        <Grid Grid.Row="3" Margin="0,16,0,0">
+            <Border Margin="0,4,0,0"
+                    Padding="28"
+                    Background="{DynamicResource IvSurface2Brush}"
+                    BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    IsVisible="{Binding List.HasEmptyState}">
+                <StackPanel MaxWidth="420" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Border Width="56"
+                            Height="56"
+                            HorizontalAlignment="Center"
+                            Background="{DynamicResource IvControlFillBrush}"
+                            CornerRadius="28">
+                        <iv:Icon HorizontalAlignment="Center"
+                                 VerticalAlignment="Center"
+                                 FontSize="26"
+                                 Foreground="{DynamicResource IvText2Brush}"
+                                 Data="{x:Static ui:IvIcons.FolderOpen}" />
+                    </Border>
+                    <TextBlock Margin="0,16,0,0"
+                               HorizontalAlignment="Center"
+                               FontSize="17"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource IvText1Brush}"
+                               Text="{Binding List.EmptyStateTitle}" />
+                    <TextBlock Margin="0,6,0,0"
+                               HorizontalAlignment="Center"
+                               FontSize="12.5"
+                               Foreground="{DynamicResource IvText2Brush}"
+                               Text="{Binding List.EmptyStateDescription}"
+                               TextAlignment="Center"
+                               TextWrapping="Wrap" />
+                    <StackPanel Margin="0,18,0,0" HorizontalAlignment="Center" Orientation="Horizontal">
+                        <Button Height="34"
+                                Padding="14,0"
+                                Command="{Binding List.ClearSearchCommand}"
+                                Theme="{StaticResource IvPrimaryButtonStyle}"
+                                IsVisible="{Binding List.HasGalleries}">
+                            <StackPanel Orientation="Horizontal">
+                                <iv:Icon Margin="0,0,6,0" VerticalAlignment="Center" FontSize="15" Data="{x:Static ui:IvIcons.Refresh}" />
+                                <TextBlock VerticalAlignment="Center" Text="清除搜索" />
+                            </StackPanel>
+                        </Button>
+                        <Button Height="34"
+                                Padding="14,0"
+                                Command="{Binding Editor.ShowCreateGalleryDialogCommand}"
+                                Theme="{StaticResource IvPrimaryButtonStyle}"
+                                IsVisible="{Binding !List.HasGalleries}">
+                            <StackPanel Orientation="Horizontal">
+                                <iv:Icon Margin="0,0,6,0" VerticalAlignment="Center" FontSize="15" Data="{x:Static ui:IvIcons.Add}" />
+                                <TextBlock VerticalAlignment="Center" Text="新建图库" />
+                            </StackPanel>
+                        </Button>
                     </StackPanel>
-                </Border>
+                </StackPanel>
+            </Border>
 
-                <ItemsControl ItemsSource="{Binding List.FilteredGalleries}"
-                              IsVisible="{Binding List.HasFilteredGalleries}">
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Auto"
+                          IsVisible="{Binding List.HasFilteredGalleries}">
+                <ItemsControl Margin="0,4,0,8"
+                              ItemsSource="{Binding List.FilteredGalleries}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <UniformGrid Columns="{Binding CardColumns}" HorizontalAlignment="Stretch" />
@@ -481,8 +480,8 @@
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
-            </StackPanel>
-        </ScrollViewer>
+            </ScrollViewer>
+        </Grid>
 
         <!-- 保存遮罩（deepvision 的 BusyRing 用不确定态 ProgressBar 占位） -->
         <Border Grid.RowSpan="4"

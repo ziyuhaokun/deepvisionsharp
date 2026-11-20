@@ -137,439 +137,494 @@
         </Style>
     </UserControl.Styles>
 
-    <Grid x:Name="WorkbenchGrid"
-          Margin="8"
-          RowDefinitions="Auto,*"
-          ColumnDefinitions="280,*,340">
-
-        <!-- 窄窗口下的栏位开关：与 WPF 版一致，宽度不够时出现（AdaptiveWorkbenchLayout 控制显隐） -->
-        <StackPanel Name="PaneToolbar"
-                    Grid.ColumnSpan="3"
-                    Margin="0,0,0,4"
-                    HorizontalAlignment="Right"
-                    Orientation="Horizontal"
-                    IsVisible="False">
-            <Button Name="ToolsPaneToggle"
-                    Margin="0,0,6,0"
-                    Content="工具"
-                    AutomationProperties.AutomationId="dv.labeling.tools-toggle"
-                    Theme="{StaticResource IvSubtleButtonStyle}"
-                    IsVisible="False" />
-            <Button Name="DetailsPaneToggle"
-                    Content="详情"
-                    AutomationProperties.AutomationId="dv.labeling.details-toggle"
-                    Theme="{StaticResource IvSubtleButtonStyle}"
-                    IsVisible="False" />
-        </StackPanel>
-
-        <!-- ===== 左：工具轨道 ===== -->
-        <Border Name="ToolsPane" Grid.Row="1" Grid.Column="0" Margin="4" Classes="panelSurface">
-            <Grid RowDefinitions="Auto,*">
-                <Border Classes="panelHeader">
-                    <Grid ColumnDefinitions="*,Auto">
-                        <StackPanel VerticalAlignment="Center">
-                            <TextBlock Classes="panelTitle" Text="标注工具" />
-                        </StackPanel>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Orientation="Horizontal">
-                            <Button Width="28"
-                                    Height="28"
-                                    MinWidth="28"
-                                    MinHeight="0"
-                                    Margin="0,0,4,0"
-                                    Padding="0"
-                                    VerticalAlignment="Center"
-                                    AutomationProperties.AutomationId="dv.labeling.shortcuts-help"
-                                    Click="OnShortcutsHelpClicked"
-                                    Theme="{StaticResource IvSubtleButtonStyle}"
-                                    ToolTip.Tip="快捷键指南">
-                                <iv:Icon VerticalAlignment="Center" FontSize="15" Data="{x:Static ui:IvIcons.Help}" />
-                                <Button.ContextMenu>
-                                    <ContextMenu>
-                                        <MenuItem Header="常用快捷键速查" IsEnabled="False" FontWeight="Bold" />
-                                        <Separator />
-                                        <MenuItem Header="Ctrl + S：保存当前标注" IsEnabled="False" />
-                                        <MenuItem Header="Ctrl + Z / Y：撤销 / 重做" IsEnabled="False" />
-                                        <MenuItem Header="Delete：删除选中的标注" IsEnabled="False" />
-                                        <MenuItem Header="← / →：切换上一张 / 下一张样本" IsEnabled="False" />
-                                        <MenuItem Header="数字键 1~9：快速选择对应序号的标签类别" IsEnabled="False" />
-                                    </ContextMenu>
-                                </Button.ContextMenu>
-                            </Button>
-                            <Button Width="28"
-                                    Height="28"
-                                    MinWidth="28"
-                                    MinHeight="0"
-                                    Padding="0"
-                                    VerticalAlignment="Center"
-                                    AutomationProperties.AutomationId="dv.labeling.back-to-gallery"
-                                    Command="{Binding BackToGalleryCommand}"
-                                    Theme="{StaticResource IvSubtleButtonStyle}"
-                                    ToolTip.Tip="返回图库">
-                                <iv:Icon VerticalAlignment="Center" FontSize="15" Data="{x:Static ui:IvIcons.ChevronLeft}" />
-                            </Button>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <Grid Grid.Row="1">
-                    <!-- Detection -->
-                    <ScrollViewer Padding="12,12,12,8"
-                                  HorizontalScrollBarVisibility="Disabled"
-                                  VerticalScrollBarVisibility="Auto"
-                                  IsVisible="{Binding ActiveRailKind, Converter={StaticResource RailKindMatches}, ConverterParameter=Detection}">
-                        <StackPanel>
-                            <cards:LabelingDrawToolsCard />
-                            <cards:LabelingEditActionsCard ShowClear="True"
-                                                           ShowAutoFit="True"
-                                                           ShowYoloInfer="True"
-                                                           AutoFitRequested="OnFitClicked" />
-                            <cards:LabelingDetectionActionsCard />
-                            <cards:LabelingClassListCard />
-                        </StackPanel>
-                    </ScrollViewer>
-
-                    <!-- Classification -->
-                    <ScrollViewer Padding="12,12,12,8"
-                                  HorizontalScrollBarVisibility="Disabled"
-                                  VerticalScrollBarVisibility="Auto"
-                                  IsVisible="{Binding ActiveRailKind, Converter={StaticResource RailKindMatches}, ConverterParameter=Classification}">
-                        <StackPanel>
-                            <cards:LabelingEditActionsCard ShowYoloInfer="True" AutoFitRequested="OnFitClicked" />
-                            <cards:LabelingClassListCard />
-                        </StackPanel>
-                    </ScrollViewer>
-                </Grid>
-            </Grid>
+    <Grid>
+        <Border Margin="32,28"
+                Padding="28"
+                Background="{DynamicResource IvSurface2Brush}"
+                BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                BorderThickness="1"
+                CornerRadius="6"
+                IsVisible="{Binding !Workspace.HasGallery}">
+            <Panel>
+                <ProgressBar Width="120"
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center"
+                             AutomationProperties.Name="正在加载标记页"
+                             IsIndeterminate="True"
+                             IsVisible="{Binding !Workspace.IsNotBusy}" />
+                <StackPanel MaxWidth="420"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            IsVisible="{Binding Workspace.IsNotBusy}">
+                    <Border Width="56"
+                            Height="56"
+                            HorizontalAlignment="Center"
+                            Background="{DynamicResource IvControlFillBrush}"
+                            CornerRadius="28">
+                        <iv:Icon HorizontalAlignment="Center"
+                                 VerticalAlignment="Center"
+                                 FontSize="26"
+                                 Foreground="{DynamicResource IvText2Brush}"
+                                 Data="{x:Static ui:IvIcons.FolderOpen}" />
+                    </Border>
+                    <TextBlock Margin="0,16,0,0"
+                               HorizontalAlignment="Center"
+                               FontSize="17"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource IvText1Brush}"
+                               Text="未选择图库" />
+                    <TextBlock Margin="0,6,0,0"
+                               HorizontalAlignment="Center"
+                               FontSize="12.5"
+                               Foreground="{DynamicResource IvText2Brush}"
+                               Text="{Binding Workspace.GallerySummary}"
+                               TextAlignment="Center"
+                               TextWrapping="Wrap" />
+                    <Button Margin="0,18,0,0"
+                            HorizontalAlignment="Center"
+                            Content="前往图库"
+                            Command="{Binding BackToGalleryCommand}"
+                            Theme="{StaticResource IvPrimaryButtonStyle}"
+                            IsVisible="{Binding Workspace.HasProject}" />
+                </StackPanel>
+            </Panel>
         </Border>
 
-        <!-- ===== 中：画布与样本条 ===== -->
-        <Border Grid.Row="1" Grid.Column="1" Margin="4" Classes="panelSurface" ClipToBounds="True">
-            <Grid RowDefinitions="*,Auto">
-                <Grid>
-                    <dv:AnnotationCanvas x:Name="AnnotationSurface"
-                                         AutomationProperties.AutomationId="dv.labeling.canvas"
-                                         ActiveColor="{Binding Labels.ActiveLabelColor}"
-                                         ActiveLabelId="{Binding Labels.ActiveLabelId}"
-                                         ActiveLabel="{Binding Editor.ActiveBoxLabel}"
-                                         Boxes="{Binding Editor.Boxes}"
-                                         ImageSource="{Binding Workspace.ImageSource}"
-                                         ImageWidth="{Binding Workspace.ImageWidth}"
-                                         ImageHeight="{Binding Workspace.ImageHeight}"
-                                         IsReadOnly="{Binding Editor.IsEditorReadOnly}"
-                                         RedoCommand="{Binding Editor.RedoBoxEditCommand}"
-                                         SelectedBox="{Binding Editor.SelectedBox, Mode=TwoWay}"
-                                         ShowLabelNames="{Binding Editor.ShowLabelNames}"
-                                         ToolMode="{Binding Editor.ActiveToolMode}"
-                                         UndoCommand="{Binding Editor.UndoBoxEditCommand}"
-                                         UseTransparentFill="{Binding Workspace.ProjectProfile.SupportsImageClass}"
-                                         ZoomScale="{Binding Editor.ZoomScale, Mode=TwoWay}"
-                                         AnnotationCreated="OnAnnotationCreated"
-                                         AnnotationEditStarted="OnAnnotationEditStarted"
-                                         AnnotationEditCompleted="OnAnnotationEditCompleted" />
+        <Grid x:Name="WorkbenchGrid"
+              Margin="8"
+              IsVisible="{Binding Workspace.HasGallery}"
+              RowDefinitions="Auto,*"
+              ColumnDefinitions="280,*,340">
 
-                    <dv:CanvasCornerFloat ZIndex="10" PinId="tl" Placement="TopLeft">
-                        <dv:CanvasCornerFloat.Body>
-                            <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
-                                <TextBlock MaxWidth="320"
-                                           VerticalAlignment="Center"
-                                           FontSize="12.5"
-                                           FontWeight="SemiBold"
-                                           Foreground="{DynamicResource IvText1Brush}"
-                                           Text="{Binding Workspace.ActiveFileName}"
-                                           TextTrimming="CharacterEllipsis" />
-                                <Border Classes="sizePill" ToolTip.Tip="图像分辨率">
-                                    <TextBlock VerticalAlignment="Center"
-                                               FontSize="10.5"
-                                               FontWeight="Medium"
-                                               Foreground="{DynamicResource IvText2Brush}"
-                                               Text="{Binding Workspace.ImageSizeText}" />
-                                </Border>
+            <!-- 窄窗口下的栏位开关：与 WPF 版一致，宽度不够时出现（AdaptiveWorkbenchLayout 控制显隐） -->
+            <StackPanel Name="PaneToolbar"
+                        Grid.ColumnSpan="3"
+                        Margin="0,0,0,4"
+                        HorizontalAlignment="Right"
+                        Orientation="Horizontal"
+                        IsVisible="False">
+                <Button Name="ToolsPaneToggle"
+                        Margin="0,0,6,0"
+                        Content="工具"
+                        AutomationProperties.AutomationId="dv.labeling.tools-toggle"
+                        Theme="{StaticResource IvSubtleButtonStyle}"
+                        IsVisible="False" />
+                <Button Name="DetailsPaneToggle"
+                        Content="详情"
+                        AutomationProperties.AutomationId="dv.labeling.details-toggle"
+                        Theme="{StaticResource IvSubtleButtonStyle}"
+                        IsVisible="False" />
+            </StackPanel>
+
+            <!-- ===== 左：工具轨道 ===== -->
+            <Border Name="ToolsPane" Grid.Row="1" Grid.Column="0" Margin="4" Classes="panelSurface">
+                <Grid RowDefinitions="Auto,*">
+                    <Border Classes="panelHeader">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Classes="panelTitle" Text="标注工具" />
                             </StackPanel>
-                        </dv:CanvasCornerFloat.Body>
-                    </dv:CanvasCornerFloat>
-
-                    <dv:CanvasViewToolbar ZIndex="10"
-                                          CanRedo="{Binding Editor.CanRedo}"
-                                          CanUndo="{Binding Editor.CanUndo}"
-                                          ZoomText="{Binding Editor.ZoomText}"
-                                          FitClick="OnFitClicked"
-                                          RedoClick="OnRedoClicked"
-                                          UndoClick="OnUndoClicked"
-                                          ZoomInClick="OnZoomInClicked"
-                                          ZoomOutClick="OnZoomOutClicked" />
-
-                    <dv:CanvasCornerFloat ZIndex="10" PinId="bl" Placement="BottomLeft">
-                        <dv:CanvasCornerFloat.Body>
-                            <CheckBox VerticalAlignment="Center"
-                                      Content="显示标签名称"
-                                      FontSize="11"
-                                      IsChecked="{Binding Editor.ShowLabelNames, Mode=TwoWay}" />
-                        </dv:CanvasCornerFloat.Body>
-                    </dv:CanvasCornerFloat>
-                </Grid>
-
-                <Border Grid.Row="1"
-                        Padding="10,7,10,8"
-                        Background="Transparent"
-                        BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
-                        BorderThickness="0,1,0,0">
-                    <Grid RowDefinitions="Auto,Auto">
-                        <Grid MinHeight="28" VerticalAlignment="Center" ColumnDefinitions="*,Auto,*">
-                            <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center"
-                                           FontSize="12"
-                                           FontWeight="SemiBold"
-                                           Foreground="{DynamicResource IvText1Brush}"
-                                           Text="样本列表" />
-                                <Border Classes="sampleProgressBadge">
-                                    <TextBlock FontSize="10.5"
-                                               FontWeight="SemiBold"
-                                               Foreground="{DynamicResource IvSuccessTextBrush}"
-                                               Text="{Binding Workspace.GalleryProgressText}" />
-                                </Border>
-                            </StackPanel>
-
-                            <Border Grid.Column="1"
-                                    Padding="3,1"
-                                    VerticalAlignment="Center"
-                                    Background="{DynamicResource IvSurface2Brush}"
-                                    CornerRadius="6"
-                                    IsVisible="{Binding Samples.HasSamples}">
-                                <StackPanel Orientation="Horizontal">
-                                    <Button AutomationProperties.AutomationId="dv.labeling.sample.prev"
-                                            Command="{Binding Samples.NavigatePreviousSampleCommand}"
-                                            Theme="{StaticResource SampleNavButtonStyle}"
-                                            ToolTip.Tip="上一张">
-                                        <iv:Icon VerticalAlignment="Center" FontSize="14" Data="{x:Static ui:IvIcons.ChevronLeft}" />
-                                    </Button>
-                                    <TextBlock MinWidth="48"
-                                               Margin="4,0"
-                                               VerticalAlignment="Center"
-                                               AutomationProperties.AutomationId="dv.labeling.sample.position"
-                                               FontSize="12"
-                                               FontWeight="SemiBold"
-                                               Foreground="{DynamicResource IvText1Brush}"
-                                               Text="{Binding Samples.ActiveSamplePositionText}"
-                                               TextAlignment="Center" />
-                                    <Button AutomationProperties.AutomationId="dv.labeling.sample.next"
-                                            Command="{Binding Samples.NavigateNextSampleCommand}"
-                                            Theme="{StaticResource SampleNavButtonStyle}"
-                                            ToolTip.Tip="下一张（→；差异分类可用 Tab）">
-                                        <iv:Icon VerticalAlignment="Center" FontSize="14" Data="{x:Static ui:IvIcons.ChevronRight}" />
-                                    </Button>
-                                </StackPanel>
-                            </Border>
-
-                            <StackPanel Grid.Column="2"
-                                        HorizontalAlignment="Right"
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Orientation="Horizontal">
+                                <Button Width="28"
+                                        Height="28"
+                                        MinWidth="28"
+                                        MinHeight="0"
+                                        Margin="0,0,4,0"
+                                        Padding="0"
                                         VerticalAlignment="Center"
-                                        Orientation="Horizontal">
-                                <StackPanel Orientation="Horizontal">
-                                    <StackPanel.IsVisible>
-                                        <MultiBinding Converter="{StaticResource AllTrue}">
-                                            <Binding Path="Samples.IsSamplePanelExpanded" />
-                                            <Binding Path="Samples.HasSamples" />
-                                        </MultiBinding>
-                                    </StackPanel.IsVisible>
-                                    <TextBlock Margin="0,0,4,0"
-                                               VerticalAlignment="Center"
-                                               FontSize="10.5"
-                                               Foreground="{DynamicResource IvText3Brush}"
-                                               Text="页" />
-                                    <Button Width="24"
-                                            Height="24"
-                                            MinWidth="24"
-                                            MinHeight="0"
-                                            Padding="0"
-                                            Command="{Binding Samples.GoToPreviousSamplePageCommand}"
-                                            Theme="{StaticResource SampleNavButtonStyle}"
-                                            ToolTip.Tip="上一页">
-                                        <iv:Icon VerticalAlignment="Center" FontSize="13" Data="{x:Static ui:IvIcons.ChevronLeft}" />
-                                    </Button>
-                                    <TextBlock MinWidth="40"
-                                               Margin="2,0"
-                                               VerticalAlignment="Center"
-                                               FontSize="10.5"
-                                               Foreground="{DynamicResource IvText2Brush}"
-                                               Text="{Binding Samples.SamplePageText}"
-                                               TextAlignment="Center" />
-                                    <Button Width="24"
-                                            Height="24"
-                                            MinWidth="24"
-                                            MinHeight="0"
-                                            Margin="0,0,8,0"
-                                            Padding="0"
-                                            Command="{Binding Samples.GoToNextSamplePageCommand}"
-                                            Theme="{StaticResource SampleNavButtonStyle}"
-                                            ToolTip.Tip="下一页">
-                                        <iv:Icon VerticalAlignment="Center" FontSize="13" Data="{x:Static ui:IvIcons.ChevronRight}" />
-                                    </Button>
-                                </StackPanel>
-
-                                <Button Command="{Binding Samples.ToggleSamplePanelCommand}"
-                                        Theme="{StaticResource SampleNavButtonStyle}"
-                                        ToolTip.Tip="{Binding Samples.SamplePanelToggleTooltip}">
-                                    <Panel>
-                                        <iv:Icon VerticalAlignment="Center"
-                                                 FontSize="16"
-                                                 Data="{x:Static ui:IvIcons.ChevronDown}"
-                                                 IsVisible="{Binding !Samples.IsSamplePanelExpanded}" />
-                                        <iv:Icon VerticalAlignment="Center"
-                                                 FontSize="16"
-                                                 Data="{x:Static ui:IvIcons.ChevronUp}"
-                                                 IsVisible="{Binding Samples.IsSamplePanelExpanded}" />
-                                    </Panel>
+                                        AutomationProperties.AutomationId="dv.labeling.shortcuts-help"
+                                        Click="OnShortcutsHelpClicked"
+                                        Theme="{StaticResource IvSubtleButtonStyle}"
+                                        ToolTip.Tip="快捷键指南">
+                                    <iv:Icon VerticalAlignment="Center" FontSize="15" Data="{x:Static ui:IvIcons.Help}" />
+                                    <Button.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="常用快捷键速查" IsEnabled="False" FontWeight="Bold" />
+                                            <Separator />
+                                            <MenuItem Header="Ctrl + S：保存当前标注" IsEnabled="False" />
+                                            <MenuItem Header="Ctrl + Z / Y：撤销 / 重做" IsEnabled="False" />
+                                            <MenuItem Header="Delete：删除选中的标注" IsEnabled="False" />
+                                            <MenuItem Header="← / →：切换上一张 / 下一张样本" IsEnabled="False" />
+                                            <MenuItem Header="数字键 1~9：快速选择对应序号的标签类别" IsEnabled="False" />
+                                        </ContextMenu>
+                                    </Button.ContextMenu>
+                                </Button>
+                                <Button Width="28"
+                                        Height="28"
+                                        MinWidth="28"
+                                        MinHeight="0"
+                                        Padding="0"
+                                        VerticalAlignment="Center"
+                                        AutomationProperties.AutomationId="dv.labeling.back-to-gallery"
+                                        Command="{Binding BackToGalleryCommand}"
+                                        Theme="{StaticResource IvSubtleButtonStyle}"
+                                        ToolTip.Tip="返回图库">
+                                    <iv:Icon VerticalAlignment="Center" FontSize="15" Data="{x:Static ui:IvIcons.ChevronLeft}" />
                                 </Button>
                             </StackPanel>
                         </Grid>
+                    </Border>
 
-                        <TextBlock Grid.Row="1"
-                                   Margin="0,10,0,4"
-                                   HorizontalAlignment="Center"
-                                   Classes="labelMuted"
-                                   Text="暂无样本">
-                            <TextBlock.IsVisible>
-                                <MultiBinding Converter="{StaticResource AllTrue}">
-                                    <Binding Path="Samples.IsSamplePanelExpanded" />
-                                    <Binding Path="Samples.HasNoSamples" />
-                                </MultiBinding>
-                            </TextBlock.IsVisible>
-                        </TextBlock>
+                    <Grid Grid.Row="1">
+                        <!-- Detection -->
+                        <ScrollViewer Padding="12,12,12,8"
+                                      HorizontalScrollBarVisibility="Disabled"
+                                      VerticalScrollBarVisibility="Auto"
+                                      IsVisible="{Binding ActiveRailKind, Converter={StaticResource RailKindMatches}, ConverterParameter=Detection}">
+                            <StackPanel>
+                                <cards:LabelingDrawToolsCard />
+                                <cards:LabelingEditActionsCard ShowClear="True"
+                                                               ShowAutoFit="True"
+                                                               ShowYoloInfer="True"
+                                                               AutoFitRequested="OnFitClicked" />
+                                <cards:LabelingDetectionActionsCard />
+                                <cards:LabelingClassListCard />
+                            </StackPanel>
+                        </ScrollViewer>
 
-                        <ScrollViewer Grid.Row="1"
-                                      Margin="0,8,0,0"
-                                      HorizontalScrollBarVisibility="Auto"
-                                      VerticalScrollBarVisibility="Disabled">
-                            <ScrollViewer.IsVisible>
-                                <MultiBinding Converter="{StaticResource AllTrue}">
-                                    <Binding Path="Samples.IsSamplePanelExpanded" />
-                                    <Binding Path="Samples.HasSamples" />
-                                </MultiBinding>
-                            </ScrollViewer.IsVisible>
-                            <ItemsControl HorizontalAlignment="Left"
-                                          ItemsSource="{Binding Samples.SamplePageItems}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <StackPanel Orientation="Horizontal" />
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Classes="sampleTile"
-                                                Classes.active="{Binding IsActive}"
-                                                PointerReleased="OnSampleTilePointerReleased"
-                                                ContextRequested="OnSampleTileContextRequested">
-                                            <Border.ContextMenu>
-                                                <ContextMenu>
-                                                    <MenuItem Header="设为标注锚点"
-                                                              Tag="anchor-set"
-                                                              Click="OnSetSampleAnchorMenuItemClicked" />
-                                                    <MenuItem Header="取消标注锚点"
-                                                              Tag="anchor-clear"
-                                                              Click="OnClearSampleAnchorMenuItemClicked" />
-                                                    <MenuItem Header="删除样本"
-                                                              Click="OnDeleteSampleMenuItemClicked" />
-                                                </ContextMenu>
-                                            </Border.ContextMenu>
-
-                                            <Grid RowDefinitions="*,Auto">
-                                                <Grid ClipToBounds="True">
-                                                    <Image Source="{Binding Thumbnail}" Stretch="UniformToFill" />
-                                                    <iv:Icon HorizontalAlignment="Center"
-                                                             VerticalAlignment="Center"
-                                                             FontSize="20"
-                                                             Foreground="{DynamicResource IvText3Brush}"
-                                                             Data="{x:Static ui:IvIcons.Image}"
-                                                             IsVisible="{Binding Thumbnail, Converter={x:Static conv:ObjectConverters.IsNull}}" />
-
-                                                    <StackPanel Margin="4,4,0,0"
-                                                                HorizontalAlignment="Left"
-                                                                VerticalAlignment="Top"
-                                                                Orientation="Horizontal">
-                                                        <CheckBox VerticalAlignment="Center"
-                                                                  IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                                                  IsHitTestVisible="True" />
-                                                        <Border Classes="sampleIndexBadge"
-                                                                Classes.active="{Binding IsActive}">
-                                                            <TextBlock Classes="sampleIndexText"
-                                                                       Classes.active="{Binding IsActive}"
-                                                                       Text="{Binding Index}" />
-                                                        </Border>
-                                                    </StackPanel>
-
-                                                    <StackPanel Margin="0,4,4,0"
-                                                                HorizontalAlignment="Right"
-                                                                VerticalAlignment="Top"
-                                                                Orientation="Horizontal">
-                                                        <iv:Icon Margin="0,0,4,0"
-                                                                 VerticalAlignment="Center"
-                                                                 FontSize="12"
-                                                                 Foreground="{DynamicResource IvWarningTextBrush}"
-                                                                 Data="{x:Static ui:IvIcons.Flag}"
-                                                                 IsVisible="{Binding IsAnchor}"
-                                                                 ToolTip.Tip="标注锚点" />
-                                                        <Ellipse Classes="sampleDot"
-                                                                 Classes.annotated="{Binding IsAnnotated}"
-                                                                 Classes.error="{Binding HasError}" />
-                                                    </StackPanel>
-
-                                                </Grid>
-
-                                                <Border Grid.Row="1"
-                                                        Padding="4,2"
-                                                        Background="Transparent"
-                                                        BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
-                                                        BorderThickness="0,1,0,0">
-                                                    <TextBlock FontSize="9.5"
-                                                               FontWeight="SemiBold"
-                                                               Foreground="{DynamicResource IvText1Brush}"
-                                                               Text="{Binding FileName}"
-                                                               TextAlignment="Center"
-                                                               TextTrimming="CharacterEllipsis"
-                                                               ToolTip.Tip="{Binding FileName}" />
-                                                </Border>
-                                            </Grid>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
+                        <!-- Classification -->
+                        <ScrollViewer Padding="12,12,12,8"
+                                      HorizontalScrollBarVisibility="Disabled"
+                                      VerticalScrollBarVisibility="Auto"
+                                      IsVisible="{Binding ActiveRailKind, Converter={StaticResource RailKindMatches}, ConverterParameter=Classification}">
+                            <StackPanel>
+                                <cards:LabelingEditActionsCard ShowYoloInfer="True" AutoFitRequested="OnFitClicked" />
+                                <cards:LabelingClassListCard />
+                            </StackPanel>
                         </ScrollViewer>
                     </Grid>
-                </Border>
-            </Grid>
-        </Border>
+                </Grid>
+            </Border>
 
-        <!-- ===== 右：鸟瞰图与侧栏 ===== -->
-        <Border Name="DetailsPane" Grid.Row="1" Grid.Column="2" Margin="4" Classes="panelSurface">
-            <Grid RowDefinitions="Auto,*">
-                <StackPanel Margin="12,11,12,0">
-                    <Grid ColumnDefinitions="*,Auto">
-                        <TextBlock Classes="labelSectionTitle" Text="鸟瞰图" />
-                        <TextBlock Grid.Column="1"
-                                   FontSize="10.5"
-                                   Classes="labelMuted"
-                                   Text="点击定位" />
+            <!-- ===== 中：画布与样本条 ===== -->
+            <Border Grid.Row="1" Grid.Column="1" Margin="4" Classes="panelSurface" ClipToBounds="True">
+                <Grid RowDefinitions="*,Auto">
+                    <Grid>
+                        <dv:AnnotationCanvas x:Name="AnnotationSurface"
+                                             AutomationProperties.AutomationId="dv.labeling.canvas"
+                                             ActiveColor="{Binding Labels.ActiveLabelColor}"
+                                             ActiveLabelId="{Binding Labels.ActiveLabelId}"
+                                             ActiveLabel="{Binding Editor.ActiveBoxLabel}"
+                                             Boxes="{Binding Editor.Boxes}"
+                                             ImageSource="{Binding Workspace.ImageSource}"
+                                             ImageWidth="{Binding Workspace.ImageWidth}"
+                                             ImageHeight="{Binding Workspace.ImageHeight}"
+                                             IsReadOnly="{Binding Editor.IsEditorReadOnly}"
+                                             RedoCommand="{Binding Editor.RedoBoxEditCommand}"
+                                             SelectedBox="{Binding Editor.SelectedBox, Mode=TwoWay}"
+                                             ShowLabelNames="{Binding Editor.ShowLabelNames}"
+                                             ToolMode="{Binding Editor.ActiveToolMode}"
+                                             UndoCommand="{Binding Editor.UndoBoxEditCommand}"
+                                             UseTransparentFill="{Binding Workspace.ProjectProfile.SupportsImageClass}"
+                                             ZoomScale="{Binding Editor.ZoomScale, Mode=TwoWay}"
+                                             AnnotationCreated="OnAnnotationCreated"
+                                             AnnotationEditStarted="OnAnnotationEditStarted"
+                                             AnnotationEditCompleted="OnAnnotationEditCompleted" />
+
+                        <dv:CanvasCornerFloat ZIndex="10" PinId="tl" Placement="TopLeft">
+                            <dv:CanvasCornerFloat.Body>
+                                <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                    <TextBlock MaxWidth="320"
+                                               VerticalAlignment="Center"
+                                               FontSize="12.5"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource IvText1Brush}"
+                                               Text="{Binding Workspace.ActiveFileName}"
+                                               TextTrimming="CharacterEllipsis" />
+                                    <Border Classes="sizePill" ToolTip.Tip="图像分辨率">
+                                        <TextBlock VerticalAlignment="Center"
+                                                   FontSize="10.5"
+                                                   FontWeight="Medium"
+                                                   Foreground="{DynamicResource IvText2Brush}"
+                                                   Text="{Binding Workspace.ImageSizeText}" />
+                                    </Border>
+                                </StackPanel>
+                            </dv:CanvasCornerFloat.Body>
+                        </dv:CanvasCornerFloat>
+
+                        <dv:CanvasViewToolbar ZIndex="10"
+                                              CanRedo="{Binding Editor.CanRedo}"
+                                              CanUndo="{Binding Editor.CanUndo}"
+                                              ZoomText="{Binding Editor.ZoomText}"
+                                              FitClick="OnFitClicked"
+                                              RedoClick="OnRedoClicked"
+                                              UndoClick="OnUndoClicked"
+                                              ZoomInClick="OnZoomInClicked"
+                                              ZoomOutClick="OnZoomOutClicked" />
+
+                        <dv:CanvasCornerFloat ZIndex="10" PinId="bl" Placement="BottomLeft">
+                            <dv:CanvasCornerFloat.Body>
+                                <CheckBox VerticalAlignment="Center"
+                                          Content="显示标签名称"
+                                          FontSize="11"
+                                          IsChecked="{Binding Editor.ShowLabelNames, Mode=TwoWay}" />
+                            </dv:CanvasCornerFloat.Body>
+                        </dv:CanvasCornerFloat>
                     </Grid>
-                    <Border Height="128"
-                            Margin="0,7,0,0"
-                            Background="{DynamicResource IvSurface2Brush}"
-                            BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
-                            BorderThickness="1"
-                            ClipToBounds="True"
-                            CornerRadius="4">
-                        <dv:AnnotationOverview x:Name="OverviewSurface"
-                                               Boxes="{Binding Editor.Boxes}"
-                                               ImageSource="{Binding Workspace.ImageSource}"
-                                               ImageWidth="{Binding Workspace.ImageWidth}"
-                                               ImageHeight="{Binding Workspace.ImageHeight}"
-                                               NavigateRequested="OnOverviewNavigateRequested" />
-                    </Border>
-                </StackPanel>
 
-                <!-- 右栏详情：检测工作流是当前样本的框列表；分类项目按整图打类，右栏留空（与 WPF 版一致）。 -->
-                <cards:LabelingBoxListCard Grid.Row="1"
-                                           IsVisible="{Binding ActiveRailKind, Converter={StaticResource RailKindMatches}, ConverterParameter=Detection}" />
-            </Grid>
-        </Border>
+                    <Border Grid.Row="1"
+                            Padding="10,7,10,8"
+                            Background="Transparent"
+                            BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                            BorderThickness="0,1,0,0">
+                        <Grid RowDefinitions="Auto,Auto">
+                            <Grid MinHeight="28" VerticalAlignment="Center" ColumnDefinitions="*,Auto,*">
+                                <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                    <TextBlock VerticalAlignment="Center"
+                                               FontSize="12"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource IvText1Brush}"
+                                               Text="样本列表" />
+                                    <Border Classes="sampleProgressBadge">
+                                        <TextBlock FontSize="10.5"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource IvSuccessTextBrush}"
+                                                   Text="{Binding Workspace.GalleryProgressText}" />
+                                    </Border>
+                                </StackPanel>
+
+                                <Border Grid.Column="1"
+                                        Padding="3,1"
+                                        VerticalAlignment="Center"
+                                        Background="{DynamicResource IvSurface2Brush}"
+                                        CornerRadius="6"
+                                        IsVisible="{Binding Samples.HasSamples}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button AutomationProperties.AutomationId="dv.labeling.sample.prev"
+                                                Command="{Binding Samples.NavigatePreviousSampleCommand}"
+                                                Theme="{StaticResource SampleNavButtonStyle}"
+                                                ToolTip.Tip="上一张">
+                                            <iv:Icon VerticalAlignment="Center" FontSize="14" Data="{x:Static ui:IvIcons.ChevronLeft}" />
+                                        </Button>
+                                        <TextBlock MinWidth="48"
+                                                   Margin="4,0"
+                                                   VerticalAlignment="Center"
+                                                   AutomationProperties.AutomationId="dv.labeling.sample.position"
+                                                   FontSize="12"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource IvText1Brush}"
+                                                   Text="{Binding Samples.ActiveSamplePositionText}"
+                                                   TextAlignment="Center" />
+                                        <Button AutomationProperties.AutomationId="dv.labeling.sample.next"
+                                                Command="{Binding Samples.NavigateNextSampleCommand}"
+                                                Theme="{StaticResource SampleNavButtonStyle}"
+                                                ToolTip.Tip="下一张（→；差异分类可用 Tab）">
+                                            <iv:Icon VerticalAlignment="Center" FontSize="14" Data="{x:Static ui:IvIcons.ChevronRight}" />
+                                        </Button>
+                                    </StackPanel>
+                                </Border>
+
+                                <StackPanel Grid.Column="2"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Center"
+                                            Orientation="Horizontal">
+                                    <StackPanel Orientation="Horizontal">
+                                        <StackPanel.IsVisible>
+                                            <MultiBinding Converter="{StaticResource AllTrue}">
+                                                <Binding Path="Samples.IsSamplePanelExpanded" />
+                                                <Binding Path="Samples.HasSamples" />
+                                            </MultiBinding>
+                                        </StackPanel.IsVisible>
+                                        <TextBlock Margin="0,0,4,0"
+                                                   VerticalAlignment="Center"
+                                                   FontSize="10.5"
+                                                   Foreground="{DynamicResource IvText3Brush}"
+                                                   Text="页" />
+                                        <Button Width="24"
+                                                Height="24"
+                                                MinWidth="24"
+                                                MinHeight="0"
+                                                Padding="0"
+                                                Command="{Binding Samples.GoToPreviousSamplePageCommand}"
+                                                Theme="{StaticResource SampleNavButtonStyle}"
+                                                ToolTip.Tip="上一页">
+                                            <iv:Icon VerticalAlignment="Center" FontSize="13" Data="{x:Static ui:IvIcons.ChevronLeft}" />
+                                        </Button>
+                                        <TextBlock MinWidth="40"
+                                                   Margin="2,0"
+                                                   VerticalAlignment="Center"
+                                                   FontSize="10.5"
+                                                   Foreground="{DynamicResource IvText2Brush}"
+                                                   Text="{Binding Samples.SamplePageText}"
+                                                   TextAlignment="Center" />
+                                        <Button Width="24"
+                                                Height="24"
+                                                MinWidth="24"
+                                                MinHeight="0"
+                                                Margin="0,0,8,0"
+                                                Padding="0"
+                                                Command="{Binding Samples.GoToNextSamplePageCommand}"
+                                                Theme="{StaticResource SampleNavButtonStyle}"
+                                                ToolTip.Tip="下一页">
+                                            <iv:Icon VerticalAlignment="Center" FontSize="13" Data="{x:Static ui:IvIcons.ChevronRight}" />
+                                        </Button>
+                                    </StackPanel>
+
+                                    <Button Command="{Binding Samples.ToggleSamplePanelCommand}"
+                                            Theme="{StaticResource SampleNavButtonStyle}"
+                                            ToolTip.Tip="{Binding Samples.SamplePanelToggleTooltip}">
+                                        <Panel>
+                                            <iv:Icon VerticalAlignment="Center"
+                                                     FontSize="16"
+                                                     Data="{x:Static ui:IvIcons.ChevronDown}"
+                                                     IsVisible="{Binding !Samples.IsSamplePanelExpanded}" />
+                                            <iv:Icon VerticalAlignment="Center"
+                                                     FontSize="16"
+                                                     Data="{x:Static ui:IvIcons.ChevronUp}"
+                                                     IsVisible="{Binding Samples.IsSamplePanelExpanded}" />
+                                        </Panel>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+
+                            <TextBlock Grid.Row="1"
+                                       Margin="0,10,0,4"
+                                       HorizontalAlignment="Center"
+                                       Classes="labelMuted"
+                                       Text="暂无样本">
+                                <TextBlock.IsVisible>
+                                    <MultiBinding Converter="{StaticResource AllTrue}">
+                                        <Binding Path="Samples.IsSamplePanelExpanded" />
+                                        <Binding Path="Samples.HasNoSamples" />
+                                    </MultiBinding>
+                                </TextBlock.IsVisible>
+                            </TextBlock>
+
+                            <ScrollViewer Grid.Row="1"
+                                          Margin="0,8,0,0"
+                                          HorizontalScrollBarVisibility="Auto"
+                                          VerticalScrollBarVisibility="Disabled">
+                                <ScrollViewer.IsVisible>
+                                    <MultiBinding Converter="{StaticResource AllTrue}">
+                                        <Binding Path="Samples.IsSamplePanelExpanded" />
+                                        <Binding Path="Samples.HasSamples" />
+                                    </MultiBinding>
+                                </ScrollViewer.IsVisible>
+                                <ItemsControl HorizontalAlignment="Left"
+                                              ItemsSource="{Binding Samples.SamplePageItems}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Classes="sampleTile"
+                                                    Classes.active="{Binding IsActive}"
+                                                    PointerReleased="OnSampleTilePointerReleased"
+                                                    ContextRequested="OnSampleTileContextRequested">
+                                                <Border.ContextMenu>
+                                                    <ContextMenu>
+                                                        <MenuItem Header="设为标注锚点"
+                                                                  Tag="anchor-set"
+                                                                  Click="OnSetSampleAnchorMenuItemClicked" />
+                                                        <MenuItem Header="取消标注锚点"
+                                                                  Tag="anchor-clear"
+                                                                  Click="OnClearSampleAnchorMenuItemClicked" />
+                                                        <MenuItem Header="删除样本"
+                                                                  Click="OnDeleteSampleMenuItemClicked" />
+                                                    </ContextMenu>
+                                                </Border.ContextMenu>
+
+                                                <Grid RowDefinitions="*,Auto">
+                                                    <Grid ClipToBounds="True">
+                                                        <Image Source="{Binding Thumbnail}" Stretch="UniformToFill" />
+                                                        <iv:Icon HorizontalAlignment="Center"
+                                                                 VerticalAlignment="Center"
+                                                                 FontSize="20"
+                                                                 Foreground="{DynamicResource IvText3Brush}"
+                                                                 Data="{x:Static ui:IvIcons.Image}"
+                                                                 IsVisible="{Binding Thumbnail, Converter={x:Static conv:ObjectConverters.IsNull}}" />
+
+                                                        <StackPanel Margin="4,4,0,0"
+                                                                    HorizontalAlignment="Left"
+                                                                    VerticalAlignment="Top"
+                                                                    Orientation="Horizontal">
+                                                            <CheckBox VerticalAlignment="Center"
+                                                                      IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                                      IsHitTestVisible="True" />
+                                                            <Border Classes="sampleIndexBadge"
+                                                                    Classes.active="{Binding IsActive}">
+                                                                <TextBlock Classes="sampleIndexText"
+                                                                           Classes.active="{Binding IsActive}"
+                                                                           Text="{Binding Index}" />
+                                                            </Border>
+                                                        </StackPanel>
+
+                                                        <StackPanel Margin="0,4,4,0"
+                                                                    HorizontalAlignment="Right"
+                                                                    VerticalAlignment="Top"
+                                                                    Orientation="Horizontal">
+                                                            <iv:Icon Margin="0,0,4,0"
+                                                                     VerticalAlignment="Center"
+                                                                     FontSize="12"
+                                                                     Foreground="{DynamicResource IvWarningTextBrush}"
+                                                                     Data="{x:Static ui:IvIcons.Flag}"
+                                                                     IsVisible="{Binding IsAnchor}"
+                                                                     ToolTip.Tip="标注锚点" />
+                                                            <Ellipse Classes="sampleDot"
+                                                                     Classes.annotated="{Binding IsAnnotated}"
+                                                                     Classes.error="{Binding HasError}" />
+                                                        </StackPanel>
+
+                                                    </Grid>
+
+                                                    <Border Grid.Row="1"
+                                                            Padding="4,2"
+                                                            Background="Transparent"
+                                                            BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                                                            BorderThickness="0,1,0,0">
+                                                        <TextBlock FontSize="9.5"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="{DynamicResource IvText1Brush}"
+                                                                   Text="{Binding FileName}"
+                                                                   TextAlignment="Center"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   ToolTip.Tip="{Binding FileName}" />
+                                                    </Border>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- ===== 右：鸟瞰图与侧栏 ===== -->
+            <Border Name="DetailsPane" Grid.Row="1" Grid.Column="2" Margin="4" Classes="panelSurface">
+                <Grid RowDefinitions="Auto,*">
+                    <StackPanel Margin="12,11,12,0">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Classes="labelSectionTitle" Text="鸟瞰图" />
+                            <TextBlock Grid.Column="1"
+                                       FontSize="10.5"
+                                       Classes="labelMuted"
+                                       Text="点击定位" />
+                        </Grid>
+                        <Border Height="128"
+                                Margin="0,7,0,0"
+                                Background="{DynamicResource IvSurface2Brush}"
+                                BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                                BorderThickness="1"
+                                ClipToBounds="True"
+                                CornerRadius="4">
+                            <dv:AnnotationOverview x:Name="OverviewSurface"
+                                                   Boxes="{Binding Editor.Boxes}"
+                                                   ImageSource="{Binding Workspace.ImageSource}"
+                                                   ImageWidth="{Binding Workspace.ImageWidth}"
+                                                   ImageHeight="{Binding Workspace.ImageHeight}"
+                                                   NavigateRequested="OnOverviewNavigateRequested" />
+                        </Border>
+                    </StackPanel>
+
+                    <!-- 右栏详情：检测工作流是当前样本的框列表；分类项目按整图打类，右栏留空（与 WPF 版一致）。 -->
+                    <cards:LabelingBoxListCard Grid.Row="1"
+                                               IsVisible="{Binding ActiveRailKind, Converter={StaticResource RailKindMatches}, ConverterParameter=Detection}" />
+                </Grid>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>

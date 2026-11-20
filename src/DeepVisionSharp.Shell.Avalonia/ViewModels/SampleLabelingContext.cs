@@ -61,6 +61,12 @@ public sealed class SampleLabelingWorkspace
         ImageSource = SampleLabelingImages.CreateScene(1280, 860);
     }
 
+    public bool HasGallery => true;
+
+    public bool HasProject => true;
+
+    public string GallerySummary => "标记示例图库";
+
     public string ActiveFileName => "cold-roll_20251118_004317.jpg";
 
     public string ImageSizeText => "1280 × 860";

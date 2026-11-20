@@ -48,6 +48,7 @@
                                   VerticalScrollBarVisibility="Hidden">
                         <TextPresenter Name="PART_TextPresenter"
                                        Margin="{TemplateBinding Padding}"
+                                       VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                        Text="{TemplateBinding Text, Mode=TwoWay}"
                                        CaretIndex="{TemplateBinding CaretIndex}"
                                        SelectionStart="{TemplateBinding SelectionStart}"
@@ -63,6 +64,9 @@
                 </Grid>
             </ControlTemplate>
         </Setter>
+        <Style Selector="^[AcceptsReturn=True]">
+            <Setter Property="VerticalContentAlignment" Value="Top" />
+        </Style>
         <Style Selector="^:pointerover">
             <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeStrongBrush}" />
         </Style>

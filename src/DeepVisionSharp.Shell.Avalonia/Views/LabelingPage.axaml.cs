@@ -137,6 +137,11 @@ public partial class LabelingPage : UserControl
 
     private async void OnPreviewKeyDown(object? sender, KeyEventArgs e)
     {
+        if (_viewModel is null || !_viewModel.Workspace.HasGallery)
+        {
+            return;
+        }
+
         if (_shortcutInFlight)
         {
             e.Handled = true;
@@ -158,11 +163,6 @@ public partial class LabelingPage : UserControl
         if (IsKnownViewModelShortcut(key, e.KeyModifiers))
         {
             e.Handled = true;
-        }
-
-        if (_viewModel is null)
-        {
-            return;
         }
 
         _shortcutInFlight = true;

@@ -21,10 +21,16 @@ public sealed partial class LabelingWorkspaceContext : ObservableObject
     public LabelingUiPolicy UiPolicy { get; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasGallery))]
     private ProjectGallery? _gallery;
 
+    public bool HasGallery => Gallery is not null;
+
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasProject))]
     private Project? _project;
+
+    public bool HasProject => Project is not null;
 
     [ObservableProperty]
     private ProjectWorkflowKind _workflowKind = ProjectWorkflowKind.Classification;

@@ -21,6 +21,25 @@
                 <Setter Property="BorderBrush" Value="{DynamicResource IvControlBorderHoverBrush}" />
             </Style>
         </ControlTheme>
+
+        <ControlTheme x:Key="ProjectActionsMenuItemTheme" TargetType="MenuItem"
+                      BasedOn="{StaticResource {x:Type MenuItem}}">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <ContentPresenter Background="{TemplateBinding Background}"
+                                      CornerRadius="{DynamicResource IvRadiusSmall}"
+                                      Padding="{TemplateBinding Padding}"
+                                      VerticalContentAlignment="Center"
+                                      Content="{TemplateBinding Header}"
+                                      ContentTemplate="{TemplateBinding HeaderTemplate}"
+                                      RecognizesAccessKey="True" />
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:selected:not(:disabled)">
+                <Setter Property="Background" Value="{DynamicResource IvSurfaceSubtleHoverBrush}" />
+            </Style>
+        </ControlTheme>
     </UserControl.Resources>
 
     <UserControl.Styles>
@@ -346,29 +365,35 @@
                                             </Button>
                                         </Grid>
 
-                                        <!-- deepvision 的 ContextMenuButton 只为左键弹出菜单，这里先用普通按钮保住外观 -->
-                                        <Button HorizontalAlignment="Right"
+                                        <Button x:Name="ProjectActionsButton"
+                                                HorizontalAlignment="Right"
                                                 VerticalAlignment="Top"
                                                 Width="28"
                                                 Height="28"
                                                 Padding="0"
+                                                AutomationProperties.Name="项目操作"
+                                                ContextFlyout="{Binding $self.Flyout}"
+                                                Tag="{Binding $parent[UserControl].DataContext}"
                                                 Theme="{StaticResource IvIconButtonStyle}"
                                                 ToolTip.Tip="编辑、导出或删除项目">
                                             <iv:Icon FontSize="16" Data="{x:Static ui:IvIcons.More}" />
-                                            <Button.ContextMenu>
-                                                <ContextMenu>
+                                            <Button.Flyout>
+                                                <MenuFlyout Placement="BottomEdgeAlignedRight">
                                                     <MenuItem Header="编辑项目"
-                                                              Command="{Binding $parent[UserControl].DataContext.Editor.ShowEditProjectDialogCommand}"
-                                                              CommandParameter="{Binding Id}" />
+                                                              Theme="{StaticResource ProjectActionsMenuItemTheme}"
+                                                              Command="{Binding #ProjectActionsButton.Tag.Editor.ShowEditProjectDialogCommand}"
+                                                              CommandParameter="{Binding #ProjectActionsButton.DataContext.Id}" />
                                                     <MenuItem Header="导出项目"
-                                                              Command="{Binding $parent[UserControl].DataContext.Transfer.ExportProjectCommand}"
-                                                              CommandParameter="{Binding Id}" />
+                                                              Theme="{StaticResource ProjectActionsMenuItemTheme}"
+                                                              Command="{Binding #ProjectActionsButton.Tag.Transfer.ExportProjectCommand}"
+                                                              CommandParameter="{Binding #ProjectActionsButton.DataContext.Id}" />
                                                     <Separator />
                                                     <MenuItem Header="删除项目"
-                                                              Command="{Binding $parent[UserControl].DataContext.List.ConfirmDeleteProjectCommand}"
-                                                              CommandParameter="{Binding Id}" />
-                                                </ContextMenu>
-                                            </Button.ContextMenu>
+                                                              Theme="{StaticResource ProjectActionsMenuItemTheme}"
+                                                              Command="{Binding #ProjectActionsButton.Tag.List.ConfirmDeleteProjectCommand}"
+                                                              CommandParameter="{Binding #ProjectActionsButton.DataContext.Id}" />
+                                                </MenuFlyout>
+                                            </Button.Flyout>
                                         </Button>
                                     </Grid>
                                 </Grid>
