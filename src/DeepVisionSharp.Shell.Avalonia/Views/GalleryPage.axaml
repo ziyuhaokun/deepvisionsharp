@@ -51,19 +51,6 @@
             <Setter Property="FontSize" Value="12" />
             <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
         </Style>
-        <Style Selector="Button.coverIcon">
-            <Setter Property="Width" Value="28" />
-            <Setter Property="Height" Value="28" />
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="CornerRadius" Value="14" />
-            <Setter Property="Background" Value="#66000000" />
-            <Setter Property="BorderBrush" Value="#26FFFFFF" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Foreground" Value="#F2F5F8" />
-        </Style>
-        <Style Selector="Button.coverIcon:pointerover">
-            <Setter Property="Background" Value="#A6000000" />
-        </Style>
         <Style Selector="Border.overlayCard">
             <Setter Property="Padding" Value="24" />
             <Setter Property="Width" Value="420" />
@@ -295,7 +282,7 @@
 
                                             <Grid Margin="8"
                                                   VerticalAlignment="Top"
-                                                  ColumnDefinitions="Auto,Auto,*,Auto,Auto">
+                                                  ColumnDefinitions="Auto,Auto">
                                                 <Border Grid.Column="0"
                                                         Padding="3"
                                                         Background="#80000000"
@@ -319,24 +306,6 @@
                                                                Foreground="#DCE8F7"
                                                                Text="{Binding SystemKindBadge}" />
                                                 </Border>
-
-                                                <Button Grid.Column="3"
-                                                        Classes="coverIcon"
-                                                        Command="{Binding $parent[UserControl].DataContext.Editor.ShowEditGalleryDialogCommand}"
-                                                        CommandParameter="{Binding Id}"
-                                                        IsVisible="{Binding $parent[UserControl].DataContext.List.ShowsGalleryEdit}"
-                                                        ToolTip.Tip="编辑图库">
-                                                    <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Edit}" />
-                                                </Button>
-
-                                                <Button Grid.Column="4"
-                                                        Margin="4,0,0,0"
-                                                        Classes="coverIcon"
-                                                        Command="{Binding $parent[UserControl].DataContext.List.OpenGalleryFolderCommand}"
-                                                        CommandParameter="{Binding Id}"
-                                                        ToolTip.Tip="打开目录">
-                                                    <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.FolderOpen}" />
-                                                </Button>
                                             </Grid>
                                         </Grid>
                                     </Border>
@@ -416,64 +385,75 @@
                                             </Button>
                                         </Grid>
 
-                                        <!-- deepvision 的 ContextMenuButton 只为左键弹出菜单，这里先用普通按钮保住外观 -->
-                                        <Button HorizontalAlignment="Right"
+                                        <Button x:Name="GalleryActionsButton"
+                                                HorizontalAlignment="Right"
                                                 VerticalAlignment="Top"
                                                 Width="28"
                                                 Height="28"
                                                 Padding="0"
+                                                AutomationProperties.Name="图库操作"
+                                                ContextFlyout="{Binding $self.Flyout}"
+                                                Tag="{Binding $parent[UserControl].DataContext}"
                                                 Theme="{StaticResource IvIconButtonStyle}"
                                                 ToolTip.Tip="更多操作">
                                             <iv:Icon FontSize="16" Data="{x:Static ui:IvIcons.More}" />
-                                            <Button.ContextMenu>
-                                                <ContextMenu>
+                                            <Button.Flyout>
+                                                <MenuFlyout Placement="BottomEdgeAlignedRight">
+                                                    <MenuItem Header="编辑图库"
+                                                              Command="{Binding #GalleryActionsButton.Tag.Editor.ShowEditGalleryDialogCommand}"
+                                                              CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}"
+                                                              IsVisible="{Binding #GalleryActionsButton.Tag.List.ShowsGalleryEdit}" />
+                                                    <MenuItem Header="打开图库目录"
+                                                              Command="{Binding #GalleryActionsButton.Tag.List.OpenGalleryFolderCommand}"
+                                                              CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}" />
+                                                    <Separator />
                                                     <MenuItem Header="导入图像"
-                                                              Command="{Binding $parent[UserControl].DataContext.Transfer.ImportImagesCommand}"
-                                                              CommandParameter="{Binding Id}" />
+                                                              Command="{Binding #GalleryActionsButton.Tag.Transfer.ImportImagesCommand}"
+                                                              CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}" />
                                                     <MenuItem Header="导入目录"
-                                                              Command="{Binding $parent[UserControl].DataContext.Transfer.ImportFolderCommand}"
-                                                              CommandParameter="{Binding Id}" />
+                                                              Command="{Binding #GalleryActionsButton.Tag.Transfer.ImportFolderCommand}"
+                                                              CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}" />
                                                     <MenuItem Header="导出图库"
-                                                              Command="{Binding $parent[UserControl].DataContext.Transfer.ExportGalleryCommand}"
-                                                              CommandParameter="{Binding Id}" />
+                                                              Command="{Binding #GalleryActionsButton.Tag.Transfer.ExportGalleryCommand}"
+                                                              CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}" />
                                                     <MenuItem Header="导入 PPOCRLabel"
-                                                              IsVisible="{Binding $parent[UserControl].DataContext.List.IsTextRecognitionProject}">
+                                                              IsVisible="{Binding #GalleryActionsButton.Tag.List.IsTextRecognitionProject}">
                                                         <MenuItem Header="跳过已有标注"
-                                                                  Command="{Binding $parent[UserControl].DataContext.Transfer.ImportPpOcrSkipCommand}"
-                                                                  CommandParameter="{Binding Id}" />
+                                                                  Command="{Binding #GalleryActionsButton.Tag.Transfer.ImportPpOcrSkipCommand}"
+                                                                  CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}" />
                                                         <MenuItem Header="追加到已有标注"
-                                                                  Command="{Binding $parent[UserControl].DataContext.Transfer.ImportPpOcrAppendCommand}"
-                                                                  CommandParameter="{Binding Id}" />
+                                                                  Command="{Binding #GalleryActionsButton.Tag.Transfer.ImportPpOcrAppendCommand}"
+                                                                  CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}" />
                                                         <MenuItem Header="替换已有标注…"
-                                                                  Command="{Binding $parent[UserControl].DataContext.Transfer.ImportPpOcrReplaceCommand}"
-                                                                  CommandParameter="{Binding Id}" />
+                                                                  Command="{Binding #GalleryActionsButton.Tag.Transfer.ImportPpOcrReplaceCommand}"
+                                                                  CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}" />
                                                     </MenuItem>
                                                     <MenuItem Header="导出 PPOCRLabel"
-                                                              Command="{Binding $parent[UserControl].DataContext.Transfer.ExportPpOcrLabelsCommand}"
-                                                              CommandParameter="{Binding Id}"
-                                                              IsVisible="{Binding $parent[UserControl].DataContext.List.IsTextRecognitionProject}" />
+                                                              Command="{Binding #GalleryActionsButton.Tag.Transfer.ExportPpOcrLabelsCommand}"
+                                                              CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}"
+                                                              IsVisible="{Binding #GalleryActionsButton.Tag.List.IsTextRecognitionProject}" />
                                                     <MenuItem Header="图库推理…"
-                                                              Command="{Binding $parent[UserControl].DataContext.BatchInference.ShowDialogCommand}"
-                                                              CommandParameter="{Binding Id}"
-                                                              IsVisible="{Binding $parent[UserControl].DataContext.List.ShowsGalleryBatchInference}" />
+                                                              Command="{Binding #GalleryActionsButton.Tag.BatchInference.ShowDialogCommand}"
+                                                              CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}"
+                                                              IsVisible="{Binding #GalleryActionsButton.Tag.List.ShowsGalleryBatchInference}" />
                                                     <MenuItem Header="标签统计"
-                                                              Command="{Binding $parent[UserControl].DataContext.List.ShowGalleryLabelStatisticsDialogCommand}"
-                                                              CommandParameter="{Binding Id}"
-                                                              IsVisible="{Binding $parent[UserControl].DataContext.List.ShowsGalleryLabelStatistics}" />
+                                                              Command="{Binding #GalleryActionsButton.Tag.List.ShowGalleryLabelStatisticsDialogCommand}"
+                                                              CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}"
+                                                              IsVisible="{Binding #GalleryActionsButton.Tag.List.ShowsGalleryLabelStatistics}" />
                                                     <MenuItem Header="清空标注"
-                                                              Command="{Binding $parent[UserControl].DataContext.Editor.ConfirmClearAnnotationsCommand}"
-                                                              CommandParameter="{Binding Id}"
-                                                              IsVisible="{Binding $parent[UserControl].DataContext.List.ShowsGalleryLabelStatistics}" />
+                                                              Command="{Binding #GalleryActionsButton.Tag.Editor.ConfirmClearAnnotationsCommand}"
+                                                              CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}"
+                                                              IsVisible="{Binding #GalleryActionsButton.Tag.List.ShowsGalleryLabelStatistics}" />
                                                     <MenuItem Header="拆分图库"
-                                                              Command="{Binding $parent[UserControl].DataContext.Reorganize.ShowSplitGalleryDialogCommand}"
-                                                              CommandParameter="{Binding Id}"
-                                                              IsVisible="{Binding $parent[UserControl].DataContext.List.ShowsGallerySplit}" />
+                                                              Command="{Binding #GalleryActionsButton.Tag.Reorganize.ShowSplitGalleryDialogCommand}"
+                                                              CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}"
+                                                              IsVisible="{Binding #GalleryActionsButton.Tag.List.ShowsGallerySplit}" />
                                                     <MenuItem Header="删除图库"
-                                                              Command="{Binding $parent[UserControl].DataContext.Editor.ConfirmDeleteGalleryCommand}"
-                                                              CommandParameter="{Binding Id}"
-                                                              IsVisible="{Binding CanDelete}" />
-                                                </ContextMenu>
-                                            </Button.ContextMenu>
+                                                              Command="{Binding #GalleryActionsButton.Tag.Editor.ConfirmDeleteGalleryCommand}"
+                                                              CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}"
+                                                              IsVisible="{Binding #GalleryActionsButton.DataContext.CanDelete}" />
+                                                </MenuFlyout>
+                                            </Button.Flyout>
                                         </Button>
                                     </Grid>
                                 </Grid>

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Styling;
 using DeepVisionSharp.Presentation.ViewModels;
 using DeepVisionSharp.Shell.Avalonia.ViewModels;
 
@@ -23,6 +24,13 @@ public partial class GalleryPage : UserControl
     public GalleryPage(GalleryViewModel? viewModel)
     {
         InitializeComponent();
+
+        // Restore the Fluent MenuItem template for this page's flyout, including nested items.
+        if (global::Avalonia.Application.Current?.Styles.TryGetResource(typeof(MenuItem), null, out var resource) == true
+            && resource is ControlTheme menuItemTheme)
+        {
+            Resources[typeof(MenuItem)] = menuItemTheme;
+        }
 
         _viewModel = viewModel;
         var context = (object?)viewModel ?? new SampleGalleryContext();
