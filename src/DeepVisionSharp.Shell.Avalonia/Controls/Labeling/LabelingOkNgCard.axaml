@@ -1,0 +1,84 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="DeepVisionSharp.Shell.Avalonia.Controls.Labeling.LabelingOkNgCard">
+
+    <UserControl.Styles>
+        <Style Selector="Border.toolSection">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0,0,0,16" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+        <Style Selector="TextBlock.sectionTitle">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        </Style>
+        <Style Selector="TextBlock.muted">
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+        </Style>
+        <Style Selector="Button.ok">
+            <Setter Property="Background" Value="{DynamicResource IvSuccessBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvSuccessBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource IvTextOnAccentBrush}" />
+        </Style>
+        <Style Selector="Button.ng">
+            <Setter Property="Background" Value="{DynamicResource IvDangerBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvDangerBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource IvTextOnAccentBrush}" />
+        </Style>
+        <Style Selector="Button.warn">
+            <Setter Property="Background" Value="{DynamicResource IvWarningBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvWarningBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource IvTextOnAccentBrush}" />
+        </Style>
+    </UserControl.Styles>
+
+    <Border Classes="toolSection"
+            IsVisible="{Binding Workspace.UiPolicy.ShowsOkNgShortcuts}">
+        <StackPanel>
+            <TextBlock Classes="sectionTitle" Text="图像分类" />
+            <TextBlock Margin="0,4,0,0"
+                       FontSize="10.5"
+                       Classes="muted"
+                       Text="{Binding Editor.ImageClassSummary}" />
+            <Grid Margin="0,7,0,0" ColumnDefinitions="*,*,*">
+                <Button Height="32"
+                        Command="{Binding Editor.SetImageClassOkCommand}"
+                        HorizontalAlignment="Stretch"
+                        Content="OK (1)"
+                        Classes.ok="{Binding Editor.IsImageClassOk}"
+                        IsEnabled="{Binding Editor.CanUseEditor}"
+                        Theme="{StaticResource IvButtonBaseStyle}" />
+                <Button Grid.Column="1"
+                        Height="32"
+                        Margin="5,0,0,0"
+                        Command="{Binding Editor.SetImageClassNgCommand}"
+                        HorizontalAlignment="Stretch"
+                        Content="NG (2)"
+                        Classes.ng="{Binding Editor.IsImageClassNg}"
+                        IsEnabled="{Binding Editor.CanUseEditor}"
+                        Theme="{StaticResource IvButtonBaseStyle}" />
+                <Button Grid.Column="2"
+                        Height="32"
+                        Margin="5,0,0,0"
+                        Command="{Binding Samples.SetImageClassNgAndMoveCommand}"
+                        HorizontalAlignment="Stretch"
+                        Content="NG (3)"
+                        Classes.warn="{Binding Samples.HasNgMoveTarget}"
+                        IsEnabled="{Binding Samples.CanSetImageClassNgAndMove}"
+                        Theme="{StaticResource IvButtonBaseStyle}"
+                        ToolTip.Tip="{Binding Samples.NgAndMoveButtonToolTip}">
+                    <Button.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Command="{Binding Samples.ShowNgMoveTargetDialogCommand}"
+                                      Header="选择目标图库..." />
+                        </ContextMenu>
+                    </Button.ContextMenu>
+                </Button>
+            </Grid>
+        </StackPanel>
+    </Border>
+</UserControl>

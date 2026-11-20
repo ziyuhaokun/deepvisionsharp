@@ -1,0 +1,335 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iv="clr-namespace:YuUI.Controls;assembly=yu-ui.avalonia"
+             xmlns:ui="clr-namespace:YuUI;assembly=yu-ui.avalonia"
+             xmlns:dv="clr-namespace:DeepVisionSharp.Shell.Avalonia.Controls.Labeling"
+             xmlns:shared="clr-namespace:DeepVisionSharp.Shell.Avalonia.Controls.Training"
+             xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base"
+             x:Class="DeepVisionSharp.Shell.Avalonia.Controls.Labeling.LabelingAiJudgeCard">
+
+    <UserControl.Resources>
+        <ControlTheme x:Key="WorkbenchButtonStyle" TargetType="Button"
+                      BasedOn="{StaticResource IvButtonBaseStyle}">
+            <Setter Property="Height" Value="32" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="Padding" Value="10,0" />
+            <Setter Property="FontSize" Value="11.5" />
+        </ControlTheme>
+        <ControlTheme x:Key="WorkbenchSubtleButtonStyle" TargetType="Button"
+                      BasedOn="{StaticResource IvSubtleButtonStyle}">
+            <Setter Property="Height" Value="24" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="Padding" Value="7,0" />
+            <Setter Property="FontSize" Value="11" />
+        </ControlTheme>
+    </UserControl.Resources>
+
+    <UserControl.Styles>
+        <Style Selector="Border.toolSection">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0,0,0,16" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+        <Style Selector="TextBlock.sectionTitle">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        </Style>
+        <Style Selector="TextBlock.muted">
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+        </Style>
+        <Style Selector="Border.hairline">
+            <Setter Property="Height" Value="1" />
+            <Setter Property="Margin" Value="0,10,0,10" />
+            <Setter Property="Background" Value="{DynamicResource IvStrokeSubtleBrush}" />
+        </Style>
+        <Style Selector="Border.tone">
+            <Setter Property="Background" Value="{DynamicResource IvText3Brush}" />
+        </Style>
+        <Style Selector="Border.tone.ok">
+            <Setter Property="Background" Value="{DynamicResource IvSuccessBrush}" />
+        </Style>
+        <Style Selector="Border.tone.ng">
+            <Setter Property="Background" Value="{DynamicResource IvDangerBrush}" />
+        </Style>
+        <Style Selector="Border.tone.warn">
+            <Setter Property="Background" Value="{DynamicResource IvWarningBrush}" />
+        </Style>
+        <Style Selector="Button.adopted">
+            <Setter Property="Background" Value="{DynamicResource IvControlFillBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvControlBorderBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        </Style>
+    </UserControl.Styles>
+
+    <Border AutomationProperties.AutomationId="dv.labeling.ai-judge.card"
+            Classes="toolSection"
+            IsVisible="{Binding AiJudge.IsVisible}">
+        <StackPanel>
+            <Grid ColumnDefinitions="*,Auto,Auto">
+                <TextBlock VerticalAlignment="Center"
+                           Classes="sectionTitle"
+                           Text="AI 判定" />
+                <Border Grid.Column="1"
+                        Margin="0,0,2,0"
+                        Padding="5,1"
+                        VerticalAlignment="Center"
+                        Background="Transparent"
+                        BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                        BorderThickness="1"
+                        CornerRadius="6">
+                    <TextBlock FontSize="10"
+                               Foreground="{DynamicResource IvText2Brush}"
+                               Text="{Binding AiJudge.EndpointTag}" />
+                </Border>
+                <Button Grid.Column="2"
+                        Width="26"
+                        Height="26"
+                        MinWidth="26"
+                        MinHeight="0"
+                        Padding="0"
+                        AutomationProperties.AutomationId="dv.labeling.ai-judge.settings"
+                        Command="{Binding AiJudge.ShowModelSettingsDialogCommand}"
+                        Theme="{StaticResource IvSubtleButtonStyle}"
+                        ToolTip.Tip="模型设置（应用级，所有项目共用）">
+                    <iv:Icon VerticalAlignment="Center"
+                             FontSize="14"
+                             Data="{x:Static ui:IvIcons.Settings}" />
+                </Button>
+            </Grid>
+
+            <TextBlock Margin="0,1,0,0"
+                       FontSize="10.5"
+                       Classes="muted"
+                       Text="{Binding AiJudge.ModelSummary}"
+                       TextTrimming="CharacterEllipsis"
+                       ToolTip.Tip="{Binding AiJudge.ModelSummary}" />
+
+            <Grid Margin="0,8,0,0" ColumnDefinitions="*,Auto">
+                <TextBlock VerticalAlignment="Center"
+                           FontSize="11.5"
+                           Text="{Binding AiJudge.StandardSummary}" />
+                <Button Grid.Column="1"
+                        AutomationProperties.AutomationId="dv.labeling.ai-judge.manage-standards"
+                        Command="{Binding AiJudge.ShowStandardsDialogCommand}"
+                        Content="管理"
+                        Theme="{StaticResource WorkbenchSubtleButtonStyle}"
+                        ToolTip.Tip="查看、调整或移除本项目的标准图" />
+            </Grid>
+            <UniformGrid Margin="0,4,0,0" Columns="2">
+                <Button Height="32"
+                        Margin="0,0,3,0"
+                        HorizontalAlignment="Stretch"
+                        AutomationProperties.AutomationId="dv.labeling.ai-judge.add-ok"
+                        Command="{Binding AiJudge.AddCurrentAsOkStandardCommand}"
+                        Content="设为 OK 标准"
+                        Theme="{StaticResource WorkbenchButtonStyle}"
+                        ToolTip.Tip="把当前图片的副本加入 OK 标准；不改变它的标注，也不移动样本" />
+                <Button Height="32"
+                        Margin="3,0,0,0"
+                        HorizontalAlignment="Stretch"
+                        AutomationProperties.AutomationId="dv.labeling.ai-judge.add-ng"
+                        Command="{Binding AiJudge.AddCurrentAsNgStandardCommand}"
+                        Content="设为 NG 标准"
+                        Theme="{StaticResource WorkbenchButtonStyle}"
+                        ToolTip.Tip="把当前图片的副本加入 NG 标准；不改变它的标注，也不移动样本" />
+            </UniformGrid>
+
+            <TextBlock Margin="0,8,0,0"
+                       Classes="muted"
+                       Text="{Binding AiJudge.ReadinessHint}"
+                       TextWrapping="Wrap"
+                       IsVisible="{Binding AiJudge.HasReadinessHint}" />
+
+            <Button Margin="0,8,0,0"
+                    Height="34"
+                    HorizontalAlignment="Stretch"
+                    AutomationProperties.AutomationId="dv.labeling.ai-judge.judge"
+                    Classes.adopted="{Binding AiJudge.CanAdopt}"
+                    Command="{Binding AiJudge.JudgeCommand}"
+                    IsVisible="{Binding !AiJudge.IsJudging}"
+                    Theme="{StaticResource IvPrimaryButtonStyle}">
+                <StackPanel Orientation="Horizontal">
+                    <iv:Icon Margin="0,0,6,0"
+                             VerticalAlignment="Center"
+                             FontSize="15"
+                             Data="{x:Static ui:IvIcons.Sparkles}" />
+                    <TextBlock VerticalAlignment="Center"
+                               FontSize="12"
+                               Foreground="{Binding $parent[Button].Foreground}"
+                               Text="判定当前图片" />
+                </StackPanel>
+            </Button>
+
+            <Grid Margin="0,8,0,0"
+                  ColumnDefinitions="*,Auto"
+                  IsVisible="{Binding AiJudge.IsJudging}">
+                <StackPanel Margin="0,0,6,0" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                        <shared:BusyRing Width="16" Height="16" />
+                        <TextBlock Margin="8,0,0,0"
+                                   VerticalAlignment="Center"
+                                   FontSize="12"
+                                   Text="{Binding AiJudge.ElapsedText, StringFormat={}已耗时 {0}}" />
+                    </StackPanel>
+                    <TextBlock Margin="0,3,0,0"
+                               Classes="muted"
+                               AutomationProperties.AutomationId="dv.labeling.ai-judge.remaining"
+                               Text="{Binding AiJudge.RemainingText}"
+                               TextWrapping="Wrap"
+                               ToolTip.Tip="按当前图库同模型、同标准的最近真实判定耗时估算，实际取决于模型负载。" />
+                </StackPanel>
+                <Button Grid.Column="1"
+                        AutomationProperties.AutomationId="dv.labeling.ai-judge.cancel"
+                        Command="{Binding AiJudge.CancelJudgeCommand}"
+                        Content="取消"
+                        Theme="{StaticResource WorkbenchButtonStyle}" />
+            </Grid>
+
+            <Border Margin="0,8,0,0"
+                    Padding="9"
+                    Background="{DynamicResource IvSurface2Brush}"
+                    BorderBrush="Transparent"
+                    BorderThickness="0"
+                    CornerRadius="6"
+                    IsVisible="{Binding AiJudge.HasOutcome}">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Border Padding="7,2"
+                                CornerRadius="4"
+                                Classes="tone"
+                                Classes.ok="{Binding AiJudge.ResultTone, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter=ok}"
+                                Classes.ng="{Binding AiJudge.ResultTone, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter=ng}"
+                                Classes.warn="{Binding AiJudge.ResultTone, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter=warn}">
+                            <TextBlock FontSize="12"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource IvTextOnAccentBrush}"
+                                       Text="{Binding AiJudge.VerdictText}" />
+                        </Border>
+                        <TextBlock Margin="8,0,0,0"
+                                   VerticalAlignment="Center"
+                                   Classes="muted"
+                                   Text="{Binding AiJudge.ResultMetaText}" />
+                    </StackPanel>
+                    <TextBlock Margin="0,6,0,0"
+                               FontSize="11.5"
+                               MaxHeight="52"
+                               Text="{Binding AiJudge.SummaryText}"
+                               TextTrimming="CharacterEllipsis"
+                               TextWrapping="Wrap"
+                               ToolTip.Tip="{Binding AiJudge.SummaryText}" />
+                    <TextBlock Margin="0,6,0,0"
+                               FontSize="11.5"
+                               Foreground="{DynamicResource IvWarningTextBrush}"
+                               Text="{Binding AiJudge.StaleReason}"
+                               TextWrapping="Wrap"
+                               IsVisible="{Binding AiJudge.HasStaleReason}" />
+                    <TextBlock Margin="0,6,0,0"
+                               FontSize="11.5"
+                               Foreground="{DynamicResource IvSuccessTextBrush}"
+                               Text="{Binding AiJudge.AdoptedText}"
+                               TextWrapping="Wrap"
+                               IsVisible="{Binding AiJudge.HasAdoptedText}" />
+                    <UniformGrid Margin="0,8,0,0" Columns="2">
+                        <Button Height="32"
+                                Margin="0,0,3,0"
+                                HorizontalAlignment="Stretch"
+                                AutomationProperties.AutomationId="dv.labeling.ai-judge.adopt"
+                                Command="{Binding AiJudge.AdoptCommand}"
+                                Content="采纳判定"
+                                Theme="{StaticResource IvPrimaryButtonStyle}"
+                                ToolTip.Tip="把 AI 结论写入当前图片的标注（可 Ctrl+Z 撤销）" />
+                        <Button Height="32"
+                                Margin="3,0,0,0"
+                                HorizontalAlignment="Stretch"
+                                AutomationProperties.AutomationId="dv.labeling.ai-judge.rejudge"
+                                Command="{Binding AiJudge.RejudgeCommand}"
+                                Content="重新判定"
+                                Theme="{StaticResource WorkbenchButtonStyle}"
+                                ToolTip.Tip="忽略缓存，重新请求模型" />
+                    </UniformGrid>
+                </StackPanel>
+            </Border>
+
+            <Border Classes="hairline" />
+            <TextBlock FontSize="11.5"
+                       Text="{Binding AiJudge.SuggestionSummary}"
+                       TextTrimming="CharacterEllipsis"
+                       ToolTip.Tip="{Binding AiJudge.SuggestionSummary}" />
+            <Button Height="28"
+                    Margin="0,5,0,0"
+                    HorizontalAlignment="Stretch"
+                    AutomationProperties.AutomationId="dv.labeling.ai-judge.review"
+                    Command="{Binding AiJudge.ShowReviewDialogCommand}"
+                    Theme="{StaticResource WorkbenchSubtleButtonStyle}"
+                    ToolTip.Tip="按「与标注不一致」等筛选 AI 建议，逐张或一键采纳，可撤销上次采纳">
+                <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                    <iv:Icon Margin="0,0,6,0"
+                             VerticalAlignment="Center"
+                             FontSize="14"
+                             Data="{x:Static ui:IvIcons.List}" />
+                    <TextBlock VerticalAlignment="Center"
+                               FontSize="12"
+                               Foreground="{Binding $parent[Button].Foreground}"
+                               Text="审阅 AI 建议" />
+                </StackPanel>
+            </Button>
+            <Button Margin="0,4,0,0"
+                    Height="32"
+                    HorizontalAlignment="Stretch"
+                    AutomationProperties.AutomationId="dv.labeling.ai-judge.batch"
+                    Command="{Binding AiJudge.ShowBatchDialogCommand}"
+                    IsVisible="{Binding !AiJudge.Batch.IsRunning}"
+                    Theme="{StaticResource WorkbenchButtonStyle}"
+                    ToolTip.Tip="逐张判定本图库的样本，结果只保存为建议，不修改标注">
+                <StackPanel Orientation="Horizontal">
+                    <iv:Icon Margin="0,0,6,0"
+                             VerticalAlignment="Center"
+                             FontSize="15"
+                             Data="{x:Static ui:IvIcons.List}" />
+                    <TextBlock VerticalAlignment="Center"
+                               FontSize="12"
+                               Foreground="{Binding $parent[Button].Foreground}"
+                               Text="批量判定当前图库…" />
+                </StackPanel>
+            </Button>
+            <StackPanel Margin="0,6,0,0" IsVisible="{Binding AiJudge.Batch.IsRunning}">
+                <ProgressBar Height="4"
+                             Maximum="100"
+                             Minimum="0"
+                             Value="{Binding AiJudge.Batch.ProgressPercent, Mode=OneWay}" />
+                <Grid Margin="0,4,0,0" ColumnDefinitions="*,Auto">
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock FontSize="12"
+                                   Text="{Binding AiJudge.Batch.ProgressText}"
+                                   TextWrapping="Wrap" />
+                        <TextBlock Classes="muted"
+                                   Text="另一个图库正在批量判定"
+                                   IsVisible="{Binding AiJudge.IsBatchRunningElsewhere}" />
+                    </StackPanel>
+                    <Button Grid.Column="1"
+                            Margin="6,0,0,0"
+                            AutomationProperties.AutomationId="dv.labeling.ai-judge.batch-cancel"
+                            Command="{Binding AiJudge.CancelBatchCommand}"
+                            Content="取消批量"
+                            Theme="{StaticResource WorkbenchButtonStyle}" />
+                </Grid>
+                <TextBlock Margin="0,6,0,0"
+                           Classes="muted"
+                           AutomationProperties.AutomationId="dv.labeling.ai-judge.batch-statistics"
+                           Text="{Binding AiJudge.Batch.StatisticsText}"
+                           TextWrapping="Wrap"
+                           ToolTip.Tip="按本批已处理张数与实际耗时计算，包含失败和缓存命中；预计剩余时间会随实际处理速率调整。" />
+            </StackPanel>
+            <TextBlock Margin="0,6,0,0"
+                       Classes="muted"
+                       AutomationProperties.AutomationId="dv.labeling.ai-judge.batch-summary"
+                       Text="{Binding AiJudge.Batch.LastRunSummary}"
+                       TextWrapping="Wrap"
+                       IsVisible="{Binding AiJudge.HasBatchSummaryHere}" />
+        </StackPanel>
+    </Border>
+</UserControl>

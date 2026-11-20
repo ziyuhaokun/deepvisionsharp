@@ -1,0 +1,20 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="DeepVisionSharp.Shell.Avalonia.Views.Dialogs.Contents.TrainingJobRenameDialogContent"
+             MinWidth="420"
+             TextElement.Foreground="{DynamicResource IvText1Brush}">
+    <StackPanel>
+        <TextBlock FontSize="13"
+                   FontWeight="SemiBold"
+                   Foreground="{DynamicResource IvText1Brush}"
+                   Text="任务名称" />
+        <TextBox Margin="0,8,0,0"
+                 PlaceholderText="输入训练任务名称"
+                 Text="{Binding Name, Mode=TwoWay}" />
+        <TextBlock Margin="0,12,0,0"
+                   Foreground="{DynamicResource IvDangerTextBrush}"
+                   Text="{Binding DialogErrorMessage}"
+                   TextWrapping="Wrap"
+                   IsVisible="{Binding HasDialogErrorMessage}" />
+    </StackPanel>
+</UserControl>

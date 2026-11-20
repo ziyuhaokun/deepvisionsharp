@@ -1,0 +1,57 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="DeepVisionSharp.Shell.Avalonia.Views.Dialogs.Contents.GalleryTargetSelectionDialogContent"
+             MinWidth="480"
+             MaxWidth="520"
+             TextElement.Foreground="{DynamicResource IvText1Brush}">
+    <StackPanel>
+        <TextBlock Margin="0,0,0,12"
+                   Foreground="{DynamicResource IvText2Brush}"
+                   Text="{Binding SummaryText}"
+                   TextWrapping="Wrap" />
+
+        <TextBlock FontWeight="SemiBold" Foreground="{DynamicResource IvText1Brush}" Text="目标图库" />
+        <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
+            <RadioButton Margin="0,0,16,0"
+                         Command="{Binding SelectNewTargetCommand}"
+                         Content="新建图库"
+                         GroupName="GalleryTargetMode"
+                         IsChecked="{Binding UseNewGallery, Mode=OneWay}" />
+            <RadioButton Command="{Binding SelectExistingTargetCommand}"
+                         Content="已有图库"
+                         GroupName="GalleryTargetMode"
+                         IsChecked="{Binding UseExistingGallery, Mode=OneWay}" />
+        </StackPanel>
+
+        <TextBox Margin="0,12,0,0"
+                 PlaceholderText="新图库名称"
+                 Text="{Binding NewGalleryName, Mode=TwoWay}"
+                 IsVisible="{Binding UseNewGallery}" />
+
+        <ComboBox Margin="0,12,0,0"
+                  ItemsSource="{Binding AvailableTargets}"
+                  SelectedValue="{Binding SelectedTargetGalleryId}"
+                  SelectedValueBinding="{Binding Id}"
+                  IsVisible="{Binding UseExistingGallery}">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock VerticalAlignment="Center"
+                               Text="{Binding DisplayText}"
+                               TextTrimming="CharacterEllipsis"
+                               ToolTip.Tip="{Binding DisplayText}" />
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+
+        <CheckBox Margin="0,12,0,0"
+                  Content="合并后删除为空的源图库"
+                  IsChecked="{Binding DeleteEmptySources}"
+                  IsVisible="{Binding ShowDeleteEmptySourcesOption}" />
+
+        <TextBlock Margin="0,12,0,0"
+                   Foreground="{DynamicResource IvDangerTextBrush}"
+                   Text="{Binding DialogErrorMessage}"
+                   TextWrapping="Wrap"
+                   IsVisible="{Binding HasDialogErrorMessage}" />
+    </StackPanel>
+</UserControl>

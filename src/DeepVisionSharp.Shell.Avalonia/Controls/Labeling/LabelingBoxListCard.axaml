@@ -1,0 +1,278 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iv="clr-namespace:YuUI.Controls;assembly=yu-ui.avalonia"
+             xmlns:ui="clr-namespace:YuUI;assembly=yu-ui.avalonia"
+             xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base"
+             x:Class="DeepVisionSharp.Shell.Avalonia.Controls.Labeling.LabelingBoxListCard">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock.sectionTitle">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        </Style>
+        <Style Selector="Border.annotationRow">
+            <Setter Property="Margin" Value="0,0,0,1" />
+            <Setter Property="Padding" Value="7,5" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Border.annotationRow:pointerover">
+            <Setter Property="Background" Value="{DynamicResource IvStateHoverBrush}" />
+        </Style>
+        <Style Selector="Border.annotationRow.selected">
+            <Setter Property="Background" Value="{DynamicResource IvAccentSubtleBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvAccentBorderBrush}" />
+        </Style>
+        <Style Selector="TextBlock.emptyHint">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText3Brush}" />
+            <Setter Property="TextAlignment" Value="Center" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="*,Auto">
+        <Grid Grid.Row="0" Margin="12,10,12,0" RowDefinitions="Auto,Auto,*">
+            <Grid Margin="0,0,0,8" ColumnDefinitions="*,Auto">
+                <TextBlock VerticalAlignment="Center"
+                           Classes="sectionTitle"
+                           Text="标注列表" />
+                <Button Grid.Column="1"
+                        Width="26"
+                        Height="26"
+                        MinWidth="26"
+                        MinHeight="0"
+                        Padding="0"
+                        Command="{Binding Editor.ClearAnnotationsCommand}"
+                        IsEnabled="{Binding Editor.CanClearAnnotations}"
+                        Theme="{StaticResource IvIconButtonStyle}"
+                        ToolTip.Tip="清空当前样本标注">
+                    <iv:Icon VerticalAlignment="Center"
+                             FontSize="14"
+                             Data="{x:Static ui:IvIcons.Delete}" />
+                </Button>
+            </Grid>
+
+            <CheckBox Grid.Row="1"
+                      Margin="0,0,0,8"
+                      Content="已确认当前图片"
+                      IsChecked="{Binding Editor.OcrConfirmed, Mode=TwoWay}"
+                      IsEnabled="{Binding Editor.CanUseEditor}"
+                      IsVisible="{Binding Workspace.ProjectProfile.SupportsTextRecognition}"
+                      ToolTip.Tip="已核对当前图片的全部文字框；普通保存保留此状态" />
+
+            <Grid Grid.Row="2">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                              VerticalScrollBarVisibility="Auto"
+                              IsVisible="{Binding Editor.HasAnnotations}">
+                    <StackPanel>
+                        <ItemsControl AutomationProperties.AutomationId="dv.labeling.annotations"
+                                      ItemsSource="{Binding Editor.AnnotationRows}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Classes="annotationRow"
+                                            Classes.selected="{Binding IsSelected}"
+                                            PointerReleased="OnAnnotationListItemPointerReleased">
+                                        <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                                            <Border Width="3"
+                                                    Height="20"
+                                                    VerticalAlignment="Center"
+                                                    Background="{Binding Color}"
+                                                    CornerRadius="2" />
+
+                                            <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                                                <TextBlock FontSize="12"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource IvText1Brush}"
+                                                           Text="{Binding Label}"
+                                                           TextTrimming="CharacterEllipsis" />
+                                                <TextBox Height="24"
+                                                         MinWidth="100"
+                                                         Margin="0,4,0,0"
+                                                         Padding="5,0"
+                                                         FontSize="11"
+                                                         Background="{DynamicResource IvSurface2Brush}"
+                                                         BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                                                         GotFocus="OnTranscriptionGotFocus"
+                                                         Text="{Binding Transcription, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                         ToolTip.Tip="转录文字；未忽略的框在训练前需补齐"
+                                                         IsVisible="{Binding $parent[UserControl].DataContext.Workspace.ProjectProfile.SupportsTextRecognition}" />
+                                                <CheckBox Margin="0,5,0,0"
+                                                          Content="忽略训练（###）"
+                                                          FontSize="11"
+                                                          IsChecked="{Binding IgnoreForTraining, Mode=TwoWay}"
+                                                          PointerPressed="OnIgnorePointerPressed"
+                                                          KeyDown="OnIgnoreKeyDown"
+                                                          IsVisible="{Binding $parent[UserControl].DataContext.Workspace.ProjectProfile.SupportsTextRecognition}" />
+                                            </StackPanel>
+
+                                            <Button Grid.Column="2"
+                                                    Width="24"
+                                                    Height="24"
+                                                    MinWidth="24"
+                                                    MinHeight="0"
+                                                    Padding="0"
+                                                    Command="{Binding $parent[UserControl].DataContext.Editor.SelectAnnotationCommand}"
+                                                    CommandParameter="{Binding Id}"
+                                                    Theme="{StaticResource IvIconButtonStyle}"
+                                                    ToolTip.Tip="选中标注">
+                                                <iv:Icon VerticalAlignment="Center"
+                                                         FontSize="14"
+                                                         Data="{x:Static ui:IvIcons.Pointer}" />
+                                            </Button>
+                                            <Button Grid.Column="3"
+                                                    Width="24"
+                                                    Height="24"
+                                                    MinWidth="24"
+                                                    MinHeight="0"
+                                                    Margin="2,0,0,0"
+                                                    Padding="0"
+                                                    Command="{Binding $parent[UserControl].DataContext.Editor.DeleteAnnotationCommand}"
+                                                    CommandParameter="{Binding Id}"
+                                                    IsVisible="{Binding $parent[UserControl].DataContext.Workspace.UiPolicy.CanDeleteGeometry}"
+                                                    Theme="{StaticResource IvIconButtonStyle}"
+                                                    ToolTip.Tip="删除标注">
+                                                <iv:Icon VerticalAlignment="Center"
+                                                         FontSize="14"
+                                                         Data="{x:Static ui:IvIcons.Delete}" />
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <ItemsControl ItemsSource="{Binding Editor.SegmentationPolygons}"
+                                      IsVisible="{Binding Workspace.ProjectProfile.SupportsMasks}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Classes="annotationRow">
+                                        <Grid ColumnDefinitions="Auto,*,Auto">
+                                            <Border Width="3"
+                                                    Height="20"
+                                                    VerticalAlignment="Center"
+                                                    Background="{Binding Color}"
+                                                    CornerRadius="2" />
+                                            <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                                                <TextBlock FontSize="12"
+                                                           FontWeight="SemiBold"
+                                                           Text="{Binding Label}" />
+                                                <TextBlock FontSize="10.5"
+                                                           Foreground="{DynamicResource IvText2Brush}"
+                                                           Text="{Binding PointCount, StringFormat={}{0} 个顶点}" />
+                                            </StackPanel>
+                                            <Button Grid.Column="2"
+                                                    Width="24"
+                                                    Height="24"
+                                                    MinWidth="24"
+                                                    MinHeight="0"
+                                                    Padding="0"
+                                                    Command="{Binding $parent[UserControl].DataContext.Editor.DeletePolygonCommand}"
+                                                    CommandParameter="{Binding Id}"
+                                                    Theme="{StaticResource IvIconButtonStyle}"
+                                                    ToolTip.Tip="删除多边形">
+                                                <iv:Icon VerticalAlignment="Center"
+                                                         FontSize="14"
+                                                         Data="{x:Static ui:IvIcons.Delete}" />
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <Border Background="Transparent"
+                        BorderThickness="0"
+                        IsVisible="{Binding !Editor.HasAnnotations}">
+                    <StackPanel MaxWidth="210"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center">
+                        <TextBlock HorizontalAlignment="Center"
+                                   FontSize="12"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource IvText2Brush}"
+                                   Text="暂无标注" />
+                        <TextBlock Margin="0,5,0,0"
+                                   Classes="emptyHint"
+                                   Text="在画布上拖拽创建，或选择类别后绘制"
+                                   IsVisible="{Binding Workspace.ImageSource, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
+                        <TextBlock Margin="0,5,0,0"
+                                   Classes="emptyHint"
+                                   Text="选择样本后，在这里管理它的标注"
+                                   IsVisible="{Binding Workspace.ImageSource, Converter={x:Static conv:ObjectConverters.IsNull}}" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <Border Grid.Row="1"
+                Margin="12,8,12,12"
+                Padding="0,8,0,0"
+                BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                BorderThickness="0,1,0,0"
+                IsVisible="{Binding Editor.HasSelectedAnnotations}">
+            <StackPanel>
+                <Grid ColumnDefinitions="Auto,*">
+                    <TextBlock VerticalAlignment="Center"
+                               FontSize="11"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource IvText2Brush}"
+                               Text="选中标注" />
+                    <TextBlock Grid.Column="1"
+                               Margin="8,0,0,0"
+                               VerticalAlignment="Center"
+                               FontSize="11.5"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource IvText1Brush}"
+                               Text="{Binding Editor.SelectedAnnotationSummary}"
+                               TextTrimming="CharacterEllipsis" />
+                </Grid>
+                <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock VerticalAlignment="Center"
+                                   FontSize="10.5"
+                                   Foreground="{DynamicResource IvText2Brush}"
+                                   Text="宽" />
+                        <TextBlock Margin="4,0,0,0"
+                                   VerticalAlignment="Center"
+                                   FontSize="11.5"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource IvText1Brush}"
+                                   Text="{Binding Editor.SelectedAnnotation.Width, StringFormat={}{0:0}}" />
+                    </StackPanel>
+                    <StackPanel Margin="14,0,0,0" Orientation="Horizontal">
+                        <TextBlock VerticalAlignment="Center"
+                                   FontSize="10.5"
+                                   Foreground="{DynamicResource IvText2Brush}"
+                                   Text="高" />
+                        <TextBlock Margin="4,0,0,0"
+                                   VerticalAlignment="Center"
+                                   FontSize="11.5"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource IvText1Brush}"
+                                   Text="{Binding Editor.SelectedAnnotation.Height, StringFormat={}{0:0}}" />
+                    </StackPanel>
+                    <StackPanel Margin="14,0,0,0" Orientation="Horizontal">
+                        <TextBlock VerticalAlignment="Center"
+                                   FontSize="10.5"
+                                   Foreground="{DynamicResource IvText2Brush}"
+                                   Text="已选" />
+                        <TextBlock Margin="4,0,0,0"
+                                   VerticalAlignment="Center"
+                                   FontSize="11.5"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource IvText1Brush}"
+                                   Text="{Binding Editor.SelectedAnnotationCount}" />
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

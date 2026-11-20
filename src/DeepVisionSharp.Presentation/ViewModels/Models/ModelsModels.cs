@@ -53,6 +53,24 @@ public sealed record ModelRow(
 
     public bool ShowsInputChannelsBadge => IsClassificationModel;
 
+    /// <summary>本仓库没有 OpenVINO IR 转换产物，卡片不显示 IR 徽标（deepvision ModelRow 有此字段）。</summary>
+    public bool ShowsOpenVinoBadge => false;
+
+    public string OpenVinoBadgeText => string.Empty;
+
+    /// <summary>训练时空域参数没有写进模型元数据，卡片无法展示 pad32 / 画布尺寸徽标。</summary>
+    public bool ShowsSpatialBadge => false;
+
+    public string SpatialBadgeText => string.Empty;
+
+    public bool CanExportPpOcrDetection => false;
+
+    public bool CanConvertOpenVino => false;
+
+    public bool CanQuantizeOpenVinoInt8 => false;
+
+    public bool CanExportOpenVino => false;
+
     public bool IsClassificationModel =>
         ModelTypeNames.IsClassificationModelType(ModelType);
 }

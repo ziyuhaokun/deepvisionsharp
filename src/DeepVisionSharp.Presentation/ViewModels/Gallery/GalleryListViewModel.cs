@@ -136,6 +136,20 @@ public sealed partial class GalleryListViewModel : ObservableObject
 
     public bool CanMergeGalleries => SelectedGalleryCount >= 2 && CanRunGalleryOperation();
 
+    /// <summary>图库页标题下的概览行（deepvision 页面绑定 <c>List.OverviewSummary</c>）。</summary>
+    public string OverviewSummary =>
+        $"{GalleryCount} 个图库 · {SampleCount} 个样本 · {AnnotatedCount} 个已标注";
+
+    /// <summary>
+    /// 本仓库只支持图像分类与目标检测项目（<see cref="ProjectTypes.IsValid"/>），没有字符识别项目，
+    /// 所以 deepvision 的 PPOCRLabel 导入子菜单不会显示。
+    /// </summary>
+    public bool IsTextRecognitionProject => false;
+
+    /// <summary>清空搜索词（deepvision 页面的搜索框清除按钮）。</summary>
+    [RelayCommand]
+    private void ClearSearch() => Keyword = string.Empty;
+
     /// <summary>导入/导出进行中时置真，禁止删除/进入/编辑图库，避免与 Transfer 并发操作数据。</summary>
     public bool IsBlockedByTransfer { get; private set; }
 
@@ -620,11 +634,12 @@ public sealed partial class GalleryListViewModel : ObservableObject
         AnnotatedCount = Galleries.Sum(gallery => gallery.AnnotatedCount);
         ProjectProgress = SampleCount > 0 ? (double)AnnotatedCount / SampleCount : 0;
         HasGalleries = GalleryCount > 0;
+        OnPropertyChanged(nameof(OverviewSummary));
     }
 
     private void RefreshFilteredGalleries()
     {
-        string keyword = Keyword.Trim();
+        string keyword = Keyword?.Trim() ?? string.Empty;
 
         var desired = Galleries
             .Where(gallery => string.IsNullOrWhiteSpace(keyword)

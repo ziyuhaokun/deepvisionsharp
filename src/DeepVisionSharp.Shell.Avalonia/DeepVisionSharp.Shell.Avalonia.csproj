@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -7,6 +7,7 @@
     <RootNamespace>DeepVisionSharp.Shell.Avalonia</RootNamespace>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>14.0</LangVersion>
     <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
 
@@ -15,9 +16,15 @@
     <PackageReference Include="Avalonia.Desktop" Version="12.1.5" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.5" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
+    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="10.0.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DeepVisionSharp.Application\DeepVisionSharp.Application.csproj" />
+    <ProjectReference Include="..\DeepVisionSharp.Bootstrap\DeepVisionSharp.Bootstrap.csproj" />
+    <ProjectReference Include="..\DeepVisionSharp.Domain\DeepVisionSharp.Domain.csproj" />
+    <ProjectReference Include="..\DeepVisionSharp.Presentation\DeepVisionSharp.Presentation.csproj" />
     <ProjectReference Include="..\yu-ui.avalonia\yu-ui.avalonia.csproj" />
   </ItemGroup>
 

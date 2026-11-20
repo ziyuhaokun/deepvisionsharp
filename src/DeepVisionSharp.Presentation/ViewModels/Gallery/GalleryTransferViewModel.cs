@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using System.IO;
+using System.Windows.Input;
 using DeepVisionSharp.Application.Galleries;
 using DeepVisionSharp.Presentation.Services;
 
@@ -50,6 +51,18 @@ public sealed partial class GalleryTransferViewModel : ObservableObject
     public double ImportProgressValue => ImportTotal > 0 ? Math.Clamp((double)ImportProcessed / ImportTotal, 0, 1) : 0;
 
     public string ImportProgressText => ImportTotal > 0 ? $"{ImportProcessed} / {ImportTotal}" : "准备中";
+
+    /// <summary>
+    /// PPOCRLabel 导入/导出（deepvision 用于字符识别项目）；本仓库只支持图像分类与目标检测，
+    /// 没有 PPOCRLabel 读写后端，所以四个入口恒不可执行。
+    /// </summary>
+    public ICommand ImportPpOcrSkipCommand => UnavailableCommand.Instance;
+
+    public ICommand ImportPpOcrAppendCommand => UnavailableCommand.Instance;
+
+    public ICommand ImportPpOcrReplaceCommand => UnavailableCommand.Instance;
+
+    public ICommand ExportPpOcrLabelsCommand => UnavailableCommand.Instance;
 
     [RelayCommand(CanExecute = nameof(CanRunGalleryOperation))]
     private async Task ImportGalleryAsync()

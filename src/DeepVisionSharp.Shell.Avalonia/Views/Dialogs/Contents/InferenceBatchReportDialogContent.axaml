@@ -1,0 +1,122 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="DeepVisionSharp.Shell.Avalonia.Views.Dialogs.Contents.InferenceBatchReportDialogContent"
+             MinWidth="680" MaxWidth="820"
+             TextElement.Foreground="{DynamicResource IvText1Brush}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://DeepVisionSharp.Avalonia/Views/Dialogs/DialogStyles.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <ScrollViewer MaxHeight="620" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+            <UniformGrid Columns="4">
+                <Border Margin="0,0,8,0" Padding="12"
+                        Background="{DynamicResource IvSurface3Brush}" CornerRadius="8">
+                    <StackPanel>
+                        <TextBlock Theme="{StaticResource MetricLabelStyle}" Text="成功率" />
+                        <TextBlock Theme="{StaticResource MetricValueSecondaryStyle}" Text="{Binding SuccessRateText}" />
+                        <TextBlock Theme="{StaticResource MetricNoteStyle}"
+                                   Text="{Binding SuccessCount, StringFormat={}{0} 成功}" />
+                    </StackPanel>
+                </Border>
+                <Border Margin="0,0,8,0" Padding="12"
+                        Background="{DynamicResource IvSurface3Brush}" CornerRadius="8">
+                    <StackPanel>
+                        <TextBlock Theme="{StaticResource MetricLabelStyle}" Text="总耗时" />
+                        <TextBlock Theme="{StaticResource MetricValueSecondaryStyle}" Text="{Binding TotalWallText}" />
+                        <TextBlock Theme="{StaticResource MetricNoteStyle}"
+                                   Text="{Binding TotalCount, StringFormat=共 {0} 张}" />
+                    </StackPanel>
+                </Border>
+                <Border Margin="0,0,8,0" Padding="12"
+                        Background="{DynamicResource IvSurface3Brush}" CornerRadius="8">
+                    <StackPanel>
+                        <TextBlock Theme="{StaticResource MetricLabelStyle}" Text="成功均耗时" />
+                        <TextBlock Theme="{StaticResource MetricValueSecondaryStyle}" Text="{Binding AverageSuccessText}" />
+                        <TextBlock Theme="{StaticResource MetricNoteStyle}" Text="{Binding MinMaxSuccessText}" />
+                    </StackPanel>
+                </Border>
+                <Border Padding="12"
+                        Background="{DynamicResource IvSurface3Brush}" CornerRadius="8">
+                    <StackPanel>
+                        <TextBlock Theme="{StaticResource MetricLabelStyle}" Text="失败" />
+                        <TextBlock Theme="{StaticResource MetricValueSecondaryStyle}" Text="{Binding FailedCount}" />
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <Grid Name="ChartHost" Margin="0,14,0,0" ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
+                <Border Grid.Row="0" Grid.Column="0" Margin="0,0,8,8">
+                    <Image Name="ConfusionChartImage" Stretch="Uniform" HorizontalAlignment="Stretch" />
+                </Border>
+                <Border Grid.Row="0" Grid.Column="1" Margin="8,0,0,8">
+                    <Image Name="RateChartImage" Stretch="Uniform" HorizontalAlignment="Stretch" />
+                </Border>
+                <Border Grid.Row="1" Grid.Column="0" Margin="0,0,8,0">
+                    <Image Name="SuccessFailChartImage" Stretch="Uniform" HorizontalAlignment="Stretch" />
+                </Border>
+                <Border Grid.Row="1" Grid.Column="1" Margin="8,0,0,0">
+                    <Image Name="LatencyChartImage" Stretch="Uniform" HorizontalAlignment="Stretch" />
+                </Border>
+            </Grid>
+
+            <Border Margin="0,16,0,0" Padding="12"
+                    Background="{DynamicResource IvSurface3Brush}" CornerRadius="8">
+                <StackPanel>
+                    <TextBlock FontWeight="SemiBold" Text="OK / NG 评估（NG 为正类）" />
+                    <TextBlock Margin="0,8,0,0" Theme="{StaticResource DialogHintStyle}"
+                               Text="{Binding MissRateText, StringFormat=漏检率：{0}}" />
+                    <TextBlock Theme="{StaticResource DialogHintStyle}"
+                               Text="{Binding FalseAlarmRateText, StringFormat=误报率：{0}}" />
+                    <TextBlock Theme="{StaticResource DialogHintStyle}"
+                               Text="{Binding AccuracyText, StringFormat=准确率：{0}}" />
+                    <TextBlock Theme="{StaticResource DialogHintStyle}"
+                               Text="{Binding ConfusionText, StringFormat=混淆矩阵：{0}}" />
+                    <TextBlock Margin="0,6,0,0" FontSize="11"
+                               Foreground="{DynamicResource IvText2Brush}"
+                               Text="漏检 = 预计 NG 且 推理 OK；仅统计同时具备预计与推理标记的样本。"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <TextBlock Margin="0,16,0,0" FontWeight="SemiBold" Text="原图样例" />
+            <TextBlock Margin="0,4,0,0" Theme="{StaticResource DialogHintStyle}"
+                       Text="OK / NG 命中 / 漏检 / 误报 原图（每类最多 4 张，需预计+推理标记）。无成对标记时为空。副按钮可导出 HTML。"
+                       TextWrapping="Wrap" />
+            <TextBlock Margin="0,8,0,0" Theme="{StaticResource DialogHintStyle}"
+                       IsVisible="{Binding !HasOriginalSamples}"
+                       Text="暂无可用原图样例（请为样本设置预计 OK/NG 后再推理）。" />
+            <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding OriginalSamples}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Width="150" Margin="0,0,8,8" Padding="6"
+                                Background="{DynamicResource IvSurface3Brush}"
+                                BorderBrush="{DynamicResource IvStrokeBrush}"
+                                BorderThickness="1" CornerRadius="6">
+                            <StackPanel>
+                                <Border Height="96" Background="{DynamicResource IvControlFillBrush}"
+                                        ClipToBounds="True" CornerRadius="4">
+                                    <Image Source="{Binding Thumbnail}" Stretch="Uniform" />
+                                </Border>
+                                <TextBlock Margin="0,4,0,0" FontSize="11" FontWeight="SemiBold"
+                                           Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
+                                <TextBlock FontSize="11" Foreground="{DynamicResource IvText2Brush}"
+                                           Text="{Binding Verdict}" />
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <TextBlock Margin="0,14,0,0" Theme="{StaticResource DialogHintStyle}"
+                       Text="主按钮「复制报告」写入剪贴板（不含图表/原图）；副按钮「导出 HTML」生成可归档报告；关闭不修改任何样本。"
+                       TextWrapping="Wrap" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

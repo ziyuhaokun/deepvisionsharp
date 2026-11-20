@@ -12,7 +12,7 @@ using DeepVisionSharp.Presentation.Ports;
 
 namespace DeepVisionSharp.Presentation.ViewModels.Dashboard;
 
-public sealed partial class DashboardViewModel : ObservableObject
+public sealed partial class DashboardViewModel : ObservableObject, ICardColumnsHost
 {
     public DashboardViewModel(
         IMediator mediator,

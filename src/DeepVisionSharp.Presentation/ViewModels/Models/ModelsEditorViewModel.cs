@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using MediatR;
 
 using System.Collections.ObjectModel;
+using System.Windows.Input;
 
 using DeepVisionSharp.Application.Models;
 using DeepVisionSharp.Presentation.Services;
@@ -70,6 +71,15 @@ public sealed partial class ModelsEditorViewModel : ObservableObject, IDisposabl
         && !string.IsNullOrWhiteSpace(DraftName);
 
     public bool IsEditingModel => EditingModelId is not null;
+
+    /// <summary>
+    /// deepvision 页面的「新建模型」按钮绑定这个命令；本仓库模型只能由训练任务生成
+    /// （见 <see cref="ModelsListViewModel.EmptyStateDescription"/>），所以命令恒不可执行。
+    /// </summary>
+    public ICommand ShowCreateModelDialogCommand => UnavailableCommand.Instance;
+
+    /// <summary>没有新建入口，空状态里的「创建模型」按钮也不显示（deepvision 用它做空态引导）。</summary>
+    public bool ShowEmptyCreateAction => false;
 
     /// <summary>编辑时只读展示；模型类型在创建后不可改。</summary>
     public string DraftModelTypeDisplay => ModelTypeNames.GetDisplayLabel(DraftModelType);

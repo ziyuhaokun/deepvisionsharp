@@ -1,0 +1,134 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iv="clr-namespace:YuUI.Controls;assembly=yu-ui.avalonia"
+             xmlns:ui="clr-namespace:YuUI;assembly=yu-ui.avalonia"
+             x:Class="DeepVisionSharp.Shell.Avalonia.Controls.Inference.CanvasViewToolbar"
+             ClipToBounds="False"
+             Focusable="False">
+
+    <UserControl.Resources>
+        <ControlTheme x:Key="ViewToolbarCellButtonTheme" TargetType="Button">
+            <Setter Property="Width" Value="28" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="MinWidth" Value="28" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="Cell"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="5">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+
+            <Style Selector="^:pointerover">
+                <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+            </Style>
+            <Style Selector="^:pointerover /template/ Border#Cell">
+                <Setter Property="Background" Value="{DynamicResource IvControlFillBrush}" />
+            </Style>
+            <Style Selector="^:disabled">
+                <Setter Property="Opacity" Value="0.45" />
+            </Style>
+            <Style Selector="^.pinned">
+                <Setter Property="Foreground" Value="{DynamicResource IvAccentTextBrush}" />
+            </Style>
+            <Style Selector="^.pinned /template/ Border#Cell">
+                <Setter Property="Background" Value="{DynamicResource IvAccentSubtleBrush}" />
+            </Style>
+        </ControlTheme>
+    </UserControl.Resources>
+
+    <Grid ClipToBounds="False">
+        <Border Name="HitZone"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Background="Transparent"
+                Cursor="Arrow" />
+
+        <Border Name="FloatPanel"
+                Margin="12"
+                Padding="2,2,3,2"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Background="{DynamicResource IvSurface3Brush}"
+                BorderBrush="{DynamicResource IvStrokeBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                BoxShadow="0 2 10 0 #2E000000"
+                IsHitTestVisible="False"
+                Opacity="0"
+                IsVisible="False">
+            <StackPanel Name="FloatHost" Orientation="Horizontal">
+                <Button Name="PinButton"
+                        Theme="{StaticResource ViewToolbarCellButtonTheme}"
+                        Click="OnPinButtonClicked"
+                        ToolTip.Tip="置顶（保持显示）">
+                    <iv:Icon FontSize="14" Data="{x:Static ui:IvIcons.Bookmark}" />
+                </Button>
+
+                <Border Width="1"
+                        Height="20"
+                        Margin="1,0"
+                        VerticalAlignment="Center"
+                        Background="{DynamicResource IvStrokeBrush}" />
+
+                <StackPanel Orientation="Horizontal">
+                    <Button Click="OnUndoClick"
+                            IsEnabled="{Binding $parent[UserControl].CanUndo}"
+                            Theme="{StaticResource ViewToolbarCellButtonTheme}"
+                            ToolTip.Tip="撤销">
+                        <iv:Icon FontSize="14" Data="{x:Static ui:IvIcons.ChevronLeft}" />
+                    </Button>
+                    <Button Click="OnRedoClick"
+                            IsEnabled="{Binding $parent[UserControl].CanRedo}"
+                            Theme="{StaticResource ViewToolbarCellButtonTheme}"
+                            ToolTip.Tip="重做">
+                        <iv:Icon FontSize="14" Data="{x:Static ui:IvIcons.ChevronRight}" />
+                    </Button>
+
+                    <Border Width="1"
+                            Height="16"
+                            Margin="2,0"
+                            VerticalAlignment="Center"
+                            Background="{DynamicResource IvStrokeBrush}" />
+
+                    <Button Click="OnZoomOutClick"
+                            Theme="{StaticResource ViewToolbarCellButtonTheme}"
+                            ToolTip.Tip="缩小">
+                        <TextBlock FontSize="14" Text="−" />
+                    </Button>
+                    <TextBlock Width="44"
+                               VerticalAlignment="Center"
+                               FontSize="12"
+                               FontWeight="SemiBold"
+                               Text="{Binding $parent[UserControl].ZoomText}"
+                               TextAlignment="Center" />
+                    <Button Click="OnZoomInClick"
+                            Theme="{StaticResource ViewToolbarCellButtonTheme}"
+                            ToolTip.Tip="放大">
+                        <iv:Icon FontSize="14" Data="{x:Static ui:IvIcons.Add}" />
+                    </Button>
+                    <Button Click="OnFitClick"
+                            Theme="{StaticResource ViewToolbarCellButtonTheme}"
+                            ToolTip.Tip="适应窗口">
+                        <iv:Icon FontSize="14" Data="{x:Static ui:IvIcons.Scan}" />
+                    </Button>
+                </StackPanel>
+
+                <ContentPresenter Name="BodyHost"
+                                  Margin="4,0,0,0"
+                                  VerticalAlignment="Center"
+                                  IsVisible="False" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.IO;
+using System.Windows.Input;
 using DeepVisionSharp.Application.Galleries;
 using DeepVisionSharp.Application.Inference;
 using DeepVisionSharp.Application.Models;
@@ -128,6 +129,30 @@ public sealed partial class ModelsListViewModel : ObservableObject
     public bool HasEmptyState => !HasFilteredModels;
 
     public string ResultSummary => $"{FilteredModelCount} / {ModelCount} 个模型";
+
+    /// <summary>模型页标题下的概览行（deepvision 页面绑定 <c>List.OverviewSummary</c>）。</summary>
+    public string OverviewSummary => ResultSummary;
+
+    /// <summary>deepvision 可以只建模型不训练；本仓库模型只能由训练任务生成，所以这里恒为 false。</summary>
+    public bool CanCreateModels => false;
+
+    /// <summary>本仓库没有 OpenVINO IR 转换管线，转换遮罩永远不显示。</summary>
+    public bool IsConvertingOpenVino => false;
+
+    public int OpenVinoConversionProgress => 0;
+
+    public string OpenVinoConversionProgressText => "0%";
+
+    /// <summary>以下 OpenVINO / PP-OCR 导出入口在 deepvision 页面里存在，本仓库没有对应后端：命令恒不可执行。</summary>
+    public ICommand ConvertOpenVinoCommand => UnavailableCommand.Instance;
+
+    public ICommand QuantizeOpenVinoInt8Command => UnavailableCommand.Instance;
+
+    public ICommand ExportOpenVinoCommand => UnavailableCommand.Instance;
+
+    public ICommand ExportPpOcrDetectionBundleCommand => UnavailableCommand.Instance;
+
+    public ICommand RetryPpOcrDetectionExportCommand => UnavailableCommand.Instance;
 
     public event Action? ModelsChanged;
 
@@ -507,8 +532,8 @@ public sealed partial class ModelsListViewModel : ObservableObject
 
     private void RefreshFilteredModels()
     {
-        var keyword = Keyword.Trim();
-        var selectedStatus = SelectedStatus.Trim();
+        var keyword = Keyword?.Trim() ?? string.Empty;
+        var selectedStatus = SelectedStatus?.Trim() ?? string.Empty;
 
         var filtered = Models
             .Where(model => string.IsNullOrWhiteSpace(keyword)

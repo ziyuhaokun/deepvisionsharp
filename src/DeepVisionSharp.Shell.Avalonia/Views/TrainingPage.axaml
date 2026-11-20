@@ -1,0 +1,311 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iv="clr-namespace:YuUI.Controls;assembly=yu-ui.avalonia"
+             xmlns:ui="clr-namespace:YuUI;assembly=yu-ui.avalonia"
+             xmlns:dv="clr-namespace:DeepVisionSharp.Shell.Avalonia.Controls.Training"
+             xmlns:training="clr-namespace:DeepVisionSharp.Shell.Avalonia.Controls.Training"
+             x:Class="DeepVisionSharp.Shell.Avalonia.Views.TrainingPage">
+
+    <UserControl.Styles>
+        <Style Selector="Button.trainingTab">
+            <Setter Property="Height" Value="34" />
+            <Setter Property="Padding" Value="12,0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0,0,0,2" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+        </Style>
+        <Style Selector="Button.trainingTab.active">
+            <Setter Property="Foreground" Value="{DynamicResource IvAccentTextBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvAccentBrush}" />
+        </Style>
+        <Style Selector="Border.panelSurface">
+            <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+        </Style>
+        <Style Selector="Border.emptyState">
+            <Setter Property="Padding" Value="24" />
+        </Style>
+    </UserControl.Styles>
+
+    <DockPanel Name="PageRootDock" Margin="32,28" LastChildFill="True">
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto">
+            <StackPanel>
+                <TextBlock FontFamily="{DynamicResource IvDisplayFontFamily}"
+                           FontSize="24"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource IvText1Brush}"
+                           Text="训练" />
+                <TextBlock Margin="0,5,0,0"
+                           FontSize="12.5"
+                           Foreground="{DynamicResource IvText2Brush}"
+                           Text="创建和监控训练任务，查看指标、日志与产物" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" Orientation="Horizontal">
+                <Button Height="34"
+                        Padding="14,0"
+                        Margin="0,0,8,0"
+                        Command="{Binding JobList.CreateJobCommand}"
+                        IsEnabled="{Binding JobList.IsTrainingWorkflow}"
+                        Theme="{StaticResource IvPrimaryButtonStyle}">
+                    <StackPanel Orientation="Horizontal">
+                        <iv:Icon Margin="0,0,6,0" VerticalAlignment="Center" FontSize="16" Data="{x:Static ui:IvIcons.Add}" />
+                        <TextBlock VerticalAlignment="Center" Text="新建任务" />
+                    </StackPanel>
+                </Button>
+                <Button Height="34"
+                        Padding="13,0"
+                        Command="{Binding JobList.LoadCommand}"
+                        Theme="{StaticResource IvSubtleButtonStyle}">
+                    <StackPanel Orientation="Horizontal">
+                        <iv:Icon Margin="0,0,6,0" VerticalAlignment="Center" FontSize="16" Data="{x:Static ui:IvIcons.Refresh}" />
+                        <TextBlock VerticalAlignment="Center" Text="刷新" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <Grid Margin="0,16,0,0" MinHeight="240" ClipToBounds="True">
+            <Border Classes="emptyState" IsVisible="{Binding JobList.ShowProjectRequired}">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <iv:Icon HorizontalAlignment="Center" FontSize="30" Foreground="{DynamicResource IvText3Brush}" Data="{x:Static ui:IvIcons.Play}" />
+                    <TextBlock Margin="0,10,0,0" HorizontalAlignment="Center" FontSize="15" FontWeight="SemiBold" Text="未选择项目" />
+                    <TextBlock Margin="0,4,0,0" HorizontalAlignment="Center" FontSize="12.5" Foreground="{DynamicResource IvText2Brush}" Text="请先在项目面板选择一个项目，再创建训练任务。" />
+                </StackPanel>
+            </Border>
+
+            <Border Classes="emptyState" IsVisible="{Binding JobList.ShowSegmentationTrainingPlaceholder}">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <iv:Icon HorizontalAlignment="Center" FontSize="30" Foreground="{DynamicResource IvText3Brush}" Data="{x:Static ui:IvIcons.Image}" />
+                    <TextBlock Margin="0,10,0,0" HorizontalAlignment="Center" FontSize="15" FontWeight="SemiBold" Text="语义分割训练已接入" />
+                    <TextBlock Margin="0,4,0,0" HorizontalAlignment="Center" FontSize="12.5" Foreground="{DynamicResource IvText2Brush}" Text="UNet 训练任务与模型库初始化已开放。标注页自动推理写回仍在后续迭代。" TextAlignment="Center" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <Grid IsVisible="{Binding JobList.IsTrainingWorkflow}" ColumnDefinitions="0.32*,Auto,*">
+                <Border Grid.Column="0"
+                        Classes="panelSurface"
+                        Padding="14"
+                        IsVisible="{Binding JobList.IsTrainingWorkflow}">
+                    <DockPanel LastChildFill="True">
+                        <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
+                            <TextBlock VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold" Text="训练任务" />
+                            <Border MinWidth="20" Padding="6,0" HorizontalAlignment="Right" VerticalAlignment="Center" Background="{DynamicResource IvControlFillBrush}" CornerRadius="4">
+                                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource IvText2Brush}" Text="{Binding JobList.JobCount}" />
+                            </Border>
+                        </Grid>
+
+                        <Grid>
+                            <ListBox ItemsSource="{Binding JobList.Jobs}"
+                                     SelectedItem="{Binding JobList.SelectedJob}">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid RowDefinitions="Auto,Auto" Margin="0,0,0,6">
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <TextBlock Margin="0,0,8,0"
+                                                           VerticalAlignment="Center"
+                                                           FontSize="13"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource IvText1Brush}"
+                                                           Text="{Binding Name}"
+                                                           TextTrimming="CharacterEllipsis" />
+                                                <Border Grid.Column="1" Padding="8,3" Background="{DynamicResource IvControlFillBrush}" CornerRadius="10">
+                                                    <TextBlock FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource IvText2Brush}" Text="{Binding StatusDisplay}" />
+                                                </Border>
+                                            </Grid>
+                                            <TextBlock Grid.Row="1" Margin="0,4,0,0" FontSize="11.5" Foreground="{DynamicResource IvText3Brush}" Text="{Binding MetaText}" TextTrimming="CharacterEllipsis" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+
+                            <StackPanel Margin="10,0" IsHitTestVisible="False" IsVisible="{Binding JobList.HasEmptyJobList}" VerticalAlignment="Center">
+                                <iv:Icon HorizontalAlignment="Center" FontSize="26" Foreground="{DynamicResource IvText3Brush}" Data="{x:Static ui:IvIcons.Documents}" />
+                                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Center" FontSize="12.5" FontWeight="SemiBold" Text="暂无任务" TextAlignment="Center" />
+                                <TextBlock Margin="0,3,0,0" HorizontalAlignment="Center" FontSize="11.5" Foreground="{DynamicResource IvText3Brush}" Text="点击“新建任务”开始训练" TextAlignment="Center" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Grid>
+                    </DockPanel>
+                </Border>
+
+                <GridSplitter Grid.Column="1" Width="6" Background="Transparent" ResizeDirection="Columns" />
+
+                <Border Grid.Column="2" Classes="panelSurface" IsVisible="{Binding JobList.ShowSelectJobPrompt}">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <iv:Icon HorizontalAlignment="Center" FontSize="30" Foreground="{DynamicResource IvText3Brush}" Data="{x:Static ui:IvIcons.ArrowRight}" />
+                        <TextBlock Margin="0,10,0,0" HorizontalAlignment="Center" FontSize="15" FontWeight="SemiBold" Text="请选择任务" />
+                        <TextBlock Margin="0,4,0,0" HorizontalAlignment="Center" FontSize="12.5" Foreground="{DynamicResource IvText2Brush}" Text="在左侧选择一个任务，或新建训练任务。" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="2" Classes="panelSurface" IsVisible="{Binding JobList.ShowDetailPreparing}">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <dv:BusyRing Width="36" Height="36" HorizontalAlignment="Center" />
+                        <TextBlock Margin="0,10,0,0" HorizontalAlignment="Center" FontSize="14" FontWeight="SemiBold" Text="正在加载任务配置…" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="2" Classes="panelSurface" IsVisible="{Binding JobList.ShowYoloJobDetail}">
+                    <Grid RowDefinitions="Auto,Auto,*,Auto">
+                        <Border Grid.Row="0"
+                                Padding="16,14,16,10"
+                                BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                                BorderThickness="0,0,0,1">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock VerticalAlignment="Center" FontSize="18" FontWeight="SemiBold" Text="{Binding Config.ModelName}" TextTrimming="CharacterEllipsis" />
+                                        <Border Margin="10,0,0,0" Padding="8,3" VerticalAlignment="Center" Background="{DynamicResource IvAccentSubtleBrush}" CornerRadius="10">
+                                            <TextBlock FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource IvAccentTextBrush}" Text="{Binding Config.SelectedJobStatusDisplay}" />
+                                        </Border>
+                                        <iv:Icon Margin="10,0,0,0" VerticalAlignment="Center" FontSize="14" Foreground="{DynamicResource IvText2Brush}" Data="{x:Static ui:IvIcons.Settings}" IsVisible="{Binding Config.IsJobLocked}" />
+                                    </StackPanel>
+                                    <TextBlock Margin="0,4,0,0" FontSize="11.5" Foreground="{DynamicResource IvText3Brush}" Text="{Binding JobList.SelectedJob.MetaText}" TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                    <Button Margin="0,0,8,0"
+                                            VerticalAlignment="Top"
+                                            Command="{Binding JobList.DuplicateJobCommand}"
+                                            IsEnabled="{Binding Config.CanDuplicateJob}"
+                                            Theme="{StaticResource IvIconButtonStyle}"
+                                            ToolTip.Tip="复制为新草稿任务">
+                                        <iv:Icon VerticalAlignment="Center" FontSize="16" Data="{x:Static ui:IvIcons.Copy}" />
+                                    </Button>
+                                    <Button VerticalAlignment="Top"
+                                            Command="{Binding ConfirmDeleteJobCommand}"
+                                            IsEnabled="{Binding Config.CanDeleteJob}"
+                                            Theme="{StaticResource IvIconButtonStyle}"
+                                            ToolTip.Tip="{Binding Config.DeleteJobToolTip}">
+                                        <iv:Icon VerticalAlignment="Center" FontSize="16" Data="{x:Static ui:IvIcons.Delete}" />
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <Border Grid.Row="1"
+                                BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                                BorderThickness="0,0,0,1">
+                            <Grid Margin="16,0" ColumnDefinitions="*,Auto">
+                                <StackPanel Orientation="Horizontal" IsVisible="{Binding Monitor.IsSettingsMode}">
+                                    <Button Classes="trainingTab" Classes.active="{Binding Monitor.IsBasicSectionActive}" Command="{Binding Monitor.ShowBasicSectionCommand}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="基本配置" />
+                                            <iv:Icon Margin="6,0,0,0" FontSize="13" Foreground="{DynamicResource IvSuccessBrush}" Data="{x:Static ui:IvIcons.Check}" IsVisible="{Binding Config.IsBasicConfigurationComplete}" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Classes="trainingTab" Classes.active="{Binding Monitor.IsDatasetSectionActive}" Command="{Binding Monitor.ShowDatasetSectionCommand}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="数据集" />
+                                            <iv:Icon Margin="6,0,0,0" FontSize="13" Foreground="{DynamicResource IvSuccessBrush}" Data="{x:Static ui:IvIcons.Check}" IsVisible="{Binding Config.IsDatasetConfigurationComplete}" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Classes="trainingTab" Classes.active="{Binding Monitor.IsAdvancedSectionActive}" Command="{Binding Monitor.ShowAdvancedSectionCommand}" IsVisible="{Binding Config.IsYoloModelSelected}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="高级参数" />
+                                            <Border MinWidth="16" Height="16" Margin="6,0,0,0" Padding="5,0" Background="{DynamicResource IvWarningSubtleBrush}" CornerRadius="8" IsVisible="{Binding Config.HasAdvancedModifications}">
+                                                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource IvWarningBrush}" Text="{Binding Config.AdvancedModifiedParameterCount}" />
+                                            </Border>
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal" IsVisible="{Binding Monitor.IsRunMode}">
+                                    <Button Classes="trainingTab" Classes.active="{Binding Monitor.IsOverviewSectionActive}" Command="{Binding Monitor.ShowOverviewSectionCommand}" Content="概览" IsEnabled="{Binding Monitor.AreResultTabsEnabled}" />
+                                    <Button Classes="trainingTab" Classes.active="{Binding Monitor.IsConfigPreviewSectionActive}" Command="{Binding Monitor.ShowConfigPreviewSectionCommand}" Content="配置" IsEnabled="{Binding Monitor.AreResultTabsEnabled}" />
+                                    <Button Classes="trainingTab" Classes.active="{Binding Monitor.IsPreviewSectionActive}" Command="{Binding Monitor.ShowPreviewSectionCommand}" Content="预览" IsEnabled="{Binding Monitor.AreResultTabsEnabled}" />
+                                    <Button Classes="trainingTab" Classes.active="{Binding Monitor.IsMetricsSectionActive}" Command="{Binding Monitor.ShowMetricsSectionCommand}" Content="指标" IsEnabled="{Binding Monitor.AreResultTabsEnabled}" />
+                                    <Button Classes="trainingTab" Classes.active="{Binding Monitor.IsLogsSectionActive}" Command="{Binding Monitor.ShowLogsSectionCommand}" Content="日志" IsEnabled="{Binding Monitor.AreResultTabsEnabled}" />
+                                    <Button Classes="trainingTab" Classes.active="{Binding Monitor.IsResourcesSectionActive}" Command="{Binding Monitor.ShowResourcesSectionCommand}" Content="资源" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal">
+                                    <dv:BusyRing Width="16" Height="16" Margin="0,0,6,0" IsVisible="{Binding Monitor.IsRunning}" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <Grid Grid.Row="2">
+                            <training:TrainingSettingsPanel IsVisible="{Binding Monitor.IsSettingsMode}" VerticalAlignment="Stretch" />
+                            <training:TrainingRunPanel IsVisible="{Binding Monitor.IsRunMode}" VerticalAlignment="Stretch" />
+                        </Grid>
+
+                        <Border Grid.Row="3"
+                                MinHeight="56"
+                                Padding="16,11"
+                                BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                                BorderThickness="0,1,0,0">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock FontSize="12"
+                                               Foreground="{DynamicResource IvWarningBrush}"
+                                               Text="{Binding Config.StartTrainingBlockReason}"
+                                               TextWrapping="Wrap"
+                                               IsVisible="{Binding Config.HasStartTrainingBlockReason}" />
+                                    <TextBlock FontSize="12"
+                                               Foreground="{DynamicResource IvText2Brush}"
+                                               Text="{Binding Config.DraftRunSummary}"
+                                               TextTrimming="CharacterEllipsis"
+                                               IsVisible="{Binding Config.HasDraftRunSummary}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Margin="16,0,0,0" VerticalAlignment="Center" Orientation="Horizontal">
+                                    <Button Height="34"
+                                            Padding="14,0"
+                                            Margin="0,0,8,0"
+                                            Command="{Binding Config.StartTrainingCommand}"
+                                            ToolTip.Tip="{Binding Config.StartTrainingToolTip}"
+                                            IsVisible="{Binding Monitor.IsSettingsMode}"
+                                            Theme="{StaticResource IvPrimaryButtonStyle}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <iv:Icon Margin="0,0,6,0" VerticalAlignment="Center" FontSize="16" Data="{x:Static ui:IvIcons.Play}" />
+                                            <TextBlock VerticalAlignment="Center" Text="开始训练" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Height="34"
+                                            Padding="12,0"
+                                            Margin="0,0,8,0"
+                                            Command="{Binding Config.ResumeTrainingCommand}"
+                                            ToolTip.Tip="{Binding Config.ResumeTrainingToolTip}"
+                                            IsVisible="{Binding Config.CanResumeTraining}"
+                                            Theme="{StaticResource IvPrimaryButtonStyle}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <iv:Icon Margin="0,0,6,0" VerticalAlignment="Center" FontSize="16" Data="{x:Static ui:IvIcons.Refresh}" />
+                                            <TextBlock VerticalAlignment="Center" Text="继续训练" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Height="34"
+                                            Padding="12,0"
+                                            Margin="0,0,8,0"
+                                            Command="{Binding Config.StopTrainingCommand}"
+                                            ToolTip.Tip="{Binding Config.StopTrainingToolTip}"
+                                            Theme="{StaticResource IvSubtleButtonStyle}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <iv:Icon Margin="0,0,6,0" VerticalAlignment="Center" FontSize="16" Data="{x:Static ui:IvIcons.Close}" />
+                                            <TextBlock VerticalAlignment="Center" Text="停止" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Height="34"
+                                            Padding="12,0"
+                                            Command="{Binding Config.SaveAsModelCommand}"
+                                            ToolTip.Tip="{Binding Config.SaveAsModelToolTip}"
+                                            Theme="{StaticResource IvSubtleButtonStyle}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <iv:Icon Margin="0,0,6,0" VerticalAlignment="Center" FontSize="16" Data="{x:Static ui:IvIcons.Save}" />
+                                            <TextBlock VerticalAlignment="Center" Text="保存模型" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <Border ZIndex="10" Background="{DynamicResource IvOverlayBrush}" IsVisible="{Binding JobList.IsLoading}">
+                <dv:BusyRing Width="42" Height="42" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Border>
+        </Grid>
+    </DockPanel>
+</UserControl>

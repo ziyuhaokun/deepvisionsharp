@@ -2,6 +2,7 @@ using System.Windows.Input;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DeepVisionSharp.Presentation.ViewModels;
 
 namespace DeepVisionSharp.Shell.Avalonia.ViewModels;
 
@@ -9,7 +10,7 @@ namespace DeepVisionSharp.Shell.Avalonia.ViewModels;
 /// 首页 stub 上下文：绑定路径与 deepvision 的 DashboardViewModel 同名同层
 /// （List / Editor / Transfer / CardColumns），值全部是假数据，命令点了不做事。
 /// </summary>
-public sealed class SampleDashboardContext : ObservableObject
+public sealed class SampleDashboardContext : ObservableObject, ICardColumnsHost
 {
     private int _cardColumns = 3;
 

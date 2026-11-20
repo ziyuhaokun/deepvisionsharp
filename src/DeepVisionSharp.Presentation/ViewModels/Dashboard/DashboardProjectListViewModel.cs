@@ -129,7 +129,36 @@ public sealed partial class DashboardProjectListViewModel : ObservableObject
 
     public string ResultSummary => $"{FilteredProjectCount} / {ProjectCount} 个项目";
 
+    /// <summary>首页标题下的概览行（deepvision 页面绑定 <c>List.OverviewSummary</c>，本仓库原属性名是 ResultSummary）。</summary>
+    public string OverviewSummary =>
+        $"{ProjectCount} 个项目 · {TotalSamples} 个样本 · {TotalLabels} 个标签";
+
+    /// <summary>删除进行中：页面用它在删除期间显示不可中断的进度遮罩。</summary>
+    [ObservableProperty]
+    private bool _isDeletingProject;
+
+    public string DeleteTitleText => "正在删除项目";
+
+    public string DeleteStageText => "清理图库、样本、标注、模型库与磁盘目录…";
+
+    public string DeleteProgressPercentText => "—";
+
+    /// <summary>删除是一次整体事务，没有可上报的分片进度：遮罩只转圈，不显示假百分比。</summary>
+    public bool IsDeleteProgressIndeterminate => true;
+
+    public double DeleteProgressValue => 0;
+
+    public string DeleteProgressText => "此操作不可恢复";
+
     public event Action? ProjectSnapshotChanged;
+
+    /// <summary>清空搜索词与类型筛选（deepvision 页面的「清空筛选」按钮）。</summary>
+    [RelayCommand]
+    private void ClearFilters()
+    {
+        Keyword = string.Empty;
+        SelectedType = string.Empty;
+    }
 
     [RelayCommand]
     private async Task LoadAsync(CancellationToken cancellationToken)
@@ -195,6 +224,7 @@ public sealed partial class DashboardProjectListViewModel : ObservableObject
     {
         var row = Projects.FirstOrDefault(project => project.Id == projectId);
         IsProjectOperationInProgress = true;
+        IsDeletingProject = true;
         try
         {
             var result = await _mediator.Send(new DeleteProjectCommand(projectId), cancellationToken);
@@ -222,6 +252,7 @@ public sealed partial class DashboardProjectListViewModel : ObservableObject
         }
         finally
         {
+            IsDeletingProject = false;
             IsProjectOperationInProgress = false;
         }
     }
@@ -340,9 +371,15 @@ public sealed partial class DashboardProjectListViewModel : ObservableObject
 
     partial void OnSelectedTypeChanged(string value) => RefreshFilteredProjects();
 
-    partial void OnProjectCountChanged(int value) => OnPropertyChanged(nameof(ResultSummary));
+    partial void OnProjectCountChanged(int value) => NotifyDashboardSummaryChanged();
 
-    partial void OnFilteredProjectCountChanged(int value) => OnPropertyChanged(nameof(ResultSummary));
+    partial void OnFilteredProjectCountChanged(int value) => NotifyDashboardSummaryChanged();
+
+    private void NotifyDashboardSummaryChanged()
+    {
+        OnPropertyChanged(nameof(ResultSummary));
+        OnPropertyChanged(nameof(OverviewSummary));
+    }
 
     partial void OnHasProjectsChanged(bool value)
     {
@@ -393,12 +430,13 @@ public sealed partial class DashboardProjectListViewModel : ObservableObject
         TotalLabels = active.Sum(project => project.LabelCount);
         HasProjects = Projects.Count > 0;
         OnPropertyChanged(nameof(ResultSummary));
+        OnPropertyChanged(nameof(OverviewSummary));
     }
 
     private void RefreshFilteredProjects()
     {
-        var keyword = Keyword.Trim();
-        var selectedType = SelectedType.Trim();
+        var keyword = Keyword?.Trim() ?? string.Empty;
+        var selectedType = SelectedType?.Trim() ?? string.Empty;
 
         var matching = Projects
             .Where(project => string.IsNullOrWhiteSpace(keyword)

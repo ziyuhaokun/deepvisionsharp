@@ -1,0 +1,1271 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iv="clr-namespace:YuUI.Controls;assembly=yu-ui.avalonia"
+             xmlns:ui="clr-namespace:YuUI;assembly=yu-ui.avalonia"
+             xmlns:dv="clr-namespace:DeepVisionSharp.Shell.Avalonia.Controls.Training"
+             xmlns:conv="clr-namespace:DeepVisionSharp.Shell.Avalonia.Converters.Training"
+             x:Class="DeepVisionSharp.Shell.Avalonia.Controls.Training.TrainingRunPanel"
+             Foreground="{DynamicResource IvText1Brush}">
+
+    <UserControl.Resources>
+        <conv:FilePathToImageConverter x:Key="FilePathToImageConverter" />
+        <ControlTheme x:Key="TrainingSecondaryButtonStyle" TargetType="Button"
+                      BasedOn="{StaticResource IvButtonBaseStyle}">
+            <Setter Property="Height" Value="34" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="Padding" Value="12,0" />
+            <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeBrush}" />
+            <Setter Property="FontSize" Value="13" />
+            <Style Selector="^:pointerover">
+                <Setter Property="Background" Value="{DynamicResource IvSurfaceSubtleHoverBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource IvControlBorderHoverBrush}" />
+            </Style>
+        </ControlTheme>
+    </UserControl.Resources>
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock.sectionTitle">
+            <Setter Property="Margin" Value="0,0,0,10" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        </Style>
+        <Style Selector="TextBlock.fieldLabel">
+            <Setter Property="Margin" Value="0,0,0,4" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+        </Style>
+        <Style Selector="Border.resultCard">
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="Margin" Value="0,0,0,14" />
+            <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+        </Style>
+        <Style Selector="Border.metricCard">
+            <Setter Property="Padding" Value="14" />
+            <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+        </Style>
+        <Style Selector="StackPanel.emptyState">
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="ProgressBar.resourceProgress">
+            <Setter Property="Height" Value="4" />
+            <Setter Property="Margin" Value="0,10,0,0" />
+            <Setter Property="Background" Value="{DynamicResource IvSurface4Brush}" />
+        </Style>
+        <Style Selector="Border.historyTable">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="ClipToBounds" Value="True" />
+        </Style>
+        <Style Selector="Border.historyHeaderRow">
+            <Setter Property="Padding" Value="0,6" />
+            <Setter Property="Background" Value="{DynamicResource IvControlFillBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+        </Style>
+        <Style Selector="TextBlock.historyHeader">
+            <Setter Property="Margin" Value="8,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+        </Style>
+        <Style Selector="TextBlock.historyCell">
+            <Setter Property="Margin" Value="8,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        </Style>
+        <Style Selector="Border.historyRow">
+            <Setter Property="MinHeight" Value="24" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+        </Style>
+        <Style Selector="Border.logSurface">
+            <Setter Property="ClipToBounds" Value="True" />
+            <Setter Property="VerticalAlignment" Value="Stretch" />
+            <Setter Property="Background" Value="{DynamicResource IvSurface1Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid MinHeight="0" VerticalAlignment="Stretch">
+        <ScrollViewer Grid.Row="0"
+                      Margin="16,6,16,0"
+                      HorizontalScrollBarVisibility="Disabled"
+                      MinHeight="0"
+                      VerticalAlignment="Stretch"
+                      VerticalScrollBarVisibility="Auto"
+                      IsVisible="{Binding Monitor.IsConfigPreviewSectionActive}">
+            <StackPanel Margin="0,4,0,12">
+                <Border Classes="resultCard">
+                    <StackPanel>
+                        <TextBlock Classes="sectionTitle" Text="任务信息" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" MinWidth="96" />
+                                <ColumnDefinition Width="16" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0"
+                                       Margin="0,0,0,10"
+                                       Classes="fieldLabel"
+                                       Text="实验名称" />
+                            <TextBlock Grid.Row="0" Grid.Column="2"
+                                       Margin="0,0,0,10"
+                                       FontSize="12.5"
+                                       Text="{Binding Config.ModelName}"
+                                       TextWrapping="Wrap" />
+
+                            <TextBlock Grid.Row="1" Grid.Column="0"
+                                       Margin="0,0,0,10"
+                                       Classes="fieldLabel"
+                                       Text="数据集" />
+                            <TextBlock Grid.Row="1" Grid.Column="2"
+                                       Margin="0,0,0,10"
+                                       FontSize="12.5"
+                                       Text="{Binding Config.Dataset.DatasetSummaryText}"
+                                       TextWrapping="Wrap" />
+
+                            <TextBlock Grid.Row="2" Grid.Column="0"
+                                       Classes="fieldLabel"
+                                       Text="模型" />
+                            <TextBlock Grid.Row="2" Grid.Column="2"
+                                       FontSize="12.5"
+                                       Text="{Binding Config.SelectedLibraryModelSummary}"
+                                       TextWrapping="Wrap" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="resultCard">
+                    <StackPanel>
+                        <TextBlock Classes="sectionTitle" Text="训练参数" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" MinWidth="96" />
+                                <ColumnDefinition Width="16" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0"
+                                       Margin="0,0,0,8"
+                                       Classes="fieldLabel"
+                                       Text="Epochs"
+                                       IsVisible="{Binding Config.ShowsYoloTrainHyperparameters}" />
+                            <TextBlock Grid.Row="0" Grid.Column="2"
+                                       Margin="0,0,0,8"
+                                       FontFamily="{DynamicResource IvMonoFontFamily}"
+                                       FontSize="12.5"
+                                       Text="{Binding Config.Epochs}"
+                                       IsVisible="{Binding Config.ShowsYoloTrainHyperparameters}" />
+
+                            <TextBlock Grid.Row="1" Grid.Column="0"
+                                       Margin="0,0,0,8"
+                                       Classes="fieldLabel"
+                                       Text="Batch Size"
+                                       IsVisible="{Binding Config.ShowsBatchSizeHyperparameter}" />
+                            <TextBlock Grid.Row="1" Grid.Column="2"
+                                       Margin="0,0,0,8"
+                                       FontFamily="{DynamicResource IvMonoFontFamily}"
+                                       FontSize="12.5"
+                                       Text="{Binding Config.BatchSize}"
+                                       IsVisible="{Binding Config.ShowsBatchSizeHyperparameter}" />
+
+                            <TextBlock Grid.Row="2" Grid.Column="0"
+                                       Margin="0,0,0,8"
+                                       Classes="fieldLabel"
+                                       Text="学习率"
+                                       IsVisible="{Binding Config.ShowsYoloTrainHyperparameters}" />
+                            <TextBlock Grid.Row="2" Grid.Column="2"
+                                       Margin="0,0,0,8"
+                                       FontFamily="{DynamicResource IvMonoFontFamily}"
+                                       FontSize="12.5"
+                                       Text="{Binding Config.LearningRate}"
+                                       IsVisible="{Binding Config.ShowsYoloTrainHyperparameters}" />
+
+                            <TextBlock Grid.Row="3" Grid.Column="0"
+                                       Margin="0,0,0,8"
+                                       Classes="fieldLabel"
+                                       Text="优化器 / Workers"
+                                       IsVisible="{Binding Config.ShowsYoloAdvancedTrainOptions}" />
+                            <StackPanel Grid.Row="3" Grid.Column="2"
+                                        Margin="0,0,0,8"
+                                        Orientation="Horizontal"
+                                        IsVisible="{Binding Config.ShowsYoloAdvancedTrainOptions}">
+                                <TextBlock FontSize="12.5" Text="{Binding Config.Optimizer}" />
+                                <TextBlock FontSize="12.5" Text=" / " />
+                                <TextBlock FontSize="12.5" Text="{Binding Config.NumWorkers}" />
+                            </StackPanel>
+
+                            <TextBlock Grid.Row="4" Grid.Column="0"
+                                       Classes="fieldLabel"
+                                       Text="数据增强"
+                                       IsVisible="{Binding Config.ShowsYoloAugmentation}" />
+                            <TextBlock Grid.Row="4" Grid.Column="2"
+                                       FontSize="12.5"
+                                       Text="{Binding Config.YoloAugmentationSummary}"
+                                       TextWrapping="Wrap"
+                                       IsVisible="{Binding Config.ShowsYoloAugmentation}" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <ScrollViewer Grid.Row="0"
+                      Margin="16,6,16,0"
+                      HorizontalScrollBarVisibility="Disabled"
+                      MinHeight="0"
+                      VerticalAlignment="Stretch"
+                      VerticalScrollBarVisibility="Auto"
+                      IsVisible="{Binding Monitor.IsOverviewSectionActive}">
+            <StackPanel Margin="0,4,0,12">
+                <Border Margin="0,0,0,12"
+                        Padding="16"
+                        Background="{DynamicResource IvDangerSubtleBrush}"
+                        BorderBrush="{DynamicResource IvDangerBrush}"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        IsVisible="{Binding Monitor.ShowFailureSummary}">
+                    <Grid ColumnDefinitions="Auto,*">
+                        <iv:Icon Margin="0,1,12,0"
+                                 VerticalAlignment="Top"
+                                 Foreground="{DynamicResource IvDangerBrush}"
+                                 FontSize="16"
+                                 Data="{x:Static ui:IvIcons.Error}" />
+                        <StackPanel Grid.Column="1">
+                            <TextBlock FontSize="13"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource IvDangerBrush}"
+                                       Text="训练失败" />
+                            <TextBlock Margin="0,6,0,0"
+                                       Text="{Binding Monitor.FailureSummary}"
+                                       TextWrapping="Wrap" />
+                            <ScrollViewer MaxHeight="160"
+                                          Margin="0,8,0,0"
+                                          HorizontalScrollBarVisibility="Disabled"
+                                          VerticalScrollBarVisibility="Auto"
+                                          IsVisible="{Binding Monitor.ShowFailureTraceback}">
+                                <TextBlock FontFamily="{DynamicResource IvMonoFontFamily}"
+                                           FontSize="11"
+                                           Text="{Binding Monitor.FailureTraceback}"
+                                           TextWrapping="Wrap" />
+                            </ScrollViewer>
+                            <StackPanel Margin="0,12,0,0" Orientation="Horizontal">
+                                <Button Margin="0,0,8,0"
+                                        HorizontalAlignment="Left"
+                                        Command="{Binding Monitor.CopyFailureDetailCommand}"
+                                        Content="复制失败详情"
+                                        Theme="{StaticResource TrainingSecondaryButtonStyle}" />
+                                <Button HorizontalAlignment="Left"
+                                        Command="{Binding Monitor.ShowLogsSectionCommand}"
+                                        Content="查看完整日志"
+                                        Theme="{StaticResource TrainingSecondaryButtonStyle}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <StackPanel VerticalAlignment="Top" IsVisible="{Binding Monitor.ShowResultsContent}">
+                    <Border Margin="0,0,0,12"
+                            Padding="16"
+                            Background="{DynamicResource IvSurface2Brush}"
+                            BorderBrush="{DynamicResource IvWarningBrush}"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            IsVisible="{Binding Monitor.HasOcrExportWarning}">
+                        <StackPanel>
+                            <TextBlock FontSize="13"
+                                       Foreground="{DynamicResource IvWarningTextBrush}"
+                                       Text="{Binding Monitor.OcrExportWarning}"
+                                       TextWrapping="Wrap" />
+                            <Button Margin="0,12,0,0"
+                                    HorizontalAlignment="Left"
+                                    Command="{Binding Monitor.ShowLogsSectionCommand}"
+                                    Content="查看训练日志"
+                                    Theme="{StaticResource TrainingSecondaryButtonStyle}" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Classes="resultCard">
+                        <StackPanel>
+                            <StackPanel IsVisible="{Binding Monitor.ShowDualCheckpointResults}">
+                                <TextBlock Margin="0,0,0,10"
+                                           Classes="sectionTitle"
+                                           Text="训练权重" />
+                                <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
+                                    <RadioButton Margin="0,0,16,0"
+                                                 Content="入库：最佳模型"
+                                                 GroupName="TrainingCheckpointSave"
+                                                 IsChecked="{Binding Monitor.IsBestCheckpointSelected, Mode=TwoWay}" />
+                                    <RadioButton Content="入库：末轮模型"
+                                                 GroupName="TrainingCheckpointSave"
+                                                 IsChecked="{Binding Monitor.IsLastCheckpointSelected, Mode=TwoWay}" />
+                                </StackPanel>
+                                <Grid ColumnDefinitions="*,12,*">
+                                    <Border Grid.Column="0"
+                                            Padding="14"
+                                            Background="{DynamicResource IvSurface2Brush}"
+                                            BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="6">
+                                        <StackPanel DataContext="{Binding Monitor.BestCheckpointCard}">
+                                            <TextBlock FontSize="12.5" FontWeight="SemiBold" Text="{Binding Title}" />
+                                            <TextBlock Margin="0,6,0,0"
+                                                       FontSize="11.5"
+                                                       Foreground="{DynamicResource IvText2Brush}"
+                                                       Text="{Binding EpochText}" />
+                                            <TextBlock Margin="0,4,0,0"
+                                                       FontFamily="{DynamicResource IvMonoFontFamily}"
+                                                       FontSize="20"
+                                                       FontWeight="SemiBold"
+                                                       Text="{Binding MetricText}" />
+                                            <TextBlock Margin="0,6,0,0"
+                                                       FontFamily="{DynamicResource IvMonoFontFamily}"
+                                                       FontSize="10.5"
+                                                       Text="{Binding PathText}"
+                                                       TextWrapping="Wrap" />
+                                            <TextBlock Margin="0,4,0,0"
+                                                       FontSize="10.5"
+                                                       Foreground="{DynamicResource IvText3Brush}"
+                                                       Text="{Binding Footnote}"
+                                                       TextWrapping="Wrap"
+                                                       IsVisible="{Binding HasFootnote}" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Grid.Column="2"
+                                            Padding="14"
+                                            Background="{DynamicResource IvSurface2Brush}"
+                                            BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="6">
+                                        <StackPanel DataContext="{Binding Monitor.LastCheckpointCard}">
+                                            <TextBlock FontSize="12.5" FontWeight="SemiBold" Text="{Binding Title}" />
+                                            <TextBlock Margin="0,6,0,0"
+                                                       FontSize="11.5"
+                                                       Foreground="{DynamicResource IvText2Brush}"
+                                                       Text="{Binding EpochText}" />
+                                            <TextBlock Margin="0,4,0,0"
+                                                       FontFamily="{DynamicResource IvMonoFontFamily}"
+                                                       FontSize="20"
+                                                       FontWeight="SemiBold"
+                                                       Text="{Binding MetricText}" />
+                                            <TextBlock Margin="0,6,0,0"
+                                                       FontFamily="{DynamicResource IvMonoFontFamily}"
+                                                       FontSize="10.5"
+                                                       Text="{Binding PathText}"
+                                                       TextWrapping="Wrap" />
+                                            <TextBlock Margin="0,4,0,0"
+                                                       FontSize="10.5"
+                                                       Foreground="{DynamicResource IvText3Brush}"
+                                                       Text="{Binding Footnote}"
+                                                       TextWrapping="Wrap"
+                                                       IsVisible="{Binding HasFootnote}" />
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </StackPanel>
+
+                            <StackPanel IsVisible="{Binding Monitor.ShowSingleCheckpointResults}">
+                                <TextBlock Classes="sectionTitle" Text="最佳模型" />
+                                <TextBlock Margin="0,8,0,0"
+                                           FontFamily="{DynamicResource IvMonoFontFamily}"
+                                           FontSize="11"
+                                           Text="{Binding JobList.SelectedJob.BestModelPath}"
+                                           TextWrapping="Wrap" />
+                                <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                                    <TextBlock Foreground="{DynamicResource IvText2Brush}"
+                                               Text="{Binding Monitor.ResultsBestMetricLabel}" />
+                                    <TextBlock FontWeight="SemiBold"
+                                               Text="{Binding Monitor.ResultsBestMap50Text}" />
+                                    <TextBlock Margin="8,0,0,0"
+                                               Foreground="{DynamicResource IvText2Brush}"
+                                               Text="{Binding Monitor.ResultsBestMap50EpochText}" />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <StackPanel Margin="0,12,0,0" Orientation="Horizontal">
+                                <Button Margin="0,0,8,0"
+                                        Command="{Binding Config.SaveAsModelCommand}"
+                                        Content="保存模型"
+                                        ToolTip.Tip="{Binding Monitor.SaveSelectedCheckpointToolTip}"
+                                        Theme="{StaticResource IvPrimaryButtonStyle}" />
+                                <Button Margin="0,0,8,0"
+                                        Command="{Binding Monitor.OpenSelectedCheckpointFolderCommand}"
+                                        Content="打开目录"
+                                        Theme="{StaticResource TrainingSecondaryButtonStyle}" />
+                                <Button Command="{Binding Monitor.Preview.OpenTrainingPlotsFolderCommand}"
+                                        Content="打开图表目录"
+                                        IsVisible="{Binding Monitor.IsSelectedJobYoloClassificationModel}"
+                                        ToolTip.Tip="Ultralytics results / confusion matrix / 汇总曲线（output/plots）"
+                                        Theme="{StaticResource TrainingSecondaryButtonStyle}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Classes="resultCard"
+                            IsVisible="{Binding Monitor.Preview.ShowClassificationTrainingPlots}">
+                        <StackPanel>
+                            <TextBlock Classes="sectionTitle" Text="训练图表" />
+                            <TextBlock Margin="0,4,0,8"
+                                       Foreground="{DynamicResource IvText2Brush}"
+                                       FontSize="12"
+                                       Text="来自 train/ 与 plots/：准确率曲线、损失、混淆矩阵等。点击可放大；右键可复制（预览区同款）。"
+                                       TextWrapping="Wrap" />
+                            <ItemsControl ItemsSource="{Binding Monitor.Preview.TrainingPlotImagePaths}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Width="360"
+                                                Height="280"
+                                                Margin="0,0,12,12"
+                                                Padding="0"
+                                                Background="{DynamicResource IvControlFillBrush}"
+                                                BorderBrush="{DynamicResource IvStrokeBrush}"
+                                                BorderThickness="1"
+                                                ClipToBounds="True"
+                                                Cursor="Hand"
+                                                Command="{Binding $parent[UserControl].DataContext.Monitor.Preview.OpenPreviewLightboxCommand}"
+                                                CommandParameter="{Binding}"
+                                                Theme="{StaticResource IvButtonBaseStyle}"
+                                                ToolTip.Tip="左键放大 · 右键复制到剪贴板">
+                                            <Button.ContextMenu>
+                                                <ContextMenu>
+                                                    <MenuItem Header="复制到剪贴板"
+                                                              Command="{Binding $parent[UserControl].DataContext.Monitor.Preview.CopyPreviewImageCommand}"
+                                                              CommandParameter="{Binding}" />
+                                                </ContextMenu>
+                                            </Button.ContextMenu>
+                                            <Image Source="{Binding Converter={StaticResource FilePathToImageConverter}}" Stretch="Uniform" />
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Classes="resultCard"
+                            IsVisible="{Binding Config.ShowsBatchSizeHyperparameter}">
+                        <StackPanel>
+                            <TextBlock Classes="sectionTitle" Text="训练配置" />
+                            <Grid Margin="0,10,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" MinWidth="88" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Row="0" Grid.Column="0"
+                                           Margin="0,0,12,6"
+                                           Classes="fieldLabel"
+                                           Text="Epochs"
+                                           IsVisible="{Binding Config.ShowsYoloTrainHyperparameters}" />
+                                <TextBlock Grid.Row="0" Grid.Column="1"
+                                           Margin="0,0,0,6"
+                                           Text="{Binding Config.Epochs}"
+                                           IsVisible="{Binding Config.ShowsYoloTrainHyperparameters}" />
+                                <TextBlock Grid.Row="1" Grid.Column="0"
+                                           Margin="0,0,12,6"
+                                           Classes="fieldLabel"
+                                           Text="Batch Size" />
+                                <TextBlock Grid.Row="1" Grid.Column="1"
+                                           Margin="0,0,0,6"
+                                           Text="{Binding Config.BatchSize}" />
+                                <TextBlock Grid.Row="2" Grid.Column="0"
+                                           Margin="0,0,12,6"
+                                           Classes="fieldLabel"
+                                           Text="学习率"
+                                           IsVisible="{Binding Config.ShowsYoloTrainHyperparameters}" />
+                                <TextBlock Grid.Row="2" Grid.Column="1"
+                                           Margin="0,0,0,6"
+                                           Text="{Binding Config.LearningRate}"
+                                           IsVisible="{Binding Config.ShowsYoloTrainHyperparameters}" />
+                                <TextBlock Grid.Row="3" Grid.Column="0"
+                                           Margin="0,0,12,0"
+                                           Classes="fieldLabel"
+                                           Text="输入通道"
+                                           IsVisible="{Binding Config.ShowsYoloInputChannels}" />
+                                <TextBlock Grid.Row="3" Grid.Column="1"
+                                           Text="{Binding Config.Spatial.YoloInputChannelsDisplay}"
+                                           IsVisible="{Binding Config.ShowsYoloInputChannels}" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Classes="resultCard">
+                        <StackPanel>
+                            <TextBlock Classes="sectionTitle" Text="训练耗时" />
+                            <Grid Margin="0,10,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" MinWidth="88" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Row="0" Grid.Column="0"
+                                           Margin="0,0,12,6"
+                                           Classes="fieldLabel"
+                                           Text="开始时间" />
+                                <TextBlock Grid.Row="0" Grid.Column="1"
+                                           Margin="0,0,0,6"
+                                           Text="{Binding Monitor.TrainingStartedAtText}"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Grid.Row="1" Grid.Column="0"
+                                           Margin="0,0,12,6"
+                                           Classes="fieldLabel"
+                                           Text="结束时间" />
+                                <TextBlock Grid.Row="1" Grid.Column="1"
+                                           Margin="0,0,0,6"
+                                           Text="{Binding Monitor.TrainingFinishedAtText}"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Grid.Row="2" Grid.Column="0"
+                                           Margin="0,0,12,0"
+                                           Classes="fieldLabel"
+                                           Text="总耗时" />
+                                <TextBlock Grid.Row="2" Grid.Column="1"
+                                           Text="{Binding Monitor.TrainingDurationText}"
+                                           TextWrapping="Wrap" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <StackPanel Classes="emptyState" IsVisible="{Binding Monitor.ShowResultsEmptyState}">
+                    <iv:Icon HorizontalAlignment="Center"
+                             FontSize="30"
+                             Foreground="{DynamicResource IvText3Brush}"
+                             Data="{x:Static ui:IvIcons.Grid}" />
+                    <TextBlock Margin="0,10,0,0"
+                               HorizontalAlignment="Center"
+                               FontSize="15"
+                               FontWeight="SemiBold"
+                               Text="{Binding Monitor.ResultsEmptyTitle}" />
+                    <TextBlock Margin="0,4,0,0"
+                               HorizontalAlignment="Center"
+                               FontSize="12.5"
+                               Foreground="{DynamicResource IvText2Brush}"
+                               Text="{Binding Monitor.ResultsEmptyDescription}"
+                               TextAlignment="Center"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+
+        <ScrollViewer Grid.Row="0"
+                      Margin="16,6,16,0"
+                      HorizontalScrollBarVisibility="Disabled"
+                      MinHeight="0"
+                      VerticalAlignment="Stretch"
+                      VerticalScrollBarVisibility="Auto"
+                      IsVisible="{Binding Monitor.IsPreviewSectionActive}">
+            <StackPanel Margin="0,4,0,12" VerticalAlignment="Top">
+                <Border Margin="0,0,0,12"
+                        Padding="12"
+                        BorderBrush="{DynamicResource IvWarningBrush}"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        IsVisible="{Binding Monitor.Preview.HasPreviewPollingError}">
+                    <TextBlock Foreground="{DynamicResource IvWarningBrush}"
+                               Text="{Binding Monitor.Preview.PreviewPollingError}"
+                               TextWrapping="Wrap" />
+                </Border>
+
+                <Grid>
+                    <ItemsControl VerticalAlignment="Top"
+                                  ItemsSource="{Binding Monitor.Preview.PreviewImagePaths}"
+                                  IsVisible="{Binding Monitor.Preview.HasPreviewImages}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Width="720"
+                                        Height="720"
+                                        Margin="0,0,12,12"
+                                        Padding="0"
+                                        Background="{DynamicResource IvControlFillBrush}"
+                                        BorderBrush="{DynamicResource IvStrokeBrush}"
+                                        BorderThickness="1"
+                                        ClipToBounds="True"
+                                        Cursor="Hand"
+                                        Command="{Binding $parent[UserControl].DataContext.Monitor.Preview.OpenPreviewLightboxCommand}"
+                                        CommandParameter="{Binding}"
+                                        Theme="{StaticResource IvButtonBaseStyle}"
+                                        ToolTip.Tip="左键放大预览 · 右键复制到剪贴板">
+                                    <Button.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="复制到剪贴板"
+                                                      Command="{Binding $parent[UserControl].DataContext.Monitor.Preview.CopyPreviewImageCommand}"
+                                                      CommandParameter="{Binding}" />
+                                        </ContextMenu>
+                                    </Button.ContextMenu>
+                                    <Image Source="{Binding Converter={StaticResource FilePathToImageConverter}}" Stretch="Uniform" />
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <StackPanel Classes="emptyState" IsVisible="{Binding Monitor.Preview.ShowPreviewEmptyState}">
+                        <iv:Icon HorizontalAlignment="Center"
+                                 FontSize="30"
+                                 Foreground="{DynamicResource IvText3Brush}"
+                                 Data="{x:Static ui:IvIcons.Image}" />
+                        <TextBlock Margin="0,10,0,0"
+                                   HorizontalAlignment="Center"
+                                   FontSize="15"
+                                   FontWeight="SemiBold"
+                                   Text="{Binding Monitor.Preview.PreviewEmptyTitle}" />
+                        <TextBlock Margin="0,4,0,0"
+                                   HorizontalAlignment="Center"
+                                   FontSize="12.5"
+                                   Foreground="{DynamicResource IvText2Brush}"
+                                   Text="{Binding Monitor.Preview.PreviewEmptyHint}"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+
+        <ScrollViewer Grid.Row="0"
+                      Margin="16,6,16,0"
+                      HorizontalScrollBarVisibility="Disabled"
+                      MinHeight="0"
+                      VerticalAlignment="Stretch"
+                      VerticalScrollBarVisibility="Auto"
+                      IsVisible="{Binding Monitor.IsMetricsSectionActive}">
+            <StackPanel Margin="0,4,0,12" VerticalAlignment="Top">
+                <Border Margin="0,0,0,12"
+                        Padding="12"
+                        BorderBrush="{DynamicResource IvWarningBrush}"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        IsVisible="{Binding Monitor.Metrics.HasMetricsPollingError}">
+                    <TextBlock Foreground="{DynamicResource IvWarningBrush}"
+                               Text="{Binding Monitor.Metrics.MetricsPollingError}"
+                               TextWrapping="Wrap" />
+                </Border>
+
+                <Grid>
+                    <StackPanel VerticalAlignment="Top" IsVisible="{Binding Monitor.Metrics.ShowYoloMetricsContent}">
+                        <TextBlock Margin="0,0,0,10"
+                                   FontSize="12.5"
+                                   Foreground="{DynamicResource IvText2Brush}"
+                                   Text="{Binding Monitor.Metrics.CurrentMetricEpochText}" />
+
+                        <ItemsControl Margin="0,0,0,10"
+                                      ItemsSource="{Binding Monitor.Metrics.MetricCards}"
+                                      IsVisible="{Binding Monitor.Metrics.ShowMetricCards}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="{Binding Monitor.Metrics.MetricCards.Count}" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Margin="0,0,8,0" Classes="metricCard">
+                                        <StackPanel>
+                                            <TextBlock Classes="fieldLabel" Text="{Binding Title}" />
+                                            <TextBlock Margin="0,2,0,0"
+                                                       FontFamily="{DynamicResource IvMonoFontFamily}"
+                                                       FontSize="23"
+                                                       FontWeight="SemiBold"
+                                                       Text="{Binding ValueText}" />
+                                            <TextBlock Margin="0,6,0,0"
+                                                       FontSize="10.5"
+                                                       Foreground="{DynamicResource IvText2Brush}"
+                                                       Text="{Binding DeltaText}"
+                                                       TextWrapping="Wrap" />
+                                            <TextBlock Margin="0,2,0,0"
+                                                       FontSize="10.5"
+                                                       Foreground="{DynamicResource IvText3Brush}"
+                                                       Text="{Binding BestEpochText}"
+                                                       TextWrapping="Wrap" />
+                                            <TextBlock Margin="0,4,0,0"
+                                                       FontSize="10"
+                                                       Foreground="{DynamicResource IvText3Brush}"
+                                                       Text="{Binding Footnote}"
+                                                       TextWrapping="Wrap"
+                                                       IsVisible="{Binding HasFootnote}" />
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Border Margin="0,0,0,12" Classes="metricCard">
+                            <Grid ColumnDefinitions="*,16,*">
+                                <StackPanel Grid.Column="0"
+                                            IsVisible="{Binding Monitor.Metrics.ShowSecondaryTrainLossRow}">
+                                    <TextBlock FontSize="11.5"
+                                               Foreground="{DynamicResource IvText2Brush}"
+                                               Text="训练损失" />
+                                    <TextBlock Margin="0,4,0,0"
+                                               FontFamily="{DynamicResource IvMonoFontFamily}"
+                                               FontSize="15"
+                                               FontWeight="SemiBold"
+                                               Text="{Binding Monitor.Metrics.CurrentTrainLossText}" />
+                                    <TextBlock Margin="0,2,0,0"
+                                               FontSize="10.5"
+                                               Foreground="{DynamicResource IvText3Brush}"
+                                               Text="{Binding Monitor.Metrics.TrainLossDeltaText}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="0"
+                                            IsVisible="{Binding Monitor.Metrics.ShowMetricsFooterHint}">
+                                    <TextBlock FontSize="11.5"
+                                               Foreground="{DynamicResource IvText2Brush}"
+                                               Text="主指标说明" />
+                                    <TextBlock Margin="0,4,0,0"
+                                               FontSize="13"
+                                               TextWrapping="Wrap"
+                                               Text="{Binding Monitor.Metrics.MetricsFooterHint}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock FontSize="11.5"
+                                               Foreground="{DynamicResource IvText2Brush}"
+                                               Text="学习率" />
+                                    <TextBlock Margin="0,4,0,0"
+                                               FontFamily="{DynamicResource IvMonoFontFamily}"
+                                               FontSize="15"
+                                               FontWeight="SemiBold"
+                                               Text="{Binding Monitor.Metrics.CurrentLrText}" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <Grid Margin="0,0,0,16"
+                              ColumnDefinitions="*,*"
+                              IsVisible="{Binding Monitor.Metrics.ShowDetectionOrSegmentationMetricsCards}">
+                            <Border Grid.Column="0" Margin="0,0,6,0" Classes="metricCard">
+                                <StackPanel>
+                                    <TextBlock Classes="sectionTitle" Text="{Binding Monitor.Metrics.QualityChartTitle}" />
+                                    <Border Height="280"
+                                            Background="{DynamicResource IvSurface1Brush}"
+                                            BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="4">
+                                        <dv:MetricLineChart Height="280" EmptyText="{Binding Monitor.Metrics.QualityChartEmptyText}" MaximumY="1" MinimumY="0" SeriesSource="{Binding Monitor.Metrics.QualityChartSeries, Mode=OneWay}" />
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="1" Margin="6,0,0,0" Classes="metricCard">
+                                <StackPanel>
+                                    <TextBlock Classes="sectionTitle" Text="损失变化" />
+                                    <Border Height="280"
+                                            Background="{DynamicResource IvSurface1Brush}"
+                                            BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="4">
+                                        <dv:MetricLineChart Height="280" EmptyText="等待损失指标" YScale="Logarithmic" SeriesSource="{Binding Monitor.Metrics.LossChartSeries, Mode=OneWay}" />
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,16"
+                              ColumnDefinitions="*,*,*"
+                              IsVisible="{Binding Monitor.Metrics.ShowQualityWithLearningRateCharts}">
+                            <Border Grid.Column="0" Margin="0,0,6,0" Classes="metricCard">
+                                <StackPanel>
+                                    <TextBlock Classes="sectionTitle" Text="{Binding Monitor.Metrics.QualityChartTitle}" />
+                                    <Border Height="280"
+                                            Background="{DynamicResource IvSurface1Brush}"
+                                            BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="4">
+                                        <dv:MetricLineChart Height="280" EmptyText="{Binding Monitor.Metrics.QualityChartEmptyText}" MaximumY="1" MinimumY="0" SeriesSource="{Binding Monitor.Metrics.QualityChartSeries, Mode=OneWay}" />
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="1" Margin="6,0,6,0" Classes="metricCard">
+                                <StackPanel>
+                                    <TextBlock Classes="sectionTitle" Text="损失变化" />
+                                    <Border Height="280"
+                                            Background="{DynamicResource IvSurface1Brush}"
+                                            BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="4">
+                                        <dv:MetricLineChart Height="280" EmptyText="等待损失指标" YScale="Logarithmic" SeriesSource="{Binding Monitor.Metrics.LossChartSeries, Mode=OneWay}" />
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="2" Margin="6,0,0,0" Classes="metricCard">
+                                <StackPanel>
+                                    <TextBlock Classes="sectionTitle" Text="学习率" />
+                                    <Border Height="280"
+                                            Background="{DynamicResource IvSurface1Brush}"
+                                            BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="4">
+                                        <dv:MetricLineChart Height="280" EmptyText="等待学习率" YScale="Logarithmic" SeriesSource="{Binding Monitor.Metrics.LrChartSeries, Mode=OneWay}" />
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <TextBlock Margin="0,2,0,8"
+                                   FontSize="13"
+                                   FontWeight="SemiBold"
+                                   Text="历史记录" />
+
+                        <ScrollViewer Focusable="False"
+                                      HorizontalScrollBarVisibility="Auto"
+                                      VerticalScrollBarVisibility="Disabled">
+                            <StackPanel>
+
+                                <Border Classes="historyTable"
+                                        MinWidth="686"
+                                        IsVisible="{Binding Monitor.Metrics.ShowDetectionMetricsCards}">
+                                    <Grid RowDefinitions="Auto,*">
+                                        <Border Classes="historyHeaderRow">
+                                            <Grid ColumnDefinitions="64,100,100,100,100,100,100">
+                                                <TextBlock Classes="historyHeader" Text="轮次" />
+                                                <TextBlock Grid.Column="1" Classes="historyHeader" Text="训练损失" />
+                                                <TextBlock Grid.Column="2" Classes="historyHeader" Text="验证集 mAP" />
+                                                <TextBlock Grid.Column="3" Classes="historyHeader" Text="验证集 mAP50" />
+                                                <TextBlock Grid.Column="4" Classes="historyHeader" Text="Precision" />
+                                                <TextBlock Grid.Column="5" Classes="historyHeader" Text="Recall" />
+                                                <TextBlock Grid.Column="6" Classes="historyHeader" Text="学习率" />
+                                            </Grid>
+                                        </Border>
+                                        <ScrollViewer Grid.Row="1"
+                                                      MaxHeight="240"
+                                                      HorizontalScrollBarVisibility="Disabled"
+                                                      VerticalScrollBarVisibility="Auto">
+                                            <ItemsControl ItemsSource="{Binding Monitor.Metrics.MetricHistory}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Classes="historyRow">
+                                                            <Grid ColumnDefinitions="64,100,100,100,100,100,100">
+                                                                <TextBlock Classes="historyCell" Text="{Binding Epoch}" />
+                                                                <TextBlock Grid.Column="1" Classes="historyCell" Text="{Binding TrainLossText}" />
+                                                                <TextBlock Grid.Column="2" Classes="historyCell" Text="{Binding ValMapText}" />
+                                                                <TextBlock Grid.Column="3" Classes="historyCell" Text="{Binding ValMap50Text}" />
+                                                                <TextBlock Grid.Column="4" Classes="historyCell" Text="{Binding PrecisionText}" />
+                                                                <TextBlock Grid.Column="5" Classes="historyCell" Text="{Binding RecallText}" />
+                                                                <TextBlock Grid.Column="6" Classes="historyCell" Text="{Binding LrText}" />
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ScrollViewer>
+                                    </Grid>
+                                </Border>
+
+                                <Border Classes="historyTable"
+                                        MinWidth="686"
+                                        IsVisible="{Binding Monitor.Metrics.ShowSegmentationMetricsCards}">
+                                    <Grid RowDefinitions="Auto,*">
+                                        <Border Classes="historyHeaderRow">
+                                            <Grid ColumnDefinitions="64,100,100,100,100,100,100">
+                                                <TextBlock Classes="historyHeader" Text="轮次" />
+                                                <TextBlock Grid.Column="1" Classes="historyHeader" Text="训练损失" />
+                                                <TextBlock Grid.Column="2" Classes="historyHeader" Text="Mask mAP50" />
+                                                <TextBlock Grid.Column="3" Classes="historyHeader" Text="Mask mAP" />
+                                                <TextBlock Grid.Column="4" Classes="historyHeader" Text="Box mAP50" />
+                                                <TextBlock Grid.Column="5" Classes="historyHeader" Text="Box mAP" />
+                                                <TextBlock Grid.Column="6" Classes="historyHeader" Text="学习率" />
+                                            </Grid>
+                                        </Border>
+                                        <ScrollViewer Grid.Row="1"
+                                                      MaxHeight="240"
+                                                      HorizontalScrollBarVisibility="Disabled"
+                                                      VerticalScrollBarVisibility="Auto">
+                                            <ItemsControl ItemsSource="{Binding Monitor.Metrics.MetricHistory}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Classes="historyRow">
+                                                            <Grid ColumnDefinitions="64,100,100,100,100,100,100">
+                                                                <TextBlock Classes="historyCell" Text="{Binding Epoch}" />
+                                                                <TextBlock Grid.Column="1" Classes="historyCell" Text="{Binding TrainLossText}" />
+                                                                <TextBlock Grid.Column="2" Classes="historyCell" Text="{Binding MaskMap50Text}" />
+                                                                <TextBlock Grid.Column="3" Classes="historyCell" Text="{Binding MaskMapText}" />
+                                                                <TextBlock Grid.Column="4" Classes="historyCell" Text="{Binding BoxMap50Text}" />
+                                                                <TextBlock Grid.Column="5" Classes="historyCell" Text="{Binding BoxMapText}" />
+                                                                <TextBlock Grid.Column="6" Classes="historyCell" Text="{Binding LrText}" />
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ScrollViewer>
+                                    </Grid>
+                                </Border>
+
+                                <Border Classes="historyTable"
+                                        MinWidth="586"
+                                        IsVisible="{Binding Monitor.Metrics.ShowClassificationMetricsCards}">
+                                    <Grid RowDefinitions="Auto,*">
+                                        <Border Classes="historyHeaderRow">
+                                            <Grid ColumnDefinitions="64,100,100,100,100,100">
+                                                <TextBlock Classes="historyHeader" Text="轮次" />
+                                                <TextBlock Grid.Column="1" Classes="historyHeader" Text="Top-1" />
+                                                <TextBlock Grid.Column="2" Classes="historyHeader" Text="Top-5" />
+                                                <TextBlock Grid.Column="3" Classes="historyHeader" Text="训练损失" />
+                                                <TextBlock Grid.Column="4" Classes="historyHeader" Text="验证损失" />
+                                                <TextBlock Grid.Column="5" Classes="historyHeader" Text="学习率" />
+                                            </Grid>
+                                        </Border>
+                                        <ScrollViewer Grid.Row="1"
+                                                      MaxHeight="240"
+                                                      HorizontalScrollBarVisibility="Disabled"
+                                                      VerticalScrollBarVisibility="Auto">
+                                            <ItemsControl ItemsSource="{Binding Monitor.Metrics.MetricHistory}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Classes="historyRow">
+                                                            <Grid ColumnDefinitions="64,100,100,100,100,100">
+                                                                <TextBlock Classes="historyCell" Text="{Binding Epoch}" />
+                                                                <TextBlock Grid.Column="1" Classes="historyCell" Text="{Binding AccuracyTop1Text}" />
+                                                                <TextBlock Grid.Column="2" Classes="historyCell" Text="{Binding AccuracyTop5Text}" />
+                                                                <TextBlock Grid.Column="3" Classes="historyCell" Text="{Binding TrainLossText}" />
+                                                                <TextBlock Grid.Column="4" Classes="historyCell" Text="{Binding ValLossText}" />
+                                                                <TextBlock Grid.Column="5" Classes="historyCell" Text="{Binding LrText}" />
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ScrollViewer>
+                                    </Grid>
+                                </Border>
+
+                                <Border Classes="historyTable"
+                                        MinWidth="586"
+                                        IsVisible="{Binding Monitor.Metrics.ShowOcrDetectionMetricsCards}">
+                                    <Grid RowDefinitions="Auto,*">
+                                        <Border Classes="historyHeaderRow">
+                                            <Grid ColumnDefinitions="64,100,100,100,100,100">
+                                                <TextBlock Classes="historyHeader" Text="轮次" />
+                                                <TextBlock Grid.Column="1" Classes="historyHeader" Text="Hmean" />
+                                                <TextBlock Grid.Column="2" Classes="historyHeader" Text="Precision" />
+                                                <TextBlock Grid.Column="3" Classes="historyHeader" Text="Recall" />
+                                                <TextBlock Grid.Column="4" Classes="historyHeader" Text="训练损失" />
+                                                <TextBlock Grid.Column="5" Classes="historyHeader" Text="学习率" />
+                                            </Grid>
+                                        </Border>
+                                        <ScrollViewer Grid.Row="1"
+                                                      MaxHeight="240"
+                                                      HorizontalScrollBarVisibility="Disabled"
+                                                      VerticalScrollBarVisibility="Auto">
+                                            <ItemsControl ItemsSource="{Binding Monitor.Metrics.MetricHistory}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Classes="historyRow">
+                                                            <Grid ColumnDefinitions="64,100,100,100,100,100">
+                                                                <TextBlock Classes="historyCell" Text="{Binding Epoch}" />
+                                                                <TextBlock Grid.Column="1" Classes="historyCell" Text="{Binding DetHmeanText}" />
+                                                                <TextBlock Grid.Column="2" Classes="historyCell" Text="{Binding DetPrecisionText}" />
+                                                                <TextBlock Grid.Column="3" Classes="historyCell" Text="{Binding DetRecallText}" />
+                                                                <TextBlock Grid.Column="4" Classes="historyCell" Text="{Binding TrainLossText}" />
+                                                                <TextBlock Grid.Column="5" Classes="historyCell" Text="{Binding LrText}" />
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ScrollViewer>
+                                    </Grid>
+                                </Border>
+
+                                <Border Classes="historyTable"
+                                        MinWidth="586"
+                                        IsVisible="{Binding Monitor.Metrics.ShowOcrMetricsCards}">
+                                    <Grid RowDefinitions="Auto,*">
+                                        <Border Classes="historyHeaderRow">
+                                            <Grid ColumnDefinitions="64,120,120,100,100">
+                                                <TextBlock Classes="historyHeader" Text="轮次" />
+                                                <TextBlock Grid.Column="1" Classes="historyHeader" Text="文字准确率" />
+                                                <TextBlock Grid.Column="2" Classes="historyHeader" Text="编辑相似度" />
+                                                <TextBlock Grid.Column="3" Classes="historyHeader" Text="训练损失" />
+                                                <TextBlock Grid.Column="4" Classes="historyHeader" Text="学习率" />
+                                            </Grid>
+                                        </Border>
+                                        <ScrollViewer Grid.Row="1"
+                                                      MaxHeight="240"
+                                                      HorizontalScrollBarVisibility="Disabled"
+                                                      VerticalScrollBarVisibility="Auto">
+                                            <ItemsControl ItemsSource="{Binding Monitor.Metrics.MetricHistory}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Classes="historyRow">
+                                                            <Grid ColumnDefinitions="64,120,120,100,100">
+                                                                <TextBlock Classes="historyCell" Text="{Binding Epoch}" />
+                                                                <TextBlock Grid.Column="1" Classes="historyCell" Text="{Binding OcrAccuracyText}" />
+                                                                <TextBlock Grid.Column="2" Classes="historyCell" Text="{Binding OcrNormalizedEditSimilarityText}" />
+                                                                <TextBlock Grid.Column="3" Classes="historyCell" Text="{Binding TrainLossText}" />
+                                                                <TextBlock Grid.Column="4" Classes="historyCell" Text="{Binding LrText}" />
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ScrollViewer>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </StackPanel>
+
+                    <StackPanel Classes="emptyState" IsVisible="{Binding Monitor.Metrics.ShowMetricsEmptyState}">
+                        <iv:Icon HorizontalAlignment="Center"
+                                 FontSize="30"
+                                 Foreground="{DynamicResource IvText3Brush}"
+                                 Data="{x:Static ui:IvIcons.Grid}" />
+                        <TextBlock Margin="0,10,0,0"
+                                   HorizontalAlignment="Center"
+                                   FontSize="15"
+                                   FontWeight="SemiBold"
+                                   Text="暂无指标" />
+                        <TextBlock Margin="0,4,0,0"
+                                   HorizontalAlignment="Center"
+                                   FontSize="12.5"
+                                   Foreground="{DynamicResource IvText2Brush}"
+                                   Text="训练开始后将显示实时指标"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+
+        <ScrollViewer Grid.Row="0"
+                      Margin="16,6,16,0"
+                      HorizontalScrollBarVisibility="Disabled"
+                      MinHeight="0"
+                      VerticalAlignment="Stretch"
+                      VerticalScrollBarVisibility="Auto"
+                      IsVisible="{Binding Monitor.IsResourcesSectionActive}">
+            <StackPanel Margin="0,4,0,12" VerticalAlignment="Top">
+                <Border Margin="0,0,0,12"
+                        Padding="12"
+                        BorderBrush="{DynamicResource IvWarningBrush}"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        IsVisible="{Binding Monitor.Resources.HasResourcePollingError}">
+                    <TextBlock Foreground="{DynamicResource IvWarningBrush}"
+                               Text="{Binding Monitor.Resources.ResourcePollingError}"
+                               TextWrapping="Wrap" />
+                </Border>
+
+                <Grid>
+                    <UniformGrid VerticalAlignment="Top"
+                                 Columns="3"
+                                 Rows="1"
+                                 IsVisible="{Binding Monitor.Resources.HasResourceData}">
+                        <Border Margin="0,0,8,0" Classes="metricCard">
+                            <StackPanel>
+                                <TextBlock Classes="fieldLabel" Text="CPU 使用率" />
+                                <StackPanel Margin="0,2,0,0" Orientation="Horizontal">
+                                    <TextBlock FontFamily="{DynamicResource IvMonoFontFamily}"
+                                               FontSize="23"
+                                               FontWeight="SemiBold"
+                                               Text="{Binding Monitor.Resources.ResourceCpuPercent, StringFormat={}{0:F1}}" />
+                                    <TextBlock FontSize="23" FontWeight="SemiBold" Text="%" />
+                                </StackPanel>
+                                <ProgressBar Classes="resourceProgress"
+                                             Maximum="100"
+                                             Value="{Binding Monitor.Resources.ResourceCpuPercent, Mode=OneWay}" />
+                                <TextBlock Margin="0,6,0,0"
+                                           FontSize="10.5"
+                                           Foreground="{DynamicResource IvText3Brush}"
+                                           Text="本机占用率" />
+                            </StackPanel>
+                        </Border>
+                        <Border Margin="0,0,8,0" Classes="metricCard">
+                            <StackPanel>
+                                <TextBlock Classes="fieldLabel" Text="内存使用" />
+                                <StackPanel Margin="0,2,0,0" Orientation="Horizontal">
+                                    <TextBlock FontFamily="{DynamicResource IvMonoFontFamily}"
+                                               FontSize="23"
+                                               FontWeight="SemiBold"
+                                               Text="{Binding Monitor.Resources.ResourceMemoryPercent, StringFormat={}{0:F1}}" />
+                                    <TextBlock FontSize="23" FontWeight="SemiBold" Text="%" />
+                                </StackPanel>
+                                <ProgressBar Classes="resourceProgress"
+                                             Maximum="100"
+                                             Value="{Binding Monitor.Resources.ResourceMemoryPercent, Mode=OneWay}" />
+                                <TextBlock Margin="0,6,0,0"
+                                           FontSize="10.5"
+                                           Foreground="{DynamicResource IvText3Brush}"
+                                           Text="本机占用率" />
+                            </StackPanel>
+                        </Border>
+                        <Border Classes="metricCard"
+                                IsVisible="{Binding Monitor.Resources.HasGpuResourceData}">
+                            <StackPanel>
+                                <TextBlock Classes="fieldLabel" Text="GPU 使用率" />
+                                <StackPanel Margin="0,2,0,0" Orientation="Horizontal">
+                                    <TextBlock FontFamily="{DynamicResource IvMonoFontFamily}"
+                                               FontSize="23"
+                                               FontWeight="SemiBold"
+                                               Text="{Binding Monitor.Resources.ResourceGpuPercent, StringFormat={}{0:F1}}" />
+                                    <TextBlock FontSize="23" FontWeight="SemiBold" Text="%" />
+                                </StackPanel>
+                                <ProgressBar Classes="resourceProgress"
+                                             Maximum="100"
+                                             Value="{Binding Monitor.Resources.ResourceGpuPercent, Mode=OneWay}" />
+                                <TextBlock Margin="0,6,0,0"
+                                           FontSize="10.5"
+                                           Foreground="{DynamicResource IvText3Brush}"
+                                           Text="本机占用率" />
+                            </StackPanel>
+                        </Border>
+                    </UniformGrid>
+
+                    <StackPanel Classes="emptyState" IsVisible="{Binding !Monitor.Resources.HasResourceData}">
+                        <iv:Icon HorizontalAlignment="Center"
+                                 FontSize="30"
+                                 Foreground="{DynamicResource IvText3Brush}"
+                                 Data="{x:Static ui:IvIcons.Cube}" />
+                        <TextBlock Margin="0,10,0,0"
+                                   HorizontalAlignment="Center"
+                                   FontSize="15"
+                                   FontWeight="SemiBold"
+                                   Text="暂无数据" />
+                        <TextBlock Margin="0,4,0,0"
+                                   HorizontalAlignment="Center"
+                                   FontSize="12.5"
+                                   Foreground="{DynamicResource IvText2Brush}"
+                                   Text="切换到资源页后将显示系统资源监控"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                </Grid>
+
+                <TextBlock Margin="2,10,0,0"
+                           FontSize="11.5"
+                           Foreground="{DynamicResource IvText3Brush}"
+                           Text="每 2 秒采样一次 · 仅统计本机进程占用"
+                           IsVisible="{Binding Monitor.Resources.HasResourceData}" />
+            </StackPanel>
+        </ScrollViewer>
+
+        <Grid Grid.Row="0"
+              Margin="16,6,16,0"
+              MinHeight="0"
+              VerticalAlignment="Stretch"
+              RowDefinitions="Auto,*"
+              IsVisible="{Binding Monitor.IsLogsSectionActive}">
+            <Grid Grid.Row="0" Margin="0,4,0,8" ColumnDefinitions="*,Auto">
+                <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                    <TextBlock VerticalAlignment="Center"
+                               FontSize="13"
+                               FontWeight="SemiBold"
+                               Text="运行日志" />
+                    <Border Margin="10,0,0,0"
+                            Padding="7,2"
+                            VerticalAlignment="Center"
+                            Background="{DynamicResource IvSuccessSubtleBrush}"
+                            CornerRadius="4"
+                            IsVisible="{Binding Monitor.IsRunning}">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="5"
+                                     Height="5"
+                                     Margin="0,0,5,0"
+                                     VerticalAlignment="Center"
+                                     Fill="{DynamicResource IvSuccessBrush}" />
+                            <TextBlock VerticalAlignment="Center"
+                                       FontSize="10.5"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource IvSuccessTextBrush}"
+                                       Text="实时" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+                <StackPanel Grid.Column="1"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal">
+                    <CheckBox Margin="0,0,12,0"
+                              VerticalAlignment="Center"
+                              Content="自动滚动"
+                              FontSize="11.5"
+                              IsChecked="{Binding Log.AutoScrollLog}" />
+                    <Button Height="26"
+                            Margin="0,0,6,0"
+                            Padding="8,0"
+                            Command="{Binding Log.CopyLogCommand}"
+                            Content="复制"
+                            FontSize="11.5"
+                            Theme="{StaticResource IvSubtleButtonStyle}" />
+                    <Button Height="26"
+                            Padding="8,0"
+                            Command="{Binding Log.ClearLogCommand}"
+                            Content="清空"
+                            FontSize="11.5"
+                            Theme="{StaticResource IvSubtleButtonStyle}" />
+                </StackPanel>
+            </Grid>
+
+            <Border Grid.Row="1" Classes="logSurface">
+                <Grid>
+                    <ScrollViewer Name="LogScrollViewer"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  VerticalAlignment="Stretch"
+                                  VerticalScrollBarVisibility="Auto">
+                        <TextBlock Padding="12,10"
+                                   FontFamily="{DynamicResource IvMonoFontFamily}"
+                                   FontSize="11.5"
+                                   Foreground="{DynamicResource IvText1Brush}"
+                                   LineHeight="18"
+                                   Text="{Binding Log.LiveLog}"
+                                   TextWrapping="Wrap" />
+                    </ScrollViewer>
+
+                    <TextBlock HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               FontSize="12"
+                               Foreground="{DynamicResource IvText3Brush}"
+                               Text="训练开始后将在此显示日志"
+                               IsVisible="{Binding !Log.HasLogContent}" />
+                </Grid>
+            </Border>
+        </Grid>
+
+        <dv:ImageLightboxOverlay ZIndex="1000"
+                                 ImageSource="{Binding Monitor.Preview.PreviewLightboxImagePath, Converter={StaticResource FilePathToImageConverter}}"
+                                 CloseCommand="{Binding Monitor.Preview.ClosePreviewLightboxCommand}"
+                                 IsVisible="{Binding Monitor.Preview.IsPreviewLightboxOpen}" />
+    </Grid>
+</UserControl>

@@ -1,0 +1,97 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="DeepVisionSharp.Shell.Avalonia.Views.Dialogs.Contents.ProjectLabelStatisticsDialogContent"
+             MinWidth="720"
+             MaxWidth="760"
+             MaxHeight="700"
+             TextElement.Foreground="{DynamicResource IvText1Brush}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://DeepVisionSharp.Avalonia/Views/Dialogs/DialogStyles.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid RowDefinitions="Auto,Auto,*">
+
+        <StackPanel>
+            <TextBlock FontSize="16" FontWeight="SemiBold"
+                       Foreground="{DynamicResource IvText1Brush}"
+                       TextWrapping="Wrap"
+                       Text="{Binding DisplayName, StringFormat={}{0} - 标签统计}" />
+            <TextBlock Margin="0,6,0,0"
+                       Foreground="{DynamicResource IvText2Brush}"
+                       Text="{Binding ScopeDescription}"
+                       TextWrapping="Wrap" />
+        </StackPanel>
+
+        <UniformGrid Grid.Row="1" Margin="0,18,0,0" Columns="3" Rows="1">
+            <Border Margin="0,0,12,0" Padding="14">
+                <StackPanel>
+                    <TextBlock Theme="{StaticResource DialogHintStyle}" Text="标签数" />
+                    <TextBlock FontSize="20" FontWeight="SemiBold"
+                               Foreground="{DynamicResource IvText1Brush}"
+                               Text="{Binding TotalLabels}" />
+                </StackPanel>
+            </Border>
+            <Border Margin="0,0,12,0" Padding="14">
+                <StackPanel>
+                    <TextBlock Theme="{StaticResource DialogHintStyle}" Text="标签样本总计（累计）" />
+                    <TextBlock FontSize="20" FontWeight="SemiBold"
+                               Foreground="{DynamicResource IvText1Brush}"
+                               Text="{Binding TotalSamplesWithLabels}" />
+                </StackPanel>
+            </Border>
+            <Border Padding="14">
+                <StackPanel>
+                    <TextBlock Theme="{StaticResource DialogHintStyle}" Text="最大单标签样本数" />
+                    <TextBlock FontSize="20" FontWeight="SemiBold"
+                               Foreground="{DynamicResource IvText1Brush}"
+                               Text="{Binding MaxSampleCount}" />
+                </StackPanel>
+            </Border>
+        </UniformGrid>
+
+        <Border Grid.Row="2" Margin="0,18,0,0" Padding="14">
+            <Grid RowDefinitions="Auto,*">
+                <Grid Margin="0,0,0,12" ColumnDefinitions="*,Auto,Auto,Auto">
+                    <TextBlock FontWeight="SemiBold"
+                               Foreground="{DynamicResource IvText1Brush}"
+                               Text="标签分布图" />
+                    <TextBlock Grid.Column="1" Margin="0,0,12,0" VerticalAlignment="Center"
+                               Foreground="{DynamicResource IvText2Brush}"
+                               Text="{Binding TotalLabels, StringFormat={}共 {0} 项}" />
+                    <ComboBox Grid.Column="2" MinWidth="128" Margin="0,0,8,0"
+                              ItemsSource="{Binding ChartTypeOptions}"
+                              SelectedValue="{Binding SelectedChartType, Mode=TwoWay}"
+                              SelectedValueBinding="{Binding Value}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate><TextBlock Text="{Binding Label}" /></DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <ComboBox Grid.Column="3" MinWidth="108"
+                              ItemsSource="{Binding TopCountOptions}"
+                              SelectedValue="{Binding SelectedTopCount, Mode=TwoWay}"
+                              SelectedValueBinding="{Binding Value}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate><TextBlock Text="{Binding Label}" /></DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </Grid>
+
+                <Border Grid.Row="1" Name="ChartHost" MinHeight="340" Padding="8"
+                        Background="{DynamicResource IvSurface3Brush}"
+                        CornerRadius="10">
+                    <Grid>
+                        <Image Name="ChartImage" HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Stretch="Uniform" />
+                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource IvText2Brush}"
+                                   Text="该项目下还没有标签数据"
+                                   IsVisible="{Binding !TotalLabels}" />
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

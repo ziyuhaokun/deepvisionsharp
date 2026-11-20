@@ -16,7 +16,7 @@ namespace DeepVisionSharp.Presentation.ViewModels;
 /// <summary>
 /// Gallery page coordinator. Feature work lives in List / Editor / Transfer / Reorganize / BatchInference.
 /// </summary>
-public sealed partial class GalleryViewModel : ObservableObject, IDisposable
+public sealed partial class GalleryViewModel : ObservableObject, ICardColumnsHost, IDisposable
 {
     public GalleryViewModel(
         IMediator mediator,

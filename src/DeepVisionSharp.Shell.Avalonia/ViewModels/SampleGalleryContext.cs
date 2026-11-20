@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DeepVisionSharp.Presentation.ViewModels;
 
 namespace DeepVisionSharp.Shell.Avalonia.ViewModels;
 
@@ -10,7 +11,7 @@ namespace DeepVisionSharp.Shell.Avalonia.ViewModels;
 /// 图库页 stub 上下文：绑定路径与 deepvision 的 GalleryViewModel 同名同层
 /// （List / Editor / Transfer / Reorganize / BatchInference / CardColumns），值全部是假数据，命令点了不做事。
 /// </summary>
-public sealed class SampleGalleryContext : ObservableObject
+public sealed class SampleGalleryContext : ObservableObject, ICardColumnsHost
 {
     private int _cardColumns = 3;
 

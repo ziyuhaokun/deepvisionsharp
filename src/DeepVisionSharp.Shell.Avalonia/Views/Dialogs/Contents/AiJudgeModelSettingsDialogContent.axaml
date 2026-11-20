@@ -1,0 +1,153 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iv="clr-namespace:YuUI.Controls;assembly=yu-ui.avalonia"
+             xmlns:ui="clr-namespace:YuUI;assembly=yu-ui.avalonia"
+             x:Class="DeepVisionSharp.Shell.Avalonia.Views.Dialogs.Contents.AiJudgeModelSettingsDialogContent"
+             MinWidth="620" MaxWidth="720"
+             TextElement.Foreground="{DynamicResource IvText1Brush}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://DeepVisionSharp.Avalonia/Views/Dialogs/DialogStyles.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <StackPanel>
+        <TextBlock Theme="{StaticResource DialogHintStyle}"
+                   Text="填写兼容 OpenAI /chat/completions 的多模态模型服务。设置对所有项目生效；API Key 加密保存在本机当前用户下。" />
+
+        <Grid Margin="0,16,0,0" IsEnabled="{Binding CanEditConfigurations}" ColumnDefinitions="1.7*,16,*">
+            <StackPanel>
+                <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="配置" />
+                <Grid Margin="0,6,0,0" ColumnDefinitions="*,Auto">
+                    <ComboBox AutomationProperties.AutomationId="dv.labeling.ai-judge.configuration"
+                              ItemsSource="{Binding Configurations}"
+                              SelectedItem="{Binding SelectedConfiguration, Mode=TwoWay}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate><TextBlock Text="{Binding Name}" /></DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Button Grid.Column="1" Margin="8,0,0,0" Content="新建配置"
+                            Theme="{StaticResource IvButtonBaseStyle}"
+                            Command="{Binding AddConfigurationCommand}"
+                            ToolTip.Tip="以当前参数为基础新建一份配置" />
+                </Grid>
+            </StackPanel>
+            <StackPanel Grid.Column="2">
+                <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="配置名称" />
+                <TextBox Margin="0,6,0,0"
+                         AutomationProperties.AutomationId="dv.labeling.ai-judge.configuration-name"
+                         Text="{Binding ConfigurationName}" />
+            </StackPanel>
+        </Grid>
+        <TextBlock Margin="0,6,0,0" Theme="{StaticResource DialogHintStyle}" Text="切换时保留修改，点击「保存」后生效。" />
+
+        <Border Height="1" Margin="0,12,0,0" Background="{DynamicResource IvStrokeSubtleBrush}" />
+
+        <TextBlock Margin="0,12,0,0" Theme="{StaticResource DialogFieldLabelStyle}" Text="服务地址" />
+        <TextBox Margin="0,6,0,0" PlaceholderText="例如 http://127.0.0.1:8317/v1" Text="{Binding BaseUrl}" />
+
+        <Grid Margin="0,12,0,0" ColumnDefinitions="*,16,*">
+            <StackPanel>
+                <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="模型名称" />
+                <Grid Margin="0,6,0,0" ColumnDefinitions="*,Auto">
+                    <ComboBox AutomationProperties.AutomationId="dv.labeling.ai-judge.model"
+                              IsEditable="True" IsTextSearchEnabled="True"
+                              ItemsSource="{Binding ModelOptions}"
+                              Text="{Binding Model}" />
+                    <Button Grid.Column="1" Width="34" Height="34" Margin="8,0,0,0"
+                            AutomationProperties.AutomationId="dv.labeling.ai-judge.models"
+                            Theme="{StaticResource IvIconButtonStyle}"
+                            Command="{Binding LoadModelsCommand}"
+                            ToolTip.Tip="从服务地址拉取可用模型列表，也可以手动输入">
+                        <iv:Icon FontSize="16" Data="{x:Static ui:IvIcons.Refresh}" />
+                    </Button>
+                </Grid>
+            </StackPanel>
+            <StackPanel Grid.Column="2">
+                <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="API Key（可留空）" />
+                <TextBox Name="ApiKeyInput" Margin="0,6,0,0" PasswordChar="●"
+                         Text="{Binding ApiKey, Mode=TwoWay}"
+                         PlaceholderText="本地服务通常不需要" />
+            </StackPanel>
+        </Grid>
+
+        <TextBlock Margin="0,6,0,0" FontSize="12" LineHeight="18"
+                   Text="{Binding ModelListMessage}" TextWrapping="Wrap"
+                   Classes="statusText"
+                   Classes.warning="{Binding ModelListFailed}"
+                   IsVisible="{Binding HasModelListMessage}" />
+
+        <Grid Margin="0,12,0,0" ColumnDefinitions="*,16,*">
+            <StackPanel>
+                <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="超时（秒）" />
+                <iv:NumericBox Margin="0,6,0,0" Maximum="600" Minimum="10" Step="10"
+                               Value="{Binding TimeoutSeconds, Mode=TwoWay}" />
+            </StackPanel>
+            <StackPanel Grid.Column="2">
+                <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="并发请求数（批量）" />
+                <iv:NumericBox Margin="0,6,0,0" Maximum="32" Minimum="1" Step="1" DecimalPlaces="0"
+                               AutomationProperties.AutomationId="dv.labeling.ai-judge.max-concurrency"
+                               Value="{Binding MaxConcurrency, Mode=TwoWay}" />
+            </StackPanel>
+        </Grid>
+
+        <Border Margin="0,12,0,0" Padding="10,8"
+                Background="{DynamicResource IvSurface3Brush}" CornerRadius="4">
+            <StackPanel>
+                <TextBlock Theme="{StaticResource DialogHintStyle}"
+                           Text="图片按原分辨率、最高质量 JPEG 发送，不缩放；温度固定为 0，保证判定稳定。" />
+                <TextBlock Margin="0,4,0,0" Theme="{StaticResource DialogHintStyle}"
+                           Text="并发只用于批量判定：本地模型多数只能设 1，设大只会排队、容易超时；云端过高会被限流（HTTP 429）。每个在途请求都带全部标准原图，并发越高占用内存越多。" />
+            </StackPanel>
+        </Border>
+
+        <Border Height="1" Margin="0,12,0,0" Background="{DynamicResource IvStrokeSubtleBrush}" />
+
+        <CheckBox Margin="0,12,0,0" FontSize="12.5"
+                  Content="要求模型按 JSON 对象输出（服务不支持时自动降级重试）"
+                  IsChecked="{Binding UseJsonObjectFormat, Mode=TwoWay}" />
+
+        <CheckBox Margin="0,8,0,0" FontSize="12.5" IsChecked="{Binding ConfirmEndpoint, Mode=TwoWay}">
+            <TextBlock FontSize="12.5" Text="{Binding ConfirmationText}" TextWrapping="Wrap" />
+        </CheckBox>
+
+        <Border Margin="0,12,0,0" Padding="10,8"
+                Background="{DynamicResource IvWarningSubtleBrush}"
+                BorderBrush="{DynamicResource IvWarningBorderBrush}"
+                BorderThickness="1" CornerRadius="4"
+                IsVisible="{Binding ShowExternalNotice}">
+            <TextBlock FontSize="12" LineHeight="18" Text="{Binding ExternalNoticeText}" TextWrapping="Wrap" />
+        </Border>
+        <Border Margin="0,8,0,0" Padding="10,8"
+                Background="{DynamicResource IvWarningSubtleBrush}"
+                BorderBrush="{DynamicResource IvWarningBorderBrush}"
+                BorderThickness="1" CornerRadius="4"
+                IsVisible="{Binding ShowPlainHttpWarning}">
+            <TextBlock FontSize="12" LineHeight="18"
+                       Text="该地址使用明文 http 且不在本机：API Key 和图片会以明文在网络上传输。"
+                       TextWrapping="Wrap" />
+        </Border>
+
+        <StackPanel Margin="0,16,0,0">
+            <Button HorizontalAlignment="Left"
+                    Theme="{StaticResource IvButtonBaseStyle}"
+                    Command="{Binding TestConnectionCommand}"
+                    Content="测试连接"
+                    ToolTip.Tip="发送一条不含图片的简短文本请求，检查地址、模型名和 Key 是否可用" />
+            <Border Margin="0,8,0,0" Padding="10,8"
+                    Background="{DynamicResource IvSurface3Brush}"
+                    CornerRadius="4"
+                    IsVisible="{Binding HasTestResult}">
+                <TextBlock FontFamily="{DynamicResource IvMonoFontFamily}"
+                           FontSize="11.5" LineHeight="17"
+                           Text="{Binding TestResultText}" TextWrapping="Wrap" />
+            </Border>
+        </StackPanel>
+
+        <TextBlock Margin="0,10,0,0" FontSize="12" LineHeight="18"
+                   Foreground="{DynamicResource IvDangerTextBrush}"
+                   Text="{Binding ErrorMessage}" TextWrapping="Wrap"
+                   IsVisible="{Binding HasErrorMessage}" />
+    </StackPanel>
+</UserControl>

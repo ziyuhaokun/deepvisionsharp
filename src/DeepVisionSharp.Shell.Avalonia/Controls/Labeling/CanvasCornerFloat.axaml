@@ -1,0 +1,83 @@
+<!--
+  [INPUT]: depends on IvIcons from InCube.UI; depends on Iv* brush resources from InCube.UI.Avalonia
+  [OUTPUT]: declares CanvasCornerFloatPinButtonTheme; provides the corner hit zone and the hover float surface
+  [POS]: Avalonia port of Shell/Controls/CanvasCornerFloat.xaml; the visual half of the corner float host
+  [PROTOCOL]: Update this header on change, then check CLAUDE.md
+-->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iv="clr-namespace:YuUI.Controls;assembly=yu-ui.avalonia"
+             xmlns:ui="clr-namespace:YuUI;assembly=yu-ui.avalonia"
+             x:Class="DeepVisionSharp.Shell.Avalonia.Controls.Labeling.CanvasCornerFloat"
+             ClipToBounds="False"
+             Focusable="False">
+
+    <UserControl.Resources>
+        <ControlTheme x:Key="CanvasCornerFloatPinButtonTheme" TargetType="Button">
+            <Setter Property="Width" Value="28" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="MinWidth" Value="28" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0,0,4,0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="PinChrome"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="7">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+
+            <Style Selector="^:pointerover">
+                <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+            </Style>
+            <Style Selector="^:pointerover /template/ Border#PinChrome">
+                <Setter Property="Background" Value="{DynamicResource IvControlFillBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeBrush}" />
+            </Style>
+            <Style Selector="^.pinned">
+                <Setter Property="Foreground" Value="{DynamicResource IvAccentTextBrush}" />
+            </Style>
+            <Style Selector="^.pinned /template/ Border#PinChrome">
+                <Setter Property="Background" Value="{DynamicResource IvAccentSubtleBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource IvAccentBorderBrush}" />
+            </Style>
+        </ControlTheme>
+    </UserControl.Resources>
+
+    <Grid ClipToBounds="False">
+        <Border Name="HitZone"
+                Background="Transparent"
+                Cursor="Arrow" />
+
+        <Border Name="FloatPanel"
+                Padding="6,8"
+                Background="{DynamicResource IvSurface3Brush}"
+                BorderBrush="{DynamicResource IvStrokeBrush}"
+                BorderThickness="1"
+                CornerRadius="10"
+                BoxShadow="0 2 10 0 #2E000000"
+                IsHitTestVisible="False"
+                Opacity="0"
+                IsVisible="False">
+            <StackPanel Name="FloatHost" Orientation="Horizontal">
+                <Button Name="PinButton"
+                        Theme="{StaticResource CanvasCornerFloatPinButtonTheme}"
+                        Click="OnPinButtonClicked"
+                        ToolTip.Tip="置顶（保持显示）">
+                    <iv:Icon FontSize="14" Data="{x:Static ui:IvIcons.Bookmark}" />
+                </Button>
+                <ContentPresenter Name="BodyHost" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

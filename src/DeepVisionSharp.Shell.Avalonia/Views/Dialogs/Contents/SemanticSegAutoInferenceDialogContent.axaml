@@ -1,0 +1,101 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iv="clr-namespace:YuUI.Controls;assembly=yu-ui.avalonia"
+             xmlns:ui="clr-namespace:YuUI;assembly=yu-ui.avalonia"
+             x:Class="DeepVisionSharp.Shell.Avalonia.Views.Dialogs.Contents.SemanticSegAutoInferenceDialogContent"
+             MinWidth="480" MaxWidth="580"
+             TextElement.Foreground="{DynamicResource IvText1Brush}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://DeepVisionSharp.Avalonia/Views/Dialogs/DialogStyles.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <StackPanel>
+        <TextBlock Theme="{StaticResource DialogHintStyle}"
+                   Text="{Binding InferenceDialogDescription}" TextWrapping="Wrap" />
+
+        <TextBlock Margin="0,18,0,0" Theme="{StaticResource DialogFieldLabelStyle}" Text="选择模型" />
+        <ComboBox Margin="0,8,0,0"
+                  IsEnabled="{Binding HasInferenceModels}"
+                  ItemsSource="{Binding InferenceModels}"
+                  SelectedItem="{Binding SelectedInferenceModel, Mode=TwoWay}">
+            <ComboBox.ItemTemplate>
+                <DataTemplate><TextBlock Text="{Binding DisplayText}" /></DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+
+        <Border Margin="0,10,0,0" Padding="12"
+                Background="{DynamicResource IvSurface3Brush}" CornerRadius="8"
+                IsVisible="{Binding HasNoInferenceModels}">
+            <StackPanel Orientation="Horizontal">
+                <iv:Icon Margin="0,0,8,0" FontSize="16"
+                         Foreground="{DynamicResource IvText2Brush}"
+                         Data="{x:Static ui:IvIcons.Warning}" />
+                <TextBlock VerticalAlignment="Center" Theme="{StaticResource DialogHintStyle}"
+                           Text="{Binding InferenceNoModelsHint}" TextWrapping="Wrap" />
+            </StackPanel>
+        </Border>
+
+        <StackPanel IsVisible="{Binding ShowsInferenceDeviceSelector}">
+            <TextBlock Margin="0,20,0,0" Theme="{StaticResource DialogFieldLabelStyle}" Text="推理设备" />
+            <ComboBox Margin="0,8,0,0"
+                      ItemsSource="{Binding InferenceDeviceOptions}"
+                      SelectedItem="{Binding SelectedInferenceDevice, Mode=TwoWay}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate><TextBlock Text="{Binding DisplayName}" /></DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </StackPanel>
+        <StackPanel IsVisible="{Binding !ShowsInferenceDeviceSelector}">
+            <TextBlock Margin="0,20,0,0" Theme="{StaticResource DialogFieldLabelStyle}" Text="推理设备" />
+            <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="{Binding OpenVinoDeviceDisplayText}" />
+        </StackPanel>
+
+        <TextBlock Margin="0,20,0,0" Theme="{StaticResource DialogFieldLabelStyle}" Text="置信度 → 最小区域占比" />
+        <Grid Margin="0,8,0,0" ColumnDefinitions="*,48">
+            <Slider IsSnapToTickEnabled="True" Maximum="0.95" Minimum="0.1" TickFrequency="0.05"
+                    Value="{Binding InferenceConfidence, Mode=TwoWay}" />
+            <TextBlock Grid.Column="1" HorizontalAlignment="Right"
+                       Text="{Binding InferenceConfidence, StringFormat={}{0:F2}}" />
+        </Grid>
+        <TextBlock Margin="0,4,0,0" Theme="{StaticResource DialogHintStyle}"
+                   Text="{Binding ConfidenceThresholdHint}" />
+
+        <Border Margin="0,16,0,0" Padding="12"
+                Background="{DynamicResource IvSurface3Brush}" CornerRadius="8">
+            <StackPanel>
+                <TextBlock Theme="{StaticResource DialogFieldLabelStyle}"
+                           Text="{Binding InferencePolicySectionTitle}" />
+                <TextBlock Margin="0,4,0,0" Theme="{StaticResource DialogHintStyle}"
+                           Text="{Binding InferenceSpatialPolicySummary}" TextWrapping="Wrap" />
+            </StackPanel>
+        </Border>
+
+        <TextBlock Margin="0,18,0,0" Theme="{StaticResource DialogFieldLabelStyle}" Text="每类轮廓上限" />
+        <iv:NumericBox Margin="0,8,0,0" Maximum="1000" Minimum="1" Step="10"
+                       Value="{Binding InferenceMaxDetections, Mode=TwoWay}" />
+
+        <TextBlock Margin="0,12,0,0" Theme="{StaticResource DialogHintStyle}"
+                   Text="{Binding InferenceParametersFooterHint}" TextWrapping="Wrap" />
+        <TextBlock Margin="0,4,0,0" Theme="{StaticResource DialogHintStyle}" Text="语义分割固定单图推理。" />
+
+        <Border Margin="0,12,0,0" Padding="12"
+                Background="{DynamicResource IvSurface3Brush}" CornerRadius="8"
+                IsVisible="{Binding ShowInferenceConfigWarning}">
+            <StackPanel Orientation="Horizontal">
+                <iv:Icon Margin="0,0,8,0" FontSize="16"
+                         Foreground="{DynamicResource IvText2Brush}"
+                         Data="{x:Static ui:IvIcons.Warning}" />
+                <TextBlock VerticalAlignment="Center" Theme="{StaticResource DialogHintStyle}"
+                           Text="请选择模型并检查参数范围" TextWrapping="Wrap" />
+            </StackPanel>
+        </Border>
+
+        <TextBlock Margin="0,12,0,0"
+                   Foreground="{DynamicResource IvDangerTextBrush}"
+                   Text="{Binding InferenceDialogErrorMessage}" TextWrapping="Wrap"
+                   IsVisible="{Binding HasInferenceDialogErrorMessage}" />
+    </StackPanel>
+</UserControl>

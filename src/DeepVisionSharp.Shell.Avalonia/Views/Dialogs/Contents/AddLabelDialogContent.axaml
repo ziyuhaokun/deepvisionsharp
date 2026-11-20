@@ -1,0 +1,61 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="DeepVisionSharp.Shell.Avalonia.Views.Dialogs.Contents.AddLabelDialogContent"
+             MinWidth="420"
+             TextElement.Foreground="{DynamicResource IvText1Brush}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://DeepVisionSharp.Avalonia/Views/Dialogs/DialogStyles.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <StackPanel>
+        <StackPanel IsVisible="{Binding IsLabelNameEditable}">
+            <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="类别名称" />
+            <TextBox Margin="0,8,0,0"
+                     AutomationProperties.AutomationId="dv.dialog.label-name"
+                     PlaceholderText="新类别名称"
+                     Text="{Binding DraftLabelName, Mode=TwoWay}" />
+        </StackPanel>
+
+        <StackPanel IsVisible="{Binding IsEditLabelColorMode}">
+            <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="类别" />
+            <TextBlock Margin="0,8,0,0"
+                       FontSize="14"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource IvText1Brush}"
+                       TextWrapping="Wrap"
+                       Text="{Binding DraftLabelName}" />
+        </StackPanel>
+
+        <TextBlock Margin="0,16,0,0"
+                   Theme="{StaticResource DialogFieldLabelStyle}"
+                   Text="类别颜色" />
+        <ComboBox Margin="0,8,0,0"
+                  ItemsSource="{Binding PaletteColors}"
+                  SelectedItem="{Binding DraftLabelColor, Mode=TwoWay}">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <Border Width="16" Height="16" VerticalAlignment="Center"
+                                Background="{Binding}"
+                                BorderBrush="{DynamicResource IvStrokeBrush}"
+                                BorderThickness="1"
+                                CornerRadius="4" />
+                        <TextBlock Margin="8,0,0,0" VerticalAlignment="Center"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource IvText1Brush}"
+                                   Text="{Binding}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+
+        <TextBlock Margin="0,12,0,0"
+                   Foreground="{DynamicResource IvDangerTextBrush}"
+                   Text="{Binding DialogErrorMessage}"
+                   TextWrapping="Wrap"
+                   IsVisible="{Binding HasDialogErrorMessage}" />
+    </StackPanel>
+</UserControl>

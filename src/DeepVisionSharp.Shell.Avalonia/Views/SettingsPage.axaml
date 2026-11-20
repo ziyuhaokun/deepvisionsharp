@@ -1,0 +1,578 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iv="clr-namespace:YuUI.Controls;assembly=yu-ui.avalonia"
+             xmlns:ui="clr-namespace:YuUI;assembly=yu-ui.avalonia"
+             xmlns:dv="clr-namespace:DeepVisionSharp.Shell.Avalonia.Controls"
+             xmlns:svc="clr-namespace:DeepVisionSharp.Presentation.Services;assembly=DeepVisionSharp.Presentation"
+             x:Class="DeepVisionSharp.Shell.Avalonia.Views.SettingsPage">
+
+    <UserControl.KeyBindings>
+        <KeyBinding Gesture="F12" Command="{Binding ShowDebugAccessCommand}" />
+    </UserControl.KeyBindings>
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock.sectionTitle">
+            <Setter Property="Margin" Value="0,8,0,0" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+        </Style>
+        <Style Selector="Border.settingsCard">
+            <Setter Property="Margin" Value="0,10,0,0" />
+            <Setter Property="Padding" Value="18,16" />
+            <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+        </Style>
+        <Style Selector="Border.settingsRow">
+            <Setter Property="Padding" Value="0,10" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+        </Style>
+        <Style Selector="Border.iconTile">
+            <Setter Property="Width" Value="32" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="Background" Value="{DynamicResource IvControlFillBrush}" />
+            <Setter Property="CornerRadius" Value="6" />
+        </Style>
+        <Style Selector="TextBlock.rowTitle">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        </Style>
+        <Style Selector="TextBlock.rowSubtitle">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <Style Selector="TextBlock.metricSize">
+            <Setter Property="Margin" Value="0,10,0,0" />
+            <Setter Property="FontSize" Value="24" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        </Style>
+        <Style Selector="TextBlock.pathCaption">
+            <Setter Property="Margin" Value="0,2,0,0" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontFamily" Value="{DynamicResource IvMonoFontFamily}" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        </Style>
+        <Style Selector="Border.storageTile">
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid Name="PageRoot" Margin="32,28" RowDefinitions="Auto,*">
+        <StackPanel Margin="0,0,0,20">
+            <TextBlock FontFamily="{DynamicResource IvDisplayFontFamily}"
+                       FontSize="24"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource IvText1Brush}"
+                       Text="设置" />
+            <TextBlock Margin="0,5,0,0"
+                       FontSize="12.5"
+                       Foreground="{DynamicResource IvText2Brush}"
+                       Text="外观、存储、运行环境与应用信息" />
+        </StackPanel>
+
+        <Grid Grid.Row="1" ColumnDefinitions="188,24,*">
+            <ListBox Grid.Column="0"
+                     ItemsSource="{Binding Categories}"
+                     SelectedValue="{Binding SelectedCategory, Mode=TwoWay}"
+                     SelectedValueBinding="{Binding Id}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid ColumnDefinitions="Auto,*">
+                            <Border Classes="iconTile">
+                                <iv:Icon HorizontalAlignment="Center"
+                                         VerticalAlignment="Center"
+                                         FontSize="16"
+                                         Data="{Binding Icon}" />
+                            </Border>
+                            <TextBlock Grid.Column="1"
+                                       Margin="10,0,0,0"
+                                       VerticalAlignment="Center"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource IvText1Brush}"
+                                       Text="{Binding Title}" />
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <ScrollViewer Grid.Column="2"
+                          HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Auto">
+                <StackPanel MaxWidth="900">
+
+                    <!-- ===== Python 环境 ===== -->
+                    <StackPanel IsVisible="{Binding IsPythonEnvironmentSelected}">
+                        <TextBlock Classes="sectionTitle" Text="环境健康" />
+                        <Border Classes="settingsCard">
+                            <StackPanel>
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Border Padding="10,4"
+                                                    Background="{DynamicResource IvControlFillBrush}"
+                                                    CornerRadius="6">
+                                                <TextBlock FontSize="12"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource IvText1Brush}"
+                                                           Text="{Binding PythonStatusText}" />
+                                            </Border>
+                                            <dv:BusyRing Width="18"
+                                                         Height="18"
+                                                         Margin="10,0,0,0"
+                                                         IsVisible="{Binding IsCheckingPythonVisible}" />
+                                        </StackPanel>
+                                        <TextBlock Margin="0,10,0,0"
+                                                   Classes="rowSubtitle"
+                                                   Text="{Binding PythonStatusDescription}" />
+                                    </StackPanel>
+                                    <Button Grid.Column="1"
+                                            VerticalAlignment="Top"
+                                            Command="{Binding CheckPythonEnvironmentCommand}"
+                                            Theme="{StaticResource IvPrimaryButtonStyle}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <iv:Icon Margin="0,0,6,0" VerticalAlignment="Center" FontSize="16" Data="{x:Static ui:IvIcons.Success}" />
+                                            <TextBlock VerticalAlignment="Center" Text="检测环境" />
+                                        </StackPanel>
+                                    </Button>
+                                </Grid>
+
+                                <ItemsControl Margin="0,14,0,0"
+                                              ItemsSource="{Binding PythonPreflightIssues}"
+                                              IsVisible="{Binding HasPythonPreflightIssues}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Margin="0,0,0,8"
+                                                    Padding="12,10"
+                                                    Background="{DynamicResource IvSurface2Brush}"
+                                                    BorderBrush="{DynamicResource IvWarningBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="4">
+                                                <StackPanel>
+                                                    <TextBlock FontWeight="SemiBold" Text="{Binding Severity}" />
+                                                    <TextBlock Margin="0,4,0,0" Text="{Binding Message}" TextWrapping="Wrap" />
+                                                    <TextBlock Margin="0,4,0,0"
+                                                               Foreground="{DynamicResource IvText2Brush}"
+                                                               Text="{Binding Remediation}"
+                                                               TextWrapping="Wrap" />
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Classes="sectionTitle" Text="Python 解释器" />
+                        <Border Classes="settingsCard">
+                            <Border Classes="settingsRow">
+                                <Grid ColumnDefinitions="Auto,*">
+                                    <Border Classes="iconTile">
+                                        <iv:Icon HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Data="{x:Static ui:IvIcons.Calculator}" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Margin="12,0,0,0">
+                                        <TextBlock Classes="rowTitle" Text="解释器路径" />
+                                        <Grid Margin="0,10,0,0" ColumnDefinitions="*,Auto,Auto">
+                                            <TextBox PlaceholderText="选择 Python 解释器路径…"
+                                                     Text="{Binding PythonPath, Mode=TwoWay}" />
+                                            <Button Grid.Column="1"
+                                                    Margin="8,0,0,0"
+                                                    Command="{Binding BrowsePythonPathCommand}"
+                                                    Theme="{StaticResource IvSubtleButtonStyle}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <iv:Icon Margin="0,0,6,0" VerticalAlignment="Center" FontSize="14" Data="{x:Static ui:IvIcons.FolderOpen}" />
+                                                    <TextBlock VerticalAlignment="Center" Text="浏览" />
+                                                </StackPanel>
+                                            </Button>
+                                            <Button Grid.Column="2"
+                                                    Margin="8,0,0,0"
+                                                    Command="{Binding ApplyPythonPathCommand}"
+                                                    IsVisible="{Binding IsPythonPathDirty}"
+                                                    Theme="{StaticResource IvPrimaryButtonStyle}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <iv:Icon Margin="0,0,6,0" VerticalAlignment="Center" FontSize="16" Data="{x:Static ui:IvIcons.Check}" />
+                                                    <TextBlock VerticalAlignment="Center" Text="应用" />
+                                                </StackPanel>
+                                            </Button>
+                                        </Grid>
+                                        <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                                            <Button Command="{Binding AutoDetectPythonCommand}" Theme="{StaticResource IvSubtleButtonStyle}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <iv:Icon Margin="0,0,6,0" VerticalAlignment="Center" FontSize="16" Data="{x:Static ui:IvIcons.Sparkles}" />
+                                                    <TextBlock VerticalAlignment="Center" Text="自动检测" />
+                                                </StackPanel>
+                                            </Button>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ===== 外观 ===== -->
+                    <StackPanel IsVisible="{Binding IsAppearanceSelected}">
+                        <TextBlock Classes="sectionTitle" Text="外观" />
+                        <Border Classes="settingsCard">
+                            <StackPanel>
+                                <Border Classes="settingsRow">
+                                    <Grid ColumnDefinitions="Auto,*">
+                                        <Border Classes="iconTile">
+                                            <iv:Icon HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Data="{x:Static ui:IvIcons.Palette}" />
+                                        </Border>
+                                        <TextBlock Grid.Column="1" Margin="12,0,0,0" Classes="rowTitle" VerticalAlignment="Center" Text="主题模式" />
+                                    </Grid>
+                                </Border>
+                                <UniformGrid Margin="12,4,12,8" Columns="3" Rows="1" MaxWidth="420" HorizontalAlignment="Left">
+                                    <RadioButton Margin="0,0,8,0"
+                                                 GroupName="ThemeMode"
+                                                 Content="自动"
+                                                 IsChecked="{Binding IsThemeSystem, Mode=OneWay}"
+                                                 Command="{Binding SelectThemeCommand}"
+                                                 CommandParameter="{x:Static svc:ShellThemePreference.System}" />
+                                    <RadioButton Margin="0,0,8,0"
+                                                 GroupName="ThemeMode"
+                                                 Content="浅色"
+                                                 IsChecked="{Binding IsThemeLight, Mode=OneWay}"
+                                                 Command="{Binding SelectThemeCommand}"
+                                                 CommandParameter="{x:Static svc:ShellThemePreference.Light}" />
+                                    <RadioButton GroupName="ThemeMode"
+                                                 Content="深色"
+                                                 IsChecked="{Binding IsThemeDark, Mode=OneWay}"
+                                                 Command="{Binding SelectThemeCommand}"
+                                                 CommandParameter="{x:Static svc:ShellThemePreference.Dark}" />
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Classes="sectionTitle" Text="通知" />
+                        <Border Classes="settingsCard">
+                            <Border Classes="settingsRow">
+                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                    <Border Classes="iconTile">
+                                        <iv:Icon HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Data="{x:Static ui:IvIcons.Warning}" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Margin="12,0,16,0" VerticalAlignment="Center">
+                                        <TextBlock Classes="rowTitle" Text="启用通知" />
+                                        <TextBlock Classes="rowSubtitle" Text="任务完成与系统消息" />
+                                    </StackPanel>
+                                    <ToggleButton Grid.Column="2"
+                                                  VerticalAlignment="Center"
+                                                  IsChecked="{Binding ShowNotifications, Mode=TwoWay}"
+                                                  Theme="{StaticResource IvSwitchStyle}" />
+                                </Grid>
+                            </Border>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ===== 存储 ===== -->
+                    <StackPanel IsVisible="{Binding IsStorageSelected}">
+                        <TextBlock Classes="sectionTitle" Text="本地占用" />
+                        <UniformGrid Margin="0,10,0,14" Columns="2" Rows="2">
+                            <Border Classes="storageTile" Margin="0,0,10,10">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border Classes="iconTile">
+                                            <iv:Icon HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Data="{x:Static ui:IvIcons.Grid}" />
+                                        </Border>
+                                        <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="{DynamicResource IvText1Brush}" Text="应用数据" />
+                                    </StackPanel>
+                                    <TextBlock Classes="metricSize" Text="{Binding AppDataSize}" />
+                                    <TextBlock Classes="pathCaption" Text="{Binding AppDataDirectory}" />
+                                    <Button Margin="0,12,0,0" Command="{Binding OpenAppDataFolderCommand}" Theme="{StaticResource IvSubtleButtonStyle}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <iv:Icon Margin="0,0,5,0" VerticalAlignment="Center" FontSize="14" Data="{x:Static ui:IvIcons.FolderOpen}" />
+                                            <TextBlock VerticalAlignment="Center" Text="打开目录" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="storageTile" Margin="0,0,0,10">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border Classes="iconTile">
+                                            <iv:Icon HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Data="{x:Static ui:IvIcons.Cube}" />
+                                        </Border>
+                                        <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="{DynamicResource IvText1Brush}" Text="模型文件" />
+                                    </StackPanel>
+                                    <TextBlock Classes="metricSize" Text="{Binding ModelsSize}" />
+                                    <TextBlock Classes="pathCaption" Text="{Binding ModelsDirectory}" />
+                                    <Button Margin="0,12,0,0" Command="{Binding OpenModelsFolderCommand}" Theme="{StaticResource IvSubtleButtonStyle}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <iv:Icon Margin="0,0,5,0" VerticalAlignment="Center" FontSize="14" Data="{x:Static ui:IvIcons.FolderOpen}" />
+                                            <TextBlock VerticalAlignment="Center" Text="打开目录" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="storageTile" Margin="0,0,10,0">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border Classes="iconTile">
+                                            <iv:Icon HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Data="{x:Static ui:IvIcons.Document}" />
+                                        </Border>
+                                        <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="{DynamicResource IvText1Brush}" Text="日志文件" />
+                                    </StackPanel>
+                                    <TextBlock Classes="metricSize" Text="{Binding LogsSize}" />
+                                    <TextBlock Classes="pathCaption" Text="{Binding LogsDirectory}" />
+                                    <Button Margin="0,12,0,0" Command="{Binding OpenLogsFolderCommand}" Theme="{StaticResource IvSubtleButtonStyle}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <iv:Icon Margin="0,0,5,0" VerticalAlignment="Center" FontSize="14" Data="{x:Static ui:IvIcons.FolderOpen}" />
+                                            <TextBlock VerticalAlignment="Center" Text="打开目录" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="storageTile">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border Classes="iconTile">
+                                            <iv:Icon HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Data="{x:Static ui:IvIcons.Warning}" />
+                                        </Border>
+                                        <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="{DynamicResource IvText1Brush}" Text="崩溃转储" />
+                                    </StackPanel>
+                                    <TextBlock Classes="metricSize" Text="{Binding CrashDumpsSize}" />
+                                    <TextBlock Classes="pathCaption" Text="{Binding CrashDumpsDirectory}" />
+                                    <Button Margin="0,12,0,0" Command="{Binding OpenCrashDumpsFolderCommand}" Theme="{StaticResource IvSubtleButtonStyle}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <iv:Icon Margin="0,0,5,0" VerticalAlignment="Center" FontSize="14" Data="{x:Static ui:IvIcons.FolderOpen}" />
+                                            <TextBlock VerticalAlignment="Center" Text="打开目录" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Border>
+                        </UniformGrid>
+
+                        <TextBlock Classes="sectionTitle" Text="缓存维护" />
+                        <Border Classes="settingsCard">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel>
+                                    <TextBlock Classes="rowTitle" Text="缓存与未引用训练数据" />
+                                    <TextBlock Classes="rowSubtitle"
+                                               Text="清理缓存和无任务引用的旧训练目录，不影响图库、模型与日志。" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Orientation="Horizontal">
+                                    <dv:BusyRing Width="18" Height="18" Margin="0,0,10,0" IsVisible="{Binding IsCleaningCache}" />
+                                    <Button Margin="0,0,8,0" Command="{Binding RefreshStorageInfoCommand}" Theme="{StaticResource IvSubtleButtonStyle}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <iv:Icon Margin="0,0,6,0" VerticalAlignment="Center" FontSize="14" Data="{x:Static ui:IvIcons.Refresh}" />
+                                            <TextBlock VerticalAlignment="Center" Text="刷新" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Command="{Binding ClearCacheCommand}"
+                                            IsEnabled="{Binding IsNotCleaningCache}"
+                                            Theme="{StaticResource IvSubtleButtonStyle}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <iv:Icon Margin="0,0,6,0" VerticalAlignment="Center" FontSize="14" Data="{x:Static ui:IvIcons.Delete}" />
+                                            <TextBlock VerticalAlignment="Center" Text="清理缓存" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ===== 关于 ===== -->
+                    <StackPanel IsVisible="{Binding IsAboutSelected}">
+                        <TextBlock Classes="sectionTitle" Text="应用" />
+                        <Border Classes="settingsCard">
+                            <Grid ColumnDefinitions="Auto,*">
+                                <Border Classes="iconTile" Width="56" Height="56" CornerRadius="10">
+                                    <iv:Icon HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="26" Data="{x:Static ui:IvIcons.Cube}" />
+                                </Border>
+                                <StackPanel Grid.Column="1" Margin="16,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource IvText1Brush}" Text="智立方深度学习平台" />
+                                    <TextBlock Margin="0,4,0,0"
+                                               Foreground="{DynamicResource IvText2Brush}"
+                                               Text="{Binding AppVersion, StringFormat='版本 {0}'}" />
+                                    <TextBlock Margin="0,6,0,0" Classes="rowSubtitle" Text="深度学习标注、训练与推理工作台" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <TextBlock Classes="sectionTitle" Text="本版更新" />
+                        <Border Classes="settingsCard">
+                            <StackPanel>
+                                <TextBlock Classes="rowSubtitle"
+                                           Text="{Binding ChangeLogEmptyHint}"
+                                           IsVisible="{Binding !HasCurrentChangeLogEntry}" />
+                                <StackPanel IsVisible="{Binding HasCurrentChangeLogEntry}">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource IvText1Brush}" Text="{Binding CurrentChangeLogEntry.VersionBadge}" />
+                                        <Border Grid.Column="1" Padding="8,2" Background="{DynamicResource IvAccentBrush}" CornerRadius="4" VerticalAlignment="Center">
+                                            <TextBlock FontSize="11" Foreground="{DynamicResource IvTextOnPrimaryBrush}" Text="当前" />
+                                        </Border>
+                                    </Grid>
+                                    <TextBlock Margin="0,4,0,0"
+                                               Classes="rowSubtitle"
+                                               Text="{Binding CurrentChangeLogEntry.ReleasedOn, StringFormat='发布日期 {0}'}"
+                                               IsVisible="{Binding HasCurrentChangeLogReleasedOn}" />
+                                    <TextBlock Margin="0,2,0,0"
+                                               Classes="rowSubtitle"
+                                               Text="{Binding CurrentChangeLogEntry.Tags, StringFormat='标签 {0}'}"
+                                               IsVisible="{Binding HasCurrentChangeLogTags}" />
+                                    <ItemsControl Margin="0,12,0,0" ItemsSource="{Binding CurrentChangeLogEntry.Items}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="0,0,0,8" ColumnDefinitions="16,*">
+                                                    <TextBlock VerticalAlignment="Top" Foreground="{DynamicResource IvAccentBrush}" Text="•" />
+                                                    <TextBlock Grid.Column="1" Foreground="{DynamicResource IvText1Brush}" Text="{Binding}" TextWrapping="Wrap" />
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Classes="sectionTitle" Text="更新历史" />
+                        <Border Classes="settingsCard">
+                            <StackPanel>
+                                <TextBlock Classes="rowSubtitle" Text="{Binding HistoricalVersionsHint}" IsVisible="{Binding HasHistoricalChangeLogEntries}" />
+                                <TextBlock Classes="rowSubtitle" Text="暂无更早的历史版本节点。" IsVisible="{Binding !HasHistoricalChangeLogEntries}" />
+
+                                <ItemsControl Margin="0,8,0,0"
+                                              ItemsSource="{Binding HistoricalChangeLogEntries}"
+                                              IsVisible="{Binding HasHistoricalChangeLogEntries}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Expander Margin="0,0,0,8" Header="{Binding Title}" IsExpanded="False">
+                                                <ItemsControl Margin="8,8,0,4" ItemsSource="{Binding Items}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Grid Margin="0,0,0,6" ColumnDefinitions="16,*">
+                                                                <TextBlock VerticalAlignment="Top" Foreground="{DynamicResource IvText2Brush}" Text="•" />
+                                                                <TextBlock Grid.Column="1" Foreground="{DynamicResource IvText1Brush}" Text="{Binding}" TextWrapping="Wrap" />
+                                                            </Grid>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </Expander>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Classes="sectionTitle" Text="运行环境" />
+                        <Border Classes="settingsCard">
+                            <StackPanel>
+                                <Border Classes="settingsRow">
+                                    <Grid ColumnDefinitions="120,*">
+                                        <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource IvText2Brush}" Text="运行时" />
+                                        <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="{Binding RuntimeVersion}" TextWrapping="Wrap" />
+                                    </Grid>
+                                </Border>
+                                <Border Classes="settingsRow">
+                                    <Grid ColumnDefinitions="120,*">
+                                        <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource IvText2Brush}" Text="操作系统" />
+                                        <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="{Binding OsVersion}" TextWrapping="Wrap" />
+                                    </Grid>
+                                </Border>
+                                <Border Classes="settingsRow">
+                                    <Grid ColumnDefinitions="120,*,Auto">
+                                        <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource IvText2Brush}" Text="应用数据" />
+                                        <TextBlock Grid.Column="1" Margin="0,0,8,0" VerticalAlignment="Center" Text="{Binding AppDataDirectory}" TextTrimming="CharacterEllipsis" />
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                            <Button Command="{Binding CopyTextCommand}" CommandParameter="{Binding AppDataDirectory}" Theme="{StaticResource IvIconButtonStyle}" ToolTip.Tip="复制">
+                                                <iv:Icon FontSize="14" Data="{x:Static ui:IvIcons.Copy}" />
+                                            </Button>
+                                            <Button Command="{Binding OpenAppDataFolderCommand}" Theme="{StaticResource IvIconButtonStyle}" ToolTip.Tip="打开">
+                                                <iv:Icon FontSize="14" Data="{x:Static ui:IvIcons.FolderOpen}" />
+                                            </Button>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                                <Border Classes="settingsRow">
+                                    <Grid ColumnDefinitions="120,*,Auto">
+                                        <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource IvText2Brush}" Text="日志目录" />
+                                        <TextBlock Grid.Column="1" Margin="0,0,8,0" VerticalAlignment="Center" Text="{Binding LogsDirectory}" TextTrimming="CharacterEllipsis" />
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                            <Button Command="{Binding CopyTextCommand}" CommandParameter="{Binding LogsDirectory}" Theme="{StaticResource IvIconButtonStyle}" ToolTip.Tip="复制">
+                                                <iv:Icon FontSize="14" Data="{x:Static ui:IvIcons.Copy}" />
+                                            </Button>
+                                            <Button Command="{Binding OpenLogsFolderCommand}" Theme="{StaticResource IvIconButtonStyle}" ToolTip.Tip="打开">
+                                                <iv:Icon FontSize="14" Data="{x:Static ui:IvIcons.FolderOpen}" />
+                                            </Button>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                                <Border Classes="settingsRow">
+                                    <Grid ColumnDefinitions="120,*,Auto">
+                                        <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource IvText2Brush}" Text="崩溃转储" />
+                                        <TextBlock Grid.Column="1" Margin="0,0,8,0" VerticalAlignment="Center" Text="{Binding CrashDumpsDirectory}" TextTrimming="CharacterEllipsis" />
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                            <Button Command="{Binding CopyTextCommand}" CommandParameter="{Binding CrashDumpsDirectory}" Theme="{StaticResource IvIconButtonStyle}" ToolTip.Tip="复制">
+                                                <iv:Icon FontSize="14" Data="{x:Static ui:IvIcons.Copy}" />
+                                            </Button>
+                                            <Button Command="{Binding OpenCrashDumpsFolderCommand}" Theme="{StaticResource IvIconButtonStyle}" ToolTip.Tip="打开">
+                                                <iv:Icon FontSize="14" Data="{x:Static ui:IvIcons.FolderOpen}" />
+                                            </Button>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                                <Border Classes="settingsRow">
+                                    <Grid ColumnDefinitions="120,*,Auto">
+                                        <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource IvText2Brush}" Text="模型目录" />
+                                        <TextBlock Grid.Column="1" Margin="0,0,8,0" VerticalAlignment="Center" Text="{Binding ModelsDirectory}" TextTrimming="CharacterEllipsis" />
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                            <Button Command="{Binding CopyTextCommand}" CommandParameter="{Binding ModelsDirectory}" Theme="{StaticResource IvIconButtonStyle}" ToolTip.Tip="复制">
+                                                <iv:Icon FontSize="14" Data="{x:Static ui:IvIcons.Copy}" />
+                                            </Button>
+                                            <Button Command="{Binding OpenModelsFolderCommand}" Theme="{StaticResource IvIconButtonStyle}" ToolTip.Tip="打开">
+                                                <iv:Icon FontSize="14" Data="{x:Static ui:IvIcons.FolderOpen}" />
+                                            </Button>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ===== 高级 ===== -->
+                    <StackPanel IsVisible="{Binding IsAdvancedSelected}">
+                        <TextBlock Classes="sectionTitle" Text="数据完整性" />
+                        <Border Classes="settingsCard">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel>
+                                    <TextBlock Classes="rowTitle" Text="数据检查与修复" />
+                                    <TextBlock Classes="rowSubtitle" Text="检查并修复项目、图库和样本索引。" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Orientation="Horizontal">
+                                    <dv:BusyRing Width="18" Height="18" Margin="0,0,10,0" IsVisible="{Binding IsRunningDataRepair}" />
+                                    <Button Command="{Binding CheckAndRepairDataCommand}"
+                                            IsEnabled="{Binding IsNotRunningDataRepair}"
+                                            Theme="{StaticResource IvPrimaryButtonStyle}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <iv:Icon Margin="0,0,6,0" VerticalAlignment="Center" FontSize="16" Data="{x:Static ui:IvIcons.Settings}" />
+                                            <TextBlock VerticalAlignment="Center" Text="执行检查修复" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <TextBlock Classes="sectionTitle" Text="最近结果" />
+                        <Border Classes="settingsCard">
+                            <TextBlock Foreground="{DynamicResource IvText2Brush}"
+                                       Text="{Binding DataRepairSummary}"
+                                       TextWrapping="Wrap" />
+                        </Border>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</UserControl>

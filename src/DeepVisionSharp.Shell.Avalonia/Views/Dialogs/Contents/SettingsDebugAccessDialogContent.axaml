@@ -1,0 +1,22 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="DeepVisionSharp.Shell.Avalonia.Views.Dialogs.Contents.SettingsDebugAccessDialogContent"
+             MinWidth="380"
+             TextElement.Foreground="{DynamicResource IvText1Brush}">
+    <StackPanel>
+        <TextBlock FontSize="13"
+                   FontWeight="SemiBold"
+                   Foreground="{DynamicResource IvText1Brush}"
+                   Text="维护密码" />
+        <TextBox Name="PasswordInput"
+                 Margin="0,8,0,0"
+                 PasswordChar="●"
+                 Text="{Binding Password, Mode=TwoWay}"
+                 PlaceholderText="输入密码" />
+        <TextBlock Margin="0,10,0,0"
+                   Foreground="{DynamicResource IvDangerTextBrush}"
+                   Text="{Binding ErrorMessage}"
+                   TextWrapping="Wrap"
+                   IsVisible="{Binding HasErrorMessage}" />
+    </StackPanel>
+</UserControl>

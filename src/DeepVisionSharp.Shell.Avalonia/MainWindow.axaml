@@ -376,7 +376,7 @@
             </DockPanel>
         </Border>
 
-        <!-- ===== 内容区：由导航在 MainWindow.axaml.cs 里填页面实例（每个路由只建一次） ===== -->
+        <!-- ===== 内容区：由 AvaloniaNavigationService 按路由填页面实例（每个路由只建一次） ===== -->
         <ContentControl Name="ContentHost" Grid.Row="1" Grid.Column="1">
             <ContentControl.Transitions>
                 <Transitions>
@@ -384,6 +384,42 @@
                 </Transitions>
             </ContentControl.Transitions>
         </ContentControl>
+
+        <!-- 提示条：右下角，由 AvaloniaSnackbarHost 的事件驱动（ShellSnackbarNotifier → ISnackbarHost → 这里） -->
+        <Border Name="SnackbarLayer"
+                Grid.RowSpan="2"
+                Grid.ColumnSpan="2"
+                Margin="0,0,24,24"
+                Padding="14,12"
+                MaxWidth="420"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Bottom"
+                IsVisible="False"
+                Background="{DynamicResource IvSurface2Brush}"
+                BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                BorderThickness="1"
+                CornerRadius="{DynamicResource IvRadiusOverlay}">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <iv:Icon Name="SnackbarIcon"
+                         Width="18"
+                         Height="18"
+                         VerticalAlignment="Top"
+                         Data="{x:Static ui:IvIcons.Info}"
+                         FontSize="18"
+                         Foreground="{DynamicResource IvInfoBrush}" />
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Name="SnackbarTitle"
+                               FontSize="13"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource IvText1Brush}"
+                               TextWrapping="Wrap" />
+                    <TextBlock Name="SnackbarMessage"
+                               FontSize="12.5"
+                               Foreground="{DynamicResource IvText2Brush}"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
 
         <!-- 对话框宿主：与 WPF 版一致，覆盖整个窗口、默认隐藏、ZIndex 最高 -->
         <iv:Dialog Name="RootDialog"

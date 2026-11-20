@@ -1,0 +1,17 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="DeepVisionSharp.Shell.Avalonia.Controls.Inference.BusyRing"
+             Width="20" Height="20">
+    <Viewbox>
+        <Canvas Width="20" Height="20">
+            <Ellipse Width="16" Height="16" Canvas.Left="2" Canvas.Top="2"
+                     Stroke="{DynamicResource IvStrokeBrush}" StrokeThickness="2" />
+            <Ellipse Name="SpinRing"
+                     Width="16" Height="16" Canvas.Left="2" Canvas.Top="2"
+                     Stroke="{DynamicResource IvAccentBrush}"
+                     StrokeThickness="2"
+                     RenderTransformOrigin="50%,50%">
+            </Ellipse>
+        </Canvas>
+    </Viewbox>
+</UserControl>

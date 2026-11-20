@@ -1,0 +1,104 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iv="clr-namespace:YuUI.Controls;assembly=yu-ui.avalonia"
+             xmlns:ui="clr-namespace:YuUI;assembly=yu-ui.avalonia"
+             xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base"
+             x:Class="DeepVisionSharp.Shell.Avalonia.Controls.Labeling.LabelingPolygonListCard">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock.sectionTitle">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        </Style>
+        <Style Selector="Border.annotationRow">
+            <Setter Property="Margin" Value="0,0,0,1" />
+            <Setter Property="Padding" Value="7,5" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+        </Style>
+        <Style Selector="Border.annotationRow:pointerover">
+            <Setter Property="Background" Value="{DynamicResource IvStateHoverBrush}" />
+        </Style>
+        <Style Selector="TextBlock.emptyHint">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText3Brush}" />
+            <Setter Property="TextAlignment" Value="Center" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid Margin="12,10,12,12" RowDefinitions="Auto,*">
+        <TextBlock Margin="0,0,0,8"
+                   Classes="sectionTitle"
+                   Text="标注列表" />
+
+        <Grid Grid.Row="1">
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Auto"
+                          IsVisible="{Binding Editor.HasAnnotations}">
+                <ItemsControl ItemsSource="{Binding Editor.SegmentationPolygons}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Classes="annotationRow">
+                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                    <Border Width="3"
+                                            Height="20"
+                                            VerticalAlignment="Center"
+                                            Background="{Binding Color}"
+                                            CornerRadius="2" />
+                                    <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                                        <TextBlock FontSize="12"
+                                                   FontWeight="SemiBold"
+                                                   Text="{Binding Label}" />
+                                        <TextBlock FontSize="10.5"
+                                                   Foreground="{DynamicResource IvText2Brush}"
+                                                   Text="{Binding PointCount, StringFormat={}{0} 个顶点}" />
+                                    </StackPanel>
+                                    <Button Grid.Column="2"
+                                            Width="24"
+                                            Height="24"
+                                            MinHeight="0"
+                                            Padding="0"
+                                            Command="{Binding $parent[UserControl].DataContext.Editor.DeletePolygonCommand}"
+                                            CommandParameter="{Binding Id}"
+                                            Theme="{StaticResource IvIconButtonStyle}"
+                                            ToolTip.Tip="删除多边形">
+                                        <iv:Icon VerticalAlignment="Center"
+                                                 FontSize="14"
+                                                 Data="{x:Static ui:IvIcons.Delete}" />
+                                    </Button>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <Border Background="Transparent"
+                    BorderThickness="0"
+                    IsVisible="{Binding !Editor.HasAnnotations}">
+                <StackPanel MaxWidth="210"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center">
+                    <TextBlock HorizontalAlignment="Center"
+                               FontSize="12"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource IvText2Brush}"
+                               Text="暂无标注" />
+                    <TextBlock Margin="0,5,0,0"
+                               Classes="emptyHint"
+                               Text="选择多边形工具后，在画布上逐点绘制"
+                               IsVisible="{Binding Workspace.ImageSource, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
+                    <TextBlock Margin="0,5,0,0"
+                               Classes="emptyHint"
+                               Text="选择样本后，在这里管理它的多边形"
+                               IsVisible="{Binding Workspace.ImageSource, Converter={x:Static conv:ObjectConverters.IsNull}}" />
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

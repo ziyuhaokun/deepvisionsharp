@@ -1,0 +1,340 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ivc="clr-namespace:YuUI.Controls;assembly=yu-ui.avalonia"
+             xmlns:ui="clr-namespace:YuUI;assembly=yu-ui.avalonia"
+             xmlns:controls="clr-namespace:DeepVisionSharp.Shell.Avalonia.Controls"
+             x:Class="DeepVisionSharp.Shell.Avalonia.Views.Dialogs.Contents.GallerySplitPlannerDialogContent"
+             Width="720"
+             MinWidth="680"
+             MaxHeight="560"
+             TextElement.Foreground="{DynamicResource IvText1Brush}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://DeepVisionSharp.Avalonia/Views/Dialogs/DialogStyles.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- 拆分方式卡片：圆点 + 两行文字，选中时强调色描边 2px（对应 WPF SplitModeCardStyle） -->
+            <ControlTheme x:Key="SplitModeCardTheme" TargetType="RadioButton">
+                <Setter Property="Margin" Value="0,0,0,5" />
+                <Setter Property="Padding" Value="9,7" />
+                <Setter Property="HorizontalAlignment" Value="Stretch" />
+                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+                <Setter Property="Template">
+                    <ControlTemplate>
+                        <Border Name="CardBorder"
+                                Padding="{TemplateBinding Padding}"
+                                Background="{DynamicResource IvControlFillBrush}"
+                                BorderBrush="{DynamicResource IvStrokeBrush}"
+                                BorderThickness="1"
+                                CornerRadius="7">
+                            <Grid ColumnDefinitions="Auto,*">
+                                <Grid Width="16" Height="16" Margin="0,2,9,0" VerticalAlignment="Top">
+                                    <Ellipse Fill="Transparent" Stroke="{DynamicResource IvText2Brush}" StrokeThickness="1.5" />
+                                    <Ellipse Name="CheckedDot" Width="8" Height="8"
+                                             Fill="{DynamicResource IvAccentBrush}" IsVisible="False" />
+                                </Grid>
+                                <ContentPresenter Name="PART_ContentPresenter"
+                                                  Grid.Column="1"
+                                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalAlignment="Center"
+                                                  Content="{TemplateBinding Content}"
+                                                  ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                  Foreground="{TemplateBinding Foreground}" />
+                            </Grid>
+                        </Border>
+                    </ControlTemplate>
+                </Setter>
+                <Style Selector="^:pointerover /template/ Border#CardBorder">
+                    <Setter Property="Background" Value="{DynamicResource IvSurface3Brush}" />
+                </Style>
+                <Style Selector="^:checked /template/ Border#CardBorder">
+                    <Setter Property="Background" Value="{DynamicResource IvAccentSubtleBrush}" />
+                    <Setter Property="BorderBrush" Value="{DynamicResource IvAccentBrush}" />
+                    <Setter Property="BorderThickness" Value="2" />
+                </Style>
+                <Style Selector="^:checked /template/ Ellipse#CheckedDot">
+                    <Setter Property="IsVisible" Value="True" />
+                </Style>
+                <Style Selector="^:focus-visible /template/ Border#CardBorder">
+                    <Setter Property="BorderBrush" Value="{DynamicResource IvFocusBrush}" />
+                </Style>
+            </ControlTheme>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock.modeGroup">
+            <Setter Property="Margin" Value="2,10,0,6" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+        </Style>
+        <Style Selector="TextBlock.muted">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+        </Style>
+        <Style Selector="TextBlock.error">
+            <Setter Property="Foreground" Value="{DynamicResource IvDangerTextBrush}" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <Style Selector="Border.optionPanel">
+            <Setter Property="Padding" Value="14" />
+            <Setter Property="Background" Value="{DynamicResource IvSurface3Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto,*">
+        <!-- 顶部：源图库 + 步骤 -->
+        <Border Padding="14,12"
+                Background="{DynamicResource IvSurface3Brush}"
+                BorderBrush="{DynamicResource IvStrokeBrush}"
+                BorderThickness="1"
+                CornerRadius="8">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <Border Width="36" Height="36" Background="{DynamicResource IvAccentSubtleBrush}" CornerRadius="8">
+                    <ivc:Icon HorizontalAlignment="Center" VerticalAlignment="Center"
+                              Foreground="{DynamicResource IvAccentBrush}"
+                              Data="{x:Static ui:IvIcons.Images}" />
+                </Border>
+                <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                    <TextBlock FontSize="14" FontWeight="SemiBold"
+                               Foreground="{DynamicResource IvText1Brush}"
+                               Text="{Binding GalleryName}"
+                               TextTrimming="CharacterEllipsis"
+                               ToolTip.Tip="{Binding GalleryName}" />
+                    <TextBlock Margin="0,3,0,0" Classes="muted"
+                               Text="{Binding TotalSampleCount, StringFormat=源图库 · {0:N0} 张样本}" />
+                </StackPanel>
+                <Border Grid.Column="2" Padding="10,5" VerticalAlignment="Center"
+                        Background="{DynamicResource IvControlFillBrush}" CornerRadius="12">
+                    <TextBlock Classes="muted" Text="{Binding StepText}" />
+                </Border>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1" Margin="0,14,0,0" ColumnDefinitions="238,14,*">
+            <!-- 左：拆分方式 -->
+            <ScrollViewer MaxHeight="450" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="拆分方式" />
+
+                    <TextBlock Classes="modeGroup" Text="常用" />
+                    <RadioButton Theme="{StaticResource SplitModeCardTheme}" GroupName="GallerySplitMode"
+                                 Command="{Binding SelectByRatioModeCommand}"
+                                 IsChecked="{Binding IsByRatioMode, Mode=OneWay}">
+                        <StackPanel>
+                            <TextBlock FontWeight="SemiBold" Foreground="{DynamicResource IvText1Brush}" Text="按比例拆分" />
+                            <TextBlock Classes="muted" Text="按指定比例抽取样本" />
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton Theme="{StaticResource SplitModeCardTheme}" GroupName="GallerySplitMode"
+                                 Command="{Binding SelectByCountModeCommand}"
+                                 IsChecked="{Binding IsByCountMode, Mode=OneWay}">
+                        <StackPanel>
+                            <TextBlock FontWeight="SemiBold" Foreground="{DynamicResource IvText1Brush}" Text="按数量拆分" />
+                            <TextBlock Classes="muted" Text="手动输入要移动的张数" />
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton Theme="{StaticResource SplitModeCardTheme}" GroupName="GallerySplitMode"
+                                 Command="{Binding SelectManualModeCommand}"
+                                 IsChecked="{Binding IsManualMode, Mode=OneWay}">
+                        <StackPanel>
+                            <TextBlock FontWeight="SemiBold" Foreground="{DynamicResource IvText1Brush}" Text="手动选择样本" />
+                            <TextBlock Classes="muted" Text="分页勾选需要移动的样本" />
+                        </StackPanel>
+                    </RadioButton>
+
+                    <TextBlock Classes="modeGroup" Text="按样本状态" />
+                    <RadioButton Theme="{StaticResource SplitModeCardTheme}" GroupName="GallerySplitMode"
+                                 Command="{Binding SelectAnnotatedModeCommand}"
+                                 IsChecked="{Binding IsAnnotatedMode, Mode=OneWay}"
+                                 Content="移动全部已标注样本" />
+                    <RadioButton Theme="{StaticResource SplitModeCardTheme}" GroupName="GallerySplitMode"
+                                 Command="{Binding SelectUnannotatedModeCommand}"
+                                 IsChecked="{Binding IsUnannotatedMode, Mode=OneWay}"
+                                 Content="移动全部未标注样本" />
+                    <RadioButton Theme="{StaticResource SplitModeCardTheme}" GroupName="GallerySplitMode"
+                                 Command="{Binding SelectWithErrorModeCommand}"
+                                 IsChecked="{Binding IsWithErrorMode, Mode=OneWay}"
+                                 Content="移动全部错误样本" />
+
+                    <TextBlock Classes="modeGroup" Text="按规则" />
+                    <RadioButton Theme="{StaticResource SplitModeCardTheme}" GroupName="GallerySplitMode"
+                                 Command="{Binding SelectFileNamePrefixModeCommand}"
+                                 IsChecked="{Binding IsFileNamePrefixMode, Mode=OneWay}"
+                                 Content="按文件名前缀拆分" />
+                    <RadioButton Theme="{StaticResource SplitModeCardTheme}" GroupName="GallerySplitMode"
+                                 Command="{Binding SelectByLabelModeCommand}"
+                                 IsChecked="{Binding IsByLabelMode, Mode=OneWay}"
+                                 Content="按缺陷类别拆分" />
+                    <RadioButton Theme="{StaticResource SplitModeCardTheme}" GroupName="GallerySplitMode"
+                                 Command="{Binding SelectByLabelRatioModeCommand}"
+                                 IsChecked="{Binding IsByLabelRatioMode, Mode=OneWay}"
+                                 Content="按类别比例拆分" />
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- 右：当前方式的参数与预计结果 -->
+            <ScrollViewer Grid.Column="2" MaxHeight="450" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <TextBlock FontSize="16" FontWeight="SemiBold"
+                               Foreground="{DynamicResource IvText1Brush}"
+                               Text="{Binding SelectedModeTitle}" />
+                    <TextBlock Margin="0,4,0,12" Classes="muted"
+                               Text="{Binding SelectedModeDescription}" TextWrapping="Wrap" />
+
+                    <Border Classes="optionPanel" IsVisible="{Binding ShowRatioOptions}">
+                        <StackPanel>
+                            <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="移动比例" />
+                            <Grid Margin="0,8,0,0" ColumnDefinitions="*,Auto">
+                                <ivc:NumericBox MinWidth="200" Minimum="5" Maximum="95" Step="5" DecimalPlaces="0"
+                                                Value="{Binding MoveRatioPercent, Mode=TwoWay}" />
+                                <TextBlock Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource IvText1Brush}" Text="%" />
+                            </Grid>
+                            <Slider Margin="0,10,0,0" Minimum="5" Maximum="95" TickFrequency="5"
+                                    Value="{Binding MoveRatioPercent, Mode=TwoWay}" />
+
+                            <TextBlock Margin="0,14,0,7" Theme="{StaticResource DialogFieldLabelStyle}" Text="抽样方式" />
+                            <StackPanel Orientation="Horizontal">
+                                <RadioButton GroupName="SamplingMode" Content="随机抽取"
+                                             Command="{Binding SelectRandomSamplingCommand}"
+                                             IsChecked="{Binding IsRandomSampling, Mode=OneWay}" />
+                                <RadioButton Margin="18,0,0,0" GroupName="SamplingMode" Content="按文件名顺序"
+                                             Command="{Binding SelectFileOrderSamplingCommand}"
+                                             IsChecked="{Binding PreserveFileOrder, Mode=OneWay}" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,12,0,0" IsVisible="{Binding IsRandomSampling}">
+                                <TextBox PlaceholderText="随机种子（可选）" Text="{Binding RandomSeedText, Mode=TwoWay}" />
+                                <TextBlock Margin="0,5,0,0" Classes="error" Text="随机种子必须是整数"
+                                           IsVisible="{Binding HasRandomSeedError}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Classes="optionPanel" IsVisible="{Binding ShowCountOptions}">
+                        <StackPanel>
+                            <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="移动数量" />
+                            <Grid Margin="0,8,0,0" ColumnDefinitions="*,Auto">
+                                <ivc:NumericBox MinWidth="200" Minimum="1" Maximum="{Binding MaxMoveCount}" Step="1" DecimalPlaces="0"
+                                                Value="{Binding MoveCount, Mode=TwoWay}" />
+                                <TextBlock Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource IvText1Brush}" Text="张" />
+                            </Grid>
+                            <TextBlock Margin="0,6,0,0" Classes="muted" TextWrapping="Wrap"
+                                       Text="{Binding MaxMoveCount, StringFormat=可输入 1～{0:N0} 张（源图库至少保留 1 张）}" />
+
+                            <TextBlock Margin="0,14,0,7" Theme="{StaticResource DialogFieldLabelStyle}" Text="抽样方式" />
+                            <StackPanel Orientation="Horizontal">
+                                <RadioButton GroupName="CountSamplingMode" Content="随机抽取"
+                                             Command="{Binding SelectRandomSamplingCommand}"
+                                             IsChecked="{Binding IsRandomSampling, Mode=OneWay}" />
+                                <RadioButton Margin="18,0,0,0" GroupName="CountSamplingMode" Content="按文件名顺序"
+                                             Command="{Binding SelectFileOrderSamplingCommand}"
+                                             IsChecked="{Binding PreserveFileOrder, Mode=OneWay}" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,12,0,0" IsVisible="{Binding IsRandomSampling}">
+                                <TextBox PlaceholderText="随机种子（可选）" Text="{Binding RandomSeedText, Mode=TwoWay}" />
+                                <TextBlock Margin="0,5,0,0" Classes="error" Text="随机种子必须是整数"
+                                           IsVisible="{Binding HasRandomSeedError}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Classes="optionPanel" IsVisible="{Binding ShowFileNamePrefixOptions}">
+                        <StackPanel>
+                            <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="文件名前缀" />
+                            <TextBox Margin="0,8,0,0" PlaceholderText="例如 batch_a_"
+                                     Text="{Binding FileNamePrefixText, Mode=TwoWay}" />
+                            <TextBlock Margin="0,6,0,0" Classes="muted" TextWrapping="Wrap"
+                                       Text="只移动文件名以该文本开头的样本。" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Classes="optionPanel" IsVisible="{Binding ShowLabelOptions}">
+                        <StackPanel>
+                            <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="缺陷类别" />
+                            <ComboBox Margin="0,8,0,0" HorizontalAlignment="Stretch"
+                                      ItemsSource="{Binding AvailableLabels}"
+                                      SelectedItem="{Binding SelectedLabel, Mode=TwoWay}"
+                                      IsVisible="{Binding HasAvailableLabels}" />
+                            <Border Margin="0,8,0,0" Padding="10"
+                                    Background="{DynamicResource IvWarningSubtleBrush}" CornerRadius="6"
+                                    IsVisible="{Binding !HasAvailableLabels}">
+                                <TextBlock Foreground="{DynamicResource IvWarningBrush}" TextWrapping="Wrap"
+                                           Text="当前图库暂无缺陷类别标注，请先完成标注或选择其他方式。" />
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Classes="optionPanel" IsVisible="{Binding ShowManualOptions}">
+                        <StackPanel Orientation="Horizontal">
+                            <ivc:Icon Margin="0,0,10,0" Foreground="{DynamicResource IvAccentBrush}"
+                                      Data="{x:Static ui:IvIcons.Checkbox}" />
+                            <TextBlock VerticalAlignment="Center" Classes="muted" TextWrapping="Wrap"
+                                       Text="下一步将打开样本选择器，可分页勾选需要移动的样本。" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Margin="0,12,0,0" Padding="14"
+                            Background="{DynamicResource IvAccentSubtleBrush}"
+                            BorderBrush="{DynamicResource IvStrokeBrush}"
+                            BorderThickness="1" CornerRadius="8">
+                        <Grid>
+                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal"
+                                        IsVisible="{Binding IsPreviewLoading}">
+                                <controls:BusyRing Width="18" Height="18" />
+                                <TextBlock Margin="8,0,0,0" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource IvText1Brush}" Text="正在计算预计结果…" />
+                            </StackPanel>
+
+                            <StackPanel IsVisible="{Binding HasPreviewMetrics}">
+                                <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="预计结果" />
+                                <Grid Margin="0,10,0,0" ColumnDefinitions="*,Auto,*">
+                                    <StackPanel>
+                                        <TextBlock Classes="muted" Text="移动" />
+                                        <TextBlock Margin="0,2,0,0" FontSize="22" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource IvText1Brush}"
+                                                   Text="{Binding PreviewMoveSampleCount, StringFormat={}{0:N0} 张}" />
+                                    </StackPanel>
+                                    <ivc:Icon Grid.Column="1" Margin="18,0" VerticalAlignment="Center"
+                                              Foreground="{DynamicResource IvAccentBrush}"
+                                              Data="{x:Static ui:IvIcons.ArrowRight}" />
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Classes="muted" Text="源图库保留" />
+                                        <TextBlock Margin="0,2,0,0" FontSize="22" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource IvText1Brush}"
+                                                   Text="{Binding PreviewRemainingSampleCount, StringFormat={}{0:N0} 张}" />
+                                    </StackPanel>
+                                </Grid>
+                                <TextBlock Margin="0,9,0,0" Classes="muted" TextWrapping="Wrap"
+                                           Text="{Binding PreviewText}" />
+                            </StackPanel>
+
+                            <StackPanel IsVisible="{Binding HasPreviewError}">
+                                <TextBlock FontWeight="SemiBold" Classes="error" Text="无法生成有效结果" />
+                                <TextBlock Margin="0,5,0,0" Classes="error" Text="{Binding PreviewErrorMessage}" />
+                            </StackPanel>
+
+                            <TextBlock Classes="muted" TextWrapping="Wrap"
+                                       Text="{Binding PreviewText}"
+                                       IsVisible="{Binding ShowManualOptions}" />
+                        </Grid>
+                    </Border>
+
+                    <TextBlock Margin="0,10,0,0" Classes="error"
+                               Text="{Binding DialogErrorMessage}"
+                               IsVisible="{Binding HasDialogErrorMessage}" />
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MediatR;
+using System.Windows.Input;
 using Microsoft.Extensions.Logging;
 using DeepVisionSharp.Application.Galleries;
 using DeepVisionSharp.Presentation.Services;
@@ -58,6 +59,12 @@ public sealed partial class GalleryEditorViewModel : ObservableObject
 
     public bool CanSubmitEditGallery =>
         !IsSavingGallery && EditingGalleryId is not null && !string.IsNullOrWhiteSpace(DraftName);
+
+    /// <summary>
+    /// deepvision 图库卡片菜单有「清空标注」；本仓库没有批量清空标注的后端（Application 里无对应命令），
+    /// 命令恒不可执行，菜单项只以禁用态出现。
+    /// </summary>
+    public ICommand ConfirmClearAnnotationsCommand => UnavailableCommand.Instance;
 
     public void PrepareCreateDraft()
     {

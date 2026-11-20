@@ -1,0 +1,693 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iv="clr-namespace:YuUI.Controls;assembly=yu-ui.avalonia"
+             xmlns:ui="clr-namespace:YuUI;assembly=yu-ui.avalonia"
+             xmlns:dv="clr-namespace:DeepVisionSharp.Shell.Avalonia.Controls.Labeling"
+             xmlns:cards="clr-namespace:DeepVisionSharp.Shell.Avalonia.Controls.Labeling"
+             xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base"
+             xmlns:pages="clr-namespace:DeepVisionSharp.Shell.Avalonia.Converters.Labeling"
+             x:Class="DeepVisionSharp.Shell.Avalonia.Views.LabelingPage"
+             Loaded="OnLoaded"
+             Unloaded="OnUnloaded">
+
+    <UserControl.Resources>
+        <pages:RailKindMatchesConverter x:Key="RailKindMatches" />
+        <pages:AllTrueConverter x:Key="AllTrue" />
+
+        <ControlTheme x:Key="SampleNavButtonStyle" TargetType="Button"
+                      BasedOn="{StaticResource IvIconButtonStyle}">
+            <Setter Property="Width" Value="26" />
+            <Setter Property="Height" Value="26" />
+            <Setter Property="MinWidth" Value="26" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+        </ControlTheme>
+    </UserControl.Resources>
+
+    <UserControl.Styles>
+        <!-- ===== 面板与标题 ===== -->
+        <Style Selector="Border.paneOverlay">
+            <Setter Property="Background" Value="{DynamicResource IvBackgroundBrush}" />
+        </Style>
+        <Style Selector="Border.panelSurface">
+            <Setter Property="Background" Value="{DynamicResource IvSurface3Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+        </Style>
+        <Style Selector="Border.panelHeader">
+            <Setter Property="MinHeight" Value="44" />
+            <Setter Property="Padding" Value="12,0" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+        </Style>
+        <Style Selector="TextBlock.panelTitle">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        </Style>
+        <Style Selector="TextBlock.labelSectionTitle">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        </Style>
+        <Style Selector="TextBlock.labelMuted">
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+        </Style>
+
+        <!-- ===== 样本卡片 ===== -->
+        <Style Selector="Border.sampleTile">
+            <Setter Property="Width" Value="88" />
+            <Setter Property="Height" Value="84" />
+            <Setter Property="Margin" Value="0,0,6,0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="ClipToBounds" Value="True" />
+        </Style>
+        <Style Selector="Border.sampleTile:pointerover">
+            <Setter Property="BorderBrush" Value="{DynamicResource IvControlBorderHoverBrush}" />
+        </Style>
+        <Style Selector="Border.sampleTile.active">
+            <Setter Property="BorderBrush" Value="{DynamicResource IvAccentBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Background" Value="{DynamicResource IvAccentSubtleBrush}" />
+        </Style>
+        <Style Selector="Border.sampleIndexBadge">
+            <Setter Property="MinWidth" Value="18" />
+            <Setter Property="Height" Value="16" />
+            <Setter Property="Margin" Value="3,0,0,0" />
+            <Setter Property="Padding" Value="4,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Background" Value="#CC0F172A" />
+        </Style>
+        <Style Selector="Border.sampleIndexBadge.active">
+            <Setter Property="Background" Value="{DynamicResource IvAccentBrush}" />
+        </Style>
+        <Style Selector="TextBlock.sampleIndexText">
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="TextBlock.sampleIndexText.active">
+            <Setter Property="Foreground" Value="{DynamicResource IvTextOnAccentBrush}" />
+        </Style>
+        <Style Selector="Ellipse.sampleDot">
+            <Setter Property="Width" Value="8" />
+            <Setter Property="Height" Value="8" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Stroke" Value="#66000000" />
+            <Setter Property="StrokeThickness" Value="1" />
+            <Setter Property="Fill" Value="#94A3B8" />
+            <Setter Property="ToolTip.Tip" Value="未标注" />
+        </Style>
+        <Style Selector="Ellipse.sampleDot.annotated">
+            <Setter Property="Fill" Value="#22C55E" />
+            <Setter Property="ToolTip.Tip" Value="已标注" />
+        </Style>
+        <Style Selector="Ellipse.sampleDot.error">
+            <Setter Property="Fill" Value="#EF4444" />
+            <Setter Property="ToolTip.Tip" Value="异常" />
+        </Style>
+        <Style Selector="Border.aiBadge">
+            <Setter Property="Margin" Value="0,0,4,4" />
+            <Setter Property="Padding" Value="4,0" />
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="VerticalAlignment" Value="Bottom" />
+            <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="Background" Value="#9964748B" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style Selector="Border.aiBadge.ok">
+            <Setter Property="Background" Value="{DynamicResource IvSuccessBrush}" />
+        </Style>
+        <Style Selector="Border.aiBadge.ng">
+            <Setter Property="Background" Value="{DynamicResource IvDangerBrush}" />
+        </Style>
+        <Style Selector="Border.aiBadge.warn">
+            <Setter Property="Background" Value="{DynamicResource IvWarningBrush}" />
+        </Style>
+        <Style Selector="Border.aiBadge.differs">
+            <Setter Property="BorderBrush" Value="White" />
+        </Style>
+        <Style Selector="TextBlock.aiBadgeText">
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector="TextBlock.aiBadgeText.ok">
+            <Setter Property="Foreground" Value="{DynamicResource IvTextOnAccentBrush}" />
+        </Style>
+        <Style Selector="TextBlock.aiBadgeText.ng">
+            <Setter Property="Foreground" Value="{DynamicResource IvTextOnAccentBrush}" />
+        </Style>
+        <Style Selector="TextBlock.aiBadgeText.warn">
+            <Setter Property="Foreground" Value="{DynamicResource IvTextOnAccentBrush}" />
+        </Style>
+        <Style Selector="Border.sampleProgressBadge">
+            <Setter Property="Margin" Value="7,0,0,0" />
+            <Setter Property="Padding" Value="6,2" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Background" Value="{DynamicResource IvSuccessSubtleBrush}" />
+        </Style>
+        <Style Selector="Border.sizePill">
+            <Setter Property="Margin" Value="8,0,0,0" />
+            <Setter Property="Padding" Value="6,1" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Background" Value="{DynamicResource IvSurface4Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+        </Style>
+        <Style Selector="Border.reviewedBadge">
+            <Setter Property="Margin" Value="12,72,0,0" />
+            <Setter Property="Padding" Value="8,5" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="Background" Value="#CC166534" />
+            <Setter Property="BorderBrush" Value="#FF22C55E" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid x:Name="WorkbenchGrid"
+          Margin="8"
+          RowDefinitions="Auto,*"
+          ColumnDefinitions="280,*,340">
+
+        <!-- 窄窗口下的栏位开关：与 WPF 版一致，宽度不够时出现（AdaptiveWorkbenchLayout 控制显隐） -->
+        <StackPanel Name="PaneToolbar"
+                    Grid.ColumnSpan="3"
+                    Margin="0,0,0,4"
+                    HorizontalAlignment="Right"
+                    Orientation="Horizontal"
+                    IsVisible="False">
+            <Button Name="ToolsPaneToggle"
+                    Margin="0,0,6,0"
+                    Content="工具"
+                    AutomationProperties.AutomationId="dv.labeling.tools-toggle"
+                    Theme="{StaticResource IvSubtleButtonStyle}"
+                    IsVisible="False" />
+            <Button Name="DetailsPaneToggle"
+                    Content="详情"
+                    AutomationProperties.AutomationId="dv.labeling.details-toggle"
+                    Theme="{StaticResource IvSubtleButtonStyle}"
+                    IsVisible="False" />
+        </StackPanel>
+
+        <!-- ===== 左：工具轨道 ===== -->
+        <Border Name="ToolsPane" Grid.Row="1" Grid.Column="0" Margin="4" Classes="panelSurface">
+            <Grid RowDefinitions="Auto,*">
+                <Border Classes="panelHeader">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Classes="panelTitle" Text="标注工具" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Orientation="Horizontal">
+                            <Button Width="28"
+                                    Height="28"
+                                    MinWidth="28"
+                                    MinHeight="0"
+                                    Margin="0,0,4,0"
+                                    Padding="0"
+                                    VerticalAlignment="Center"
+                                    AutomationProperties.AutomationId="dv.labeling.shortcuts-help"
+                                    Click="OnShortcutsHelpClicked"
+                                    Theme="{StaticResource IvSubtleButtonStyle}"
+                                    ToolTip.Tip="快捷键指南">
+                                <iv:Icon VerticalAlignment="Center" FontSize="15" Data="{x:Static ui:IvIcons.Help}" />
+                                <Button.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="常用快捷键速查" IsEnabled="False" FontWeight="Bold" />
+                                        <Separator />
+                                        <MenuItem Header="Ctrl + S：保存当前标注" IsEnabled="False" />
+                                        <MenuItem Header="Ctrl + Z / Y：撤销 / 重做" IsEnabled="False" />
+                                        <MenuItem Header="Ctrl + A：全选标注框" IsEnabled="False" />
+                                        <MenuItem Header="Delete：删除选中的标注" IsEnabled="False" />
+                                        <MenuItem Header="F：自适应当前标注框贴边" IsEnabled="False" />
+                                        <MenuItem Header="← / →：切换上一张 / 下一张样本" IsEnabled="False" />
+                                        <MenuItem Header="数字键 1~9：快速选择对应序号的标签类别" IsEnabled="False" />
+                                        <MenuItem Header="多边形：点击起点闭合，Backspace 撤销上一个点，Esc 取消" IsEnabled="False" />
+                                        <MenuItem Header="差异分类：1=OK, 2=NG, 3=NG并移动, Tab=下一张" IsEnabled="False" />
+                                    </ContextMenu>
+                                </Button.ContextMenu>
+                            </Button>
+                            <Button Width="28"
+                                    Height="28"
+                                    MinWidth="28"
+                                    MinHeight="0"
+                                    Padding="0"
+                                    VerticalAlignment="Center"
+                                    AutomationProperties.AutomationId="dv.labeling.back-to-gallery"
+                                    Command="{Binding BackToGalleryCommand}"
+                                    Theme="{StaticResource IvSubtleButtonStyle}"
+                                    ToolTip.Tip="返回图库">
+                                <iv:Icon VerticalAlignment="Center" FontSize="15" Data="{x:Static ui:IvIcons.ChevronLeft}" />
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <Grid Grid.Row="1">
+                    <!-- Detection -->
+                    <ScrollViewer Padding="12,12,12,8"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  VerticalScrollBarVisibility="Auto"
+                                  IsVisible="{Binding ActiveRailKind, Converter={StaticResource RailKindMatches}, ConverterParameter=Detection}">
+                        <StackPanel>
+                            <cards:LabelingDrawToolsCard ShowPolygon="False" />
+                            <cards:LabelingEditActionsCard ShowClear="True" ShowAutoFit="True" ShowTemplate="True" ShowYoloInfer="True" />
+                            <cards:LabelingClassListCard />
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- TextRecognition -->
+                    <ScrollViewer Padding="12,12,12,8"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  VerticalScrollBarVisibility="Auto"
+                                  IsVisible="{Binding ActiveRailKind, Converter={StaticResource RailKindMatches}, ConverterParameter=TextRecognition}">
+                        <StackPanel>
+                            <cards:LabelingDrawToolsCard ShowPolygon="False" />
+                            <cards:LabelingEditActionsCard ShowClear="True" ShowYoloInfer="True" />
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Classification -->
+                    <ScrollViewer Padding="12,12,12,8"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  VerticalScrollBarVisibility="Auto"
+                                  IsVisible="{Binding ActiveRailKind, Converter={StaticResource RailKindMatches}, ConverterParameter=Classification}">
+                        <StackPanel>
+                            <cards:LabelingEditActionsCard ShowYoloInfer="True" />
+                            <cards:LabelingClassListCard />
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Segmentation -->
+                    <ScrollViewer Padding="12,12,12,8"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  VerticalScrollBarVisibility="Auto"
+                                  IsVisible="{Binding ActiveRailKind, Converter={StaticResource RailKindMatches}, ConverterParameter=Segmentation}">
+                        <StackPanel>
+                            <cards:LabelingDrawToolsCard ShowRectangle="False" />
+                            <cards:LabelingEditActionsCard ShowClear="True" ShowYoloInfer="True" />
+                            <cards:LabelingMaskReviewCard />
+                            <cards:LabelingClassListCard />
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Variation -->
+                    <ScrollViewer Padding="12,12,12,8"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  VerticalScrollBarVisibility="Auto"
+                                  IsVisible="{Binding ActiveRailKind, Converter={StaticResource RailKindMatches}, ConverterParameter=Variation}">
+                        <StackPanel>
+                            <cards:LabelingOkNgCard />
+                            <cards:LabelingAiJudgeCard />
+                            <cards:LabelingEditActionsCard ShowYoloInfer="True" />
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Anomaly -->
+                    <ScrollViewer Padding="12,12,12,8"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  VerticalScrollBarVisibility="Auto"
+                                  IsVisible="{Binding ActiveRailKind, Converter={StaticResource RailKindMatches}, ConverterParameter=Anomaly}">
+                        <StackPanel>
+                            <cards:LabelingAnomalyRouteCard />
+                            <cards:LabelingEditActionsCard />
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <!-- ===== 中：画布与样本条 ===== -->
+        <Border Grid.Row="1" Grid.Column="1" Margin="4" Classes="panelSurface" ClipToBounds="True">
+            <Grid RowDefinitions="*,Auto">
+                <Grid>
+                    <dv:AnnotationCanvas x:Name="AnnotationSurface"
+                                         AutomationProperties.AutomationId="dv.labeling.canvas"
+                                         ActiveColor="{Binding Labels.ActiveLabelColor}"
+                                         ActiveLabelId="{Binding Labels.ActiveLabelId}"
+                                         ActiveLabel="{Binding Labels.ActiveLabelName}"
+                                         IsInstanceSegmentation="{Binding Workspace.ProjectProfile.RequiresInstanceIdOnPolygons}"
+                                         Annotations="{Binding Editor.AnnotationRows}"
+                                         ImageSource="{Binding Workspace.ImageSource}"
+                                         SegmentationPolygons="{Binding Editor.SegmentationPolygons}"
+                                         ShowLabelNames="{Binding Editor.ShowLabelNames}"
+                                         ToolMode="{Binding Editor.ToolMode}"
+                                         UseTransparentFill="{Binding Workspace.ProjectProfile.SupportsImageClass}"
+                                         ZoomScale="{Binding Editor.ZoomScale, Mode=OneWay}"
+                                         AnnotationCreated="OnAnnotationCreated"
+                                         AnnotationEditStarted="OnAnnotationEditStarted"
+                                         AnnotationEditCompleted="OnAnnotationEditCompleted"
+                                         SegmentationPolygonCreated="OnSegmentationPolygonCreated"
+                                         SegmentationPolygonEditCompleted="OnSegmentationPolygonEditCompleted" />
+
+                    <dv:CanvasCornerFloat ZIndex="10" PinId="tl" Placement="TopLeft">
+                        <dv:CanvasCornerFloat.Body>
+                            <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                <TextBlock MaxWidth="320"
+                                           VerticalAlignment="Center"
+                                           FontSize="12.5"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource IvText1Brush}"
+                                           Text="{Binding Workspace.ActiveFileName}"
+                                           TextTrimming="CharacterEllipsis" />
+                                <Border Classes="sizePill" ToolTip.Tip="图像分辨率">
+                                    <TextBlock VerticalAlignment="Center"
+                                               FontSize="10.5"
+                                               FontWeight="Medium"
+                                               Foreground="{DynamicResource IvText2Brush}"
+                                               Text="{Binding Workspace.ImageSizeText}" />
+                                </Border>
+                            </StackPanel>
+                        </dv:CanvasCornerFloat.Body>
+                    </dv:CanvasCornerFloat>
+
+                    <Border Classes="reviewedBadge" IsVisible="{Binding Editor.IsReviewedBackground}">
+                        <TextBlock FontWeight="SemiBold" Foreground="White" Text="已复核纯背景（无多边形）" />
+                    </Border>
+
+                    <dv:CanvasViewToolbar ZIndex="10"
+                                          CanRedo="{Binding Editor.CanRedo}"
+                                          CanUndo="{Binding Editor.CanUndo}"
+                                          ZoomText="{Binding Editor.ZoomText}"
+                                          FitClick="OnFitClicked"
+                                          RedoClick="OnRedoClicked"
+                                          UndoClick="OnUndoClicked"
+                                          ZoomInClick="OnZoomInClicked"
+                                          ZoomOutClick="OnZoomOutClicked" />
+
+                    <dv:CanvasCornerFloat ZIndex="10" PinId="bl" Placement="BottomLeft">
+                        <dv:CanvasCornerFloat.Body>
+                            <CheckBox VerticalAlignment="Center"
+                                      Content="显示标签名称"
+                                      FontSize="11"
+                                      IsChecked="{Binding Editor.ShowLabelNames, Mode=TwoWay}" />
+                        </dv:CanvasCornerFloat.Body>
+                    </dv:CanvasCornerFloat>
+                </Grid>
+
+                <Border Grid.Row="1"
+                        Padding="10,7,10,8"
+                        Background="Transparent"
+                        BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                        BorderThickness="0,1,0,0">
+                    <Grid RowDefinitions="Auto,Auto">
+                        <Grid MinHeight="28" VerticalAlignment="Center" ColumnDefinitions="*,Auto,*">
+                            <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                <TextBlock VerticalAlignment="Center"
+                                           FontSize="12"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource IvText1Brush}"
+                                           Text="样本列表" />
+                                <Border Classes="sampleProgressBadge">
+                                    <TextBlock FontSize="10.5"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource IvSuccessTextBrush}"
+                                               Text="{Binding Workspace.GalleryProgressText}" />
+                                </Border>
+                            </StackPanel>
+
+                            <Border Grid.Column="1"
+                                    Padding="3,1"
+                                    VerticalAlignment="Center"
+                                    Background="{DynamicResource IvSurface2Brush}"
+                                    CornerRadius="6"
+                                    IsVisible="{Binding Samples.HasSamples}">
+                                <StackPanel Orientation="Horizontal">
+                                    <Button AutomationProperties.AutomationId="dv.labeling.sample.prev"
+                                            Command="{Binding Samples.NavigatePreviousSampleCommand}"
+                                            Theme="{StaticResource SampleNavButtonStyle}"
+                                            ToolTip.Tip="上一张">
+                                        <iv:Icon VerticalAlignment="Center" FontSize="14" Data="{x:Static ui:IvIcons.ChevronLeft}" />
+                                    </Button>
+                                    <TextBlock MinWidth="48"
+                                               Margin="4,0"
+                                               VerticalAlignment="Center"
+                                               AutomationProperties.AutomationId="dv.labeling.sample.position"
+                                               FontSize="12"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource IvText1Brush}"
+                                               Text="{Binding Samples.ActiveSamplePositionText}"
+                                               TextAlignment="Center" />
+                                    <Button AutomationProperties.AutomationId="dv.labeling.sample.next"
+                                            Command="{Binding Samples.NavigateNextSampleCommand}"
+                                            Theme="{StaticResource SampleNavButtonStyle}"
+                                            ToolTip.Tip="下一张（→；差异分类可用 Tab）">
+                                        <iv:Icon VerticalAlignment="Center" FontSize="14" Data="{x:Static ui:IvIcons.ChevronRight}" />
+                                    </Button>
+                                </StackPanel>
+                            </Border>
+
+                            <StackPanel Grid.Column="2"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Center"
+                                        Orientation="Horizontal">
+                                <StackPanel Orientation="Horizontal">
+                                    <StackPanel.IsVisible>
+                                        <MultiBinding Converter="{StaticResource AllTrue}">
+                                            <Binding Path="Samples.IsSamplePanelExpanded" />
+                                            <Binding Path="Samples.HasSamples" />
+                                        </MultiBinding>
+                                    </StackPanel.IsVisible>
+                                    <TextBlock Margin="0,0,4,0"
+                                               VerticalAlignment="Center"
+                                               FontSize="10.5"
+                                               Foreground="{DynamicResource IvText3Brush}"
+                                               Text="页" />
+                                    <Button Width="24"
+                                            Height="24"
+                                            MinWidth="24"
+                                            MinHeight="0"
+                                            Padding="0"
+                                            Command="{Binding Samples.GoToPreviousSamplePageCommand}"
+                                            Theme="{StaticResource SampleNavButtonStyle}"
+                                            ToolTip.Tip="上一页">
+                                        <iv:Icon VerticalAlignment="Center" FontSize="13" Data="{x:Static ui:IvIcons.ChevronLeft}" />
+                                    </Button>
+                                    <TextBlock MinWidth="40"
+                                               Margin="2,0"
+                                               VerticalAlignment="Center"
+                                               FontSize="10.5"
+                                               Foreground="{DynamicResource IvText2Brush}"
+                                               Text="{Binding Samples.SamplePageText}"
+                                               TextAlignment="Center" />
+                                    <Button Width="24"
+                                            Height="24"
+                                            MinWidth="24"
+                                            MinHeight="0"
+                                            Margin="0,0,8,0"
+                                            Padding="0"
+                                            Command="{Binding Samples.GoToNextSamplePageCommand}"
+                                            Theme="{StaticResource SampleNavButtonStyle}"
+                                            ToolTip.Tip="下一页">
+                                        <iv:Icon VerticalAlignment="Center" FontSize="13" Data="{x:Static ui:IvIcons.ChevronRight}" />
+                                    </Button>
+                                </StackPanel>
+
+                                <Button Command="{Binding Samples.ToggleSamplePanelCommand}"
+                                        Theme="{StaticResource SampleNavButtonStyle}"
+                                        ToolTip.Tip="{Binding Samples.SamplePanelToggleTooltip}">
+                                    <Panel>
+                                        <iv:Icon VerticalAlignment="Center"
+                                                 FontSize="16"
+                                                 Data="{x:Static ui:IvIcons.ChevronDown}"
+                                                 IsVisible="{Binding !Samples.IsSamplePanelExpanded}" />
+                                        <iv:Icon VerticalAlignment="Center"
+                                                 FontSize="16"
+                                                 Data="{x:Static ui:IvIcons.ChevronUp}"
+                                                 IsVisible="{Binding Samples.IsSamplePanelExpanded}" />
+                                    </Panel>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Grid.Row="1"
+                                   Margin="0,10,0,4"
+                                   HorizontalAlignment="Center"
+                                   Classes="labelMuted"
+                                   Text="暂无样本">
+                            <TextBlock.IsVisible>
+                                <MultiBinding Converter="{StaticResource AllTrue}">
+                                    <Binding Path="Samples.IsSamplePanelExpanded" />
+                                    <Binding Path="Samples.HasNoSamples" />
+                                </MultiBinding>
+                            </TextBlock.IsVisible>
+                        </TextBlock>
+
+                        <ScrollViewer Grid.Row="1"
+                                      Margin="0,8,0,0"
+                                      HorizontalScrollBarVisibility="Auto"
+                                      VerticalScrollBarVisibility="Disabled">
+                            <ScrollViewer.IsVisible>
+                                <MultiBinding Converter="{StaticResource AllTrue}">
+                                    <Binding Path="Samples.IsSamplePanelExpanded" />
+                                    <Binding Path="Samples.HasSamples" />
+                                </MultiBinding>
+                            </ScrollViewer.IsVisible>
+                            <ItemsControl HorizontalAlignment="Left"
+                                          ItemsSource="{Binding Samples.SamplePageItems}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Classes="sampleTile"
+                                                Classes.active="{Binding IsActive}"
+                                                PointerReleased="OnSampleTilePointerReleased"
+                                                ContextRequested="OnSampleTileContextRequested">
+                                            <Border.ContextMenu>
+                                                <ContextMenu>
+                                                    <MenuItem Header="设为标注锚点"
+                                                              Tag="anchor-set"
+                                                              Click="OnSetSampleAnchorMenuItemClicked" />
+                                                    <MenuItem Header="取消标注锚点"
+                                                              Tag="anchor-clear"
+                                                              Click="OnClearSampleAnchorMenuItemClicked" />
+                                                    <Separator Tag="ai-judge" />
+                                                    <MenuItem Header="加入 OK 标准"
+                                                              Tag="ai-judge"
+                                                              Click="OnAddSampleAsOkStandardMenuItemClicked"
+                                                              ToolTip.Tip="把该图片的副本加入 AI 判定 OK 标准，不改变它的标注" />
+                                                    <MenuItem Header="加入 NG 标准"
+                                                              Tag="ai-judge"
+                                                              Click="OnAddSampleAsNgStandardMenuItemClicked"
+                                                              ToolTip.Tip="把该图片的副本加入 AI 判定 NG 标准，不改变它的标注" />
+                                                    <Separator Tag="ai-judge" />
+                                                    <MenuItem Header="删除样本"
+                                                              Click="OnDeleteSampleMenuItemClicked" />
+                                                </ContextMenu>
+                                            </Border.ContextMenu>
+
+                                            <Grid RowDefinitions="*,Auto">
+                                                <Grid ClipToBounds="True">
+                                                    <Image Source="{Binding Thumbnail}" Stretch="UniformToFill" />
+                                                    <iv:Icon HorizontalAlignment="Center"
+                                                             VerticalAlignment="Center"
+                                                             FontSize="20"
+                                                             Foreground="{DynamicResource IvText3Brush}"
+                                                             Data="{x:Static ui:IvIcons.Image}"
+                                                             IsVisible="{Binding Thumbnail, Converter={x:Static conv:ObjectConverters.IsNull}}" />
+
+                                                    <StackPanel Margin="4,4,0,0"
+                                                                HorizontalAlignment="Left"
+                                                                VerticalAlignment="Top"
+                                                                Orientation="Horizontal">
+                                                        <CheckBox VerticalAlignment="Center"
+                                                                  IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                                  IsHitTestVisible="True" />
+                                                        <Border Classes="sampleIndexBadge"
+                                                                Classes.active="{Binding IsActive}">
+                                                            <TextBlock Classes="sampleIndexText"
+                                                                       Classes.active="{Binding IsActive}"
+                                                                       Text="{Binding Index}" />
+                                                        </Border>
+                                                    </StackPanel>
+
+                                                    <StackPanel Margin="0,4,4,0"
+                                                                HorizontalAlignment="Right"
+                                                                VerticalAlignment="Top"
+                                                                Orientation="Horizontal">
+                                                        <iv:Icon Margin="0,0,4,0"
+                                                                 VerticalAlignment="Center"
+                                                                 FontSize="12"
+                                                                 Foreground="{DynamicResource IvWarningTextBrush}"
+                                                                 Data="{x:Static ui:IvIcons.Flag}"
+                                                                 IsVisible="{Binding IsAnchor}"
+                                                                 ToolTip.Tip="标注锚点" />
+                                                        <Ellipse Classes="sampleDot"
+                                                                 Classes.annotated="{Binding IsAnnotated}"
+                                                                 Classes.error="{Binding HasError}" />
+                                                    </StackPanel>
+
+                                                    <Border Classes="aiBadge"
+                                                            Classes.ok="{Binding AiBadgeTone, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter=ok}"
+                                                            Classes.ng="{Binding AiBadgeTone, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter=ng}"
+                                                            Classes.warn="{Binding AiBadgeTone, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter=warn}"
+                                                            Classes.differs="{Binding AiBadgeDiffers}"
+                                                            IsVisible="{Binding HasAiBadge}"
+                                                            ToolTip.Tip="{Binding AiBadgeToolTip}">
+                                                        <TextBlock Classes="aiBadgeText"
+                                                                   Classes.ok="{Binding AiBadgeTone, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter=ok}"
+                                                                   Classes.ng="{Binding AiBadgeTone, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter=ng}"
+                                                                   Classes.warn="{Binding AiBadgeTone, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter=warn}"
+                                                                   Text="{Binding AiBadgeText}" />
+                                                    </Border>
+                                                </Grid>
+
+                                                <Border Grid.Row="1"
+                                                        Padding="4,2"
+                                                        Background="Transparent"
+                                                        BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                                                        BorderThickness="0,1,0,0">
+                                                    <TextBlock FontSize="9.5"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource IvText1Brush}"
+                                                               Text="{Binding FileName}"
+                                                               TextAlignment="Center"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               ToolTip.Tip="{Binding FileName}" />
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- ===== 右：鸟瞰图与侧栏 ===== -->
+        <Border Name="DetailsPane" Grid.Row="1" Grid.Column="2" Margin="4" Classes="panelSurface">
+            <Grid RowDefinitions="Auto,*">
+                <StackPanel Margin="12,11,12,0">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Classes="labelSectionTitle" Text="鸟瞰图" />
+                        <TextBlock Grid.Column="1"
+                                   FontSize="10.5"
+                                   Classes="labelMuted"
+                                   Text="点击定位" />
+                    </Grid>
+                    <Border Height="128"
+                            Margin="0,7,0,0"
+                            Background="{DynamicResource IvSurface2Brush}"
+                            BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                            BorderThickness="1"
+                            ClipToBounds="True"
+                            CornerRadius="4">
+                        <dv:AnnotationOverview x:Name="OverviewSurface"
+                                               Annotations="{Binding Editor.AnnotationRows}"
+                                               ImageSource="{Binding Workspace.ImageSource}"
+                                               NavigateRequested="OnOverviewNavigateRequested" />
+                    </Border>
+                </StackPanel>
+
+                <Grid Grid.Row="1">
+                    <cards:LabelingBoxListCard IsVisible="{Binding ActiveRailKind, Converter={StaticResource RailKindMatches}, ConverterParameter=BoxList}" />
+                    <cards:LabelingPolygonListCard IsVisible="{Binding ActiveRailKind, Converter={StaticResource RailKindMatches}, ConverterParameter=Segmentation}" />
+                    <cards:LabelingAiJudgeResultCard IsVisible="{Binding ActiveRailKind, Converter={StaticResource RailKindMatches}, ConverterParameter=Variation}" />
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

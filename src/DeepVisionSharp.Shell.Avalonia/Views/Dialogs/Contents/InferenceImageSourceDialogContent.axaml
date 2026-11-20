@@ -1,0 +1,73 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iv="clr-namespace:YuUI.Controls;assembly=yu-ui.avalonia"
+             xmlns:ui="clr-namespace:YuUI;assembly=yu-ui.avalonia"
+             x:Class="DeepVisionSharp.Shell.Avalonia.Views.Dialogs.Contents.InferenceImageSourceDialogContent"
+             MinWidth="480"
+             MaxWidth="560"
+             TextElement.Foreground="{DynamicResource IvText1Brush}">
+    <StackPanel>
+        <TextBlock FontWeight="SemiBold" Text="外部图片" />
+        <Button Margin="0,10,0,0"
+                AutomationProperties.AutomationId="dv.dialog.inference-import-external"
+                Command="{Binding ImportExternalImagesCommand}"
+                HorizontalAlignment="Stretch"
+                Theme="{StaticResource IvPrimaryButtonStyle}">
+            <StackPanel Orientation="Horizontal">
+                <iv:Icon Margin="0,0,6,0" VerticalAlignment="Center" FontSize="16"
+                         Data="{x:Static ui:IvIcons.FolderOpen}" />
+                <TextBlock VerticalAlignment="Center" Text="导入图片…" />
+            </StackPanel>
+        </Button>
+        <Button Margin="0,8,0,0"
+                Command="{Binding ClearExternalImagesCommand}"
+                HorizontalAlignment="Stretch"
+                Theme="{StaticResource IvSubtleButtonStyle}"
+                Content="仅清空外部图片" />
+
+        <TextBlock Margin="0,18,0,0" FontWeight="SemiBold" Text="图库样本（可多次追加）" />
+        <ComboBox Margin="0,6,0,0"
+                  AutomationProperties.AutomationId="dv.dialog.inference-gallery"
+                  ItemsSource="{Binding Galleries}"
+                  SelectedItem="{Binding SelectedGallery, Mode=TwoWay}">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding DisplayText}" />
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+        <Button Margin="0,10,0,0"
+                AutomationProperties.AutomationId="dv.dialog.inference-load-gallery"
+                Command="{Binding LoadGallerySamplesCommand}"
+                HorizontalAlignment="Stretch"
+                Theme="{StaticResource IvPrimaryButtonStyle}">
+            <StackPanel Orientation="Horizontal">
+                <iv:Icon Margin="0,0,6,0" VerticalAlignment="Center" FontSize="16"
+                         Data="{x:Static ui:IvIcons.Images}" />
+                <TextBlock VerticalAlignment="Center" Text="追加到列表" />
+            </StackPanel>
+        </Button>
+        <Button Margin="0,8,0,0"
+                Command="{Binding ClearGalleryImagesCommand}"
+                HorizontalAlignment="Stretch"
+                Theme="{StaticResource IvSubtleButtonStyle}"
+                Content="仅清空图库样本" />
+
+        <Button Margin="0,16,0,0"
+                Command="{Binding ClearAllImagesCommand}"
+                HorizontalAlignment="Stretch"
+                Theme="{StaticResource IvButtonBaseStyle}"
+                Content="清空全部列表" />
+
+        <Border Margin="0,18,0,0"
+                Padding="12,10"
+                Background="{DynamicResource IvSurface3Brush}"
+                CornerRadius="8">
+            <StackPanel>
+                <TextBlock FontSize="12" Foreground="{DynamicResource IvText2Brush}" Text="当前列表" />
+                <TextBlock Margin="0,4,0,0" FontWeight="SemiBold"
+                           Text="{Binding ImageSourceSummary}" TextWrapping="Wrap" />
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>

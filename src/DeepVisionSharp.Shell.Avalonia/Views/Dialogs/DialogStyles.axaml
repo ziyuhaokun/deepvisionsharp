@@ -1,0 +1,83 @@
+<!--
+    对话框内容共用的文字主题（deepvision 版在 Styles/Pages/DialogStyles.axaml，由 App.axaml 全局 merge）。
+    本仓库的 App.axaml 由壳层 lane 维护，所以改由每个对话框内容自己 ResourceInclude，
+    这样对话框在任意宿主（应用窗口 / 离屏渲染）里都能解析到这些键。
+-->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ControlTheme x:Key="DialogFieldLabelStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+    </ControlTheme>
+
+    <ControlTheme x:Key="DialogHintStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </ControlTheme>
+
+
+    <ControlTheme x:Key="RowLabelStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+    </ControlTheme>
+
+    <ControlTheme x:Key="RowValueStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="LineHeight" Value="20" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </ControlTheme>
+
+    <ControlTheme x:Key="MetricLabelStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+    </ControlTheme>
+
+    <ControlTheme x:Key="MetricValueStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="28" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </ControlTheme>
+
+    <ControlTheme x:Key="MetricValueSecondaryStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </ControlTheme>
+
+    <ControlTheme x:Key="MetricNoteStyle" TargetType="TextBlock">
+        <Setter Property="Margin" Value="0,4,0,0" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="LineHeight" Value="17" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </ControlTheme>
+
+    <ControlTheme x:Key="SectionTitleStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+    </ControlTheme>
+
+    <ControlTheme x:Key="NoteTitleStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </ControlTheme>
+
+    <ControlTheme x:Key="NoteBodyStyle" TargetType="TextBlock">
+        <Setter Property="Margin" Value="0,3,0,0" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="LineHeight" Value="17" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </ControlTheme>
+
+</ResourceDictionary>

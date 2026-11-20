@@ -1,0 +1,108 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iv="clr-namespace:YuUI.Controls;assembly=yu-ui.avalonia"
+             xmlns:ui="clr-namespace:YuUI;assembly=yu-ui.avalonia"
+             x:Class="DeepVisionSharp.Shell.Avalonia.Controls.Labeling.LabelingDrawToolsCard">
+
+    <UserControl.Styles>
+        <Style Selector="Border.toolSection">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0,0,0,16" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+        <Style Selector="TextBlock.sectionTitle">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        </Style>
+        <Style Selector="Button.toolMode">
+            <Setter Property="Height" Value="34" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="Padding" Value="9,0" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Background" Value="{DynamicResource IvControlFillBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+        </Style>
+        <Style Selector="Button.toolMode.selected">
+            <Setter Property="Background" Value="{DynamicResource IvAccentSubtleBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvAccentBorderBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource IvAccentTextBrush}" />
+        </Style>
+    </UserControl.Styles>
+
+    <Border Classes="toolSection"
+            IsVisible="{Binding ShowAnnotationModeTools}">
+        <StackPanel>
+            <TextBlock Classes="sectionTitle" Text="标注模式" />
+            <Grid Margin="0,7,0,0" ColumnDefinitions="*,*">
+                <Button HorizontalAlignment="Stretch"
+                        AutomationProperties.AutomationId="dv.labeling.tool.select"
+                        Classes="toolMode"
+                        Classes.selected="{Binding Editor.IsSelectTool}"
+                        Command="{Binding Editor.SetSelectToolCommand}"
+                        ToolTip.Tip="选择工具">
+                    <StackPanel Orientation="Horizontal">
+                        <iv:Icon VerticalAlignment="Center"
+                                 FontSize="15"
+                                 Data="{x:Static ui:IvIcons.Pointer}" />
+                        <TextBlock Margin="6,0,0,0"
+                                   VerticalAlignment="Center"
+                                   FontSize="12"
+                                   Foreground="{Binding $parent[Button].Foreground}"
+                                   Text="选择" />
+                    </StackPanel>
+                </Button>
+
+                <Panel Grid.Column="1"
+                       Margin="5,0,0,0"
+                       IsVisible="{Binding $parent[UserControl].ShowRectangle}">
+                    <Button HorizontalAlignment="Stretch"
+                            AutomationProperties.AutomationId="dv.labeling.tool.rectangle"
+                            Classes="toolMode"
+                            Classes.selected="{Binding Editor.IsRectangleTool}"
+                            Command="{Binding Editor.SetRectangleToolCommand}"
+                            IsVisible="{Binding Workspace.UiPolicy.CanUseRectangleTool}"
+                            ToolTip.Tip="矩形工具：使用「矩形」工具绘制框；需先在类别列表中选中当前类别。">
+                        <StackPanel Orientation="Horizontal">
+                            <iv:Icon VerticalAlignment="Center"
+                                     FontSize="15"
+                                     Data="{x:Static ui:IvIcons.BorderOuter}" />
+                            <TextBlock Margin="6,0,0,0"
+                                       VerticalAlignment="Center"
+                                       FontSize="12"
+                                       Foreground="{Binding $parent[Button].Foreground}"
+                                       Text="矩形" />
+                        </StackPanel>
+                    </Button>
+                </Panel>
+
+                <Panel Grid.Column="1"
+                       Margin="5,0,0,0"
+                       IsVisible="{Binding $parent[UserControl].ShowPolygon}">
+                    <Button HorizontalAlignment="Stretch"
+                            AutomationProperties.AutomationId="dv.labeling.tool.polygon"
+                            Classes="toolMode"
+                            Classes.selected="{Binding Editor.IsPolygonTool}"
+                            Command="{Binding Editor.SetPolygonToolCommand}"
+                            IsVisible="{Binding Workspace.UiPolicy.CanUsePolygonTool}"
+                            ToolTip.Tip="多边形工具：选择类别后左键逐点绘制；双击或 Enter 闭合，Esc 或右键取消。">
+                        <StackPanel Orientation="Horizontal">
+                            <iv:Icon VerticalAlignment="Center"
+                                     FontSize="15"
+                                     Data="{x:Static ui:IvIcons.Edit}" />
+                            <TextBlock Margin="6,0,0,0"
+                                       VerticalAlignment="Center"
+                                       FontSize="12"
+                                       Foreground="{Binding $parent[Button].Foreground}"
+                                       Text="多边形" />
+                        </StackPanel>
+                    </Button>
+                </Panel>
+            </Grid>
+        </StackPanel>
+    </Border>
+</UserControl>

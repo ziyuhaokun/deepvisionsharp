@@ -78,6 +78,11 @@ public sealed partial class GalleryRow : ObservableObject
 
     public bool CanDelete => true;
 
+    /// <summary>本仓库没有系统自建的图库（deepvision 的训练良品集），所以「系统」徽标永不显示。</summary>
+    public bool IsSystem => false;
+
+    public string? SystemKindBadge => null;
+
     [ObservableProperty]
     private string? _thumbnailPath;
 

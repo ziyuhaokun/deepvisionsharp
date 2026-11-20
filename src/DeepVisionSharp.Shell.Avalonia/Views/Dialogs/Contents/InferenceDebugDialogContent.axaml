@@ -1,0 +1,46 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="DeepVisionSharp.Shell.Avalonia.Views.Dialogs.Contents.InferenceDebugDialogContent"
+             MinWidth="640"
+             MaxWidth="900"
+             MaxHeight="640">
+    <Grid TextElement.Foreground="{DynamicResource IvText1Brush}" RowDefinitions="Auto,*,Auto">
+
+        <StackPanel>
+            <TextBlock FontSize="14"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource IvText1Brush}"
+                       Text="{Binding InferenceDebugHeadline}"
+                       TextWrapping="Wrap" />
+            <TextBlock Margin="0,6,0,0"
+                       FontSize="12"
+                       Foreground="{DynamicResource IvText2Brush}"
+                       Text="只读调试：不会修改当前样本标注。可对照「引擎返回数」与「可匹配项目标签数」定位丢框原因。"
+                       TextWrapping="Wrap" />
+        </StackPanel>
+
+        <Border Grid.Row="1"
+                Margin="0,14,0,0"
+                Padding="0"
+                Background="{DynamicResource IvSurface3Brush}"
+                BorderBrush="{DynamicResource IvStrokeBrush}"
+                BorderThickness="1"
+                CornerRadius="8">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" MaxHeight="460">
+                <SelectableTextBlock Margin="10"
+                                     Padding="4"
+                                     FontFamily="{DynamicResource IvMonoFontFamily}"
+                                     FontSize="12"
+                                     Foreground="{DynamicResource IvText1Brush}"
+                                     Text="{Binding InferenceDebugReport, Mode=OneWay}" />
+            </ScrollViewer>
+        </Border>
+
+        <TextBlock Grid.Row="2"
+                   Margin="0,10,0,0"
+                   FontSize="12"
+                   Foreground="{DynamicResource IvText2Brush}"
+                   Text="主按钮「复制报告」会把全文写入剪贴板；关闭不应用任何标注变更。"
+                   TextWrapping="Wrap" />
+    </Grid>
+</UserControl>

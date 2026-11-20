@@ -1,0 +1,106 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="DeepVisionSharp.Shell.Avalonia.Views.Dialogs.Contents.ModelEditorDialogContent"
+             MinWidth="460" MaxWidth="520"
+             TextElement.Foreground="{DynamicResource IvText1Brush}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://DeepVisionSharp.Avalonia/Views/Dialogs/DialogStyles.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <StackPanel>
+        <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="名称" />
+        <TextBox Margin="0,8,0,0"
+                 AutomationProperties.AutomationId="dv.dialog.model-name"
+                 PlaceholderText="模型名称"
+                 Text="{Binding DraftName, Mode=TwoWay}" />
+
+        <StackPanel Margin="0,18,0,0" IsVisible="{Binding IsEditingModel}">
+            <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="状态" />
+            <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="{Binding EditingModelStatus}" />
+        </StackPanel>
+
+        <StackPanel Margin="0,18,0,0" IsVisible="{Binding ShowCreateModelTypePicker}">
+            <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="规格" />
+            <ComboBox Margin="0,8,0,0"
+                      AutomationProperties.AutomationId="dv.dialog.model-type"
+                      ItemsSource="{Binding ModelTypeOptions}"
+                      SelectedValue="{Binding DraftModelType, Mode=TwoWay}"
+                      SelectedValueBinding="{Binding Value}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate><TextBlock Text="{Binding Label}" /></DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </StackPanel>
+
+        <StackPanel Margin="0,18,0,0" IsVisible="{Binding ShowCreateModelTypeFixed}">
+            <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="类型" />
+            <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="{Binding DraftModelTypeDisplay}" />
+        </StackPanel>
+
+        <StackPanel Margin="0,18,0,0" IsVisible="{Binding IsEditingModel}">
+            <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="类型" />
+            <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="{Binding DraftModelTypeDisplay}" />
+        </StackPanel>
+
+        <StackPanel Margin="0,18,0,0" IsVisible="{Binding IsEditingModel}">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock VerticalAlignment="Center" Theme="{StaticResource DialogFieldLabelStyle}" Text="类别" />
+                <Border Grid.Column="1" Padding="8,3"
+                        Background="{DynamicResource IvSurface3Brush}" CornerRadius="6">
+                    <TextBlock FontSize="11" FontWeight="SemiBold"
+                               Foreground="{DynamicResource IvText2Brush}"
+                               Text="{Binding EditingClassesCountText}" />
+                </Border>
+            </Grid>
+
+            <Border Margin="0,8,0,0" Padding="12,12,4,4"
+                    Background="{DynamicResource IvSurface3Brush}" CornerRadius="10"
+                    IsVisible="{Binding HasEditingClasses}">
+                <ItemsControl ItemsSource="{Binding EditingClasses}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,0,8,8" Padding="8,3"
+                                    Background="{DynamicResource IvControlFillBrush}"
+                                    BorderBrush="{DynamicResource IvStrokeBrush}"
+                                    BorderThickness="1" CornerRadius="6">
+                                <TextBlock FontSize="11" Foreground="{DynamicResource IvText2Brush}"
+                                           Text="{Binding}" />
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Border>
+
+            <TextBlock Margin="0,8,0,0" Theme="{StaticResource DialogHintStyle}"
+                       Text="暂无类别" IsVisible="{Binding !HasEditingClasses}" />
+        </StackPanel>
+
+        <StackPanel Margin="0,18,0,0" IsVisible="{Binding ShowsDraftInputChannelsOption}">
+            <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="输入通道" />
+            <CheckBox Margin="0,8,0,0"
+                      AutomationProperties.AutomationId="dv.dialog.model-grayscale-input"
+                      Content="灰度输入（单通道）"
+                      IsChecked="{Binding DraftYoloGrayscaleInput, Mode=TwoWay}" />
+            <TextBlock Margin="0,6,0,0" Theme="{StaticResource DialogHintStyle}"
+                       Text="创建时选定，训练与推理将沿用该通道模式；未勾选则为 RGB 三通道。" />
+        </StackPanel>
+
+        <TextBlock Margin="0,18,0,0" Theme="{StaticResource DialogFieldLabelStyle}" Text="备注" />
+        <TextBox Margin="0,8,0,0" MinHeight="64" AcceptsReturn="True"
+                 AutomationProperties.AutomationId="dv.dialog.model-note"
+                 PlaceholderText="可选"
+                 Text="{Binding DraftNote, Mode=TwoWay}"
+                 TextWrapping="Wrap" />
+
+        <TextBlock Margin="0,12,0,0"
+                   Foreground="{DynamicResource IvDangerTextBrush}"
+                   Text="{Binding DialogErrorMessage}" TextWrapping="Wrap"
+                   IsVisible="{Binding HasDialogErrorMessage}" />
+    </StackPanel>
+</UserControl>

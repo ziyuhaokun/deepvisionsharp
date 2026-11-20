@@ -1,0 +1,202 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:DeepVisionSharp.Shell.Avalonia.Controls"
+             xmlns:ivc="clr-namespace:YuUI.Controls;assembly=yu-ui.avalonia"
+             x:Class="DeepVisionSharp.Shell.Avalonia.Views.Dialogs.Contents.GalleryBatchInferenceDialogContent"
+             MinWidth="540" MaxWidth="640"
+             TextElement.Foreground="{DynamicResource IvText1Brush}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://DeepVisionSharp.Avalonia/Views/Dialogs/DialogStyles.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid>
+        <ScrollViewer MaxHeight="640" VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+            <TextBlock Theme="{StaticResource DialogHintStyle}" Text="{Binding Subtitle}" TextWrapping="Wrap" />
+
+            <Border Margin="0,14,0,0" Padding="12"
+                    Background="{DynamicResource IvSurface3Brush}" CornerRadius="8">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel>
+                        <TextBlock FontWeight="SemiBold" Text="{Binding GalleryName}" />
+                        <TextBlock Margin="0,4,0,0" Theme="{StaticResource DialogHintStyle}" Text="{Binding GalleryMetaText}" />
+                    </StackPanel>
+                    <Border Grid.Column="1" Padding="8,4" VerticalAlignment="Center"
+                            Background="{DynamicResource IvSurface4Brush}" CornerRadius="999">
+                        <TextBlock FontSize="11" FontWeight="SemiBold" Text="{Binding ProjectTypeLabel}" />
+                    </Border>
+                </Grid>
+            </Border>
+
+            <StackPanel IsVisible="{Binding IsConfigView}">
+                <controls:OcrInferenceSettings IsEnabled="{Binding IsConfigInteractive}" />
+
+                <TextBlock Margin="0,18,0,0" Theme="{StaticResource DialogFieldLabelStyle}" Text="选择模型"
+                           IsVisible="{Binding !ShowOcrParameters}" />
+                <TextBlock Margin="0,18,0,0" Theme="{StaticResource DialogFieldLabelStyle}" Text="文字识别模型"
+                           IsVisible="{Binding ShowOcrParameters}" />
+                <ComboBox Margin="0,8,0,0"
+                          HorizontalAlignment="Stretch"
+                          IsEnabled="{Binding IsConfigInteractive}"
+                          ItemsSource="{Binding Models}"
+                          SelectedItem="{Binding SelectedModel, Mode=TwoWay}"
+                          ToolTip.Tip="{Binding SelectedModel.DisplayText}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate><TextBlock Text="{Binding DisplayText}" /></DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <TextBlock Margin="0,6,0,0" Theme="{StaticResource DialogHintStyle}"
+                           Text="{Binding SelectedModel.SpatialPolicySummary}"
+                           TextWrapping="Wrap"
+                           IsVisible="{Binding ShowsSelectedModelSpatialSummary}" />
+                <Border Margin="0,8,0,0" Padding="10"
+                        Background="{DynamicResource IvSurface3Brush}" CornerRadius="8"
+                        IsVisible="{Binding HasNoModels}">
+                    <TextBlock Theme="{StaticResource DialogHintStyle}" Text="{Binding NoModelsHint}" TextWrapping="Wrap" />
+                </Border>
+
+                <TextBlock Margin="0,16,0,0" Theme="{StaticResource DialogFieldLabelStyle}" Text="样本范围" />
+                <ComboBox Margin="0,8,0,0"
+                          IsEnabled="{Binding IsConfigInteractive}"
+                          ItemsSource="{Binding ScopeOptions}"
+                          SelectedItem="{Binding SelectedScopeOption, Mode=TwoWay}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate><TextBlock Text="{Binding Label}" /></DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <TextBlock Margin="0,4,0,0" Theme="{StaticResource DialogHintStyle}" Text="{Binding ScopeHint}" />
+
+                <Grid Margin="0,16,0,0" ColumnDefinitions="*,16,*">
+                    <StackPanel>
+                        <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="推理设备" />
+                        <ComboBox Margin="0,8,0,0"
+                                  IsEnabled="{Binding IsConfigInteractive}"
+                                  ItemsSource="{Binding DeviceOptions}"
+                                  SelectedItem="{Binding SelectedDevice, Mode=TwoWay}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate><TextBlock Text="{Binding DisplayName}" /></DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <Grid>
+                            <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="置信度阈值" />
+                            <TextBlock HorizontalAlignment="Right"
+                                       Text="{Binding Confidence, StringFormat={}{0:F2}}" />
+                        </Grid>
+                        <Slider Margin="0,8,0,0" IsEnabled="{Binding IsConfigInteractive}"
+                                IsSnapToTickEnabled="True" Maximum="0.95" Minimum="0.1" TickFrequency="0.05"
+                                Value="{Binding Confidence, Mode=TwoWay}" />
+                    </StackPanel>
+                </Grid>
+
+                <StackPanel Margin="0,16,0,0" IsVisible="{Binding ShowsMaxDetections}">
+                    <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="最大检测数" />
+                    <ivc:NumericBox Margin="0,8,0,0" Maximum="1000" Minimum="1" Step="10"
+                                    IsEnabled="{Binding IsConfigInteractive}"
+                                    Value="{Binding MaxDetections, Mode=TwoWay}" />
+                    <TextBlock Margin="0,4,0,0" Theme="{StaticResource DialogHintStyle}"
+                               Text="NMS 之后最多保留的框数。密集场景可调到 1000。" />
+                </StackPanel>
+
+                <TextBlock Margin="0,16,0,0" Theme="{StaticResource DialogFieldLabelStyle}" Text="写回策略" />
+                <ComboBox Margin="0,8,0,0"
+                          IsEnabled="{Binding IsConfigInteractive}"
+                          ItemsSource="{Binding WriteBackOptions}"
+                          SelectedItem="{Binding SelectedWriteBackOption, Mode=TwoWay}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate><TextBlock Text="{Binding Label}" /></DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <Border Margin="0,10,0,0" Padding="10"
+                        Background="{DynamicResource IvSurface3Brush}" CornerRadius="8">
+                    <TextBlock Theme="{StaticResource DialogHintStyle}" Text="{Binding WriteBackHint}" TextWrapping="Wrap" />
+                </Border>
+
+                <Button Margin="0,18,0,0" HorizontalAlignment="Right"
+                        Content="开始推理"
+                        IsEnabled="{Binding CanStart}"
+                        Theme="{StaticResource IvPrimaryButtonStyle}"
+                        Command="{Binding StartCommand}" />
+            </StackPanel>
+
+            <StackPanel IsVisible="{Binding IsRunningView}">
+                <Grid Margin="0,18,0,0">
+                    <TextBlock Theme="{StaticResource DialogHintStyle}" Text="{Binding StageText}" />
+                    <TextBlock HorizontalAlignment="Right" FontWeight="SemiBold" Text="{Binding ProgressCountText}" />
+                </Grid>
+                <ProgressBar Margin="0,8,0,0" Height="8" Maximum="1" Value="{Binding ProgressValue}"
+                             IsIndeterminate="{Binding !ProgressValue}" />
+                <TextBlock Margin="0,8,0,0" FontSize="12" FontFamily="{DynamicResource IvMonoFontFamily}" Theme="{StaticResource DialogHintStyle}"
+                           Text="{Binding CurrentFileText}"
+                           TextTrimming="CharacterEllipsis"
+                           ToolTip.Tip="{Binding CurrentFileText}" />
+                <TextBox Margin="0,12,0,0" MinHeight="120" MaxHeight="160"
+                         AcceptsReturn="True" IsReadOnly="True"
+                         FontFamily="{DynamicResource IvMonoFontFamily}" FontSize="11"
+                         Text="{Binding LogText}" TextWrapping="Wrap" />
+                <Button Margin="0,14,0,0" HorizontalAlignment="Right"
+                        Content="取消任务"
+                        Theme="{StaticResource IvButtonBaseStyle}"
+                        Command="{Binding CancelRunCommand}" />
+            </StackPanel>
+
+            <StackPanel IsVisible="{Binding IsDoneView}">
+                <Grid Margin="0,18,0,0">
+                    <TextBlock Theme="{StaticResource DialogHintStyle}" Text="{Binding StageText}" />
+                    <TextBlock HorizontalAlignment="Right" FontWeight="SemiBold" Text="{Binding ProgressCountText}" />
+                </Grid>
+                <ProgressBar Margin="0,8,0,0" Height="8" Maximum="1" Value="{Binding ProgressValue}" />
+                <UniformGrid Margin="0,14,0,0" Columns="4">
+                    <Border Margin="0,0,6,0" Padding="10"
+                            Background="{DynamicResource IvSurface3Brush}" CornerRadius="8">
+                        <StackPanel>
+                            <TextBlock Theme="{StaticResource MetricValueSecondaryStyle}" Text="{Binding ResultTotal}" />
+                            <TextBlock Theme="{StaticResource MetricLabelStyle}" Text="处理" />
+                        </StackPanel>
+                    </Border>
+                    <Border Margin="0,0,6,0" Padding="10"
+                            Background="{DynamicResource IvSurface3Brush}" CornerRadius="8">
+                        <StackPanel>
+                            <TextBlock Theme="{StaticResource MetricValueSecondaryStyle}" Text="{Binding ResultWritten}" />
+                            <TextBlock Theme="{StaticResource MetricLabelStyle}" Text="写回" />
+                        </StackPanel>
+                    </Border>
+                    <Border Margin="0,0,6,0" Padding="10"
+                            Background="{DynamicResource IvSurface3Brush}" CornerRadius="8">
+                        <StackPanel>
+                            <TextBlock Theme="{StaticResource MetricValueSecondaryStyle}" Text="{Binding ResultSkipped}" />
+                            <TextBlock Theme="{StaticResource MetricLabelStyle}" Text="跳过" />
+                        </StackPanel>
+                    </Border>
+                    <Border Padding="10"
+                            Background="{DynamicResource IvSurface3Brush}" CornerRadius="8">
+                        <StackPanel>
+                            <TextBlock Theme="{StaticResource MetricValueSecondaryStyle}" Text="{Binding ResultFailed}" />
+                            <TextBlock Theme="{StaticResource MetricLabelStyle}" Text="失败" />
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
+                <TextBox Margin="0,12,0,0" MinHeight="100" MaxHeight="140"
+                         AcceptsReturn="True" IsReadOnly="True"
+                         FontFamily="{DynamicResource IvMonoFontFamily}" FontSize="11"
+                         Text="{Binding LogText}" TextWrapping="Wrap" />
+            </StackPanel>
+        </StackPanel>
+        </ScrollViewer>
+
+        <Border ZIndex="20" Background="{DynamicResource IvOverlayBrush}" IsVisible="{Binding IsPreparing}">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="280">
+                <controls:BusyRing Width="36" Height="36" HorizontalAlignment="Center" />
+                <TextBlock Margin="0,14,0,0" HorizontalAlignment="Center"
+                           FontSize="15" FontWeight="SemiBold" Text="正在准备图库推理…" />
+                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Center"
+                           Theme="{StaticResource DialogHintStyle}"
+                           Text="{Binding PreparingStatusText}" TextWrapping="Wrap" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

@@ -1,0 +1,218 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iv="clr-namespace:YuUI.Controls;assembly=yu-ui.avalonia"
+             xmlns:ui="clr-namespace:YuUI;assembly=yu-ui.avalonia"
+             xmlns:misc="clr-namespace:DeepVisionSharp.Shell.Avalonia.Controls"
+             x:Class="DeepVisionSharp.Shell.Avalonia.Views.Controls.TaskCenterPanel">
+
+    <UserControl.Resources>
+        <misc:TaskStatusBrushConverter x:Key="TaskStatusBrushConverter" />
+    </UserControl.Resources>
+
+    <UserControl.Styles>
+        <Style Selector="Border.taskBadge">
+            <Setter Property="Padding" Value="8,3" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Button.taskIcon">
+            <Setter Property="Width" Value="30" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Theme" Value="{DynamicResource IvIconButtonStyle}" />
+        </Style>
+        <Style Selector="Button.taskHeader">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid HorizontalAlignment="Right"
+          VerticalAlignment="Bottom"
+          IsVisible="{Binding HasVisibleTasks}">
+        <Border MinWidth="300"
+                MaxWidth="380"
+                Background="{DynamicResource IvSurface2Brush}"
+                BorderBrush="{DynamicResource IvStrokeBrush}"
+                BorderThickness="1"
+                CornerRadius="12"
+                BoxShadow="0 6 20 0 #59000000">
+            <Grid RowDefinitions="Auto,*">
+                <Border Grid.Row="0"
+                        Padding="12,10"
+                        Background="{DynamicResource IvControlFillBrush}"
+                        CornerRadius="12,12,0,0">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Button Classes="taskHeader" Command="{Binding ToggleExpandedCommand}">
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="28"
+                                        Height="28"
+                                        Margin="0,0,10,0"
+                                        Background="{DynamicResource IvControlFillBrush}"
+                                        CornerRadius="8">
+                                    <iv:Icon HorizontalAlignment="Center"
+                                             VerticalAlignment="Center"
+                                             FontSize="15"
+                                             Data="{x:Static ui:IvIcons.List}" />
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock FontSize="13"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource IvText1Brush}"
+                                               Text="后台任务" />
+                                    <TextBlock Margin="0,2,0,0"
+                                               FontSize="11"
+                                               Foreground="{DynamicResource IvText2Brush}"
+                                               Text="{Binding HeaderSummary}" />
+                                </StackPanel>
+                                <Border Margin="10,0,0,0"
+                                        Padding="7,2"
+                                        VerticalAlignment="Center"
+                                        Background="{DynamicResource IvAccentSubtleBrush}"
+                                        CornerRadius="10"
+                                        IsVisible="{Binding HasRunningTasks}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse Width="6"
+                                                 Height="6"
+                                                 Margin="0,0,5,0"
+                                                 VerticalAlignment="Center"
+                                                 Fill="{DynamicResource IvAccentBrush}" />
+                                        <TextBlock FontSize="11"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource IvAccentTextBrush}"
+                                                   Text="{Binding RunningTaskCount, StringFormat='{}{0} 运行中'}" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Command="{Binding ToggleExpandedCommand}"
+                                Classes="taskIcon"
+                                ToolTip.Tip="{Binding ExpandToggleToolTip}">
+                            <Panel>
+                                <iv:Icon VerticalAlignment="Center" FontSize="16" Data="{x:Static ui:IvIcons.ChevronUp}" IsVisible="{Binding IsExpanded}" />
+                                <iv:Icon VerticalAlignment="Center" FontSize="16" Data="{x:Static ui:IvIcons.ChevronDown}" IsVisible="{Binding !IsExpanded}" />
+                            </Panel>
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <Border Grid.Row="1"
+                        BorderBrush="{DynamicResource IvStrokeBrush}"
+                        BorderThickness="0,1,0,0"
+                        IsVisible="{Binding IsExpanded}">
+                    <ScrollViewer MaxHeight="300"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding Tasks}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Padding="12,10"
+                                            BorderBrush="{DynamicResource IvStrokeBrush}"
+                                            BorderThickness="0,0,0,1"
+                                            IsVisible="{Binding IsVisible}">
+                                        <StackPanel>
+                                            <Grid ColumnDefinitions="*,Auto,Auto">
+                                                <DockPanel Margin="0,0,8,0">
+                                                    <Border DockPanel.Dock="Left"
+                                                            Width="8"
+                                                            Height="8"
+                                                            Margin="0,0,8,0"
+                                                            VerticalAlignment="Center"
+                                                            CornerRadius="4">
+                                                        <Border.Background>
+                                                            <MultiBinding Converter="{StaticResource TaskStatusBrushConverter}" ConverterParameter="dot">
+                                                                <Binding Path="IsCancelled" />
+                                                                <Binding Path="IsRunning" />
+                                                                <Binding Path="IsSucceeded" />
+                                                                <Binding Path="IsFailed" />
+                                                            </MultiBinding>
+                                                        </Border.Background>
+                                                    </Border>
+                                                    <TextBlock VerticalAlignment="Center"
+                                                               FontSize="13"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource IvText1Brush}"
+                                                               Text="{Binding Title}"
+                                                               TextTrimming="CharacterEllipsis" />
+                                                </DockPanel>
+
+                                                <Border Grid.Column="1" Margin="0,0,6,0" Classes="taskBadge">
+                                                    <Border.Background>
+                                                        <MultiBinding Converter="{StaticResource TaskStatusBrushConverter}" ConverterParameter="badge">
+                                                            <Binding Path="IsCancelled" />
+                                                            <Binding Path="IsRunning" />
+                                                            <Binding Path="IsSucceeded" />
+                                                            <Binding Path="IsFailed" />
+                                                        </MultiBinding>
+                                                    </Border.Background>
+                                                    <TextBlock FontSize="11" FontWeight="SemiBold" Text="{Binding StatusText}">
+                                                        <TextBlock.Foreground>
+                                                            <MultiBinding Converter="{StaticResource TaskStatusBrushConverter}" ConverterParameter="text">
+                                                                <Binding Path="IsCancelled" />
+                                                                <Binding Path="IsRunning" />
+                                                                <Binding Path="IsSucceeded" />
+                                                                <Binding Path="IsFailed" />
+                                                            </MultiBinding>
+                                                        </TextBlock.Foreground>
+                                                    </TextBlock>
+                                                </Border>
+
+                                                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                                    <Button Classes="taskIcon"
+                                                            Command="{Binding $parent[UserControl].DataContext.ToggleTaskExpandedCommand}"
+                                                            CommandParameter="{Binding Id}"
+                                                            ToolTip.Tip="查看日志">
+                                                        <Panel>
+                                                        <iv:Icon VerticalAlignment="Center" FontSize="16" Data="{x:Static ui:IvIcons.ChevronUp}" IsVisible="{Binding IsExpanded}" />
+                                                        <iv:Icon VerticalAlignment="Center" FontSize="16" Data="{x:Static ui:IvIcons.ChevronDown}" IsVisible="{Binding !IsExpanded}" />
+                                                    </Panel>
+                                                    </Button>
+                                                    <Button Classes="taskIcon"
+                                                            Command="{Binding $parent[UserControl].DataContext.DismissTaskCommand}"
+                                                            CommandParameter="{Binding Id}"
+                                                            ToolTip.Tip="关闭">
+                                                        <iv:Icon VerticalAlignment="Center" FontSize="16" Data="{x:Static ui:IvIcons.Close}" />
+                                                    </Button>
+                                                </StackPanel>
+                                            </Grid>
+
+                                            <Border Margin="16,8,0,0"
+                                                    Padding="10,8"
+                                                    Background="{DynamicResource IvControlFillBrush}"
+                                                    BorderBrush="{DynamicResource IvStrokeBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="8"
+                                                    IsVisible="{Binding IsExpanded}">
+                                                <ScrollViewer MaxHeight="160"
+                                                              HorizontalScrollBarVisibility="Disabled"
+                                                              VerticalScrollBarVisibility="Auto">
+                                                    <ItemsControl ItemsSource="{Binding LogLines}">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <TextBlock Margin="0,1"
+                                                                           FontFamily="{DynamicResource IvMonoFontFamily}"
+                                                                           FontSize="11"
+                                                                           Foreground="{DynamicResource IvText2Brush}"
+                                                                           Text="{Binding}"
+                                                                           TextWrapping="Wrap" />
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </ScrollViewer>
+                                            </Border>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
