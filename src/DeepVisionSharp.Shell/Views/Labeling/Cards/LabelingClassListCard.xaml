@@ -1,16 +1,21 @@
+<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Labeling/Cards/LabelingClassListCard.axaml | 转换: WPF-UI Button+SymbolIcon→Button+yu:Icon（纯图标走 IconButtonStyle，色块按钮走 IvSubtleButtonStyle）；Add24→Add、Checkmark24→Check；颜色/字号走 Iv* 令牌 -->
 <UserControl
     x:Class="DeepVisionSharp.Shell.Views.Labeling.Cards.LabelingClassListCard"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:yu="http://schemas.yu-ui/xaml"
     d:DesignHeight="400"
     d:DesignWidth="280"
+    FontFamily="{DynamicResource IvFontFamily}"
+    FontSize="{DynamicResource IvFontSizeBody}"
+    Foreground="{DynamicResource IvText1Brush}"
     mc:Ignorable="d">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/yu-ui;component/YuUiTheme.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Views/Labeling/LabelingWorkbenchResources.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
@@ -27,39 +32,44 @@
                     VerticalAlignment="Center"
                     Style="{StaticResource SectionTitleStyle}"
                     Text="类别" />
-                <ui:Button
+                <Button
                     Margin="6,0,0,0"
-                    Appearance="Secondary"
+                    Padding="6,3"
                     AutomationProperties.AutomationId="dv.labeling.label.add"
                     Command="{Binding Labels.ShowAddLabelDialogCommand}"
-                    Icon="{ui:SymbolIcon Add24}"
-                    Padding="6,3"
                     ToolTip="添加类别"
                     Visibility="{Binding ShowAddButton, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    添加
-                </ui:Button>
+                    <StackPanel Orientation="Horizontal">
+                        <yu:Icon
+                            Margin="0,0,6,0"
+                            VerticalAlignment="Center"
+                            Data="{x:Static yu:IvIcons.Add}"
+                            ViewSize="{DynamicResource IvIconSize}" />
+                        <TextBlock VerticalAlignment="Center" Text="添加" />
+                    </StackPanel>
+                </Button>
             </StackPanel>
             <Border
                 Grid.Column="1"
                 Padding="6,2"
-                Background="{DynamicResource ControlFillColorSecondaryBrush}"
-                CornerRadius="6">
+                Background="{DynamicResource IvSurface2Brush}"
+                CornerRadius="{DynamicResource IvRadiusOverlay}">
                 <StackPanel Orientation="Horizontal">
                     <Border
                         Width="12"
                         Height="12"
                         VerticalAlignment="Center"
                         Background="{Binding Labels.ActiveLabelColor}"
-                        BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                        BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
                         BorderThickness="1"
                         CornerRadius="6" />
                     <TextBlock
                         Margin="6,0,0,0"
                         VerticalAlignment="Center"
                         AutomationProperties.AutomationId="dv.labeling.label.active"
-                        FontSize="12"
+                        FontSize="{DynamicResource IvFontSizeCaption}"
                         FontWeight="SemiBold"
-                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                        Foreground="{DynamicResource IvText1Brush}"
                         Text="{Binding Labels.ActiveLabelName}" />
                 </StackPanel>
             </Border>
@@ -77,10 +87,10 @@
                         <Border
                             Margin="0,0,0,4"
                             Padding="6"
-                            Background="{DynamicResource ControlFillColorSecondaryBrush}"
-                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                            Background="{DynamicResource IvSurface2Brush}"
+                            BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
                             BorderThickness="1"
-                            CornerRadius="6">
+                            CornerRadius="{DynamicResource IvRadiusOverlay}">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
@@ -88,24 +98,27 @@
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
 
-                                <ui:Button
-                                    Appearance="Transparent"
+                                <Button
+                                    Padding="0"
                                     Command="{Binding DataContext.Labels.ShowEditLabelColorDialogCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
                                     CommandParameter="{Binding}"
-                                    Padding="0"
+                                    Style="{StaticResource IvSubtleButtonStyle}"
                                     ToolTip="修改颜色">
                                     <Border
                                         Width="24"
                                         Height="24"
                                         Background="{Binding Color}"
-                                        BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                        BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
                                         BorderThickness="1"
                                         CornerRadius="7" />
-                                </ui:Button>
-                                <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
+                                </Button>
+                                <StackPanel
+                                    Grid.Column="1"
+                                    Margin="10,0,0,0"
+                                    VerticalAlignment="Center">
                                     <TextBlock
                                         FontWeight="SemiBold"
-                                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                        Foreground="{DynamicResource IvText1Brush}"
                                         Text="{Binding Name}"
                                         TextTrimming="CharacterEllipsis" />
                                     <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
@@ -121,7 +134,7 @@
                                         <TextBlock
                                             Margin="0,0,6,0"
                                             VerticalAlignment="Center"
-                                            FontSize="11"
+                                            FontSize="{DynamicResource IvFontSizeSmall}"
                                             Style="{StaticResource MutedTextStyle}"
                                             Text="快捷键" />
                                         <Border
@@ -130,9 +143,9 @@
                                             ToolTip="{Binding HotkeyText, StringFormat=按 {0} 切换此类别}">
                                             <TextBlock
                                                 MinWidth="14"
-                                                FontSize="11"
+                                                FontSize="{DynamicResource IvFontSizeSmall}"
                                                 FontWeight="SemiBold"
-                                                Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                Foreground="{DynamicResource IvText1Brush}"
                                                 Text="{Binding HotkeyText}"
                                                 TextAlignment="Center" />
                                         </Border>
@@ -143,22 +156,22 @@
                                     Margin="10,0,0,0"
                                     VerticalAlignment="Center"
                                     Orientation="Horizontal">
-                                    <ui:Button
-                                        Appearance="Transparent"
+                                    <Button
                                         Command="{Binding DataContext.Labels.SelectLabelCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
                                         CommandParameter="{Binding}"
-                                        Icon="{ui:SymbolIcon Checkmark24}"
                                         Style="{StaticResource IconButtonStyle}"
-                                        ToolTip="选择类别；分类项目写入整图分类，检测项目用于新框或替换选中框的类别" />
-                                    <ui:Button
+                                        ToolTip="选择类别；分类项目写入整图分类，检测项目用于新框或替换选中框的类别">
+                                        <yu:Icon Data="{x:Static yu:IvIcons.Check}" ViewSize="{DynamicResource IvIconSize}" />
+                                    </Button>
+                                    <Button
                                         Margin="8,0,0,0"
-                                        Appearance="Transparent"
                                         Command="{Binding DataContext.Labels.DeleteLabelCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
                                         CommandParameter="{Binding}"
-                                        Icon="{ui:SymbolIcon Delete24}"
                                         Style="{StaticResource IconButtonStyle}"
                                         ToolTip="删除类别"
-                                        Visibility="{Binding DataContext.Labels.CanManageLabels, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                        Visibility="{Binding DataContext.Labels.CanManageLabels, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                        <yu:Icon Data="{x:Static yu:IvIcons.Delete}" ViewSize="{DynamicResource IvIconSize}" />
+                                    </Button>
                                 </StackPanel>
                             </Grid>
                         </Border>

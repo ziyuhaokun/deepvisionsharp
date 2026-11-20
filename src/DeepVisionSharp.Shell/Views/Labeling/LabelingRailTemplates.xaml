@@ -1,8 +1,8 @@
+<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Labeling/LabelingRailTemplates 资源字典 | 转换: 只保留 DataTemplate 与 x:Key，控件外观全部下沉到 LabelingWorkbenchResources / yu-ui 令牌 -->
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:cards="clr-namespace:DeepVisionSharp.Shell.Views.Labeling.Cards"
-    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+    xmlns:cards="clr-namespace:DeepVisionSharp.Shell.Views.Labeling.Cards">
 
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Views/Labeling/LabelingWorkbenchResources.xaml" />

@@ -1,12 +1,17 @@
+<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Pages/Sections/LabelingFilmStripSection.axaml（样本条带） | 转换: WPF-UI Button+SymbolIcon→Button+yu:Icon（导航按钮走 IvIconButtonStyle 派生）；SymbolIcon→yu:Icon+ViewSize；颜色/字号/圆角走 Iv* 令牌；横向条带布局结构不变 -->
 <UserControl
     x:Class="DeepVisionSharp.Shell.Views.Pages.Sections.LabelingFilmStripSection"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-    xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters">
+    xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters"
+    xmlns:yu="http://schemas.yu-ui/xaml"
+    FontFamily="{DynamicResource IvFontFamily}"
+    FontSize="{DynamicResource IvFontSizeBody}"
+    Foreground="{DynamicResource IvText1Brush}">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/yu-ui;component/YuUiTheme.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Views/Labeling/LabelingWorkbenchResources.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Views/Labeling/LabelingRailTemplates.xaml" />
             </ResourceDictionary.MergedDictionaries>
@@ -54,14 +59,14 @@
                             <Image
                                 Source="{Binding Thumbnail}"
                                 Stretch="UniformToFill" />
-                            <ui:SymbolIcon
+                            <yu:Icon
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
-                                FontSize="20"
-                                Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                                Symbol="Image24">
-                                <ui:SymbolIcon.Style>
-                                    <Style TargetType="{x:Type ui:SymbolIcon}">
+                                Foreground="{DynamicResource IvText3Brush}"
+                                ViewSize="20">
+                                <yu:Icon.Style>
+                                    <Style TargetType="{x:Type yu:Icon}">
+                                        <Setter Property="Data" Value="{x:Static yu:IvIcons.Image}" />
                                         <Setter Property="Visibility" Value="Collapsed" />
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding Thumbnail}" Value="{x:Null}">
@@ -69,8 +74,8 @@
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
-                                </ui:SymbolIcon.Style>
-                            </ui:SymbolIcon>
+                                </yu:Icon.Style>
+                            </yu:Icon>
 
                             <StackPanel
                                 Margin="4,4,0,0"
@@ -88,7 +93,7 @@
                                     <TextBlock
                                         HorizontalAlignment="Center"
                                         VerticalAlignment="Center"
-                                        FontSize="10"
+                                        FontSize="{DynamicResource IvFontSizeMini}"
                                         FontWeight="SemiBold"
                                         Foreground="White"
                                         Text="{Binding Index}" />
@@ -100,15 +105,16 @@
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Top"
                                 Orientation="Horizontal">
-                                <ui:SymbolIcon
+                                <yu:Icon
                                     Margin="0,0,4,0"
                                     VerticalAlignment="Center"
-                                    FontSize="12"
-                                    Foreground="{DynamicResource SystemFillColorCautionBrush}"
-                                    Symbol="Pin24"
-                                    ToolTip="标注锚点">
-                                    <ui:SymbolIcon.Style>
-                                        <Style TargetType="{x:Type ui:SymbolIcon}">
+                                    Foreground="{DynamicResource IvWarningBrush}"
+                                    ToolTip="标注锚点"
+                                    ViewSize="12">
+                                    <yu:Icon.Style>
+                                        <Style TargetType="{x:Type yu:Icon}">
+                                            <!-- 源 SymbolIcon Pin24 → IvIcons.Flag（近义降级：图钉变旗） -->
+                                            <Setter Property="Data" Value="{x:Static yu:IvIcons.Flag}" />
                                             <Setter Property="Visibility" Value="Collapsed" />
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding IsAnchor}" Value="True">
@@ -116,8 +122,8 @@
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
-                                    </ui:SymbolIcon.Style>
-                                </ui:SymbolIcon>
+                                    </yu:Icon.Style>
+                                </yu:Icon>
                                 <Ellipse
                                     Width="8"
                                     Height="8"
@@ -126,15 +132,15 @@
                                     StrokeThickness="1">
                                     <Ellipse.Style>
                                         <Style TargetType="{x:Type Ellipse}">
-                                            <Setter Property="Fill" Value="{DynamicResource SystemFillColorSolidNeutralBrush}" />
+                                            <Setter Property="Fill" Value="{DynamicResource IvText3Brush}" />
                                             <Setter Property="ToolTip" Value="未标注" />
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding IsAnnotated}" Value="True">
-                                                    <Setter Property="Fill" Value="{DynamicResource SystemFillColorSuccessBrush}" />
+                                                    <Setter Property="Fill" Value="{DynamicResource IvSuccessBrush}" />
                                                     <Setter Property="ToolTip" Value="已标注" />
                                                 </DataTrigger>
                                                 <DataTrigger Binding="{Binding HasError}" Value="True">
-                                                    <Setter Property="Fill" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+                                                    <Setter Property="Fill" Value="{DynamicResource IvDangerBrush}" />
                                                     <Setter Property="ToolTip" Value="异常" />
                                                 </DataTrigger>
                                             </Style.Triggers>
@@ -147,11 +153,11 @@
                         <Border
                             Grid.Row="1"
                             Padding="4,3"
-                            Background="{DynamicResource ControlFillColorSecondaryBrush}">
+                            Background="{DynamicResource IvSurface2Brush}">
                             <TextBlock
-                                FontSize="10"
+                                FontSize="{DynamicResource IvFontSizeMini}"
                                 FontWeight="SemiBold"
-                                Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                Foreground="{DynamicResource IvText1Brush}"
                                 Text="{Binding FileName}"
                                 TextAlignment="Center"
                                 TextTrimming="CharacterEllipsis"
@@ -166,10 +172,10 @@
                     Grid.Row="1"
                     Margin="6,0,6,4"
                     Padding="8,6"
-                    Background="{DynamicResource ControlFillColorSecondaryBrush}"
-                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                    Background="{DynamicResource IvSurface2Brush}"
+                    BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
                     BorderThickness="1"
-                    CornerRadius="8">
+                    CornerRadius="{DynamicResource IvRadiusOverlay}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -189,16 +195,16 @@
                                 Orientation="Horizontal">
                                 <TextBlock
                                     VerticalAlignment="Center"
-                                    FontSize="13"
+                                    FontSize="{DynamicResource IvFontSizeBodySmall}"
                                     FontWeight="SemiBold"
                                     Text="样本列表" />
                                 <Border
                                     Margin="8,0,0,0"
                                     Style="{StaticResource SampleProgressBadgeStyle}">
                                     <TextBlock
-                                        FontSize="11"
+                                        FontSize="{DynamicResource IvFontSizeSmall}"
                                         FontWeight="SemiBold"
-                                        Foreground="{DynamicResource SystemFillColorSuccessBrush}"
+                                        Foreground="{DynamicResource IvSuccessBrush}"
                                         Text="{Binding Workspace.GalleryProgressText}" />
                                 </Border>
                             </StackPanel>
@@ -208,32 +214,34 @@
                                 Grid.Column="1"
                                 Padding="4,2"
                                 VerticalAlignment="Center"
-                                Background="{DynamicResource ControlFillColorDefaultBrush}"
-                                CornerRadius="8"
+                                Background="{DynamicResource IvSurfaceSubtleHoverBrush}"
+                                CornerRadius="{DynamicResource IvRadiusOverlay}"
                                 Visibility="{Binding Samples.HasSamples, Converter={StaticResource BooleanToVisibilityConverter}}">
                                 <StackPanel Orientation="Horizontal">
-                                    <ui:Button
+                                    <Button
                                         AutomationProperties.AutomationId="dv.labeling.sample.prev"
                                         Command="{Binding Samples.NavigatePreviousSampleCommand}"
-                                        Icon="{ui:SymbolIcon ChevronLeft24}"
                                         Style="{StaticResource SampleNavButtonStyle}"
-                                        ToolTip="上一张" />
+                                        ToolTip="上一张">
+                                        <yu:Icon Data="{x:Static yu:IvIcons.ChevronLeft}" ViewSize="{DynamicResource IvIconSize}" />
+                                    </Button>
                                     <TextBlock
                                         MinWidth="56"
                                         Margin="6,0"
                                         VerticalAlignment="Center"
                                         AutomationProperties.AutomationId="dv.labeling.sample.position"
-                                        FontSize="13"
+                                        FontSize="{DynamicResource IvFontSizeBodySmall}"
                                         FontWeight="SemiBold"
-                                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                        Foreground="{DynamicResource IvText1Brush}"
                                         Text="{Binding Samples.ActiveSamplePositionText}"
                                         TextAlignment="Center" />
-                                    <ui:Button
+                                    <Button
                                         AutomationProperties.AutomationId="dv.labeling.sample.next"
                                         Command="{Binding Samples.NavigateNextSampleCommand}"
-                                        Icon="{ui:SymbolIcon ChevronRight24}"
                                         Style="{StaticResource SampleNavButtonStyle}"
-                                        ToolTip="下一张（→；差异分类可用 Tab）" />
+                                        ToolTip="下一张（→；差异分类可用 Tab）">
+                                        <yu:Icon Data="{x:Static yu:IvIcons.ChevronRight}" ViewSize="{DynamicResource IvIconSize}" />
+                                    </Button>
                                 </StackPanel>
                             </Border>
 
@@ -261,32 +269,46 @@
                                     <TextBlock
                                         Margin="0,0,4,0"
                                         VerticalAlignment="Center"
-                                        FontSize="11"
-                                        Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                        FontSize="{DynamicResource IvFontSizeSmall}"
+                                        Foreground="{DynamicResource IvText3Brush}"
                                         Text="页" />
-                                    <ui:Button
+                                    <Button
                                         Command="{Binding Samples.GoToPreviousSamplePageCommand}"
-                                        Icon="{ui:SymbolIcon ChevronLeft24}"
                                         Style="{StaticResource SamplePageNavButtonStyle}"
-                                        ToolTip="上一页" />
+                                        ToolTip="上一页">
+                                        <yu:Icon Data="{x:Static yu:IvIcons.ChevronLeft}" ViewSize="{DynamicResource IvIconSize}" />
+                                    </Button>
                                     <TextBlock
                                         MinWidth="40"
                                         Margin="2,0"
                                         VerticalAlignment="Center"
-                                        FontSize="11"
-                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                        FontSize="{DynamicResource IvFontSizeSmall}"
+                                        Foreground="{DynamicResource IvText2Brush}"
                                         Text="{Binding Samples.SamplePageText}"
                                         TextAlignment="Center" />
-                                    <ui:Button
+                                    <Button
                                         Margin="0,0,8,0"
                                         Command="{Binding Samples.GoToNextSamplePageCommand}"
-                                        Icon="{ui:SymbolIcon ChevronRight24}"
                                         Style="{StaticResource SamplePageNavButtonStyle}"
-                                        ToolTip="下一页" />
+                                        ToolTip="下一页">
+                                        <yu:Icon Data="{x:Static yu:IvIcons.ChevronRight}" ViewSize="{DynamicResource IvIconSize}" />
+                                    </Button>
                                 </StackPanel>
-                                <ui:Button
-                                    Command="{Binding Samples.ToggleSamplePanelCommand}"
-                                    Style="{StaticResource SamplePanelToggleButtonStyle}" />
+                                <Button Command="{Binding Samples.ToggleSamplePanelCommand}" Style="{StaticResource SamplePanelToggleButtonStyle}">
+                                    <!-- 源在样式里用 Setter Property="Icon" 切换箭头，这里改成 yu:Icon + 同一 DataTrigger -->
+                                    <yu:Icon ViewSize="{DynamicResource IvIconSize}">
+                                        <yu:Icon.Style>
+                                            <Style TargetType="{x:Type yu:Icon}">
+                                                <Setter Property="Data" Value="{x:Static yu:IvIcons.ChevronDown}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Samples.IsSamplePanelExpanded}" Value="True">
+                                                        <Setter Property="Data" Value="{x:Static yu:IvIcons.ChevronUp}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </yu:Icon.Style>
+                                    </yu:Icon>
+                                </Button>
                             </StackPanel>
                         </Grid>
 

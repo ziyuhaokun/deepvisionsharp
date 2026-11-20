@@ -4,7 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:yu="http://schemas.yu-ui/xaml"
     xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters"
     xmlns:training="clr-namespace:DeepVisionSharp.Shell.Views.Training"
     xmlns:domain="clr-namespace:DeepVisionSharp.Domain.Entities;assembly=DeepVisionSharp.Domain"
@@ -12,6 +12,10 @@
     Title="训练"
     d:DesignHeight="1000"
     d:DesignWidth="1680"
+    Background="{DynamicResource IvBackgroundBrush}"
+    FontFamily="{DynamicResource IvFontFamily}"
+    FontSize="{DynamicResource IvFontSizeBody}"
+    Foreground="{DynamicResource IvText1Brush}"
     Loaded="OnLoaded"
     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
     ScrollViewer.VerticalScrollBarVisibility="Disabled"
@@ -22,6 +26,7 @@
     <Page.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/yu-ui;component/YuUiTheme.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Views/Pages/TrainingPageResources.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
@@ -40,32 +45,38 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel>
-                        <TextBlock
-                            FontSize="30"
-                            FontWeight="SemiBold"
-                            Text="训练" />
+                        <TextBlock Style="{StaticResource IvDisplayTextStyle}" Text="训练" />
                     </StackPanel>
 
                     <StackPanel
                         Grid.Column="1"
                         VerticalAlignment="Center"
                         Orientation="Horizontal">
-                        <ui:Button
+                        <Button
                             Margin="0,0,8,0"
-                            Appearance="Primary"
                             AutomationProperties.AutomationId="dv.training.create-job"
                             Command="{Binding JobList.CreateJobCommand}"
-                            Icon="{ui:SymbolIcon Add24}"
-                            IsEnabled="{Binding JobList.IsTrainingWorkflow}">
-                            新建任务
-                        </ui:Button>
-                        <ui:Button
-                            Appearance="Secondary"
+                            IsEnabled="{Binding JobList.IsTrainingWorkflow}"
+                            Style="{StaticResource IvPrimaryButtonStyle}">
+                            <StackPanel Orientation="Horizontal">
+                                <yu:Icon Data="{x:Static yu:IvIcons.Add}" ViewSize="{DynamicResource IvIconSize}" />
+                                <TextBlock
+                                    Margin="8,0,0,0"
+                                    VerticalAlignment="Center"
+                                    Text="新建任务" />
+                            </StackPanel>
+                        </Button>
+                        <Button
                             AutomationProperties.AutomationId="dv.training.refresh"
-                            Command="{Binding JobList.LoadCommand}"
-                            Icon="{ui:SymbolIcon ArrowClockwise24}">
-                            刷新
-                        </ui:Button>
+                            Command="{Binding JobList.LoadCommand}">
+                            <StackPanel Orientation="Horizontal">
+                                <yu:Icon Data="{x:Static yu:IvIcons.Refresh}" ViewSize="{DynamicResource IvIconSize}" />
+                                <TextBlock
+                                    Margin="8,0,0,0"
+                                    VerticalAlignment="Center"
+                                    Text="刷新" />
+                            </StackPanel>
+                        </Button>
                     </StackPanel>
         </Grid>
 
@@ -77,26 +88,26 @@
             VerticalAlignment="Stretch">
             <Border
                 Padding="36"
-                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
                 BorderThickness="1"
-                CornerRadius="8"
+                CornerRadius="{DynamicResource IvRadiusControl}"
                 Visibility="{Binding JobList.ShowProjectRequired, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <StackPanel Style="{StaticResource EmptyStatePanelStyle}">
-                    <ui:SymbolIcon
+                    <yu:Icon
                         HorizontalAlignment="Center"
-                        FontSize="36"
-                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                        Symbol="Play24" />
+                        Data="{x:Static yu:IvIcons.Play}"
+                        Foreground="{DynamicResource IvText2Brush}"
+                        ViewSize="36" />
                     <TextBlock
                         Margin="0,12,0,0"
                         HorizontalAlignment="Center"
-                        FontSize="16"
+                        FontSize="{DynamicResource IvFontSizeSubtitle}"
                         FontWeight="SemiBold"
                         Text="未选择项目" />
                     <TextBlock
                         Margin="0,6,0,0"
                         HorizontalAlignment="Center"
-                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        Foreground="{DynamicResource IvText2Brush}"
                         Text="请先在项目面板选择一个项目，再创建训练任务。" />
                 </StackPanel>
             </Border>
@@ -113,7 +124,7 @@
                     <ColumnDefinition Width="*" MinWidth="360" />
                 </Grid.ColumnDefinitions>
 
-                    <ui:Card
+                    <ContentControl
                         Grid.Column="0"
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch"
@@ -140,11 +151,11 @@
                                     IsHitTestVisible="False"
                                     Style="{StaticResource TaskListEmptyHintStyle}"
                                     Visibility="{Binding JobList.HasEmptyJobList, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                    <ui:SymbolIcon
+                                    <yu:Icon
                                         HorizontalAlignment="Center"
-                                        FontSize="28"
-                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                        Symbol="ClipboardTaskListLtr24" />
+                                        Data="{x:Static yu:IvIcons.Recipe}"
+                                        Foreground="{DynamicResource IvText2Brush}"
+                                        ViewSize="28" />
                                     <TextBlock
                                         Margin="0,10,0,0"
                                         HorizontalAlignment="Center"
@@ -154,14 +165,14 @@
                                     <TextBlock
                                         Margin="0,4,0,0"
                                         HorizontalAlignment="Center"
-                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                        Foreground="{DynamicResource IvText2Brush}"
                                         Text="点击“新建任务”创建第一个训练实验"
                                         TextAlignment="Center"
                                         TextWrapping="Wrap" />
                                 </StackPanel>
                             </Grid>
                         </DockPanel>
-                    </ui:Card>
+                    </ContentControl>
 
                     <GridSplitter
                         Grid.Column="1"
@@ -172,7 +183,7 @@
                         ShowsPreview="True" />
 
 
-                    <ui:Card
+                    <ContentControl
                         Grid.Column="2"
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch"
@@ -180,28 +191,28 @@
                         Visibility="{Binding JobList.ShowSelectJobPrompt, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <Grid VerticalAlignment="Stretch">
                             <StackPanel Style="{StaticResource EmptyStatePanelStyle}">
-                                <ui:SymbolIcon
+                                <yu:Icon
                                     HorizontalAlignment="Center"
-                                    FontSize="36"
-                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                    Symbol="HandRight24" />
+                                    Data="{x:Static yu:IvIcons.Pointer}"
+                                    Foreground="{DynamicResource IvText2Brush}"
+                                    ViewSize="36" />
                                 <TextBlock
                                     Margin="0,12,0,0"
                                     HorizontalAlignment="Center"
-                                    FontSize="16"
+                                    FontSize="{DynamicResource IvFontSizeSubtitle}"
                                     FontWeight="SemiBold"
                                     Text="请选择任务" />
                                 <TextBlock
                                     Margin="0,6,0,0"
                                     HorizontalAlignment="Center"
-                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                    Foreground="{DynamicResource IvText2Brush}"
                                     Text="在左侧选择一个任务，或新建训练任务。" />
                             </StackPanel>
                         </Grid>
-                    </ui:Card>
+                    </ContentControl>
 
                     <!-- Shown while form is applied with detail panel still collapsed (avoids NumberBox layout crash). -->
-                    <ui:Card
+                    <ContentControl
                         Grid.Column="2"
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch"
@@ -209,20 +220,21 @@
                         Visibility="{Binding JobList.ShowDetailPreparing, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <Grid VerticalAlignment="Stretch">
                             <StackPanel Style="{StaticResource EmptyStatePanelStyle}">
-                                <ui:ProgressRing
-                                    Width="36"
-                                    Height="36"
+                                <!-- 源 WPF-UI ProgressRing（36×36 环）→ 不确定态 ProgressBar（条形） -->
+                                <ProgressBar
+                                    Width="120"
+                                    Height="6"
                                     HorizontalAlignment="Center"
                                     IsIndeterminate="True" />
                                 <TextBlock
                                     Margin="0,12,0,0"
                                     HorizontalAlignment="Center"
-                                    FontSize="16"
+                                    FontSize="{DynamicResource IvFontSizeSubtitle}"
                                     FontWeight="SemiBold"
                                     Text="正在加载任务配置…" />
                             </StackPanel>
                         </Grid>
-                    </ui:Card>
+                    </ContentControl>
 
                     <!-- Detail panel created only when form is ready (no live NumberBox tree during ApplyForm). -->
                     <ContentControl
@@ -246,11 +258,12 @@
 
                 <Border
                     Panel.ZIndex="10"
-                    Background="#66000000"
+                    Background="{DynamicResource IvOverlayBrush}"
                     Visibility="{Binding JobList.IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <ui:ProgressRing
-                        Width="42"
-                        Height="42"
+                    <!-- 源 WPF-UI ProgressRing（42×42 环）→ 不确定态 ProgressBar（条形） -->
+                    <ProgressBar
+                        Width="140"
+                        Height="6"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         IsIndeterminate="True" />

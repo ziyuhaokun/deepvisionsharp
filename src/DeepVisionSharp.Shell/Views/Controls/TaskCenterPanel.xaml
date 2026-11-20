@@ -4,80 +4,94 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:DeepVisionSharp.Shell.ViewModels"
+    xmlns:yu="http://schemas.yu-ui/xaml"
     d:DesignHeight="420"
     d:DesignWidth="400"
+    FontFamily="{DynamicResource IvFontFamily}"
+    FontSize="{DynamicResource IvFontSizeBody}"
+    Foreground="{DynamicResource IvText1Brush}"
     mc:Ignorable="d">
 
     <UserControl.Resources>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/yu-ui;component/YuUiTheme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
 
-        <Style x:Key="TaskStatusDotStyle" TargetType="{x:Type Border}">
-            <Setter Property="Width" Value="8" />
-            <Setter Property="Height" Value="8" />
-            <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="Margin" Value="0,0,8,0" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="Background" Value="{DynamicResource TextFillColorTertiaryBrush}" />
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding IsRunning}" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource SystemAccentColorPrimaryBrush}" />
-                </DataTrigger>
-                <DataTrigger Binding="{Binding IsSucceeded}" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource SystemFillColorSuccessBrush}" />
-                </DataTrigger>
-                <DataTrigger Binding="{Binding IsFailed}" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource SystemFillColorCriticalBrush}" />
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
 
-        <Style x:Key="TaskStatusBadgeStyle" TargetType="{x:Type Border}">
-            <Setter Property="Padding" Value="8,3" />
-            <Setter Property="CornerRadius" Value="10" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding IsRunning}" Value="True">
-                    <Setter Property="Background" Value="{StaticResource StatusRunningTintBrush}" />
-                </DataTrigger>
-                <DataTrigger Binding="{Binding IsSucceeded}" Value="True">
-                    <Setter Property="Background" Value="{StaticResource StatusSucceededTintBrush}" />
-                </DataTrigger>
-                <DataTrigger Binding="{Binding IsFailed}" Value="True">
-                    <Setter Property="Background" Value="{StaticResource StatusFailedTintBrush}" />
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
+            <Style x:Key="TaskStatusDotStyle" TargetType="{x:Type Border}">
+                <Setter Property="Width" Value="8" />
+                <Setter Property="Height" Value="8" />
+                <Setter Property="CornerRadius" Value="4" />
+                <Setter Property="Margin" Value="0,0,8,0" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="Background" Value="{DynamicResource IvText3Brush}" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource IvAccentBrush}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding IsSucceeded}" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource IvSuccessBrush}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding IsFailed}" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource IvDangerBrush}" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
 
-        <Style x:Key="TaskStatusBadgeTextStyle" TargetType="{x:Type TextBlock}">
-            <Setter Property="FontSize" Value="11" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding IsRunning}" Value="True">
-                    <Setter Property="Foreground" Value="{DynamicResource SystemAccentColorPrimaryBrush}" />
-                </DataTrigger>
-                <DataTrigger Binding="{Binding IsSucceeded}" Value="True">
-                    <Setter Property="Foreground" Value="{DynamicResource SystemFillColorSuccessBrush}" />
-                </DataTrigger>
-                <DataTrigger Binding="{Binding IsFailed}" Value="True">
-                    <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}" />
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
+            <Style x:Key="TaskStatusBadgeStyle" TargetType="{x:Type Border}">
+                <Setter Property="Padding" Value="8,3" />
+                <Setter Property="CornerRadius" Value="10" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="Background" Value="{DynamicResource IvSurface3Brush}" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                        <Setter Property="Background" Value="{StaticResource StatusRunningTintBrush}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding IsSucceeded}" Value="True">
+                        <Setter Property="Background" Value="{StaticResource StatusSucceededTintBrush}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding IsFailed}" Value="True">
+                        <Setter Property="Background" Value="{StaticResource StatusFailedTintBrush}" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
 
-        <Style
-            x:Key="TaskIconButtonStyle"
-            BasedOn="{StaticResource {x:Type ui:Button}}"
-            TargetType="{x:Type ui:Button}">
-            <Setter Property="Width" Value="30" />
-            <Setter Property="Height" Value="28" />
-            <Setter Property="MinWidth" Value="30" />
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="Appearance" Value="Transparent" />
-        </Style>
+            <Style x:Key="TaskStatusBadgeTextStyle" TargetType="{x:Type TextBlock}">
+                <Setter Property="FontSize" Value="{DynamicResource IvFontSizeSmall}" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                        <Setter Property="Foreground" Value="{DynamicResource IvAccentTextBrush}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding IsSucceeded}" Value="True">
+                        <Setter Property="Foreground" Value="{DynamicResource IvSuccessTextBrush}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding IsFailed}" Value="True">
+                        <Setter Property="Foreground" Value="{DynamicResource IvDangerTextBrush}" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <!--
+                源 TaskIconButtonStyle 基于 WPF-UI 隐式 Button + Appearance="Transparent"。
+                yu-ui 里 Appearance=Transparent 对应 IvSubtleButtonStyle（透明底 + 透明描边，hover 只叠 IvStateHoverBrush 层）。
+                底模的 MinHeight=IvControlHeight(30) 会压过显式 Height=28，故显式归零保留原 30×28 占位。
+            -->
+            <Style
+                x:Key="TaskIconButtonStyle"
+                BasedOn="{StaticResource IvSubtleButtonStyle}"
+                TargetType="{x:Type Button}">
+                <Setter Property="Width" Value="30" />
+                <Setter Property="Height" Value="28" />
+                <Setter Property="MinWidth" Value="30" />
+                <Setter Property="MinHeight" Value="0" />
+                <Setter Property="Padding" Value="0" />
+            </Style>
+        </ResourceDictionary>
     </UserControl.Resources>
 
     <Grid
@@ -85,22 +99,16 @@
         HorizontalAlignment="Right"
         VerticalAlignment="Bottom"
         Visibility="{Binding HasVisibleTasks, Converter={StaticResource BooleanToVisibilityConverter}}">
+        <!-- 浮层外壳按 HUD 语义：IvPopupBrush 底 + IvStrokeBrush 描边 + IvRadiusOverlay 圆角 + IvPopupShadow 阴影 -->
         <Border
             MinWidth="300"
             MaxWidth="380"
-            Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
-            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
-            BorderThickness="1"
-            CornerRadius="12"
+            Background="{DynamicResource IvPopupBrush}"
+            BorderBrush="{DynamicResource IvStrokeBrush}"
+            BorderThickness="{DynamicResource IvStrokeThickness}"
+            CornerRadius="{DynamicResource IvRadiusOverlay}"
+            Effect="{StaticResource IvPopupShadow}"
             SnapsToDevicePixels="True">
-            <Border.Effect>
-                <DropShadowEffect
-                    BlurRadius="20"
-                    Direction="270"
-                    Opacity="0.35"
-                    ShadowDepth="6"
-                    Color="#000000" />
-            </Border.Effect>
 
             <Grid>
                 <Grid.RowDefinitions>
@@ -109,20 +117,16 @@
                 </Grid.RowDefinitions>
 
                 <!-- Header bar (always visible when tasks exist) -->
+                <!--
+                    源用 CornerRadius 12,12,0,0 ↔ 12 在展开/收起两态间切换；IvRadiusOverlay=4 两态取值相同
+                    （收起态整块就是这条 header，四角本就要圆；展开态下沿紧贴同一底色系的列表，圆角无可见差异），
+                    因此这里只留一个令牌值。
+                -->
                 <Border
                     Grid.Row="0"
                     Padding="12,10"
-                    Background="{DynamicResource ControlFillColorSecondaryBrush}"
-                    CornerRadius="12,12,0,0">
-                    <Border.Style>
-                        <Style TargetType="{x:Type Border}">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsExpanded}" Value="False">
-                                    <Setter Property="CornerRadius" Value="12" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Border.Style>
+                    Background="{DynamicResource IvBandBrush}"
+                    CornerRadius="{DynamicResource IvRadiusOverlay}">
 
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -143,25 +147,26 @@
                                     Width="28"
                                     Height="28"
                                     Margin="0,0,10,0"
-                                    Background="{DynamicResource ControlFillColorDefaultBrush}"
+                                    Background="{DynamicResource IvControlFillBrush}"
                                     CornerRadius="8">
-                                    <ui:SymbolIcon
+                                    <!-- 源 SymbolIcon TaskListSquareLtr24 → IvIcons.List -->
+                                    <yu:Icon
                                         HorizontalAlignment="Center"
                                         VerticalAlignment="Center"
-                                        FontSize="15"
-                                        Symbol="TaskListSquareLtr24" />
+                                        Data="{x:Static yu:IvIcons.List}"
+                                        ViewSize="{DynamicResource IvIconSize}" />
                                 </Border>
 
                                 <StackPanel VerticalAlignment="Center">
                                     <TextBlock
-                                        FontSize="13"
+                                        FontSize="{DynamicResource IvFontSizeBodySmall}"
                                         FontWeight="SemiBold"
-                                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                        Foreground="{DynamicResource IvText1Brush}"
                                         Text="后台任务" />
                                     <TextBlock
                                         Margin="0,2,0,0"
-                                        FontSize="11"
-                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                        FontSize="{DynamicResource IvFontSizeSmall}"
+                                        Foreground="{DynamicResource IvText2Brush}"
                                         Text="{Binding HeaderSummary}" />
                                 </StackPanel>
 
@@ -178,45 +183,45 @@
                                             Height="6"
                                             Margin="0,0,5,0"
                                             VerticalAlignment="Center"
-                                            Fill="{DynamicResource SystemAccentColorPrimaryBrush}" />
+                                            Fill="{DynamicResource IvAccentBrush}" />
                                         <TextBlock
-                                            FontSize="11"
+                                            FontSize="{DynamicResource IvFontSizeSmall}"
                                             FontWeight="SemiBold"
-                                            Foreground="{DynamicResource SystemAccentColorPrimaryBrush}"
+                                            Foreground="{DynamicResource IvAccentTextBrush}"
                                             Text="{Binding RunningTaskCount, StringFormat={}{0} 运行中}" />
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
                         </Button>
 
-                        <ui:Button
+                        <Button
                             Grid.Column="1"
                             VerticalAlignment="Center"
                             Command="{Binding ToggleExpandedCommand}"
                             Style="{StaticResource TaskIconButtonStyle}"
                             ToolTip="{Binding ExpandToggleToolTip}">
-                            <ui:Button.Icon>
-                                <ui:SymbolIcon>
-                                    <ui:SymbolIcon.Style>
-                                        <Style TargetType="{x:Type ui:SymbolIcon}">
-                                            <Setter Property="Symbol" Value="ChevronUp24" />
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsExpanded}" Value="False">
-                                                    <Setter Property="Symbol" Value="ChevronDown24" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </ui:SymbolIcon.Style>
-                                </ui:SymbolIcon>
-                            </ui:Button.Icon>
-                        </ui:Button>
+                            <!-- 源按钮 Icon 属性（SymbolIcon ChevronUp24，收起态 ChevronDown24）→ yu:Icon 的 Data 触发器 -->
+                            <yu:Icon ViewSize="{DynamicResource IvIconSize}">
+                                <yu:Icon.Style>
+                                    <!-- 元素级 Style 不设 Template，BasedOn 取 yu-ui 的默认样式（Controls/Icon.xaml，随 YuUiTheme 一起 merge） -->
+                                    <Style BasedOn="{StaticResource {x:Type yu:Icon}}" TargetType="{x:Type yu:Icon}">
+                                        <Setter Property="Data" Value="{x:Static yu:IvIcons.ChevronUp}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsExpanded}" Value="False">
+                                                <Setter Property="Data" Value="{x:Static yu:IvIcons.ChevronDown}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </yu:Icon.Style>
+                            </yu:Icon>
+                        </Button>
                     </Grid>
                 </Border>
 
                 <!-- Task list -->
                 <Border
                     Grid.Row="1"
-                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                    BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
                     BorderThickness="0,1,0,0"
                     Visibility="{Binding IsExpanded, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <ScrollViewer
@@ -238,7 +243,7 @@
                                 <DataTemplate DataType="{x:Type vm:BackgroundTaskRowViewModel}">
                                     <Border
                                         Padding="12,10"
-                                        BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                        BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
                                         BorderThickness="0,0,0,1">
                                         <StackPanel>
                                             <Grid>
@@ -254,9 +259,9 @@
                                                         Style="{StaticResource TaskStatusDotStyle}" />
                                                     <TextBlock
                                                         VerticalAlignment="Center"
-                                                        FontSize="13"
+                                                        FontSize="{DynamicResource IvFontSizeBodySmall}"
                                                         FontWeight="SemiBold"
-                                                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                        Foreground="{DynamicResource IvText1Brush}"
                                                         Text="{Binding Title}"
                                                         TextTrimming="CharacterEllipsis"
                                                         ToolTip="{Binding Title}" />
@@ -274,41 +279,42 @@
                                                 <StackPanel
                                                     Grid.Column="2"
                                                     Orientation="Horizontal">
-                                                    <ui:Button
+                                                    <Button
                                                         Command="{Binding DataContext.ToggleTaskExpandedCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
                                                         CommandParameter="{Binding Id}"
                                                         Style="{StaticResource TaskIconButtonStyle}"
                                                         ToolTip="查看日志">
-                                                        <ui:Button.Icon>
-                                                            <ui:SymbolIcon>
-                                                                <ui:SymbolIcon.Style>
-                                                                    <Style TargetType="{x:Type ui:SymbolIcon}">
-                                                                        <Setter Property="Symbol" Value="ChevronDown24" />
-                                                                        <Style.Triggers>
-                                                                            <DataTrigger Binding="{Binding IsExpanded}" Value="True">
-                                                                                <Setter Property="Symbol" Value="ChevronUp24" />
-                                                                            </DataTrigger>
-                                                                        </Style.Triggers>
-                                                                    </Style>
-                                                                </ui:SymbolIcon.Style>
-                                                            </ui:SymbolIcon>
-                                                        </ui:Button.Icon>
-                                                    </ui:Button>
-                                                    <ui:Button
+                                                        <!-- 源按钮 Icon 属性（SymbolIcon ChevronDown24，展开态 ChevronUp24）→ yu:Icon 的 Data 触发器 -->
+                                                        <yu:Icon ViewSize="{DynamicResource IvIconSize}">
+                                                            <yu:Icon.Style>
+                                                                <Style BasedOn="{StaticResource {x:Type yu:Icon}}" TargetType="{x:Type yu:Icon}">
+                                                                    <Setter Property="Data" Value="{x:Static yu:IvIcons.ChevronDown}" />
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsExpanded}" Value="True">
+                                                                            <Setter Property="Data" Value="{x:Static yu:IvIcons.ChevronUp}" />
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </yu:Icon.Style>
+                                                        </yu:Icon>
+                                                    </Button>
+                                                    <Button
                                                         Command="{Binding DataContext.DismissTaskCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
                                                         CommandParameter="{Binding Id}"
-                                                        Icon="{ui:SymbolIcon Dismiss24}"
                                                         Style="{StaticResource TaskIconButtonStyle}"
-                                                        ToolTip="关闭" />
+                                                        ToolTip="关闭">
+                                                        <!-- 源按钮 Icon 属性（SymbolIcon Dismiss24）→ IvIcons.Close -->
+                                                        <yu:Icon Data="{x:Static yu:IvIcons.Close}" ViewSize="{DynamicResource IvIconSize}" />
+                                                    </Button>
                                                 </StackPanel>
                                             </Grid>
 
                                             <Border
                                                 Margin="16,8,0,0"
                                                 Padding="10,8"
-                                                Background="{DynamicResource ControlFillColorSecondaryBrush}"
-                                                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
-                                                BorderThickness="1"
+                                                Background="{DynamicResource IvBandBrush}"
+                                                BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                                                BorderThickness="{DynamicResource IvStrokeThickness}"
                                                 CornerRadius="8"
                                                 Visibility="{Binding IsExpanded, Converter={StaticResource BooleanToVisibilityConverter}}">
                                                 <ScrollViewer
@@ -320,9 +326,9 @@
                                                             <DataTemplate>
                                                                 <TextBlock
                                                                     Margin="0,1"
-                                                                    FontFamily="Consolas, Cascadia Mono, Courier New"
-                                                                    FontSize="11"
-                                                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                                    FontFamily="{DynamicResource IvMonoFontFamily}"
+                                                                    FontSize="{DynamicResource IvFontSizeSmall}"
+                                                                    Foreground="{DynamicResource IvText2Brush}"
                                                                     Text="{Binding}"
                                                                     TextWrapping="Wrap" />
                                                             </DataTemplate>
