@@ -67,7 +67,7 @@ internal static class StartupCrashDumpRegistration
         }
 
         var path = Environment.ProcessPath;
-        return !string.IsNullOrWhiteSpace(path) ? Path.GetFileName(path) : "DeepVisionSharp.Avalonia.exe";
+        return !string.IsNullOrWhiteSpace(path) ? Path.GetFileName(path) : "DeepVisionSharp.exe";
     }
 }
 

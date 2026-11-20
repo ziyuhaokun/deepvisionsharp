@@ -3,8 +3,11 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
-    <AssemblyName>DeepVisionSharp.Avalonia</AssemblyName>
+    <AssemblyName>DeepVisionSharp</AssemblyName>
     <RootNamespace>DeepVisionSharp.Shell.Avalonia</RootNamespace>
+    <Product>DeepVisionSharp</Product>
+    <Title>DeepVisionSharp</Title>
+    <Version>0.0.1</Version>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>14.0</LangVersion>
@@ -31,6 +34,7 @@
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
+    <None Include="../../packaging/assets/license.txt" Link="license.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\CHANGELOG.md" Link="CHANGELOG.md" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 

@@ -6,7 +6,7 @@
                 xmlns:views="clr-namespace:DeepVisionSharp.Shell.Avalonia.Views.Controls"
                 x:Class="DeepVisionSharp.Shell.Avalonia.MainWindow"
                 Title="DeepVisionSharp"
-                Icon="avares://DeepVisionSharp.Avalonia/Assets/logo.ico"
+                Icon="avares://DeepVisionSharp/Assets/logo.ico"
                 Width="1600"
                 Height="1000"
                 MinWidth="900"
@@ -208,7 +208,7 @@
                     <StackPanel Name="BrandPanel" Orientation="Horizontal" VerticalAlignment="Center">
                         <Image Width="22"
                                Height="22"
-                               Source="avares://DeepVisionSharp.Avalonia/Assets/logo.png"
+                               Source="avares://DeepVisionSharp/Assets/logo.png"
                                Stretch="Uniform" />
                         <TextBlock MaxWidth="154"
                                    Margin="9,0,0,0"

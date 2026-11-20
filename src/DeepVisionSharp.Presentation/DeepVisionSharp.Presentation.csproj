@@ -11,7 +11,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
   </ItemGroup>
 
-  <!-- 共享表现层：只装 ViewModel / 应用服务 / 框架无关端口，绝不引用任何 UI 框架（WPF、Avalonia、DeepVisionSharp.UI）。 -->
+  <!-- 表现层提供框架无关的 ViewModel、应用服务和 UI 端口。 -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>DeepVisionSharp.Presentation</AssemblyName>

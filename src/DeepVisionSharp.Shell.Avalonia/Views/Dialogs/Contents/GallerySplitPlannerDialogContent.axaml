@@ -11,7 +11,7 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceInclude Source="avares://DeepVisionSharp.Avalonia/Views/Dialogs/DialogStyles.axaml" />
+                <ResourceInclude Source="avares://DeepVisionSharp/Views/Dialogs/DialogStyles.axaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <!-- 拆分方式卡片：圆点 + 两行文字，选中时强调色描边 2px（对应 WPF SplitModeCardStyle） -->

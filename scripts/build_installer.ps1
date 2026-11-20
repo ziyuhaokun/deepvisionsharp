@@ -1,6 +1,4 @@
 param(
-    [ValidateSet("src", "wpf")]
-    [string]$Shell = "src",
     [Alias("PythonRepo")]
     [string]$PackagerRepo = "",
     [ValidateSet("Release", "Debug")]
@@ -10,11 +8,6 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-
-if ($Shell -eq "wpf") {
-    Write-Warning "Parameter -Shell wpf is deprecated; use -Shell src instead."
-    $Shell = "src"
-}
 
 $scriptDir = $PSScriptRoot
 $repoRoot = (Resolve-Path (Join-Path $scriptDir "..")).Path
@@ -28,8 +21,8 @@ if (-not (Test-Path -LiteralPath $PackagerRepo -PathType Container)) {
 }
 $PackagerRepo = (Resolve-Path -LiteralPath $PackagerRepo).Path
 
-$projectDir = Join-Path $repoRoot "src\DeepVisionSharp.Shell"
-$csprojPath = Join-Path $projectDir "DeepVisionSharp.Shell.csproj"
+$projectDir = Join-Path $repoRoot "src\DeepVisionSharp.Shell.Avalonia"
+$csprojPath = Join-Path $projectDir "DeepVisionSharp.Shell.Avalonia.csproj"
 $publishDir = Join-Path $projectDir "bin\$Configuration\net10.0-windows\$RuntimeIdentifier\publish"
 $outputDir = Join-Path $scriptDir "Output"
 $assetsDir = Join-Path $repoRoot "packaging\assets"
@@ -38,7 +31,7 @@ $packagerProject = Join-Path $PackagerRepo "src\RuntimePackage.Packager.Cli\Runt
 $publishSetupHostScript = Join-Path $PackagerRepo "scripts\publish_setup_host.ps1"
 $setupHostPath = Join-Path $PackagerRepo "artifacts\setuphost\$RuntimeIdentifier\RuntimePackage.SetupHost.Avalonia.exe"
 
-Write-Host "Building installer for shell: $Shell"
+Write-Host "Building DeepVisionSharp installer"
 Write-Host "Project: $csprojPath"
 Write-Host "Installer tools: $PackagerRepo"
 Write-Host "Configuration: $Configuration; Runtime: $RuntimeIdentifier"
@@ -178,7 +171,6 @@ if ($LASTEXITCODE -ne 0) {
 
 Write-Host "--------------------------------------------------"
 Write-Host "Installer created successfully!"
-Write-Host "Shell: $Shell"
 Write-Host "Output: $setupPath"
 Write-Host "Default install: %LocalAppData%\DeepVisionSharp"
 Write-Host "--------------------------------------------------"

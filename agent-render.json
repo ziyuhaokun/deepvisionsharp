@@ -7,7 +7,7 @@
     "AvaloniaRealShell": {
       "stack": "avalonia",
       "assemblyPaths": [
-        "src/DeepVisionSharp.Shell.Avalonia/bin/Debug/net10.0-windows/DeepVisionSharp.Avalonia.dll"
+        "src/DeepVisionSharp.Shell.Avalonia/bin/Debug/net10.0-windows/DeepVisionSharp.dll"
       ],
       "build": ["dotnet", "build", "DeepVisionSharp.slnx", "-c", "Debug", "--nologo"],
       "factoryFile": "scripts/agent-render/ViewFactoryAvaloniaReal.cs",

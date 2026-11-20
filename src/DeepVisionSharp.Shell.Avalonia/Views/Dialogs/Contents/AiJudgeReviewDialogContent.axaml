@@ -37,7 +37,7 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceInclude Source="avares://DeepVisionSharp.Avalonia/Views/Dialogs/DialogStyles.axaml" />
+                <ResourceInclude Source="avares://DeepVisionSharp/Views/Dialogs/DialogStyles.axaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <DataTemplate x:Key="ReviewRowTemplate">

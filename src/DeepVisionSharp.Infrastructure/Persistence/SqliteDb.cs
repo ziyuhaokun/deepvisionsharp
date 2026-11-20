@@ -66,7 +66,7 @@ internal sealed class SqliteDb
         ConfigureSqlitePragmas(db);
         ScheduleSampleLabelIndexBackfill(db);
 
-        _logger.LogInformation("Connected WPF shell to SQLite database at {DatabasePath}", dbPath);
+        _logger.LogInformation("Connected to SQLite database at {DatabasePath}", dbPath);
 
         return db;
     }
