@@ -8,7 +8,14 @@
 
 ### v0.0.2-dev (unreleased)
 
-tags: detection / ui
+tags: detection / ui / avalonia
+
+- 新增 Avalonia 版界面外壳（开发中，未替换现有 WPF 外壳）：把 deepvision 的界面整份搬过来，7 个页面（项目/图库/标记/模型/训练/推理/设置）与 26 个对话框已能跑在真实数据上；项目列表、图库、模型、标注、训练、推理、设置页的界面数据绑定实测无错误。
+- 抽取与界面框架无关的共享表现层，WPF 与 Avalonia 两个外壳共用同一套业务逻辑；现有 WPF 版的界面与功能行为不变。
+- Avalonia 外壳补齐与 WPF 一致的启动期行为：文件日志与日志保留、单实例、崩溃转储、未处理异常提示、启动参数。
+- 裁剪上游界面中本产品不具备的入口（AI 判定、模板匹配、多边形/分割标注、OCR、异常检测、训练参数预设等），并删除设置页里并不存在的「Python 环境」分区；不保留点了没反应的按钮。
+- 修复分类项目进不了「分类增强」的问题；训练设置补回「模型架构」与「检测参数」两组真实参数。
+- 新增 `docs/avalonia-migration.md`：迁移现状、端口对照、验收方法与下线 WPF 外壳的前置条件清单。
 
 - 新增 WPF 设计系统 `yu-ui`（`src/yu-ui`）：令牌、77 个图标、14 个控件样式与 7 个自绘控件（ThemedWindow / Dialog / FormSection / FormRow / NumericBox / Icon / 占位文本），视觉与令牌逐值来自 deepvision 的 `InCube.UI.Avalonia`。此版本只接线令牌，界面外观不变。
 - 新增 `YuUiStyleProbeWindow`（DEBUG 验收页）与 `docs/yu-ui-migration.md`（WPF-UI → yu-ui 控件映射与分批迁移依据）。

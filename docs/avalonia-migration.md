@@ -360,40 +360,51 @@ harness 还会报「文本重叠 / 被裁切」类 layout issue；同一个页�
 
 ## 6. 页面迁移状态表（7 个页面）
 
-行数取自基线 `9c82dda`（`Views/*.axaml`）。「已接真 VM」指容器里注册了对应的 `Presentation` ViewModel 并由
-code-behind 把它设成 `DataContext`；没有的话页面用的是 `ViewModels/Sample<Xxx>Context.cs` stub。
+行数为裁剪后的实际值（`wc -l`）。「已接真 VM」= 容器注册了 `Presentation` 的 ViewModel 并由 code-behind
+注入 `DataContext`；`ViewModels/Sample<Xxx>Context.cs` 只作设计时/兜底。
+「在窗渲染」= `-ViewType MainWindow` 走导航进入（§5.4 唯一有效证据），产物 `temp/yuui/preview/inwin-*.png`。
+`binding` 列是 1600×1000 在窗渲染的 `bindingIssueCount`，全部为 **0**（基线 `ac0c2e0`）。
 
-| 页面 | Avalonia 文件（行） | 已照抄 deepvision | 已接真 VM | 渲染状态 | 已知缺陷 / 备注 |
-| --- | --- | --- | --- | --- | --- |
-| 项目 Dashboard | `DashboardPage.axaml` 512 | 是 | **是**：`DashboardViewModel`（singleton） | 已在窗出图（`preview/avalonia-real-dashboard.png`，走 `MainWindow`） | 分栏公式在 code-behind（可用宽 −64 后按 380 分 1~4 栏）；首次进入走 `LoadCommand`，已有数据时静默 `RefreshProjectsAsync` |
-| 图库 Gallery | `GalleryPage.axaml` 543 | 是 | **是**：`GalleryViewModel`（transient） | 真 VM 单页出图（`avalonia-real-gallery.png`），**在窗渲染待补** | 页面被导航缓存 → transient VM 事实上单例；缩略图走 `IImageSourceFactory`；点开样本的标注画布不在本页 |
-| 模型 Models | `ModelsPage.axaml` 441 | 是 | **是**：`ModelsViewModel`（transient） | 真 VM 单页出图（`avalonia-real-models.png`），**在窗渲染待补** | 每次进入调 `OnPageLoadedAsync()` |
-| 标记 Labeling | `LabelingPage.axaml` 692 | 是（布局与卡片） | 否：`SampleLabelingContext`（911 行 stub） | 仅独立单页出图（`avalonia-labeling.png`），**无在窗渲染** | 画布交互是空实现（`OnAnnotationCreated` / `OnAnnotationEditStarted` 等方法体为空），无绘制/编辑/撤销；样本条与右键菜单显隐规则照抄 |
-| 训练 Training | `TrainingPage.axaml` 310（卡片在 `Controls/Training/TrainingRunPanel.axaml`） | 是 | 否：`SampleTrainingContext`（1070 行 stub） | 仅独立单页出图（`avalonia-training.png`） | ①【本轮】「主指标说明」卡在单页渲染里被压成约 4px 高、文字重叠，正在修（harness 报「ScrollViewer 需要 1125×223，可见 1125×4」）；②code-behind 里内联视口约束 `MaxHeight = 窗口高 − 44 − 56`（`UpdateViewportConstraints`），是塌陷的可疑来源之一；③无轮询、无真任务列表 |
-| 推理 Inference | `InferencePage.axaml` 1146 | 是 | 否：`SampleInferenceContext`（425 行 stub） | 仅独立单页出图（`avalonia-inference.png`） | 不跑推理、不改工作列表状态；`Stop` / `ChartMultiple` 图标用页内 `StreamGeometry`（`IvIcons` 无等价几何）；三栏自适应与画布缩放已实现 |
-| 设置 Settings | `SettingsPage.axaml` 577 | 是 | 否：`SampleSettingsContext`（290 行 stub） | 独立单页出图 + 分区图（`avalonia-settings{,-about,-storage,-python}.png`） | 不落盘、F12 解锁是 stub 数据；「关于」的 `CurrentChangeLogEntry` 绑定属于 `SettingsViewModel`（内部 `new ChangeLogService()` 读 `CHANGELOG.md`），接 VM 前还要补 csproj 的文件复制（§7.9） |
+| 页面 | 文件（行） | 已照抄 | 已接真 VM | 在窗渲染 | binding | 已知缺陷 / 备注 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 项目 Dashboard | `DashboardPage.axaml` 512 | 是 | **是** `DashboardViewModel`（singleton） | `inwin-dashboard.png` | **0** | 真实数据 2 项目 / 1000 样本；长项目描述按源设定省略号（源同行为） |
+| 图库 Gallery | `GalleryPage.axaml` 543 | 是 | **是** `GalleryViewModel`（transient） | `inwin-gallery.png` | **0** | 真实数据 1 图库 / 1000 样本 / 1000 已标注；页面被导航缓存 → transient VM 事实单例 |
+| 模型 Models | `ModelsPage.axaml` 441 | 是 | **是** `ModelsViewModel`（transient） | `inwin-models.png` | **0** | 长路径按源设定省略号 |
+| 标记 Labeling | `LabelingPage.axaml` 565 | 是 | **是** `LabelingViewModel` | `inwin-labeling.png` | **0** | 裁掉 73 条无后端绑定（AiJudge/TemplateMatch/多边形分割/OCR）；`AnnotationCanvas` 已改绑 `BoxShapeViewModel`（与 WPF 同契约）；画布**交互仍是空实现**（创建/编辑/撤销无行为）；未进图库时如实显示「暂无样本」 |
+| 训练 Training | `TrainingPage.axaml` 290 + `Controls/Training/TrainingRunPanel.axaml` | 是 | **是** `TrainingViewModel` | `inwin-training.png`（真 VM，空任务列表）+ `inwin-training-stub.png`（stub 视觉基线） | **0** | 裁掉 147 条无后端绑定；补回上游复制版弄丢的「模型架构」「检测参数」两组真实控件；修掉分类项目进不了分类增强的三层可见性门；无轮询 |
+| 推理 Inference | `InferencePage.axaml` 1103 | 是 | **是** `InferenceViewModel` | `inwin-inference.png` | **0** | 裁掉 IR 后端选择器 / 会话异常阈值等 6 条；`Stop`、`ChartMultiple` 用页内几何（`IvIcons` 无等价物）；`NumericBox` 步进按钮 30px 溢出属**源本身行为**（`NumericBox.cs` 与源只差命名空间）；不跑推理 |
+| 设置 Settings | `SettingsPage.axaml` 474 | 是 | **是** `SettingsViewModel` | `inwin-settings.png` | **0** | 整节「Python 环境」是 Avalonia 侧**自行发明**（WPF 与 Presentation 均 0 命中）→ 已整块删除；F12 解锁等仍是 stub 行为 |
 
-渲染状态一列的口径：**在窗**= `-ViewType` 传 `MainWindow`、页面靠导航进入（§5.4 的唯一有效证据）；
-**真 VM 单页**= 页面直接用重容器里的 ViewModel 出图（`render-avalonia-real.ps1` 的 gallery/models 分支就是这种，
-它没经过壳层，只能证明「绑定与数据没问题」，证明不了壳层里的排版）。
-基线只有 Dashboard 有在窗证据；本轮 F1 正在把渲染脚本扩到 7 个路由并在窗出图（产物在
-`C:/Users/yu/codes/temp/yuui/preview/inwin-*.png`，落笔时脚本仍在改）。
+裁剪后的体量：7 个页面共 3,928 行（基线 4,609 行），嵌套控件与对话框内容视图 43 个 `.axaml`。
 
-四个未接 VM 的页面（标记/训练/推理/设置）基线时的共同点：`.axaml.cs` 里 `DataContext = new SampleXxxContext();`，
-导航 `CreatePage` 对这四个路由返回 `null`，`MainWindow.CreatePlaceholderPage(route)` 画占位页
-（**本轮 F2 已把 7 个路由全部接到页面**，接真 VM 的进度以代码为准）。
-接线的落点固定为三处：`Composition/AppComposition.cs`（注册 VM）、
-`Services/AvaloniaNavigationService.cs`（`CreatePage` 建页）、页面 code-behind（换 `DataContext` 来源）。
-
----
+接线落点固定三处：`Composition/AppComposition.cs`（注册 VM）、
+`Services/AvaloniaNavigationService.cs`（`CreatePage` 建页）、页面 code-behind（`DataContext` 来源）。
 
 ## 7. 已知偏差与待办
 
-### 7.1 4 个路由还没接线（基线）
+### 7.1 4 个路由已接线（原缺口已关闭）
 
-`AvaloniaNavigationService.CreatePage` 只有 `Dashboard` / `Gallery` / `Models` 三个 `case`，其余返回 `null`：
-导航项点下去看到的是占位页。**基线事实**；本轮 F2 在改（改 `AppComposition.cs` + `AvaloniaNavigationService.cs`
-+ 四个页面的 code-behind）。接线后必须同时处理 §7.5 的页面缓存问题。
+`AvaloniaNavigationService.CreatePage` 现覆盖全部 7 个路由，`AppComposition` 注册了 7 个页面的 ViewModel。
+历史事实留档：基线 `9c82dda` 时只有 Dashboard/Gallery/Models 三个 `case`，其余点下去是占位页。
+
+接线后仍需注意 §7.5：页面实例被导航缓存，transient 注册的 ViewModel 事实上是单例。
+
+### 7.1.1 「发明 UI」是比抄错更严重的一类问题
+
+裁剪过程中抓到整节「Python 环境」（设置页，12 条绑定）是 Avalonia 侧**自行发明**的：WPF 参考实现
+`Shell/Views/Pages/SettingsPage.xaml` 与整个 `Presentation` 里 grep `Python` 均为 0 命中，
+`git log --all -S IsPythonEnvironmentSelected` 无任何提交。它渲染正常、绑定也「对得上 stub」，
+所以只有拿 WPF 侧当尺子才查得出来。
+
+**判据（后续所有照抄工作必须执行）**：留下来的每个元素，必须能在 WPF 侧或 `Presentation` 侧找到对应实现；
+两侧都找不到 = 发明 → 整块删除，哪怕它渲染完美、binding 为 0。
+
+配套三条禁令：
+1. 不许用 `IsVisible=False` 把假 UI 藏起来（仍占资源、仍骗绑定、下次照抄还会被抄进来）。
+2. 不许为了让假 UI 不报错，往 `Presentation` 塞恒 false / 空集合 / `UnavailableCommand` 的「死属性」——
+   那是撒谎的接口面，比留着绑定错误危害更大。
+3. 规格文档（`temp/yuui/trim-spec.md`）里如果写了不存在的成员，直接改掉，别让错规格误导下一波
+   （本次已发现两处：`IsPythonEnvironmentSelected` 系列 12 个成员、`HasAdvancedModifications` 系列 4 个成员）。
 
 ### 7.2 图标缺口：`IvIcons` 没有 `Stop` / `ChartMultiple`
 
@@ -449,22 +460,36 @@ code-behind 把它设成 `DataContext`；没有的话页面用的是 `ViewModels
   本仓库没有 `CLAUDE.md`。基线命中 5 个文件：`Controls/Labeling/CanvasViewToolbar.axaml{,.cs}`、
   `Controls/Labeling/CanvasCornerFloat.axaml{,.cs}`、`Controls/Training/MetricLineChart.cs`。清掉即可。
 
-### 7.7 渲染取证目前不可复现
+### 7.7 渲染取证仍不可复现（工程流程欠账）
 
 - 渲染工厂 `ViewFactoryAvaloniaReal.cs` 与所有 `render-*.ps1` 都在 `C:/Users/yu/codes/temp/yuui/`（**仓库外**），
-  仓库里没有 Avalonia 的 `agent-render.json`。
-- HEAD 里的 `wpf-render.json` 是 WPF 用的，且只登记了 5 个对话框视图；写文档时该文件在工作区已被删除
-  （需要时用 `git show HEAD:wpf-render.json > wpf-render.json` 取回）。
-- 待办：把 Avalonia 的渲染工厂与预设（`agent-render.json`，7 个路由各一条 view）提交进仓库，
-  让 §5.3 的命令不依赖任何人的临时目录。
+  仓库里没有 Avalonia 的 `agent-render.json`。**这是目前最该还的一笔债**：证据在别人机器上等于没有证据。
+- 渲染宿主必须带全业务 DLL 与 SQLite 原生库（`runtimes/win-x64/native/SQLite.Interop.dll` 要手动同步进
+  宿主的 `out/`），否则退化成「查询失败 + 空列表」——**看起来像功能没接，其实是取证环境缺件**，
+  本次已因此误判过一次。
+- 待办：把 Avalonia 的渲染工厂 + 预设（`agent-render.json`，7 个路由各一条）提交进仓库。
 
-### 7.8 任务中心与灯箱：已写好，但（基线）没挂到主窗口
+### 7.8 任务中心已挂，灯箱仍在页面内
 
-- `Views/Controls/TaskCenterPanel.axaml` 与 `ShellTaskCenterViewModel` 都在，容器也注册了 VM，
-  但基线时**没有任何视图引用 `TaskCenterPanel`**；WPF 侧是 `MainWindow.xaml` 里的
-  `<controls:TaskCenterPanel x:Name="ShellTaskCenter">`。→ 基线在 Avalonia 里看不到任务中心（本轮 F4 正在挂）。
-- `Controls/Misc/ImageLightboxOverlay.axaml` 基线时没有引用；只有 `Controls/Training/` 的那一份被
-  `TrainingRunPanel.axaml` 用着。灯箱能否显示真实图像尚未验证（应走 `AvaloniaImageSourceFactory` 的解码结果）。
+- 任务中心：`MainWindow.axaml` 已按 deepvision 同位挂载 `TaskCenterPanel`（`Grid.Row=1`、`Grid.Column=1`、
+  右下角、`Margin 0,0,16,16`，**不是浮层遮罩**），`DataContext` 注入 `ShellTaskCenterViewModel`。
+- 灯箱：deepvision 的灯箱挂在 `TrainingRunPanel` **内部**（页面级，`ZIndex=1000`）。因此**不给它加 shell 级状态**
+  （`IsImageLightboxOpen` / `ImageLightboxSource` / `CloseImageLightboxCommand` 那套是发明状态）。
+  待办：`Controls/Training/ImageLightboxOverlay.axaml` 缺 `Source` 绑定（照 `Controls/Misc` 的
+  `Source` 绑到自身 `ImageSource` 的写法补）；两处重复控件应合并成一份。
+
+### 7.8.1 编排教训（多 lane 并行时必看）
+
+一次五 lane 并行的实测事故，写下来避免重演：
+
+1. **同一个 csproj 不许并行 build**。三条 lane 各自「每改一个文件就 build」，实测堆积 **27 个 dotnet 进程**，
+   `obj/bin` 锁互抢，其中一条 lane 的命令 4 分钟无输出。正确做法：**写入并行、编译串行**，由父代理统一编译。
+2. **终验必须独占通道**。不要交给正在改代码的 lane——它此刻的渲染必然是半成品。
+3. **给 lane 的渲染脚本必须自带硬超时 + 失败即退**，否则 spawn 的渲染宿主会越堆越多。
+4. 单条 bash 超过 3 分钟无输出就放弃重来，不要等它自然结束。
+5. 任务书里的「每改一个文件就 build」是**错的要求**，应为「每 5~8 个文件批量 build 一次」。
+6. 对 lane 的实测结论要复核再采信：本次两路各超时 30 分钟，但留下的代码都可编译；
+   而 lane 报的「X 已修好」必须由父代理用命令复验。
 
 ### 7.9 发布物缺件：设置页「关于」与 license 拿不到文件
 
