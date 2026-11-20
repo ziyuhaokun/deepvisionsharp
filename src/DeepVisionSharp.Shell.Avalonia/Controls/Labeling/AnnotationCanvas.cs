@@ -53,6 +53,9 @@ public sealed class AnnotationCanvas : Control
     public static readonly StyledProperty<string> ActiveLabelProperty =
         AvaloniaProperty.Register<AnnotationCanvas, string>(nameof(ActiveLabel), string.Empty);
 
+    public static readonly StyledProperty<IBrush?> BackgroundProperty =
+        Border.BackgroundProperty.AddOwner<AnnotationCanvas>();
+
     public static readonly StyledProperty<IReadOnlyList<BoxShapeViewModel>?> BoxesProperty =
         AvaloniaProperty.Register<AnnotationCanvas, IReadOnlyList<BoxShapeViewModel>?>(nameof(Boxes));
 
@@ -113,6 +116,7 @@ public sealed class AnnotationCanvas : Control
             ActiveColorProperty,
             ActiveLabelIdProperty,
             ActiveLabelProperty,
+            BackgroundProperty,
             BoxesProperty,
             ImageSourceProperty,
             ImageWidthProperty,
@@ -179,6 +183,12 @@ public sealed class AnnotationCanvas : Control
     {
         get => GetValue(ActiveLabelProperty);
         set => SetValue(ActiveLabelProperty, value);
+    }
+
+    public IBrush? Background
+    {
+        get => GetValue(BackgroundProperty);
+        set => SetValue(BackgroundProperty, value);
     }
 
     /// <summary>当前样本的框（图像坐标），与侧栏框列表是同一份 <see cref="BoxShapeViewModel"/> 集合。</summary>
@@ -588,8 +598,7 @@ public sealed class AnnotationCanvas : Control
     {
         base.Render(context);
 
-        var bounds = new Rect(Bounds.Size);
-        context.FillRectangle(FindBrush("IvImageCanvasBrush", Color.FromRgb(0x16, 0x1A, 0x20)), bounds);
+        context.FillRectangle(Background ?? Brushes.Transparent, new Rect(Bounds.Size));
 
         var image = ImageSize;
         var scale = EffectiveScale(image);
@@ -1001,11 +1010,6 @@ public sealed class AnnotationCanvas : Control
             command.Execute(null);
         }
     }
-
-    private static IBrush FindBrush(string key, Color fallback)
-        => global::Avalonia.Application.Current is { } app && app.TryFindResource(key, out var value) && value is IBrush brush
-            ? brush
-            : new SolidColorBrush(fallback);
 
     private void RaiseViewportChanged() => ViewportChanged?.Invoke(this, EventArgs.Empty);
 }

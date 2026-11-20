@@ -8,6 +8,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:iv="clr-namespace:DeepVisionSharp.UI.Avalonia.Controls;assembly=DeepVisionSharp.UI.Avalonia"
              xmlns:ui="clr-namespace:DeepVisionSharp.UI.Avalonia;assembly=DeepVisionSharp.UI.Avalonia"
+             xmlns:local="using:DeepVisionSharp.Shell.Avalonia.Controls.Labeling"
              x:Class="DeepVisionSharp.Shell.Avalonia.Controls.Labeling.CanvasCornerFloat"
              ClipToBounds="False"
              Focusable="False">
@@ -41,7 +42,7 @@
                 <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
             </Style>
             <Style Selector="^:pointerover /template/ Border#PinChrome">
-                <Setter Property="Background" Value="{DynamicResource IvControlFillBrush}" />
+                <Setter Property="Background" Value="{DynamicResource IvStateHoverBrush}" />
                 <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeBrush}" />
             </Style>
             <Style Selector="^.pinned">
@@ -54,6 +55,15 @@
         </ControlTheme>
     </UserControl.Resources>
 
+    <UserControl.Styles>
+        <Style Selector="Border#FloatPanel">
+            <Setter Property="Background" Value="{DynamicResource IvCanvasToolbarBrush}" />
+        </Style>
+        <Style Selector="local|CanvasCornerFloat[UseOpaqueBackground=True] Border#FloatPanel">
+            <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
+        </Style>
+    </UserControl.Styles>
+
     <Grid ClipToBounds="False">
         <Border Name="HitZone"
                 Background="Transparent"
@@ -61,7 +71,6 @@
 
         <Border Name="FloatPanel"
                 Padding="6,8"
-                Background="{DynamicResource IvSurface3Brush}"
                 BorderBrush="{DynamicResource IvStrokeBrush}"
                 BorderThickness="1"
                 CornerRadius="10"

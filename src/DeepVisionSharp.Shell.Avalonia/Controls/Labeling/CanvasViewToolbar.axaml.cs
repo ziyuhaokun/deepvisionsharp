@@ -5,7 +5,6 @@ using Avalonia.Controls.Templates;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
-using Avalonia.Media;
 using Avalonia.Threading;
 
 /**
@@ -62,8 +61,6 @@ public partial class CanvasViewToolbar : UserControl
         PlacementProperty.Changed.AddClassHandler<CanvasViewToolbar>((control, _) => control.ApplyPlacement());
         BodyProperty.Changed.AddClassHandler<CanvasViewToolbar>((control, _) => control.ApplyBody());
         BodyTemplateProperty.Changed.AddClassHandler<CanvasViewToolbar>((control, _) => control.ApplyBody());
-        UseOpaqueBackgroundProperty.Changed.AddClassHandler<CanvasViewToolbar>(
-            (control, _) => control.ApplyPanelBackground());
     }
 
     public CanvasViewToolbar()
@@ -144,7 +141,6 @@ public partial class CanvasViewToolbar : UserControl
     {
         ApplyBody();
         ApplyPlacement();
-        ApplyPanelBackground();
 
         var pinId = string.IsNullOrWhiteSpace(PinId) ? DefaultPinStorageId : PinId;
         _isPinned = CanvasFloatPins.GetPin(pinId);
@@ -192,31 +188,6 @@ public partial class CanvasViewToolbar : UserControl
         _bodyHost.ContentTemplate = BodyTemplate;
         _bodyHost.IsVisible = Body is not null;
     }
-
-    private void ApplyPanelBackground()
-    {
-        if (_floatPanel is null)
-        {
-            return;
-        }
-
-        if (UseOpaqueBackground)
-        {
-            _floatPanel.Background =
-                LookupBrush("IvSurface2Brush")
-                ?? LookupBrush("IvBackgroundBrush")
-                ?? new SolidColorBrush(Color.FromRgb(32, 32, 32));
-        }
-        else
-        {
-            _floatPanel.Background =
-                LookupBrush("IvSurface3Brush")
-                ?? new SolidColorBrush(Color.FromArgb(0xCC, 32, 32, 32));
-        }
-    }
-
-    private IBrush? LookupBrush(string key)
-        => this.TryFindResource(key, out var value) ? value as IBrush : null;
 
     private void ApplyPlacement()
     {

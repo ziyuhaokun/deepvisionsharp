@@ -302,6 +302,7 @@
                     <Grid>
                         <dv:AnnotationCanvas x:Name="AnnotationSurface"
                                              AutomationProperties.AutomationId="dv.labeling.canvas"
+                                             Background="{DynamicResource IvImageCanvasBrush}"
                                              ActiveColor="{Binding Labels.ActiveLabelColor}"
                                              ActiveLabelId="{Binding Labels.ActiveLabelId}"
                                              ActiveLabel="{Binding Editor.ActiveBoxLabel}"

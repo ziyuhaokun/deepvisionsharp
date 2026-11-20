@@ -87,7 +87,8 @@
             <SolidColorBrush x:Key="IvHudScrimBrush" Color="#80000000" />
             <SolidColorBrush x:Key="IvHudInfoTextBrush" Color="#93C5FD" />
             <SolidColorBrush x:Key="IvHudDangerTextBrush" Color="#FCA5A5" />
-            <SolidColorBrush x:Key="IvImageCanvasBrush" Color="#0D0D0D" />
+            <SolidColorBrush x:Key="IvImageCanvasBrush" Color="#F1F2F3" />
+            <SolidColorBrush x:Key="IvCanvasToolbarBrush" Color="#FFFFFF" />
             <SolidColorBrush x:Key="IvCaptionCloseHoverBrush" Color="#C75050" />
             <SolidColorBrush x:Key="IvCaptionClosePressedBrush" Color="#A13A3A" />
             <SolidColorBrush x:Key="IvCaptionCloseTextBrush" Color="#FFFFFF" />
@@ -179,6 +180,7 @@
             <SolidColorBrush x:Key="IvHudInfoTextBrush" Color="#93C5FD" />
             <SolidColorBrush x:Key="IvHudDangerTextBrush" Color="#FCA5A5" />
             <SolidColorBrush x:Key="IvImageCanvasBrush" Color="#0D0D0D" />
+            <SolidColorBrush x:Key="IvCanvasToolbarBrush" Color="#28292C" />
             <SolidColorBrush x:Key="IvCaptionCloseHoverBrush" Color="#C75050" />
             <SolidColorBrush x:Key="IvCaptionClosePressedBrush" Color="#A13A3A" />
             <SolidColorBrush x:Key="IvCaptionCloseTextBrush" Color="#FFFFFF" />
