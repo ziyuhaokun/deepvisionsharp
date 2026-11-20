@@ -1,0 +1,65 @@
+<!-- 源: Tokens/Typography.axaml (63 行) | 转换: FontFamily 回退列表原样保留; x:Double→sys:Double; Avalonia Selector="TextBlock" 的 Style → WPF <Style x:Key TargetType="TextBlock"> + Setter -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+
+    <FontFamily x:Key="IvFontFamily">Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI</FontFamily>
+    <FontFamily x:Key="IvDisplayFontFamily">Segoe UI Variable Display, Segoe UI, Microsoft YaHei UI</FontFamily>
+    <FontFamily x:Key="IvMonoFontFamily">Cascadia Mono, Consolas, Microsoft YaHei UI</FontFamily>
+
+    <sys:Double x:Key="IvFontSizeTiny">9</sys:Double>
+    <sys:Double x:Key="IvFontSizeMini">10</sys:Double>
+    <sys:Double x:Key="IvFontSizeSmall">11</sys:Double>
+    <sys:Double x:Key="IvFontSizeCaption">12</sys:Double>
+    <sys:Double x:Key="IvFontSizeBodySmall">13</sys:Double>
+    <sys:Double x:Key="IvFontSizeBody">14</sys:Double>
+    <sys:Double x:Key="IvFontSizeBodyStrong">14</sys:Double>
+    <sys:Double x:Key="IvFontSizeSubtitle">15</sys:Double>
+    <sys:Double x:Key="IvFontSizeHeading">18</sys:Double>
+    <sys:Double x:Key="IvFontSizeTitle">20</sys:Double>
+    <sys:Double x:Key="IvFontSizeDisplay">24</sys:Double>
+    <sys:Double x:Key="IvIconSize">16</sys:Double>
+
+    <Style x:Key="IvCaptionTextStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="{DynamicResource IvFontSizeCaption}" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+    </Style>
+    <Style x:Key="IvBodyTextStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="{DynamicResource IvFontSizeBody}" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+    </Style>
+    <Style x:Key="IvBodyStrongTextStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="{DynamicResource IvFontSizeBodyStrong}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+    </Style>
+    <Style x:Key="IvSubtitleTextStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource IvDisplayFontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource IvFontSizeSubtitle}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+    </Style>
+    <Style x:Key="IvTitleTextStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource IvDisplayFontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource IvFontSizeTitle}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+    </Style>
+    <Style x:Key="IvDisplayTextStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource IvDisplayFontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource IvFontSizeDisplay}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+    </Style>
+    <Style x:Key="IvCodeTextStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource IvMonoFontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource IvFontSizeCaption}" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+    </Style>
+    <Style x:Key="IvNumericTextStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource IvMonoFontFamily}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+    </Style>
+
+</ResourceDictionary>

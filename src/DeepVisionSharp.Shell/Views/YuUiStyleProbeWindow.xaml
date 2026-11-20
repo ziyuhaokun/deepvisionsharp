@@ -1,0 +1,461 @@
+<!-- 源: Themes/AppStyles.axaml + Styles/*.axaml + Themes/Forms.axaml（本页为新增验收页，无 1:1 对应文件；各区按源样式键逐个对照）| 转换: 一屏 7 区；全部经 yu: 命名空间取用，颜色/尺寸一律 DynamicResource Iv* 令牌，静态样式键用 StaticResource -->
+<Window x:Class="DeepVisionSharp.Shell.Views.YuUiStyleProbeWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:yu="http://schemas.yu-ui/xaml"
+        Title="yu-ui 控件总览"
+        Width="1400"
+        Height="3200"
+        Background="{DynamicResource IvBackgroundBrush}"
+        FontFamily="{DynamicResource IvFontFamily}"
+        FontSize="{DynamicResource IvFontSizeBody}"
+        Foreground="{DynamicResource IvText1Brush}"
+        TextOptions.TextFormattingMode="Display"
+        UseLayoutRounding="True">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/yu-ui;component/YuUiTheme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+        <StackPanel x:Name="ProbeRoot" Margin="24,20,24,28">
+
+            <!-- 页头 -->
+            <StackPanel Margin="0,0,0,20">
+                <TextBlock Style="{StaticResource IvTitleTextStyle}" Text="yu-ui 控件总览" />
+                <TextBlock Margin="0,6,0,0"
+                           Style="{StaticResource IvCaptionTextStyle}"
+                           Text="离屏渲染验收页：令牌 → 排版 → 按钮 → 输入 → 容器 → 图标 → 表单。颜色与尺寸全部来自 Iv* 令牌（DynamicResource），静态样式键来自 yu-ui 的 Styles/*.xaml 与 Themes/*.xaml。"
+                           TextWrapping="Wrap" />
+            </StackPanel>
+
+            <!-- ① 令牌色板 -->
+            <StackPanel Margin="0,0,0,22">
+                <TextBlock Margin="0,0,0,8" Style="{StaticResource IvSubtitleTextStyle}" Text="① 令牌色板" />
+                <UniformGrid Columns="7">
+                    <StackPanel Margin="0,0,10,10">
+                        <Border Height="44" Background="{DynamicResource IvBackgroundBrush}" BorderBrush="{DynamicResource IvStrokeSubtleBrush}" BorderThickness="1" CornerRadius="2" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource IvCodeTextStyle}" Text="IvBackgroundBrush" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,10,10">
+                        <Border Height="44" Background="{DynamicResource IvSurface1Brush}" BorderBrush="{DynamicResource IvStrokeSubtleBrush}" BorderThickness="1" CornerRadius="2" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource IvCodeTextStyle}" Text="IvSurface1Brush" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,10,10">
+                        <Border Height="44" Background="{DynamicResource IvSurface2Brush}" BorderBrush="{DynamicResource IvStrokeSubtleBrush}" BorderThickness="1" CornerRadius="2" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource IvCodeTextStyle}" Text="IvSurface2Brush" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,10,10">
+                        <Border Height="44" Background="{DynamicResource IvSurface3Brush}" BorderBrush="{DynamicResource IvStrokeSubtleBrush}" BorderThickness="1" CornerRadius="2" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource IvCodeTextStyle}" Text="IvSurface3Brush" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,10,10">
+                        <Border Height="44" Background="{DynamicResource IvSurface4Brush}" BorderBrush="{DynamicResource IvStrokeSubtleBrush}" BorderThickness="1" CornerRadius="2" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource IvCodeTextStyle}" Text="IvSurface4Brush" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,10,10">
+                        <Border Height="44" Background="{DynamicResource IvStrokeBrush}" BorderBrush="{DynamicResource IvStrokeSubtleBrush}" BorderThickness="1" CornerRadius="2" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource IvCodeTextStyle}" Text="IvStrokeBrush" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,10,10">
+                        <Border Height="44" Background="{DynamicResource IvBandBrush}" BorderBrush="{DynamicResource IvStrokeSubtleBrush}" BorderThickness="1" CornerRadius="2" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource IvCodeTextStyle}" Text="IvBandBrush" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,10,10">
+                        <Border Height="44" Background="{DynamicResource IvPrimaryBrush}" BorderBrush="{DynamicResource IvStrokeSubtleBrush}" BorderThickness="1" CornerRadius="2" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource IvCodeTextStyle}" Text="IvPrimaryBrush" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,10,10">
+                        <Border Height="44" Background="{DynamicResource IvAccentBrush}" BorderBrush="{DynamicResource IvStrokeSubtleBrush}" BorderThickness="1" CornerRadius="2" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource IvCodeTextStyle}" Text="IvAccentBrush" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,10,10">
+                        <Border Height="44" Background="{DynamicResource IvSuccessBrush}" BorderBrush="{DynamicResource IvStrokeSubtleBrush}" BorderThickness="1" CornerRadius="2" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource IvCodeTextStyle}" Text="IvSuccessBrush" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,10,10">
+                        <Border Height="44" Background="{DynamicResource IvWarningBrush}" BorderBrush="{DynamicResource IvStrokeSubtleBrush}" BorderThickness="1" CornerRadius="2" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource IvCodeTextStyle}" Text="IvWarningBrush" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,10,10">
+                        <Border Height="44" Background="{DynamicResource IvDangerBrush}" BorderBrush="{DynamicResource IvStrokeSubtleBrush}" BorderThickness="1" CornerRadius="2" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource IvCodeTextStyle}" Text="IvDangerBrush" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,10,10">
+                        <Border Height="44" Background="{DynamicResource IvInfoBrush}" BorderBrush="{DynamicResource IvStrokeSubtleBrush}" BorderThickness="1" CornerRadius="2" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource IvCodeTextStyle}" Text="IvInfoBrush" />
+                    </StackPanel>
+                </UniformGrid>
+            </StackPanel>
+
+            <!-- ② 排版 -->
+            <StackPanel Margin="0,0,0,22">
+                <TextBlock Margin="0,0,0,8" Style="{StaticResource IvSubtitleTextStyle}" Text="② 排版（Tokens/Typography.xaml）" />
+                <Grid Margin="0,0,0,6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Style="{StaticResource IvCodeTextStyle}" Text="IvCaptionTextStyle" />
+                    <TextBlock Grid.Column="1" Style="{StaticResource IvCaptionTextStyle}" Text="Caption 12px / IvText2Brush — 辅助说明与字段提示" />
+                </Grid>
+                <Grid Margin="0,0,0,6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Style="{StaticResource IvCodeTextStyle}" Text="IvBodyTextStyle" />
+                    <TextBlock Grid.Column="1" Style="{StaticResource IvBodyTextStyle}" Text="Body 14px / IvText1Brush — 正文默认档" />
+                </Grid>
+                <Grid Margin="0,0,0,6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Style="{StaticResource IvCodeTextStyle}" Text="IvBodyStrongTextStyle" />
+                    <TextBlock Grid.Column="1" Style="{StaticResource IvBodyStrongTextStyle}" Text="BodyStrong 14px SemiBold — 强调正文" />
+                </Grid>
+                <Grid Margin="0,0,0,6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Style="{StaticResource IvCodeTextStyle}" Text="IvSubtitleTextStyle" />
+                    <TextBlock Grid.Column="1" Style="{StaticResource IvSubtitleTextStyle}" Text="Subtitle 15px SemiBold / DisplayFontFamily — 分区标题" />
+                </Grid>
+                <Grid Margin="0,0,0,6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Style="{StaticResource IvCodeTextStyle}" Text="IvTitleTextStyle" />
+                    <TextBlock Grid.Column="1" Style="{StaticResource IvTitleTextStyle}" Text="Title 20px SemiBold — 页面标题" />
+                </Grid>
+                <Grid Margin="0,0,0,6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Style="{StaticResource IvCodeTextStyle}" Text="IvDisplayTextStyle" />
+                    <TextBlock Grid.Column="1" Style="{StaticResource IvDisplayTextStyle}" Text="Display 24px SemiBold" />
+                </Grid>
+                <Grid Margin="0,0,0,6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Style="{StaticResource IvCodeTextStyle}" Text="IvCodeTextStyle" />
+                    <TextBlock Grid.Column="1" Style="{StaticResource IvCodeTextStyle}" Text="Code 12px Cascadia Mono — 路径与键名" />
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Style="{StaticResource IvCodeTextStyle}" Text="IvNumericTextStyle" />
+                    <TextBlock Grid.Column="1" Style="{StaticResource IvNumericTextStyle}" Text="Numeric 13px Mono — 0.8231 / 1280×1024 / 41.7%" />
+                </Grid>
+            </StackPanel>
+
+            <!-- ③ 按钮 -->
+            <StackPanel Margin="0,0,0,22">
+                <TextBlock Margin="0,0,0,8" Style="{StaticResource IvSubtitleTextStyle}" Text="③ 按钮（Styles/Button.xaml + ButtonImplicit.xaml）" />
+                <WrapPanel>
+                    <Button Margin="0,0,8,8" Content="IvPrimaryButtonStyle" Style="{StaticResource IvPrimaryButtonStyle}" />
+                    <Button Margin="0,0,8,8" Content="IvDangerButtonStyle" Style="{StaticResource IvDangerButtonStyle}" />
+                    <Button Margin="0,0,8,8" Content="IvSubtleButtonStyle" Style="{StaticResource IvSubtleButtonStyle}" />
+                    <Button Margin="0,0,8,8" Style="{StaticResource IvIconButtonStyle}" ToolTip="IvIconButtonStyle">
+                        <yu:Icon Data="{x:Static yu:IvIcons.Search}" ViewSize="16" />
+                    </Button>
+                    <Button Margin="0,0,8,8" Style="{StaticResource IvDangerIconButtonStyle}" ToolTip="IvDangerIconButtonStyle">
+                        <yu:Icon Data="{x:Static yu:IvIcons.Delete}" ViewSize="16" />
+                    </Button>
+                    <Button Margin="0,0,8,8" Content="隐式 Button" />
+                    <ToggleButton Margin="0,0,8,8" Content="隐式 ToggleButton" />
+                </WrapPanel>
+                <WrapPanel Margin="0,4,0,0">
+                    <Button Margin="0,0,8,0" Content="禁用（Primary）" IsEnabled="False" Style="{StaticResource IvPrimaryButtonStyle}" />
+                    <Button Margin="0,0,8,0" Content="禁用（Danger）" IsEnabled="False" Style="{StaticResource IvDangerButtonStyle}" />
+                    <Button Margin="0,0,8,0" Content="禁用（Subtle）" IsEnabled="False" Style="{StaticResource IvSubtleButtonStyle}" />
+                    <Button Content="禁用（隐式）" IsEnabled="False" />
+                </WrapPanel>
+            </StackPanel>
+
+            <!-- ④ 输入 -->
+            <StackPanel Margin="0,0,0,22">
+                <TextBlock Margin="0,0,0,8" Style="{StaticResource IvSubtitleTextStyle}" Text="④ 输入（TextBox / ComboBox / Selection / Switch / NumericBox / Slider / ProgressBar）" />
+                <UniformGrid Columns="2">
+                    <StackPanel Margin="0,0,16,12">
+                        <TextBlock Margin="0,0,0,4" Style="{StaticResource IvCaptionTextStyle}" Text="隐式 TextBox" />
+                        <TextBox Text="曝光时间 8000 µs" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,16,12">
+                        <TextBlock Margin="0,0,0,4" Style="{StaticResource IvCaptionTextStyle}" Text="TextBox 只读态（:read-only → IvSurfaceSubtleHoverBrush）" />
+                        <TextBox IsReadOnly="True" Text="只读文本" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,16,12">
+                        <TextBlock Margin="0,0,0,4" Style="{StaticResource IvCaptionTextStyle}" Text="ComboBox（含弹出项）" />
+                        <ComboBox SelectedIndex="0">
+                            <ComboBoxItem Content="连续采集" />
+                            <ComboBoxItem Content="软触发" />
+                            <ComboBoxItem Content="硬触发" />
+                        </ComboBox>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,16,12">
+                        <TextBlock Margin="0,0,0,4" Style="{StaticResource IvCaptionTextStyle}" Text="CheckBox 三态（未选 / 选中 / 不确定）" />
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox Margin="0,0,16,0" Content="未选" />
+                            <CheckBox Margin="0,0,16,0" Content="选中" IsChecked="True" />
+                            <CheckBox Content="不确定" IsChecked="{x:Null}" IsThreeState="True" />
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,16,12">
+                        <TextBlock Margin="0,0,0,4" Style="{StaticResource IvCaptionTextStyle}" Text="RadioButton（含选中态）" />
+                        <StackPanel Orientation="Horizontal">
+                            <RadioButton Margin="0,0,16,0" Content="连续" GroupName="ProbeTrigger" IsChecked="True" />
+                            <RadioButton Content="软触发" GroupName="ProbeTrigger" />
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,16,12">
+                        <TextBlock Margin="0,0,0,4" Style="{StaticResource IvCaptionTextStyle}" Text="Switch 开 / 关（IvSwitchStyle）" />
+                        <StackPanel Orientation="Horizontal">
+                            <ToggleButton Margin="0,0,24,0" Content="自动对焦" IsChecked="True" Style="{StaticResource IvSwitchStyle}" />
+                            <ToggleButton Content="保存原图" IsChecked="False" Style="{StaticResource IvSwitchStyle}" />
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,16,12">
+                        <TextBlock Margin="0,0,0,4" Style="{StaticResource IvCaptionTextStyle}" Text="NumericBox（含 Unit + 步进器）" />
+                        <yu:NumericBox Maximum="100" Minimum="0" Step="0.5" Unit="%" Value="32.5" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,16,12">
+                        <TextBlock Margin="0,0,0,4" Style="{StaticResource IvCaptionTextStyle}" Text="Slider（Styles/Slider.xaml）" />
+                        <Slider Maximum="100" Minimum="0" Value="40" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,16,12">
+                        <TextBlock Margin="0,0,0,4" Style="{StaticResource IvCaptionTextStyle}" Text="IvLogTextBoxStyle（等宽只读日志）" />
+                        <TextBox Style="{StaticResource IvLogTextBoxStyle}" Text="[12:00:01] INFO  开始采集，批次 7&#x0a;[12:00:02] WARN  曝光偏低 7200 µs&#x0a;[12:00:03] ERROR 相机 0 超时" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,16,12">
+                        <TextBlock Margin="0,0,0,4" Style="{StaticResource IvCaptionTextStyle}" Text="ProgressBar（确定 / 不确定）" />
+                        <ProgressBar Margin="0,0,0,10" Maximum="100" Value="45" />
+                        <ProgressBar IsIndeterminate="True" />
+                    </StackPanel>
+                </UniformGrid>
+            </StackPanel>
+
+            <!-- ⑤ 容器 -->
+            <StackPanel Margin="0,0,0,22">
+                <TextBlock Margin="0,0,0,8" Style="{StaticResource IvSubtitleTextStyle}" Text="⑤ 容器（IvCardStyle / IvCalloutCardStyle / ListBox / TreeView / Menu / ToolTip）" />
+                <UniformGrid Columns="2">
+                    <StackPanel Margin="0,0,16,12">
+                        <TextBlock Margin="0,0,0,4" Style="{StaticResource IvCaptionTextStyle}" Text="IvCardStyle" />
+                        <ContentControl Style="{StaticResource IvCardStyle}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource IvBodyStrongTextStyle}" Text="卡片标题" />
+                                <TextBlock Margin="0,4,0,0"
+                                           Style="{StaticResource IvCaptionTextStyle}"
+                                           Text="IvSurface2Brush 底 + 1px IvStrokeSubtleBrush 描边 + IvRadiusSmall 圆角 + IvCardPadding"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </ContentControl>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,16,12">
+                        <TextBlock Margin="0,0,0,4" Style="{StaticResource IvCaptionTextStyle}" Text="IvCalloutCardStyle" />
+                        <ContentControl Style="{StaticResource IvCalloutCardStyle}">
+                            <TextBlock Style="{StaticResource IvCaptionTextStyle}"
+                                       Text="提示卡：IvSurfaceSubtleHoverBrush 底 + IvRadiusControl 圆角 + 10,8 内边距"
+                                       TextWrapping="Wrap" />
+                        </ContentControl>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,16,12">
+                        <TextBlock Margin="0,0,0,4" Style="{StaticResource IvCaptionTextStyle}" Text="ListBox（含选中 / 禁用项）" />
+                        <ListBox Height="128">
+                            <ListBoxItem Content="模型 A（选中）" IsSelected="True" />
+                            <ListBoxItem Content="模型 B" />
+                            <ListBoxItem Content="模型 C（禁用）" IsEnabled="False" />
+                        </ListBox>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,16,12">
+                        <TextBlock Margin="0,0,0,4" Style="{StaticResource IvCaptionTextStyle}" Text="TreeView（含展开 / 选中）" />
+                        <TreeView Height="128">
+                            <TreeViewItem Header="数据集" IsExpanded="True">
+                                <TreeViewItem Header="train" />
+                                <TreeViewItem Header="val" IsSelected="True" />
+                            </TreeViewItem>
+                            <TreeViewItem Header="模型" />
+                        </TreeView>
+                    </StackPanel>
+                </UniformGrid>
+                <WrapPanel Margin="0,4,0,0">
+                    <Menu Margin="0,0,24,0" VerticalAlignment="Center">
+                        <MenuItem Header="文件">
+                            <MenuItem Header="新建项目" />
+                            <MenuItem Header="打开项目" />
+                            <Separator />
+                            <MenuItem Header="退出" />
+                        </MenuItem>
+                        <MenuItem Header="视图">
+                            <MenuItem Header="深色主题" />
+                        </MenuItem>
+                    </Menu>
+                    <Button Content="悬停看 ToolTip" ToolTip="ToolTip：IvPopupBrush 底 + 1px IvStrokeBrush + IvRadiusControl + 8,4 内边距 + 12px 字号" />
+                </WrapPanel>
+            </StackPanel>
+
+            <!-- ⑤b AppStyles（Themes/AppStyles.xaml 的 8 个键） -->
+            <StackPanel Margin="0,0,0,22">
+                <TextBlock Margin="0,0,0,8" Style="{StaticResource IvSubtitleTextStyle}" Text="⑤b 全局样式（Themes/AppStyles.xaml）" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border Style="{StaticResource IvModelCardStyle}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource IvSubtitleTextStyle}" Text="IvModelCardStyle" />
+                            <TextBlock Margin="0,6,0,0"
+                                       Style="{StaticResource IvCaptionTextStyle}"
+                                       Text="420×280 模型卡：IvSurface2Brush 底、1px 细描边、6 圆角。悬停时描边换 IvAccentBorderBrush 并上浮 2px（静态截图看不到悬停态）。"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+                    <StackPanel Grid.Column="1">
+                        <StackPanel Margin="0,0,0,6" Orientation="Horizontal">
+                            <TextBlock VerticalAlignment="Center" Style="{StaticResource IvCodeTextStyle}" Text="IvBadgeStyle：" />
+                            <Border Margin="8,0,0,0" Style="{StaticResource IvBadgeStyle}">
+                                <TextBlock Text="v1.0.0" />
+                            </Border>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,0,6" Orientation="Horizontal">
+                            <Ellipse Style="{StaticResource IvStatusDotStyle}" />
+                            <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" Style="{StaticResource IvStatusTextStyle}" Text="IvStatusDotStyle + IvStatusTextStyle" />
+                        </StackPanel>
+                        <StackPanel Margin="0,0,0,6" Orientation="Horizontal">
+                            <Rectangle Style="{StaticResource IvStatusSquareStyle}" />
+                            <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" Style="{StaticResource IvStatusTextWarningStyle}" Text="IvStatusSquareStyle + IvStatusTextWarningStyle" />
+                        </StackPanel>
+                        <Border Style="{StaticResource IvSelectableRowStyle}">
+                            <TextBlock Style="{StaticResource IvStatusTextStyle}" Text="IvSelectableRowStyle" />
+                        </Border>
+                        <Border Style="{StaticResource IvSelectableRowSelectedStyle}">
+                            <TextBlock Style="{StaticResource IvStatusTextStyle}" Text="IvSelectableRowSelectedStyle（BasedOn 组合态）" />
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+
+            <!-- ⑥ 图标 -->
+            <StackPanel Margin="0,0,0,22">
+                <TextBlock Margin="0,0,0,8" Style="{StaticResource IvSubtitleTextStyle}" Text="⑥ 图标（yu:Icon + IvIcons，16px 描边口径）" />
+                <WrapPanel>
+                    <StackPanel Width="96" Margin="0,0,8,10">
+                        <yu:Icon Foreground="{DynamicResource IvText1Brush}" Data="{x:Static yu:IvIcons.Home}" ViewSize="20" HorizontalAlignment="Left" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource IvCodeTextStyle}" Text="Home" />
+                    </StackPanel>
+                    <StackPanel Width="96" Margin="0,0,8,10">
+                        <yu:Icon Foreground="{DynamicResource IvText1Brush}" Data="{x:Static yu:IvIcons.Search}" ViewSize="20" HorizontalAlignment="Left" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource IvCodeTextStyle}" Text="Search" />
+                    </StackPanel>
+                    <StackPanel Width="96" Margin="0,0,8,10">
+                        <yu:Icon Foreground="{DynamicResource IvText1Brush}" Data="{x:Static yu:IvIcons.Settings}" ViewSize="20" HorizontalAlignment="Left" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource IvCodeTextStyle}" Text="Settings" />
+                    </StackPanel>
+                    <StackPanel Width="96" Margin="0,0,8,10">
+                        <yu:Icon Foreground="{DynamicResource IvText1Brush}" Data="{x:Static yu:IvIcons.Camera}" ViewSize="20" HorizontalAlignment="Left" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource IvCodeTextStyle}" Text="Camera" />
+                    </StackPanel>
+                    <StackPanel Width="96" Margin="0,0,8,10">
+                        <yu:Icon Foreground="{DynamicResource IvText1Brush}" Data="{x:Static yu:IvIcons.CameraSnap}" ViewSize="20" HorizontalAlignment="Left" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource IvCodeTextStyle}" Text="CameraSnap" />
+                    </StackPanel>
+                    <StackPanel Width="96" Margin="0,0,8,10">
+                        <yu:Icon Foreground="{DynamicResource IvText1Brush}" Data="{x:Static yu:IvIcons.Image}" ViewSize="20" HorizontalAlignment="Left" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource IvCodeTextStyle}" Text="Image" />
+                    </StackPanel>
+                    <StackPanel Width="96" Margin="0,0,8,10">
+                        <yu:Icon Foreground="{DynamicResource IvText1Brush}" Data="{x:Static yu:IvIcons.FolderOpen}" ViewSize="20" HorizontalAlignment="Left" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource IvCodeTextStyle}" Text="FolderOpen" />
+                    </StackPanel>
+                    <StackPanel Width="96" Margin="0,0,8,10">
+                        <yu:Icon Foreground="{DynamicResource IvText1Brush}" Data="{x:Static yu:IvIcons.Save}" ViewSize="20" HorizontalAlignment="Left" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource IvCodeTextStyle}" Text="Save" />
+                    </StackPanel>
+                    <StackPanel Width="96" Margin="0,0,8,10">
+                        <yu:Icon Foreground="{DynamicResource IvText1Brush}" Data="{x:Static yu:IvIcons.Play}" ViewSize="20" HorizontalAlignment="Left" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource IvCodeTextStyle}" Text="Play" />
+                    </StackPanel>
+                    <StackPanel Width="96" Margin="0,0,8,10">
+                        <yu:Icon Foreground="{DynamicResource IvText1Brush}" Data="{x:Static yu:IvIcons.Refresh}" ViewSize="20" HorizontalAlignment="Left" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource IvCodeTextStyle}" Text="Refresh" />
+                    </StackPanel>
+                    <StackPanel Width="96" Margin="0,0,8,10">
+                        <yu:Icon Foreground="{DynamicResource IvText1Brush}" Data="{x:Static yu:IvIcons.Sliders}" ViewSize="20" HorizontalAlignment="Left" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource IvCodeTextStyle}" Text="Sliders" />
+                    </StackPanel>
+                    <StackPanel Width="96" Margin="0,0,8,10">
+                        <yu:Icon Foreground="{DynamicResource IvText1Brush}" Data="{x:Static yu:IvIcons.Target}" ViewSize="20" HorizontalAlignment="Left" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource IvCodeTextStyle}" Text="Target" />
+                    </StackPanel>
+                    <StackPanel Width="96" Margin="0,0,8,10">
+                        <yu:Icon Foreground="{DynamicResource IvText1Brush}" Data="{x:Static yu:IvIcons.Robot}" ViewSize="20" HorizontalAlignment="Left" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource IvCodeTextStyle}" Text="Robot" />
+                    </StackPanel>
+                    <StackPanel Width="96" Margin="0,0,8,10">
+                        <yu:Icon Foreground="{DynamicResource IvText1Brush}" Data="{x:Static yu:IvIcons.Cube}" ViewSize="20" HorizontalAlignment="Left" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource IvCodeTextStyle}" Text="Cube" />
+                    </StackPanel>
+                    <StackPanel Width="96" Margin="0,0,8,10">
+                        <yu:Icon Foreground="{DynamicResource IvSuccessBrush}" Data="{x:Static yu:IvIcons.Success}" ViewSize="20" HorizontalAlignment="Left" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource IvCodeTextStyle}" Text="Success" />
+                    </StackPanel>
+                    <StackPanel Width="96" Margin="0,0,8,10">
+                        <yu:Icon Foreground="{DynamicResource IvWarningBrush}" Data="{x:Static yu:IvIcons.Warning}" ViewSize="20" HorizontalAlignment="Left" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource IvCodeTextStyle}" Text="Warning" />
+                    </StackPanel>
+                    <StackPanel Width="96" Margin="0,0,8,10">
+                        <yu:Icon Foreground="{DynamicResource IvDangerBrush}" Data="{x:Static yu:IvIcons.Error}" ViewSize="20" HorizontalAlignment="Left" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource IvCodeTextStyle}" Text="Error" />
+                    </StackPanel>
+                    <StackPanel Width="96" Margin="0,0,8,10">
+                        <yu:Icon Foreground="{DynamicResource IvInfoBrush}" Data="{x:Static yu:IvIcons.Info}" ViewSize="20" HorizontalAlignment="Left" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource IvCodeTextStyle}" Text="Info" />
+                    </StackPanel>
+                </WrapPanel>
+            </StackPanel>
+
+            <!-- ⑦ 表单 -->
+            <StackPanel>
+                <TextBlock Margin="0,0,0,8" Style="{StaticResource IvSubtitleTextStyle}" Text="⑦ 表单（yu:FormSection / yu:FormRow）" />
+                <yu:FormSection Header="采集参数">
+                    <StackPanel>
+                        <yu:FormRow Description="单位微秒，范围 100 - 100000" Header="曝光时间">
+                            <yu:NumericBox Maximum="100000" Minimum="100" Step="100" Unit="µs" Value="8000" />
+                        </yu:FormRow>
+                        <yu:FormRow Description="软触发需要外部信号；硬触发由 IO 卡拉高" Header="触发模式">
+                            <ComboBox SelectedIndex="0" Width="200">
+                                <ComboBoxItem Content="连续采集" />
+                                <ComboBoxItem Content="软触发" />
+                                <ComboBoxItem Content="硬触发" />
+                            </ComboBox>
+                        </yu:FormRow>
+                        <yu:FormRow Header="启用平场校正">
+                            <ToggleButton IsChecked="True" Style="{StaticResource IvSwitchStyle}" />
+                        </yu:FormRow>
+                    </StackPanel>
+                </yu:FormSection>
+                <yu:FormSection Header="输出">
+                    <StackPanel>
+                        <yu:FormRow Description="采集结果按批次号落盘" Header="保存目录">
+                            <TextBox Text="D:\datasets\2026-02-14" Width="360" />
+                        </yu:FormRow>
+                    </StackPanel>
+                </yu:FormSection>
+            </StackPanel>
+
+        </StackPanel>
+    </ScrollViewer>
+</Window>

@@ -9,6 +9,10 @@
                 <ui:ThemesDictionary Theme="Dark" />
                 <ui:ControlsDictionary />
                 <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Resources/StatusPalette.xaml" />
+                <!-- yu-ui 令牌（只含 Iv* 令牌，不含隐式样式）：不改变现有任何控件外观，
+                     新/已迁移页面可直接用 {DynamicResource Iv*Brush} 等键。
+                     等价于 deepvision 的 App.axaml 里的 Tokens 四件套 merge。 -->
+                <ResourceDictionary Source="pack://application:,,,/yu-ui;component/YuUiTokens.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

@@ -1,0 +1,31 @@
+<!-- 源: Tokens/Metrics.axaml (30 行) | 转换: x:Double→sys:Double; Avalonia CornerRadius/Thickness 在 WPF 同类型原生资源，值原样 -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+
+    <sys:Double x:Key="IvControlHeightCompact">24</sys:Double>
+    <sys:Double x:Key="IvControlHeightSmall">24</sys:Double>
+    <sys:Double x:Key="IvControlHeight">30</sys:Double>
+    <sys:Double x:Key="IvIconButtonSize">28</sys:Double>
+    <sys:Double x:Key="IvControlHeightLarge">32</sys:Double>
+
+    <CornerRadius x:Key="IvRadiusSmall">2</CornerRadius>
+    <CornerRadius x:Key="IvRadiusButton">2</CornerRadius>
+    <CornerRadius x:Key="IvRadiusControl">2</CornerRadius>
+    <CornerRadius x:Key="IvRadiusFocusRing">3</CornerRadius>
+    <CornerRadius x:Key="IvRadiusFocusRingPill">3</CornerRadius>
+    <CornerRadius x:Key="IvRadiusOverlay">4</CornerRadius>
+
+    <Thickness x:Key="IvControlPadding">12,0,12,0</Thickness>
+    <Thickness x:Key="IvInputPadding">8,0,8,0</Thickness>
+    <Thickness x:Key="IvCardPadding">16,12,16,12</Thickness>
+    <Thickness x:Key="IvStrokeThickness">1</Thickness>
+
+    <sys:Double x:Key="IvSpace1">4</sys:Double>
+    <sys:Double x:Key="IvSpace2">8</sys:Double>
+    <sys:Double x:Key="IvSpace3">12</sys:Double>
+    <sys:Double x:Key="IvSpace4">16</sys:Double>
+    <sys:Double x:Key="IvSpace5">24</sys:Double>
+    <sys:Double x:Key="IvSpace6">32</sys:Double>
+
+</ResourceDictionary>

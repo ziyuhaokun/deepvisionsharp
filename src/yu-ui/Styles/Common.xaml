@@ -1,0 +1,42 @@
+<!-- 源: Styles/Common.axaml (14 行) | 转换: BoxShadows "x y blur spread color" → DropShadowEffect（Direction/ShadowDepth/BlurRadius/Opacity），spread 丢弃 -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        阴影令牌。WPF 的 DropShadowEffect 只有「一个方向 + 一个偏移距离」，所以源里
+        "offsetX offsetY blur spread color" 要拆开：
+          offsetX 0 / offsetY 3 → Direction=270（正下方）+ ShadowDepth=3
+          blur 12 → BlurRadius=12
+          spread → WPF 无对应概念，一律丢弃（源里这 4 个令牌的 spread 都是 0，实际零损失）
+          #2E000000 → Color=Black + Opacity=46/255≈0.180392
+        IvControlShadow / IvThumbShadow 源值是全零 + 全透明（#00000000），照抄成零阴影。
+    -->
+    <DropShadowEffect x:Key="IvPopupShadow"
+                      Color="Black"
+                      Opacity="0.180392"
+                      Direction="270"
+                      ShadowDepth="3"
+                      BlurRadius="12" />
+
+    <DropShadowEffect x:Key="IvPopupBoxShadow"
+                      Color="Black"
+                      Opacity="0.180392"
+                      Direction="270"
+                      ShadowDepth="3"
+                      BlurRadius="12" />
+
+    <DropShadowEffect x:Key="IvControlShadow"
+                      Color="Black"
+                      Opacity="0"
+                      Direction="270"
+                      ShadowDepth="0"
+                      BlurRadius="0" />
+
+    <DropShadowEffect x:Key="IvThumbShadow"
+                      Color="Black"
+                      Opacity="0"
+                      Direction="270"
+                      ShadowDepth="0"
+                      BlurRadius="0" />
+
+</ResourceDictionary>

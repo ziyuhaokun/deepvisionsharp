@@ -1,0 +1,10 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!--
+      yu-ui 全量主题入口 = 令牌 + 样式。迁移完成后的页面用这一个。
+    -->
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/yu-ui;component/YuUiTokens.xaml" />
+        <ResourceDictionary Source="/yu-ui;component/YuUiStyles.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+</ResourceDictionary>

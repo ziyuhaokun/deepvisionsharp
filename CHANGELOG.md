@@ -8,7 +8,10 @@
 
 ### v0.0.2-dev (unreleased)
 
-tags: detection
+tags: detection / ui
+
+- 新增 WPF 设计系统 `yu-ui`（`src/yu-ui`）：令牌、77 个图标、14 个控件样式与 7 个自绘控件（ThemedWindow / Dialog / FormSection / FormRow / NumericBox / Icon / 占位文本），视觉与令牌逐值来自 deepvision 的 `InCube.UI.Avalonia`。此版本只接线令牌，界面外观不变。
+- 新增 `YuUiStyleProbeWindow`（DEBUG 验收页）与 `docs/yu-ui-migration.md`（WPF-UI → yu-ui 控件映射与分批迁移依据）。
 
 - 新增目标检测项目类型：矩形框标注、标记「无目标」负样本、导入 YOLO 数据集、导出 YOLO 数据集、进程内训练 YOLO26-det、推理画框与批量报告。
 - 检测训练展示每类 precision / recall / F1、mAP50、mAP50-95；模型卡片显示 mAP，最佳权重按 mAP50 选取。

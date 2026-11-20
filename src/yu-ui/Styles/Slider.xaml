@@ -1,0 +1,141 @@
+<!-- 源: Styles/Slider.axaml (121 行) | 转换: ^:vertical 换模板 → Style 触发器换 Template；^:pointerover 的描边淡入 → Storyboard 0.12s -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- 滑轨：已滑过段用强调色，剩余段用描边色，高 3 -->
+    <Style x:Key="IvSliderTrackFillStyle" TargetType="RepeatButton">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="IsTabStop" Value="False" />
+        <Setter Property="Background" Value="{DynamicResource IvAccentBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RepeatButton">
+                    <Grid Background="Transparent">
+                        <Border x:Name="Bar" Background="{TemplateBinding Background}" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="IvSliderTrackRestStyle" TargetType="RepeatButton" BasedOn="{StaticResource IvSliderTrackFillStyle}">
+        <Setter Property="Background" Value="{DynamicResource IvStrokeBrush}" />
+    </Style>
+
+    <!-- 滑块：8x16 方块，悬停时 1.5px 强调描边淡入 -->
+    <Style x:Key="IvSliderThumbStyle" TargetType="Thumb">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Width" Value="8" />
+        <Setter Property="Height" Value="16" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Thumb">
+                    <Grid Background="Transparent">
+                        <Border x:Name="Ring"
+                                CornerRadius="1"
+                                BorderBrush="{DynamicResource IvAccentBrush}"
+                                BorderThickness="1.5"
+                                Opacity="0" />
+                        <Border x:Name="Knob"
+                                CornerRadius="1"
+                                Background="{DynamicResource IvThumbBrush}"
+                                BorderBrush="{DynamicResource IvControlBorderHoverBrush}"
+                                BorderThickness="1" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Ring"
+                                                         Storyboard.TargetProperty="Opacity"
+                                                         To="1"
+                                                         Duration="0:0:0.12" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Knob" Property="Background" Value="{DynamicResource IvSurface4Brush}" />
+                            <Setter TargetName="Knob" Property="BorderBrush" Value="{DynamicResource IvStrokeBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 纵向滑块：16x8 -->
+    <Style x:Key="IvSliderThumbVerticalStyle" TargetType="Thumb" BasedOn="{StaticResource IvSliderThumbStyle}">
+        <Setter Property="Width" Value="16" />
+        <Setter Property="Height" Value="8" />
+    </Style>
+
+    <!--
+        滑块条：横向 20 高居中、轨道 3 厚；纵向 20 宽居中、轨道 3 厚。
+        WPF 的 Track 必须命名 PART_Track 才会被 Slider 接管数值，Min/Max/Value 由 Slider 自动灌入。
+        空轨段用 Slider.DecreaseLarge/IncreaseLarge 命令保留「点击轨道翻页」的 WPF 原生行为。
+    -->
+    <Style x:Key="{x:Type Slider}" TargetType="Slider">
+        <Setter Property="MinHeight" Value="{DynamicResource IvControlHeightSmall}" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Slider">
+                    <Grid VerticalAlignment="Center" Height="20">
+                        <Track x:Name="PART_Track"
+                               Orientation="Horizontal"
+                               IsDirectionReversed="{TemplateBinding IsDirectionReversed}">
+                            <Track.DecreaseRepeatButton>
+                                <RepeatButton Height="3"
+                                              Command="{x:Static Slider.DecreaseLarge}"
+                                              Style="{StaticResource IvSliderTrackFillStyle}" />
+                            </Track.DecreaseRepeatButton>
+                            <Track.IncreaseRepeatButton>
+                                <RepeatButton Height="3"
+                                              Command="{x:Static Slider.IncreaseLarge}"
+                                              Style="{StaticResource IvSliderTrackRestStyle}" />
+                            </Track.IncreaseRepeatButton>
+                            <Track.Thumb>
+                                <Thumb Style="{StaticResource IvSliderThumbStyle}" />
+                            </Track.Thumb>
+                        </Track>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="Orientation" Value="Vertical">
+                <Setter Property="MinHeight" Value="0" />
+                <Setter Property="MinWidth" Value="{DynamicResource IvControlHeightSmall}" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Slider">
+                            <Grid HorizontalAlignment="Center" Width="20">
+                                <Track x:Name="PART_Track"
+                                       Orientation="Vertical"
+                                       IsDirectionReversed="{TemplateBinding IsDirectionReversed}">
+                                    <Track.DecreaseRepeatButton>
+                                        <RepeatButton Width="3"
+                                                      Command="{x:Static Slider.DecreaseLarge}"
+                                                      Style="{StaticResource IvSliderTrackFillStyle}" />
+                                    </Track.DecreaseRepeatButton>
+                                    <Track.IncreaseRepeatButton>
+                                        <RepeatButton Width="3"
+                                                      Command="{x:Static Slider.IncreaseLarge}"
+                                                      Style="{StaticResource IvSliderTrackRestStyle}" />
+                                    </Track.IncreaseRepeatButton>
+                                    <Track.Thumb>
+                                        <Thumb Style="{StaticResource IvSliderThumbVerticalStyle}" />
+                                    </Track.Thumb>
+                                </Track>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+</ResourceDictionary>

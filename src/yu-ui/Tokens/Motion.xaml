@@ -1,0 +1,12 @@
+<!-- 源: Tokens/Motion.axaml (11 行) | 转换: sys:TimeSpan 原样保留; Avalonia CubicEaseOut → WPF CubicEase EasingMode=EaseOut -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+
+    <sys:TimeSpan x:Key="IvMotionTimeSpanFast">0:0:0.120</sys:TimeSpan>
+    <sys:TimeSpan x:Key="IvMotionTimeSpanNormal">0:0:0.200</sys:TimeSpan>
+    <sys:TimeSpan x:Key="IvMotionTimeSpanIndeterminate">0:0:1.200</sys:TimeSpan>
+
+    <CubicEase x:Key="IvMotionEase" EasingMode="EaseOut" />
+
+</ResourceDictionary>
