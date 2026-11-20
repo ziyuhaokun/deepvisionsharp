@@ -158,6 +158,7 @@ internal static class ViewFactory
         if (FindControl<ContentControl>(view, "ContentHost")?.Content is SettingsPage settingsPage)
         {
             ApplySettingsViewState(settingsPage);
+            DumpSettingsScroll(settingsPage);
         }
 
         if (_services.GetService(typeof(DashboardViewModel)) is DashboardViewModel dashboard)
@@ -261,6 +262,41 @@ internal static class ViewFactory
 
             settings.SelectThemeCommand.Execute(theme);
             Console.WriteLine($"[render] settings theme -> {theme}");
+        }
+    }
+
+    /// <summary>取证专用：DV_RENDER_SETTINGS_SCROLL=<y> 设滚动偏移；DV_RENDER_SCROLL_DUMP=1 打印设置页内全部 ScrollViewer / ScrollBar 的实际数值。</summary>
+    private static void DumpSettingsScroll(SettingsPage page)
+    {
+        var dump = Environment.GetEnvironmentVariable("DV_RENDER_SCROLL_DUMP") == "1";
+        var offsetText = Environment.GetEnvironmentVariable("DV_RENDER_SETTINGS_SCROLL");
+        if (!dump && string.IsNullOrWhiteSpace(offsetText))
+        {
+            return;
+        }
+
+        Pump(TimeSpan.FromMilliseconds(300));
+        foreach (var viewer in Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(page).OfType<ScrollViewer>())
+        {
+            if (double.TryParse(offsetText, out var y))
+            {
+                viewer.Offset = new Vector(0, y);
+                Pump(TimeSpan.FromMilliseconds(300));
+            }
+
+            Console.WriteLine($"[render] scroll viewer bounds={viewer.Bounds} offset={viewer.Offset} extent={viewer.Extent} viewport={viewer.Viewport}");
+            foreach (var bar in Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(viewer).OfType<Avalonia.Controls.Primitives.ScrollBar>())
+            {
+                Console.WriteLine($"[render] scroll   bar {bar.Orientation} visible={bar.IsVisible} bounds={bar.Bounds} value={bar.Value} min={bar.Minimum} max={bar.Maximum} viewport={bar.ViewportSize} autoHide={bar.AllowAutoHide}");
+                foreach (var thumb in Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(bar).OfType<Avalonia.Controls.Primitives.Thumb>())
+                {
+                    Console.WriteLine($"[render] scroll     thumb bounds={thumb.Bounds}");
+                }
+                foreach (var button in Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(bar).OfType<Avalonia.Controls.RepeatButton>())
+                {
+                    Console.WriteLine($"[render] scroll     repeat visible={button.IsVisible} effective={button.IsEffectivelyVisible} bounds={button.Bounds} opacity={button.Opacity}");
+                }
+            }
         }
     }
 

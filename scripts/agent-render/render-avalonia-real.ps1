@@ -219,7 +219,7 @@ foreach ($shot in $shots) {
     if (Test-Path -LiteralPath $log -PathType Leaf) {
         Get-Content -LiteralPath $log |
             Where-Object { $_ -match '^\[render\]|^(crit|fail):' } |
-            Select-Object -First 12 |
+            Select-Object -First 30 |
             ForEach-Object { Write-Host ('    ' + $_.Substring(0, [Math]::Min($_.Length, 260))) }
     }
 }
