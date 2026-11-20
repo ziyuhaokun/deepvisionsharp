@@ -1,3 +1,4 @@
+<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Pages/DashboardPage.axaml（行 0 标题栏） | 转换: iv:Icon→yu:Icon（FontSize 15 → ViewSize 15）；工具条按钮用源 ControlTheme DvToolbarButtonStyle（34 高 / 13,0 内边距 / 13 号字）；「导入第三方」源有、本仓库无对应命令，故不添加 -->
 <UserControl
     UseLayoutRounding="True"
     x:Class="DeepVisionSharp.Shell.Views.Pages.Sections.DashboardHeaderSection"
@@ -6,7 +7,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:yu="http://schemas.yu-ui/xaml"
-    xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters"
     mc:Ignorable="d">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -15,53 +15,63 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
-        <!-- 标题栏：固定在滚动区外 -->
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
 
-                    <TextBlock
-                        VerticalAlignment="Center"
-                        Style="{StaticResource IvDisplayTextStyle}"
-                        Text="项目面板" />
+    <!-- 源 Grid ColumnDefinitions="*,Auto"：左侧标题 + 概览摘要，右侧工具条按钮组 -->
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
 
-                    <StackPanel
-                        Grid.Column="1"
+        <StackPanel VerticalAlignment="Center">
+            <!-- 源 FontFamily=IvDisplayFontFamily / FontSize=24 / SemiBold / IvText1Brush，等同 IvDisplayTextStyle -->
+            <TextBlock
+                Style="{StaticResource IvDisplayTextStyle}"
+                Text="项目面板" />
+            <!-- 源 Margin=0,5,0,0 / FontSize=12.5 / IvText2Brush / Text={Binding List.OverviewSummary}（本仓库对应 ResultSummary） -->
+            <TextBlock
+                Margin="0,5,0,0"
+                FontSize="12.5"
+                Foreground="{DynamicResource IvText2Brush}"
+                Text="{Binding List.ResultSummary}" />
+        </StackPanel>
+
+        <StackPanel
+            Grid.Column="1"
+            VerticalAlignment="Center"
+            Orientation="Horizontal">
+            <!-- 源 Margin=0,0,8,0 + DvToolbarButtonStyle；图标与文字间距 6 -->
+            <Button
+                Margin="0,0,8,0"
+                AutomationProperties.AutomationId="dv.dashboard.import-project"
+                Command="{Binding Transfer.ImportProjectCommand}"
+                IsEnabled="{Binding Transfer.IsNotTransferring}"
+                Style="{StaticResource DvToolbarButtonStyle}">
+                <StackPanel Orientation="Horizontal">
+                    <yu:Icon
+                        Margin="0,0,6,0"
                         VerticalAlignment="Center"
-                        Orientation="Horizontal">
-                        <Button
-                            Margin="0,0,10,0"
-                            AutomationProperties.AutomationId="dv.dashboard.import-project"
-                            Command="{Binding Transfer.ImportProjectCommand}"
-                            IsEnabled="{Binding Transfer.IsNotTransferring}">
-                            <StackPanel Orientation="Horizontal">
-                                <yu:Icon
-                                    VerticalAlignment="Center"
-                                    Data="{x:Static yu:IvIcons.ArrowUp}"
-                                    ViewSize="{DynamicResource IvIconSize}" />
-                                <TextBlock
-                                    Margin="8,0,0,0"
-                                    VerticalAlignment="Center"
-                                    Text="导入" />
-                            </StackPanel>
-                        </Button>
-                        <Button
-                            AutomationProperties.AutomationId="dv.dashboard.create-project"
-                            Command="{Binding Editor.ShowCreateProjectDialogCommand}"
-                            Style="{StaticResource IvPrimaryButtonStyle}">
-                            <StackPanel Orientation="Horizontal">
-                                <yu:Icon
-                                    VerticalAlignment="Center"
-                                    Data="{x:Static yu:IvIcons.Add}"
-                                    ViewSize="{DynamicResource IvIconSize}" />
-                                <TextBlock
-                                    Margin="8,0,0,0"
-                                    VerticalAlignment="Center"
-                                    Text="新建项目" />
-                            </StackPanel>
-                        </Button>
-                    </StackPanel>
-                </Grid>
+                        Data="{x:Static yu:IvIcons.ArrowUp}"
+                        ViewSize="15" />
+                    <TextBlock VerticalAlignment="Center" Text="导入" />
+                </StackPanel>
+            </Button>
+            <!-- 源 Height=34 / Padding=14,0 + IvPrimaryButtonStyle -->
+            <Button
+                Height="34"
+                Padding="14,0"
+                AutomationProperties.AutomationId="dv.dashboard.create-project"
+                Command="{Binding Editor.ShowCreateProjectDialogCommand}"
+                Style="{StaticResource IvPrimaryButtonStyle}">
+                <StackPanel Orientation="Horizontal">
+                    <yu:Icon
+                        Margin="0,0,6,0"
+                        VerticalAlignment="Center"
+                        Data="{x:Static yu:IvIcons.Add}"
+                        ViewSize="15" />
+                    <TextBlock VerticalAlignment="Center" Text="新建项目" />
+                </StackPanel>
+            </Button>
+        </StackPanel>
+    </Grid>
 </UserControl>

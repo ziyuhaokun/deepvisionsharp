@@ -27,14 +27,18 @@
         </ResourceDictionary>
     </Page.Resources>
 
+    <!-- 源 <Grid Margin="32,28" RowDefinitions="Auto,Auto,*">：行 0 标题栏、行 1 筛选栏、行 2 自适应滚动内容区 -->
     <Grid
         x:Name="PageRoot"
-        Margin="26,24"
+        Margin="32,28"
         MinHeight="0"
         VerticalAlignment="Stretch">
         <Grid.RowDefinitions>
+            <!-- 行 0：页面标题 + 工具条按钮 -->
             <RowDefinition Height="Auto" />
+            <!-- 行 1：搜索框 + 类型筛选 -->
             <RowDefinition Height="Auto" />
+            <!-- 行 2：独立滚动的内容区（空状态 / 卡片墙） -->
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 

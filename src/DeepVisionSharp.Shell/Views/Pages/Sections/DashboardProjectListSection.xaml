@@ -1,3 +1,4 @@
+<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Pages/DashboardPage.axaml（行 2 滚动内容区） | 转换: IsVisible→Visibility+BooleanToVisibilityConverter / InverseBooleanToVisibilityConverter；iv:Icon→yu:Icon（FontSize 26 → ViewSize 26）；空状态里源并排的「清除筛选」按钮在本仓库 Dashboard VM 无对应命令，故不添加 -->
 <UserControl
     UseLayoutRounding="True"
     x:Class="DeepVisionSharp.Shell.Views.Pages.Sections.DashboardProjectListSection"
@@ -6,7 +7,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:yu="http://schemas.yu-ui/xaml"
-    xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters"
     xmlns:sections="clr-namespace:DeepVisionSharp.Shell.Views.Pages.Sections"
     mc:Ignorable="d">
     <UserControl.Resources>
@@ -16,58 +16,77 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
-                <!-- 列表滚动区：摘要 + 空状态 + 卡片墙 -->
-                <ScrollViewer
-                    Grid.Row="2"
-                    HorizontalScrollBarVisibility="Disabled"
-                    VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="0,12,0,8">
-                        <TextBlock
-                            Margin="2,8,2,0"
-                            FontSize="{DynamicResource IvFontSizeHeading}"
-                            FontWeight="SemiBold"
-                            Text="{Binding List.CurrentProjectTypeLabel}" />
-                        <!-- 列表摘要 -->
-                        <TextBlock
-                            Margin="2,8,2,0"
-                            HorizontalAlignment="Right"
-                            Foreground="{DynamicResource IvText2Brush}"
-                            Text="{Binding List.ResultSummary}" />
 
-                        <!-- 空状态 -->
-                        <Border
-                            MinHeight="280"
-                            Margin="0,12,0,0"
-                            Padding="24"
-                            d:Visibility="Hidden"
-                            BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
-                            BorderThickness="1"
-                            CornerRadius="{DynamicResource IvRadiusSmall}"
-                            Visibility="{Binding List.HasEmptyState, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <StackPanel
+    <!-- 源 ScrollViewer（横向禁用、纵向自动）+ 内容 StackPanel Margin="0,16,0,8" -->
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="0,16,0,8">
+            <!-- 源空状态 Border：MinHeight=300 / Padding=28 / 表面底 + 细描边 + 1px / 圆角 6 -->
+            <Border
+                MinHeight="300"
+                Padding="28"
+                Background="{DynamicResource IvSurface2Brush}"
+                BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                BorderThickness="1"
+                CornerRadius="6"
+                Visibility="{Binding List.HasEmptyState, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <StackPanel
+                    MaxWidth="420"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+                    <!-- 源 56×56 圆形图标底（IvControlFillBrush + 圆角 28）+ 26 号图标 -->
+                    <Border
+                        Width="56"
+                        Height="56"
                         HorizontalAlignment="Center"
-                        VerticalAlignment="Center">
+                        Background="{DynamicResource IvControlFillBrush}"
+                        CornerRadius="28">
                         <yu:Icon
                             HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
                             Data="{x:Static yu:IvIcons.FolderOpen}"
                             Foreground="{DynamicResource IvText2Brush}"
-                            ViewSize="42" />
-                        <TextBlock
-                            Margin="0,14,0,0"
-                            HorizontalAlignment="Center"
-                            FontSize="{DynamicResource IvFontSizeHeading}"
-                            FontWeight="SemiBold"
-                            Text="{Binding List.EmptyStateTitle}" />
-                        <TextBlock
-                            Margin="0,6,0,0"
-                            HorizontalAlignment="Center"
-                            Foreground="{DynamicResource IvText2Brush}"
-                            Text="{Binding List.EmptyStateDescription}" />
-                    </StackPanel>
-                </Border>
+                            ViewSize="26" />
+                    </Border>
+                    <!-- 源 Margin=0,16,0,0 / FontSize=17 / SemiBold / IvText1Brush -->
+                    <TextBlock
+                        Margin="0,16,0,0"
+                        HorizontalAlignment="Center"
+                        FontSize="17"
+                        FontWeight="SemiBold"
+                        Foreground="{DynamicResource IvText1Brush}"
+                        Text="{Binding List.EmptyStateTitle}" />
+                    <!-- 源 Margin=0,6,0,0 / FontSize=12.5 / IvText2Brush / 居中换行 -->
+                    <TextBlock
+                        Margin="0,6,0,0"
+                        HorizontalAlignment="Center"
+                        FontSize="12.5"
+                        Foreground="{DynamicResource IvText2Brush}"
+                        Text="{Binding List.EmptyStateDescription}"
+                        TextAlignment="Center"
+                        TextWrapping="Wrap" />
+                    <!-- 源此处并排「清除筛选」(IsVisible=List.HasProjects) 与「新建项目」(IsVisible=!List.HasProjects)；
+                         本仓库 Dashboard VM 没有清除筛选命令，只保留「新建项目」，Margin 0,18,0,0 / Height=34 / Padding=14,0 -->
+                    <Button
+                        Height="34"
+                        Margin="0,18,0,0"
+                        Padding="14,0"
+                        HorizontalAlignment="Center"
+                        Command="{Binding Editor.ShowCreateProjectDialogCommand}"
+                        Style="{StaticResource IvPrimaryButtonStyle}"
+                        Visibility="{Binding List.HasProjects, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+                        <StackPanel Orientation="Horizontal">
+                            <yu:Icon
+                                Margin="0,0,6,0"
+                                VerticalAlignment="Center"
+                                Data="{x:Static yu:IvIcons.Add}"
+                                ViewSize="15" />
+                            <TextBlock VerticalAlignment="Center" Text="新建项目" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Border>
 
-                <sections:DashboardProjectCardWallSection />
-
-            </StackPanel>
-        </ScrollViewer>
+            <sections:DashboardProjectCardWallSection />
+        </StackPanel>
+    </ScrollViewer>
 </UserControl>

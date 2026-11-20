@@ -1,3 +1,4 @@
+﻿<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Pages/DashboardPage.axaml（行 1 筛选栏） | 转换: TextBox PlaceholderText→yu:IvPlaceholder.Text；iv:Icon→yu:Icon（FontSize 15 → ViewSize 15，源的 16×16 命中框保留为 Width/Height）；ComboBox 的 SelectedValueBinding+ItemTemplate → SelectedValuePath+DisplayMemberPath -->
 <UserControl
     UseLayoutRounding="True"
     x:Class="DeepVisionSharp.Shell.Views.Pages.Sections.DashboardFilterSection"
@@ -6,7 +7,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:yu="http://schemas.yu-ui/xaml"
-    xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters"
     mc:Ignorable="d">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -15,42 +15,44 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
-                <!-- 筛选栏：搜索框随宽度伸缩，类型固定 -->
-                <Border
-                    Grid.Row="1"
-                    Margin="0,16,0,0"
-                    Padding="14"
-                    Background="{DynamicResource IvSurface3Brush}"
-                    BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
-                    BorderThickness="1"
-                    CornerRadius="{DynamicResource IvRadiusSmall}">
-                    <DockPanel LastChildFill="True">
-                        <ComboBox
-                            DockPanel.Dock="Right"
-                            MinWidth="140"
-                            MaxWidth="240"
-                            Width="200"
-                            Margin="12,0,0,0"
-                            VerticalAlignment="Center"
-                            DisplayMemberPath="Label"
-                            ItemsSource="{Binding List.ProjectTypeOptions}"
-                            SelectedValue="{Binding List.SelectedType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                            SelectedValuePath="Value" />
-                        <Grid MinWidth="160">
-                            <TextBox
-                                Padding="30,0,8,0"
-                                VerticalAlignment="Center"
-                                Text="{Binding List.Keyword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                yu:IvPlaceholder.Text="搜索项目名称或描述..." />
-                            <yu:Icon
-                                Margin="8,0,0,0"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                Data="{x:Static yu:IvIcons.Search}"
-                                Foreground="{DynamicResource IvText3Brush}"
-                                IsHitTestVisible="False"
-                                ViewSize="{DynamicResource IvIconSize}" />
-                        </Grid>
-                    </DockPanel>
-                </Border>
+
+    <!-- 源 StackPanel Margin="0,20,0,0" Orientation="Horizontal"：搜索框固定 420 宽，类型筛选固定 176 宽 -->
+    <StackPanel Margin="0,20,0,0" Orientation="Horizontal">
+        <!-- 源 Grid Width=420：TextBox Height=34 / Padding=34,0,10,0 / 13 号字，图标压在框内左侧 11 -->
+        <Grid Width="420">
+            <TextBox
+                Height="34"
+                Padding="34,0,10,0"
+                VerticalContentAlignment="Center"
+                FontSize="{DynamicResource IvFontSizeBodySmall}"
+                Text="{Binding List.Keyword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                yu:IvPlaceholder.Text="搜索项目名称或描述..." />
+            <yu:Icon
+                Width="16"
+                Height="16"
+                Margin="11,0,0,0"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                Data="{x:Static yu:IvIcons.Search}"
+                Foreground="{DynamicResource IvText3Brush}"
+                IsHitTestVisible="False"
+                ViewSize="15" />
+        </Grid>
+
+        <!-- 源 ComboBox Width=176 / Height=34 / Margin=10,0,0,0 -->
+        <ComboBox
+            Width="176"
+            Height="34"
+            Margin="10,0,0,0"
+            VerticalAlignment="Center"
+            ItemsSource="{Binding List.ProjectTypeOptions}"
+            SelectedValue="{Binding List.SelectedType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+            SelectedValuePath="Value">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Label}" />
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+    </StackPanel>
 </UserControl>

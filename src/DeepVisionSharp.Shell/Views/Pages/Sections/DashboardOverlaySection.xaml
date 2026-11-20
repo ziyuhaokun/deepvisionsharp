@@ -1,3 +1,4 @@
+<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Pages/DashboardPage.axaml（加载 / 项目操作遮罩 + 导入导出遮罩） | 转换: MultiBinding+AnyTrueConverter→多个 DataTrigger（等价「任一为真即显示」）；dv:BusyRing→不定量 ProgressBar（本仓库无 BusyRing 控件）；源另有 ZIndex=95 的删除进度遮罩，本仓库 Dashboard VM 无删除进度成员，故不添加 -->
 <UserControl
     UseLayoutRounding="True"
     x:Class="DeepVisionSharp.Shell.Views.Pages.Sections.DashboardOverlaySection"
@@ -5,7 +6,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters"
     mc:Ignorable="d">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -14,12 +14,10 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
-    <Grid>
 
-        <Border
-            Grid.RowSpan="3"
-            Panel.ZIndex="90"
-            Background="{DynamicResource IvOverlayBrush}">
+    <Grid>
+        <!-- 加载 / 项目操作遮罩（源 ZIndex=90）：表面底 + 细描边 + 圆角 6 + Padding 20,16，30px 转圈 + 14 号半粗字 -->
+        <Border Panel.ZIndex="90" Background="{DynamicResource IvOverlayBrush}">
             <Border.Style>
                 <Style TargetType="{x:Type Border}">
                     <Setter Property="Visibility" Value="Collapsed" />
@@ -36,37 +34,42 @@
                     </Style.Triggers>
                 </Style>
             </Border.Style>
-            <ContentControl
-                Padding="24"
+            <Border
+                Padding="20,16"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
-                Style="{StaticResource IvCardStyle}">
+                Background="{DynamicResource IvSurface2Brush}"
+                BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                BorderThickness="1"
+                CornerRadius="6">
                 <StackPanel Orientation="Horizontal">
                     <ProgressBar
-                        Width="32"
+                        Width="30"
                         Height="6"
                         VerticalAlignment="Center"
                         IsIndeterminate="True" />
                     <TextBlock
                         Margin="14,0,0,0"
                         VerticalAlignment="Center"
-                        FontSize="{DynamicResource IvFontSizeSubtitle}"
+                        FontSize="{DynamicResource IvFontSizeBody}"
                         FontWeight="SemiBold"
+                        Foreground="{DynamicResource IvText1Brush}"
                         Text="正在处理项目…" />
                 </StackPanel>
-            </ContentControl>
+            </Border>
         </Border>
 
+        <!-- 导入 / 导出遮罩（源 ZIndex=100）：Border.overlayCard（Padding 28 / MinWidth 480 / MaxWidth 520 / 圆角 8） -->
         <Border
-            Grid.RowSpan="3"
             Panel.ZIndex="100"
             Background="{DynamicResource IvOverlayBrush}"
             Visibility="{Binding Transfer.IsTransferring, Converter={StaticResource BooleanToVisibilityConverter}}">
-            <ContentControl
+            <Border
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
-                Style="{StaticResource TransferOverlayCardStyle}">
+                Style="{StaticResource OverlayCardStyle}">
                 <StackPanel>
+                    <!-- 源 ColumnDefinitions="Auto,*,Auto"：40px 转圈 / 阶段与当前文件 / 28 号百分比 -->
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
@@ -77,7 +80,7 @@
                         <ProgressBar
                             Width="40"
                             Height="6"
-                            VerticalAlignment="Center"
+                            VerticalAlignment="Top"
                             IsIndeterminate="True" />
 
                         <StackPanel Grid.Column="1" Margin="16,0,12,0">
@@ -85,6 +88,7 @@
                                 FontSize="{DynamicResource IvFontSizeHeading}"
                                 FontWeight="SemiBold"
                                 Text="{Binding Transfer.TransferStage}" />
+                            <!-- 源 FontSize=13 / IvMonoFontFamily / Margin=0,6,0,0 -->
                             <TextBlock
                                 Margin="0,6,0,0"
                                 FontFamily="{DynamicResource IvMonoFontFamily}"
@@ -98,31 +102,37 @@
                         <TextBlock
                             Grid.Column="2"
                             VerticalAlignment="Top"
-                            FontSize="{DynamicResource IvFontSizeDisplay}"
+                            FontSize="28"
                             FontWeight="SemiBold"
                             Foreground="{DynamicResource IvAccentBrush}"
                             Text="{Binding Transfer.TransferProgressPercentText}" />
                     </Grid>
 
+                    <!-- 源 Margin=0,24,0,0 / Height=6 / Maximum=1 -->
                     <ProgressBar
+                        Height="6"
                         Margin="0,24,0,0"
                         Maximum="1"
-                        Style="{StaticResource TransferProgressBarStyle}"
                         Value="{Binding Transfer.TransferProgressValue, Mode=OneWay}" />
 
+                    <!-- 源 Margin=0,10,0,0 / 13 号字：进度文本 + 「请勿关闭应用」 -->
                     <Grid Margin="0,10,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
                         <TextBlock
                             FontSize="{DynamicResource IvFontSizeBodySmall}"
                             Foreground="{DynamicResource IvText2Brush}"
                             Text="{Binding Transfer.TransferProgressText}" />
                         <TextBlock
-                            HorizontalAlignment="Right"
+                            Grid.Column="1"
                             FontSize="{DynamicResource IvFontSizeBodySmall}"
-                            Foreground="{DynamicResource IvText3Brush}"
+                            Foreground="{DynamicResource IvText2Brush}"
                             Text="请勿关闭应用" />
                     </Grid>
                 </StackPanel>
-            </ContentControl>
+            </Border>
         </Border>
     </Grid>
 </UserControl>
