@@ -3,7 +3,7 @@ using System.Globalization;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 
-using YuUI;
+using DeepVisionSharp.UI.Avalonia;
 
 namespace DeepVisionSharp.Shell.Avalonia.Converters;
 

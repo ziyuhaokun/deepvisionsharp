@@ -14,8 +14,8 @@ using DeepVisionSharp.Shell.Avalonia.Composition;
 using DeepVisionSharp.Shell.Avalonia.Services;
 using DeepVisionSharp.Shell.Avalonia.Services.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using YuUI;
-using YuUI.Controls;
+using DeepVisionSharp.UI.Avalonia;
+using DeepVisionSharp.UI.Avalonia.Controls;
 
 namespace DeepVisionSharp.Shell.Avalonia;
 

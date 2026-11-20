@@ -1,9 +1,9 @@
-<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Pages/GalleryPage.axaml（卡片墙） | 转换: WPF-UI Card→ContentControl+GalleryCardStyle（Padding=0 已在样式里）；按钮 Icon 属性→Grid[yu:Icon+TextBlock]；SymbolIcon→yu:Icon；颜色/字号走 Iv* 令牌 -->
+<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Pages/GalleryPage.axaml（卡片墙） | 转换: WPF-UI Card→ContentControl+GalleryCardStyle（Padding=0 已在样式里）；按钮 Icon 属性→Grid[dvsui:Icon+TextBlock]；SymbolIcon→dvsui:Icon；颜色/字号走 Iv* 令牌 -->
 <UserControl
     x:Class="DeepVisionSharp.Shell.Views.Pages.Sections.GalleryCardWallSection"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:yu="http://schemas.yu-ui/xaml"
+    xmlns:dvsui="http://schemas.deepvisionsharp.ui/xaml"
     xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -28,9 +28,9 @@
                     CornerRadius="8"
                     Visibility="{Binding List.HasEmptyState, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <StackPanel HorizontalAlignment="Center">
-                        <yu:Icon
+                        <dvsui:Icon
                             HorizontalAlignment="Center"
-                            Data="{x:Static yu:IvIcons.FolderOpen}"
+                            Data="{x:Static dvsui:IvIcons.FolderOpen}"
                             Foreground="{DynamicResource IvText2Brush}"
                             ViewSize="42" />
                         <TextBlock
@@ -89,10 +89,10 @@
 
                                         <!-- 占位底色与图标 -->
                                         <Border Background="{DynamicResource IvSurface3Brush}">
-                                            <yu:Icon
+                                            <dvsui:Icon
                                                 HorizontalAlignment="Center"
                                                 VerticalAlignment="Center"
-                                                Data="{x:Static yu:IvIcons.Folder}"
+                                                Data="{x:Static dvsui:IvIcons.Folder}"
                                                 Foreground="{DynamicResource IvText3Brush}"
                                                 ViewSize="36" />
                                         </Border>
@@ -143,7 +143,7 @@
                                                 Style="{StaticResource IvSubtleButtonStyle}"
                                                 ToolTip="编辑图库"
                                                 Visibility="{Binding DataContext.List.ShowsGalleryEdit, RelativeSource={RelativeSource AncestorType={x:Type Page}}, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                                <yu:Icon Data="{x:Static yu:IvIcons.Edit}" ViewSize="15" />
+                                                <dvsui:Icon Data="{x:Static dvsui:IvIcons.Edit}" ViewSize="15" />
                                             </Button>
 
                                             <!-- 打开目录按钮 -->
@@ -157,7 +157,7 @@
                                                 Foreground="{DynamicResource IvTextOnAccentBrush}"
                                                 Style="{StaticResource IvSubtleButtonStyle}"
                                                 ToolTip="打开目录">
-                                                <yu:Icon Data="{x:Static yu:IvIcons.FolderOpen}" ViewSize="15" />
+                                                <dvsui:Icon Data="{x:Static dvsui:IvIcons.FolderOpen}" ViewSize="15" />
                                             </Button>
                                         </Grid>
                                     </Grid>
@@ -239,7 +239,7 @@
                                                 Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Page}}"
                                                 ToolTip="更多操作">
                                                 <Button.Content>
-                                                    <yu:Icon Data="{x:Static yu:IvIcons.More}" ViewSize="16" />
+                                                    <dvsui:Icon Data="{x:Static dvsui:IvIcons.More}" ViewSize="16" />
                                                 </Button.Content>
                                                 <Button.ContextMenu>
                                                     <ContextMenu>
@@ -298,11 +298,11 @@
                                                         <ColumnDefinition Width="Auto" />
                                                         <ColumnDefinition Width="Auto" />
                                                     </Grid.ColumnDefinitions>
-                                                    <yu:Icon
+                                                    <dvsui:Icon
                                                         Grid.Column="0"
                                                         Margin="0,0,6,0"
                                                         VerticalAlignment="Center"
-                                                        Data="{x:Static yu:IvIcons.ArrowRight}"
+                                                        Data="{x:Static dvsui:IvIcons.ArrowRight}"
                                                         ViewSize="15" />
                                                     <TextBlock
                                                         Grid.Column="1"

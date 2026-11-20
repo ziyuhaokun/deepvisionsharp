@@ -1,7 +1,7 @@
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:yu="http://schemas.yu-ui/xaml"
+    xmlns:dvsui="http://schemas.deepvisionsharp.ui/xaml"
     xmlns:domain="clr-namespace:DeepVisionSharp.Domain.Entities;assembly=DeepVisionSharp.Domain"
     xmlns:training="clr-namespace:DeepVisionSharp.Shell.Views.Training">
 
@@ -260,10 +260,10 @@
                                                     Text="{Binding Config.SelectedJobStatusDisplay}" />
                                             </Border>
                                             <!-- 源 WPF-UI SymbolIcon LockClosed24 在 IvIcons 里没有 lock 几何（源用 DvIcon.LockClosed），降级为 Bookmark -->
-                                            <yu:Icon
+                                            <dvsui:Icon
                                                 Margin="10,0,0,0"
                                                 VerticalAlignment="Center"
-                                                Data="{x:Static yu:IvIcons.Bookmark}"
+                                                Data="{x:Static dvsui:IvIcons.Bookmark}"
                                                 Foreground="{DynamicResource IvText2Brush}"
                                                 ViewSize="14"
                                                 Visibility="{Binding Config.IsJobLocked, Converter={StaticResource BooleanToVisibilityConverter}}" />
@@ -277,14 +277,14 @@
                                             Command="{Binding JobList.DuplicateJobCommand}"
                                             IsEnabled="{Binding Config.CanDuplicateJob}"
                                             ToolTip="复制为新草稿任务">
-                                            <yu:Icon Data="{x:Static yu:IvIcons.Copy}" ViewSize="{DynamicResource IvIconSize}" />
+                                            <dvsui:Icon Data="{x:Static dvsui:IvIcons.Copy}" ViewSize="{DynamicResource IvIconSize}" />
                                         </Button>
                                         <Button
                                             VerticalAlignment="Top"
                                             Command="{Binding ConfirmDeleteJobCommand}"
                                             IsEnabled="{Binding Config.CanDeleteJob}"
                                             ToolTip="{Binding Config.DeleteJobToolTip}">
-                                            <yu:Icon Data="{x:Static yu:IvIcons.Delete}" ViewSize="{DynamicResource IvIconSize}" />
+                                            <dvsui:Icon Data="{x:Static dvsui:IvIcons.Delete}" ViewSize="{DynamicResource IvIconSize}" />
                                         </Button>
                                     </StackPanel>
                                 </Grid>
@@ -522,7 +522,7 @@
                                                 ToolTip="{Binding Config.StartTrainingToolTip}"
                                                 Visibility="{Binding Monitor.IsSettingsMode, Converter={StaticResource BooleanToVisibilityConverter}}">
                                                 <StackPanel Orientation="Horizontal">
-                                                    <yu:Icon Data="{x:Static yu:IvIcons.Play}" ViewSize="{DynamicResource IvIconSize}" />
+                                                    <dvsui:Icon Data="{x:Static dvsui:IvIcons.Play}" ViewSize="{DynamicResource IvIconSize}" />
                                                     <TextBlock
                                                         Margin="8,0,0,0"
                                                         VerticalAlignment="Center"
@@ -537,7 +537,7 @@
                                                 ToolTip="{Binding Config.ResumeTrainingToolTip}"
                                                 Visibility="{Binding Config.CanResumeTraining, Converter={StaticResource BooleanToVisibilityConverter}}">
                                                 <StackPanel Orientation="Horizontal">
-                                                    <yu:Icon Data="{x:Static yu:IvIcons.Refresh}" ViewSize="{DynamicResource IvIconSize}" />
+                                                    <dvsui:Icon Data="{x:Static dvsui:IvIcons.Refresh}" ViewSize="{DynamicResource IvIconSize}" />
                                                     <TextBlock
                                                         Margin="8,0,0,0"
                                                         VerticalAlignment="Center"
@@ -551,7 +551,7 @@
                                                 Command="{Binding Config.StopTrainingCommand}"
                                                 ToolTip="{Binding Config.StopTrainingToolTip}">
                                                 <StackPanel Orientation="Horizontal">
-                                                    <yu:Icon Data="{x:Static yu:IvIcons.Close}" ViewSize="{DynamicResource IvIconSize}" />
+                                                    <dvsui:Icon Data="{x:Static dvsui:IvIcons.Close}" ViewSize="{DynamicResource IvIconSize}" />
                                                     <TextBlock
                                                         Margin="8,0,0,0"
                                                         VerticalAlignment="Center"
@@ -563,7 +563,7 @@
                                                 Command="{Binding Config.SaveAsModelCommand}"
                                                 ToolTip="{Binding Config.SaveAsModelToolTip}">
                                                 <StackPanel Orientation="Horizontal">
-                                                    <yu:Icon Data="{x:Static yu:IvIcons.Save}" ViewSize="{DynamicResource IvIconSize}" />
+                                                    <dvsui:Icon Data="{x:Static dvsui:IvIcons.Save}" ViewSize="{DynamicResource IvIconSize}" />
                                                     <TextBlock
                                                         Margin="8,0,0,0"
                                                         VerticalAlignment="Center"

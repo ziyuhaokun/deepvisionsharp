@@ -15,7 +15,7 @@
 
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
 
-            <!-- yu-ui 没有 PasswordBox 主题：本视图就地补一个最小样式（底/边/圆角/内边距/高/focus 描边），不外扩 -->
+            <!-- DeepVisionSharp.UI 没有 PasswordBox 主题：本视图就地补一个最小样式（底/边/圆角/内边距/高/focus 描边），不外扩 -->
             <Style TargetType="PasswordBox">
                 <Setter Property="Height" Value="{DynamicResource IvControlHeight}" />
                 <Setter Property="Padding" Value="{DynamicResource IvInputPadding}" />

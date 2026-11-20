@@ -1,12 +1,12 @@
 using DeepVisionSharp.Shell.Services.Dialogs;
-using YuUI.Controls;
+using DeepVisionSharp.UI.Controls;
 using DeepVisionSharp.Presentation.Services.Dialogs;
 
 namespace DeepVisionSharp.Shell.Services.Hosting;
 
 /// <summary>
 /// 对话框宿主（由 <c>MainWindow</c> 实现）。
-/// 取代 WPF-UI 的 <c>IContentDialogService</c>：<c>AppDialogService</c> 负责组装 yu:Dialog 的内容与按钮，
+/// 取代 WPF-UI 的 <c>IContentDialogService</c>：<c>AppDialogService</c> 负责组装 dvsui:Dialog 的内容与按钮，
 /// 宿主只负责模态呈现并把按钮结果回传。
 /// </summary>
 public interface IDialogHost

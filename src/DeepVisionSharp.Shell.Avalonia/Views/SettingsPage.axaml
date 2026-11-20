@@ -1,7 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:iv="clr-namespace:YuUI.Controls;assembly=yu-ui.avalonia"
-             xmlns:ui="clr-namespace:YuUI;assembly=yu-ui.avalonia"
+             xmlns:iv="clr-namespace:DeepVisionSharp.UI.Avalonia.Controls;assembly=DeepVisionSharp.UI.Avalonia"
+             xmlns:ui="clr-namespace:DeepVisionSharp.UI.Avalonia;assembly=DeepVisionSharp.UI.Avalonia"
              xmlns:dv="clr-namespace:DeepVisionSharp.Shell.Avalonia.Controls"
              xmlns:svc="clr-namespace:DeepVisionSharp.Presentation.Services;assembly=DeepVisionSharp.Presentation"
              xmlns:conv="clr-namespace:DeepVisionSharp.Shell.Avalonia.Converters"
@@ -16,24 +16,110 @@
     </UserControl.KeyBindings>
 
     <UserControl.Styles>
+        <!-- 设置页二级导航：与 WPF CategoryListBoxStyle / CategoryItemContainerStyle 同口径。 -->
+        <Style Selector="ListBox.settingsNav">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        </Style>
+        <Style Selector="ListBox.settingsNav ListBoxItem">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0,0,0,4" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="Root"
+                            Padding="10,8"
+                            Background="Transparent"
+                            BorderBrush="Transparent"
+                            BorderThickness="0"
+                            CornerRadius="{DynamicResource IvRadiusOverlay}">
+                        <Grid ColumnDefinitions="Auto,*">
+                            <Border Name="AccentBar"
+                                    Width="3"
+                                    Margin="0,2,10,2"
+                                    Background="Transparent"
+                                    CornerRadius="{DynamicResource IvRadiusSmall}" />
+                            <ContentPresenter Grid.Column="1"
+                                              VerticalAlignment="Center"
+                                              Content="{TemplateBinding Content}"
+                                              ContentTemplate="{TemplateBinding ContentTemplate}" />
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="ListBox.settingsNav ListBoxItem:pointerover /template/ Border#Root">
+            <Setter Property="Background" Value="{DynamicResource IvSurfaceSubtleHoverBrush}" />
+        </Style>
+        <Style Selector="ListBox.settingsNav ListBoxItem:selected /template/ Border#Root">
+            <Setter Property="Background" Value="{DynamicResource IvSurfaceSubtleHoverBrush}" />
+        </Style>
+        <Style Selector="ListBox.settingsNav ListBoxItem:selected /template/ Border#AccentBar">
+            <Setter Property="Background" Value="{DynamicResource IvAccentBrush}" />
+        </Style>
+
+        <!-- 主题选择：与 WPF ThemeOptionButtonStyle 一致的分段按钮，不用默认圆点。 -->
+        <Style Selector="RadioButton.themeOption">
+            <Setter Property="MinWidth" Value="88" />
+            <Setter Property="Margin" Value="0,0,8,0" />
+            <Setter Property="Padding" Value="14,8" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="Bd"
+                            Padding="{TemplateBinding Padding}"
+                            Background="{DynamicResource IvControlFillBrush}"
+                            BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                            BorderThickness="1"
+                            CornerRadius="{DynamicResource IvRadiusOverlay}">
+                        <TextBlock Name="Label"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Foreground="{TemplateBinding Foreground}"
+                                   Text="{TemplateBinding Content}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="RadioButton.themeOption:pointerover /template/ Border#Bd">
+            <Setter Property="Background" Value="{DynamicResource IvSurfaceSubtleHoverBrush}" />
+        </Style>
+        <Style Selector="RadioButton.themeOption:checked /template/ Border#Bd">
+            <Setter Property="Background" Value="{DynamicResource IvAccentBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvAccentBrush}" />
+        </Style>
+        <Style Selector="RadioButton.themeOption:checked /template/ TextBlock#Label">
+            <Setter Property="Foreground" Value="{DynamicResource IvTextOnAccentBrush}" />
+        </Style>
+
         <Style Selector="TextBlock.sectionTitle">
-            <Setter Property="Margin" Value="0,8,0,0" />
-            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Margin" Value="0,12,0,0" />
+            <Setter Property="FontSize" Value="15" />
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
         </Style>
         <Style Selector="Border.settingsCard">
-            <Setter Property="Margin" Value="0,10,0,0" />
+            <Setter Property="Margin" Value="0,8,0,0" />
             <Setter Property="Padding" Value="18,16" />
             <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="6" />
         </Style>
         <Style Selector="Border.settingsRow">
+            <Setter Property="Margin" Value="18,0" />
             <Setter Property="Padding" Value="0,10" />
             <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
             <Setter Property="BorderThickness" Value="0,0,0,1" />
+        </Style>
+        <Style Selector="Border.settingsRow > Grid">
+            <!-- 分隔线内缩，内容仍保持原位置：行左右各内缩 18，再让直接 Grid 各外扩 18。 -->
+            <Setter Property="Margin" Value="-18,0" />
         </Style>
         <Style Selector="Border.iconTile">
             <Setter Property="Width" Value="32" />
@@ -67,13 +153,14 @@
         <Style Selector="Border.storageTile">
             <Setter Property="Padding" Value="16" />
             <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="6" />
         </Style>
     </UserControl.Styles>
 
-    <Grid Name="PageRoot" Margin="32,28" RowDefinitions="Auto,*">
+    <Grid Name="PageRoot" Margin="32,28" RowDefinitions="Auto,*"
+          AutomationProperties.AutomationId="dv.settings.root">
         <StackPanel Margin="0,0,0,20">
             <TextBlock FontFamily="{DynamicResource IvDisplayFontFamily}"
                        FontSize="24"
@@ -88,6 +175,9 @@
 
         <Grid Grid.Row="1" ColumnDefinitions="188,24,*">
             <ListBox Grid.Column="0"
+                     Classes="settingsNav"
+                     VerticalAlignment="Top"
+                     AutomationProperties.AutomationId="dv.settings.categories"
                      ItemsSource="{Binding Categories}"
                      SelectedValue="{Binding SelectedCategory, Mode=TwoWay}"
                      SelectedValueBinding="{Binding Id}">
@@ -114,7 +204,7 @@
             <ScrollViewer Grid.Column="2"
                           HorizontalScrollBarVisibility="Disabled"
                           VerticalScrollBarVisibility="Auto">
-                <StackPanel MaxWidth="900">
+                <StackPanel MaxWidth="1040">
 
                     <!-- ===== 外观 ===== -->
                     <StackPanel IsVisible="{Binding IsAppearanceSelected}">
@@ -131,18 +221,24 @@
                                 </Border>
                                 <UniformGrid Margin="12,4,12,8" Columns="3" Rows="1" MaxWidth="420" HorizontalAlignment="Left">
                                     <RadioButton Margin="0,0,8,0"
+                                                 Classes="themeOption"
                                                  GroupName="ThemeMode"
+                                                 AutomationProperties.AutomationId="dv.settings.theme.system"
                                                  Content="自动"
                                                  IsChecked="{Binding IsThemeSystem, Mode=OneWay}"
                                                  Command="{Binding SelectThemeCommand}"
                                                  CommandParameter="{x:Static svc:ShellThemePreference.System}" />
                                     <RadioButton Margin="0,0,8,0"
+                                                 Classes="themeOption"
                                                  GroupName="ThemeMode"
+                                                 AutomationProperties.AutomationId="dv.settings.theme.light"
                                                  Content="浅色"
                                                  IsChecked="{Binding IsThemeLight, Mode=OneWay}"
                                                  Command="{Binding SelectThemeCommand}"
                                                  CommandParameter="{x:Static svc:ShellThemePreference.Light}" />
-                                    <RadioButton GroupName="ThemeMode"
+                                    <RadioButton Classes="themeOption"
+                                                 GroupName="ThemeMode"
+                                                 AutomationProperties.AutomationId="dv.settings.theme.dark"
                                                  Content="深色"
                                                  IsChecked="{Binding IsThemeDark, Mode=OneWay}"
                                                  Command="{Binding SelectThemeCommand}"
@@ -164,6 +260,8 @@
                                     </StackPanel>
                                     <ToggleButton Grid.Column="2"
                                                   VerticalAlignment="Center"
+                                                  AutomationProperties.AutomationId="dv.settings.notifications.enabled"
+                                                  AutomationProperties.Name="启用通知"
                                                   IsChecked="{Binding ShowNotifications, Mode=TwoWay}"
                                                   Theme="{StaticResource IvSwitchStyle}" />
                                 </Grid>
@@ -184,8 +282,10 @@
                                         <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="{DynamicResource IvText1Brush}" Text="应用数据" />
                                     </StackPanel>
                                     <TextBlock Classes="metricSize" Text="{Binding AppDataSize}" />
-                                    <TextBlock Classes="pathCaption" Text="{Binding AppDataDirectory}" />
-                                    <Button Margin="0,12,0,0" Command="{Binding OpenAppDataFolderCommand}" Theme="{StaticResource IvSubtleButtonStyle}">
+                                    <TextBlock Classes="pathCaption" Text="{Binding AppDataDirectory}" ToolTip.Tip="{Binding AppDataDirectory}" />
+                                    <Button Margin="0,12,0,0"
+                                            AutomationProperties.AutomationId="dv.settings.storage.appdata.open"
+                                            Command="{Binding OpenAppDataFolderCommand}" Theme="{StaticResource IvSubtleButtonStyle}">
                                         <StackPanel Orientation="Horizontal">
                                             <iv:Icon Margin="0,0,5,0" VerticalAlignment="Center" FontSize="14" Data="{x:Static ui:IvIcons.FolderOpen}" />
                                             <TextBlock VerticalAlignment="Center" Text="打开目录" />
@@ -203,8 +303,10 @@
                                         <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="{DynamicResource IvText1Brush}" Text="模型文件" />
                                     </StackPanel>
                                     <TextBlock Classes="metricSize" Text="{Binding ModelsSize}" />
-                                    <TextBlock Classes="pathCaption" Text="{Binding ModelsDirectory}" />
-                                    <Button Margin="0,12,0,0" Command="{Binding OpenModelsFolderCommand}" Theme="{StaticResource IvSubtleButtonStyle}">
+                                    <TextBlock Classes="pathCaption" Text="{Binding ModelsDirectory}" ToolTip.Tip="{Binding ModelsDirectory}" />
+                                    <Button Margin="0,12,0,0"
+                                            AutomationProperties.AutomationId="dv.settings.storage.models.open"
+                                            Command="{Binding OpenModelsFolderCommand}" Theme="{StaticResource IvSubtleButtonStyle}">
                                         <StackPanel Orientation="Horizontal">
                                             <iv:Icon Margin="0,0,5,0" VerticalAlignment="Center" FontSize="14" Data="{x:Static ui:IvIcons.FolderOpen}" />
                                             <TextBlock VerticalAlignment="Center" Text="打开目录" />
@@ -222,8 +324,10 @@
                                         <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="{DynamicResource IvText1Brush}" Text="日志文件" />
                                     </StackPanel>
                                     <TextBlock Classes="metricSize" Text="{Binding LogsSize}" />
-                                    <TextBlock Classes="pathCaption" Text="{Binding LogsDirectory}" />
-                                    <Button Margin="0,12,0,0" Command="{Binding OpenLogsFolderCommand}" Theme="{StaticResource IvSubtleButtonStyle}">
+                                    <TextBlock Classes="pathCaption" Text="{Binding LogsDirectory}" ToolTip.Tip="{Binding LogsDirectory}" />
+                                    <Button Margin="0,12,0,0"
+                                            AutomationProperties.AutomationId="dv.settings.storage.logs.open"
+                                            Command="{Binding OpenLogsFolderCommand}" Theme="{StaticResource IvSubtleButtonStyle}">
                                         <StackPanel Orientation="Horizontal">
                                             <iv:Icon Margin="0,0,5,0" VerticalAlignment="Center" FontSize="14" Data="{x:Static ui:IvIcons.FolderOpen}" />
                                             <TextBlock VerticalAlignment="Center" Text="打开目录" />
@@ -241,8 +345,10 @@
                                         <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="{DynamicResource IvText1Brush}" Text="崩溃转储" />
                                     </StackPanel>
                                     <TextBlock Classes="metricSize" Text="{Binding CrashDumpsSize}" />
-                                    <TextBlock Classes="pathCaption" Text="{Binding CrashDumpsDirectory}" />
-                                    <Button Margin="0,12,0,0" Command="{Binding OpenCrashDumpsFolderCommand}" Theme="{StaticResource IvSubtleButtonStyle}">
+                                    <TextBlock Classes="pathCaption" Text="{Binding CrashDumpsDirectory}" ToolTip.Tip="{Binding CrashDumpsDirectory}" />
+                                    <Button Margin="0,12,0,0"
+                                            AutomationProperties.AutomationId="dv.settings.storage.dumps.open"
+                                            Command="{Binding OpenCrashDumpsFolderCommand}" Theme="{StaticResource IvSubtleButtonStyle}">
                                         <StackPanel Orientation="Horizontal">
                                             <iv:Icon Margin="0,0,5,0" VerticalAlignment="Center" FontSize="14" Data="{x:Static ui:IvIcons.FolderOpen}" />
                                             <TextBlock VerticalAlignment="Center" Text="打开目录" />
@@ -262,13 +368,16 @@
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Orientation="Horizontal">
                                     <dv:BusyRing Width="18" Height="18" Margin="0,0,10,0" IsVisible="{Binding IsCleaningCache}" />
-                                    <Button Margin="0,0,8,0" Command="{Binding RefreshStorageInfoCommand}" Theme="{StaticResource IvSubtleButtonStyle}">
+                                    <Button Margin="0,0,8,0"
+                                            AutomationProperties.AutomationId="dv.settings.storage.refresh"
+                                            Command="{Binding RefreshStorageInfoCommand}" Theme="{StaticResource IvSubtleButtonStyle}">
                                         <StackPanel Orientation="Horizontal">
                                             <iv:Icon Margin="0,0,6,0" VerticalAlignment="Center" FontSize="14" Data="{x:Static ui:IvIcons.Refresh}" />
                                             <TextBlock VerticalAlignment="Center" Text="刷新" />
                                         </StackPanel>
                                     </Button>
-                                    <Button Command="{Binding ClearCacheCommand}"
+                                    <Button AutomationProperties.AutomationId="dv.settings.storage.clear-cache"
+                                            Command="{Binding ClearCacheCommand}"
                                             IsEnabled="{Binding IsNotCleaningCache}"
                                             Theme="{StaticResource IvSubtleButtonStyle}">
                                         <StackPanel Orientation="Horizontal">
@@ -290,7 +399,7 @@
                                     <iv:Icon HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="26" Data="{x:Static ui:IvIcons.Cube}" />
                                 </Border>
                                 <StackPanel Grid.Column="1" Margin="16,0,0,0" VerticalAlignment="Center">
-                                    <TextBlock FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource IvText1Brush}" Text="智立方深度学习平台" />
+                                    <TextBlock FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource IvText1Brush}" Text="DeepVisionSharp 深度学习平台" />
                                     <TextBlock Margin="0,4,0,0"
                                                Foreground="{DynamicResource IvText2Brush}"
                                                Text="{Binding AppVersion, StringFormat='版本 {0}'}" />
@@ -309,7 +418,7 @@
                                     <Grid ColumnDefinitions="*,Auto">
                                         <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource IvText1Brush}" Text="{Binding CurrentChangeLogEntry.VersionBadge}" />
                                         <Border Grid.Column="1" Padding="8,2" Background="{DynamicResource IvAccentBrush}" CornerRadius="4" VerticalAlignment="Center">
-                                            <TextBlock FontSize="11" Foreground="{DynamicResource IvTextOnPrimaryBrush}" Text="当前" />
+                                            <TextBlock FontSize="11" Foreground="{DynamicResource IvTextOnAccentBrush}" Text="当前" />
                                         </Border>
                                     </Grid>
                                     <TextBlock Margin="0,4,0,0"
@@ -334,35 +443,6 @@
                             </StackPanel>
                         </Border>
 
-                        <TextBlock Classes="sectionTitle" Text="更新历史" />
-                        <Border Classes="settingsCard">
-                            <StackPanel>
-                                <TextBlock Classes="rowSubtitle" Text="{Binding HistoricalVersionsHint}" IsVisible="{Binding HasHistoricalChangeLogEntries}" />
-                                <TextBlock Classes="rowSubtitle" Text="暂无更早的历史版本节点。" IsVisible="{Binding !HasHistoricalChangeLogEntries}" />
-
-                                <ItemsControl Margin="0,8,0,0"
-                                              ItemsSource="{Binding HistoricalChangeLogEntries}"
-                                              IsVisible="{Binding HasHistoricalChangeLogEntries}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Expander Margin="0,0,0,8" Header="{Binding Title}" IsExpanded="False">
-                                                <ItemsControl Margin="8,8,0,4" ItemsSource="{Binding Items}">
-                                                    <ItemsControl.ItemTemplate>
-                                                        <DataTemplate>
-                                                            <Grid Margin="0,0,0,6" ColumnDefinitions="16,*">
-                                                                <TextBlock VerticalAlignment="Top" Foreground="{DynamicResource IvText2Brush}" Text="•" />
-                                                                <TextBlock Grid.Column="1" Foreground="{DynamicResource IvText1Brush}" Text="{Binding}" TextWrapping="Wrap" />
-                                                            </Grid>
-                                                        </DataTemplate>
-                                                    </ItemsControl.ItemTemplate>
-                                                </ItemsControl>
-                                            </Expander>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </StackPanel>
-                        </Border>
-
                         <TextBlock Classes="sectionTitle" Text="运行环境" />
                         <Border Classes="settingsCard">
                             <StackPanel>
@@ -381,12 +461,16 @@
                                 <Border Classes="settingsRow">
                                     <Grid ColumnDefinitions="120,*,Auto">
                                         <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource IvText2Brush}" Text="应用数据" />
-                                        <TextBlock Grid.Column="1" Margin="0,0,8,0" VerticalAlignment="Center" Text="{Binding AppDataDirectory}" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Grid.Column="1" Margin="0,0,8,0" VerticalAlignment="Center" Text="{Binding AppDataDirectory}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding AppDataDirectory}" />
                                         <StackPanel Grid.Column="2" Orientation="Horizontal">
-                                            <Button Command="{Binding CopyTextCommand}" CommandParameter="{Binding AppDataDirectory}" Theme="{StaticResource IvIconButtonStyle}" ToolTip.Tip="复制">
+                                            <Button AutomationProperties.AutomationId="dv.settings.about.appdata.copy"
+                                                    AutomationProperties.Name="复制应用数据目录"
+                                                    Command="{Binding CopyTextCommand}" CommandParameter="{Binding AppDataDirectory}" Theme="{StaticResource IvIconButtonStyle}" ToolTip.Tip="复制">
                                                 <iv:Icon FontSize="14" Data="{x:Static ui:IvIcons.Copy}" />
                                             </Button>
-                                            <Button Command="{Binding OpenAppDataFolderCommand}" Theme="{StaticResource IvIconButtonStyle}" ToolTip.Tip="打开">
+                                            <Button AutomationProperties.AutomationId="dv.settings.about.appdata.open"
+                                                    AutomationProperties.Name="打开应用数据目录"
+                                                    Command="{Binding OpenAppDataFolderCommand}" Theme="{StaticResource IvIconButtonStyle}" ToolTip.Tip="打开">
                                                 <iv:Icon FontSize="14" Data="{x:Static ui:IvIcons.FolderOpen}" />
                                             </Button>
                                         </StackPanel>
@@ -395,12 +479,16 @@
                                 <Border Classes="settingsRow">
                                     <Grid ColumnDefinitions="120,*,Auto">
                                         <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource IvText2Brush}" Text="日志目录" />
-                                        <TextBlock Grid.Column="1" Margin="0,0,8,0" VerticalAlignment="Center" Text="{Binding LogsDirectory}" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Grid.Column="1" Margin="0,0,8,0" VerticalAlignment="Center" Text="{Binding LogsDirectory}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding LogsDirectory}" />
                                         <StackPanel Grid.Column="2" Orientation="Horizontal">
-                                            <Button Command="{Binding CopyTextCommand}" CommandParameter="{Binding LogsDirectory}" Theme="{StaticResource IvIconButtonStyle}" ToolTip.Tip="复制">
+                                            <Button AutomationProperties.AutomationId="dv.settings.about.logs.copy"
+                                                    AutomationProperties.Name="复制日志目录"
+                                                    Command="{Binding CopyTextCommand}" CommandParameter="{Binding LogsDirectory}" Theme="{StaticResource IvIconButtonStyle}" ToolTip.Tip="复制">
                                                 <iv:Icon FontSize="14" Data="{x:Static ui:IvIcons.Copy}" />
                                             </Button>
-                                            <Button Command="{Binding OpenLogsFolderCommand}" Theme="{StaticResource IvIconButtonStyle}" ToolTip.Tip="打开">
+                                            <Button AutomationProperties.AutomationId="dv.settings.about.logs.open"
+                                                    AutomationProperties.Name="打开日志目录"
+                                                    Command="{Binding OpenLogsFolderCommand}" Theme="{StaticResource IvIconButtonStyle}" ToolTip.Tip="打开">
                                                 <iv:Icon FontSize="14" Data="{x:Static ui:IvIcons.FolderOpen}" />
                                             </Button>
                                         </StackPanel>
@@ -409,12 +497,16 @@
                                 <Border Classes="settingsRow">
                                     <Grid ColumnDefinitions="120,*,Auto">
                                         <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource IvText2Brush}" Text="崩溃转储" />
-                                        <TextBlock Grid.Column="1" Margin="0,0,8,0" VerticalAlignment="Center" Text="{Binding CrashDumpsDirectory}" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Grid.Column="1" Margin="0,0,8,0" VerticalAlignment="Center" Text="{Binding CrashDumpsDirectory}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding CrashDumpsDirectory}" />
                                         <StackPanel Grid.Column="2" Orientation="Horizontal">
-                                            <Button Command="{Binding CopyTextCommand}" CommandParameter="{Binding CrashDumpsDirectory}" Theme="{StaticResource IvIconButtonStyle}" ToolTip.Tip="复制">
+                                            <Button AutomationProperties.AutomationId="dv.settings.about.dumps.copy"
+                                                    AutomationProperties.Name="复制崩溃转储目录"
+                                                    Command="{Binding CopyTextCommand}" CommandParameter="{Binding CrashDumpsDirectory}" Theme="{StaticResource IvIconButtonStyle}" ToolTip.Tip="复制">
                                                 <iv:Icon FontSize="14" Data="{x:Static ui:IvIcons.Copy}" />
                                             </Button>
-                                            <Button Command="{Binding OpenCrashDumpsFolderCommand}" Theme="{StaticResource IvIconButtonStyle}" ToolTip.Tip="打开">
+                                            <Button AutomationProperties.AutomationId="dv.settings.about.dumps.open"
+                                                    AutomationProperties.Name="打开崩溃转储目录"
+                                                    Command="{Binding OpenCrashDumpsFolderCommand}" Theme="{StaticResource IvIconButtonStyle}" ToolTip.Tip="打开">
                                                 <iv:Icon FontSize="14" Data="{x:Static ui:IvIcons.FolderOpen}" />
                                             </Button>
                                         </StackPanel>
@@ -423,12 +515,16 @@
                                 <Border Classes="settingsRow">
                                     <Grid ColumnDefinitions="120,*,Auto">
                                         <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource IvText2Brush}" Text="模型目录" />
-                                        <TextBlock Grid.Column="1" Margin="0,0,8,0" VerticalAlignment="Center" Text="{Binding ModelsDirectory}" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Grid.Column="1" Margin="0,0,8,0" VerticalAlignment="Center" Text="{Binding ModelsDirectory}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding ModelsDirectory}" />
                                         <StackPanel Grid.Column="2" Orientation="Horizontal">
-                                            <Button Command="{Binding CopyTextCommand}" CommandParameter="{Binding ModelsDirectory}" Theme="{StaticResource IvIconButtonStyle}" ToolTip.Tip="复制">
+                                            <Button AutomationProperties.AutomationId="dv.settings.about.models.copy"
+                                                    AutomationProperties.Name="复制模型目录"
+                                                    Command="{Binding CopyTextCommand}" CommandParameter="{Binding ModelsDirectory}" Theme="{StaticResource IvIconButtonStyle}" ToolTip.Tip="复制">
                                                 <iv:Icon FontSize="14" Data="{x:Static ui:IvIcons.Copy}" />
                                             </Button>
-                                            <Button Command="{Binding OpenModelsFolderCommand}" Theme="{StaticResource IvIconButtonStyle}" ToolTip.Tip="打开">
+                                            <Button AutomationProperties.AutomationId="dv.settings.about.models.open"
+                                                    AutomationProperties.Name="打开模型目录"
+                                                    Command="{Binding OpenModelsFolderCommand}" Theme="{StaticResource IvIconButtonStyle}" ToolTip.Tip="打开">
                                                 <iv:Icon FontSize="14" Data="{x:Static ui:IvIcons.FolderOpen}" />
                                             </Button>
                                         </StackPanel>
@@ -449,7 +545,8 @@
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Orientation="Horizontal">
                                     <dv:BusyRing Width="18" Height="18" Margin="0,0,10,0" IsVisible="{Binding IsRunningDataRepair}" />
-                                    <Button Command="{Binding CheckAndRepairDataCommand}"
+                                    <Button AutomationProperties.AutomationId="dv.settings.advanced.repair"
+                                            Command="{Binding CheckAndRepairDataCommand}"
                                             IsEnabled="{Binding IsNotRunningDataRepair}"
                                             Theme="{StaticResource IvPrimaryButtonStyle}">
                                         <StackPanel Orientation="Horizontal">

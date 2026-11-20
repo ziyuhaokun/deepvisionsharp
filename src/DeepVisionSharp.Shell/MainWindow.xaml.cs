@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
@@ -11,8 +11,8 @@ using DeepVisionSharp.Shell.Services.Dialogs;
 using DeepVisionSharp.Shell.Services.Hosting;
 using DeepVisionSharp.Shell.Services.Navigation;
 using Microsoft.Extensions.Logging;
-using YuUI;
-using YuUI.Controls;
+using DeepVisionSharp.UI;
+using DeepVisionSharp.UI.Controls;
 using DeepVisionSharp.Presentation.Ports;
 using DeepVisionSharp.Presentation.Services;
 using DeepVisionSharp.Presentation.Services.Dialogs;
@@ -171,7 +171,7 @@ public partial class MainWindow : ThemedWindow, IPageHost, ISnackbarHost, IDialo
         UpdateThemeToggleVisual();
     }
 
-    /// <summary>当前实际生效的是不是深色调色板；<see cref="ShellThemePreference.System"/> 由 yu-ui 的调色板状态回答。</summary>
+    /// <summary>当前实际生效的是不是深色调色板；<see cref="ShellThemePreference.System"/> 由 DeepVisionSharp.UI 的调色板状态回答。</summary>
     private bool IsDarkThemeActive()
         => _themeService.Current switch
         {
@@ -342,8 +342,8 @@ public partial class MainWindow : ThemedWindow, IPageHost, ISnackbarHost, IDialo
             CloseDialog(AppDialogResult.None);
         }
 
-        // 把 Title/Content/Footer 搬到窗口自己的 ShellDialog 上，而不是把传进来的 yu:Dialog 塞进 ShellDialog.Content：
-        // yu:Dialog 的模板本身就是「遮罩 + 卡片」，直接嵌套会画出两层遮罩两层卡片，按钮与 Esc 也会落到外层。
+        // 把 Title/Content/Footer 搬到窗口自己的 ShellDialog 上，而不是把传进来的 dvsui:Dialog 塞进 ShellDialog.Content：
+        // dvsui:Dialog 的模板本身就是「遮罩 + 卡片」，直接嵌套会画出两层遮罩两层卡片，按钮与 Esc 也会落到外层。
         var title = dialog.Title;
         var content = dialog.Content;
         var footer = dialog.Footer;

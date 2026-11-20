@@ -4,7 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters"
-    xmlns:yu="http://schemas.yu-ui/xaml"
+    xmlns:dvsui="http://schemas.deepvisionsharp.ui/xaml"
     FontFamily="{DynamicResource IvFontFamily}"
     FontSize="{DynamicResource IvFontSizeBody}"
     Foreground="{DynamicResource IvText1Brush}">
@@ -231,13 +231,13 @@
                                                 CommandParameter="{Binding AppDataDirectory}"
                                                 Style="{StaticResource IvIconButtonStyle}"
                                                 ToolTip="复制">
-                                                <yu:Icon Data="{x:Static yu:IvIcons.Copy}" ViewSize="{DynamicResource IvIconSize}" />
+                                                <dvsui:Icon Data="{x:Static dvsui:IvIcons.Copy}" ViewSize="{DynamicResource IvIconSize}" />
                                             </Button>
                                             <Button
                                                 Command="{Binding OpenAppDataFolderCommand}"
                                                 Style="{StaticResource IvIconButtonStyle}"
                                                 ToolTip="打开">
-                                                <yu:Icon Data="{x:Static yu:IvIcons.FolderOpen}" ViewSize="{DynamicResource IvIconSize}" />
+                                                <dvsui:Icon Data="{x:Static dvsui:IvIcons.FolderOpen}" ViewSize="{DynamicResource IvIconSize}" />
                                             </Button>
                                         </StackPanel>
                                     </Grid>
@@ -266,13 +266,13 @@
                                                 CommandParameter="{Binding LogsDirectory}"
                                                 Style="{StaticResource IvIconButtonStyle}"
                                                 ToolTip="复制">
-                                                <yu:Icon Data="{x:Static yu:IvIcons.Copy}" ViewSize="{DynamicResource IvIconSize}" />
+                                                <dvsui:Icon Data="{x:Static dvsui:IvIcons.Copy}" ViewSize="{DynamicResource IvIconSize}" />
                                             </Button>
                                             <Button
                                                 Command="{Binding OpenLogsFolderCommand}"
                                                 Style="{StaticResource IvIconButtonStyle}"
                                                 ToolTip="打开">
-                                                <yu:Icon Data="{x:Static yu:IvIcons.FolderOpen}" ViewSize="{DynamicResource IvIconSize}" />
+                                                <dvsui:Icon Data="{x:Static dvsui:IvIcons.FolderOpen}" ViewSize="{DynamicResource IvIconSize}" />
                                             </Button>
                                         </StackPanel>
                                     </Grid>
@@ -301,13 +301,13 @@
                                                 CommandParameter="{Binding CrashDumpsDirectory}"
                                                 Style="{StaticResource IvIconButtonStyle}"
                                                 ToolTip="复制">
-                                                <yu:Icon Data="{x:Static yu:IvIcons.Copy}" ViewSize="{DynamicResource IvIconSize}" />
+                                                <dvsui:Icon Data="{x:Static dvsui:IvIcons.Copy}" ViewSize="{DynamicResource IvIconSize}" />
                                             </Button>
                                             <Button
                                                 Command="{Binding OpenCrashDumpsFolderCommand}"
                                                 Style="{StaticResource IvIconButtonStyle}"
                                                 ToolTip="打开">
-                                                <yu:Icon Data="{x:Static yu:IvIcons.FolderOpen}" ViewSize="{DynamicResource IvIconSize}" />
+                                                <dvsui:Icon Data="{x:Static dvsui:IvIcons.FolderOpen}" ViewSize="{DynamicResource IvIconSize}" />
                                             </Button>
                                         </StackPanel>
                                     </Grid>
@@ -336,13 +336,13 @@
                                                 CommandParameter="{Binding ModelsDirectory}"
                                                 Style="{StaticResource IvIconButtonStyle}"
                                                 ToolTip="复制">
-                                                <yu:Icon Data="{x:Static yu:IvIcons.Copy}" ViewSize="{DynamicResource IvIconSize}" />
+                                                <dvsui:Icon Data="{x:Static dvsui:IvIcons.Copy}" ViewSize="{DynamicResource IvIconSize}" />
                                             </Button>
                                             <Button
                                                 Command="{Binding OpenModelsFolderCommand}"
                                                 Style="{StaticResource IvIconButtonStyle}"
                                                 ToolTip="打开">
-                                                <yu:Icon Data="{x:Static yu:IvIcons.FolderOpen}" ViewSize="{DynamicResource IvIconSize}" />
+                                                <dvsui:Icon Data="{x:Static dvsui:IvIcons.FolderOpen}" ViewSize="{DynamicResource IvIconSize}" />
                                             </Button>
                                         </StackPanel>
                                     </Grid>

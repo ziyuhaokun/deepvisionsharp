@@ -5,8 +5,8 @@
     <!--
       Shell-wide status palette. Solid fills stay theme-independent so white text keeps the
       same contrast in both themes. Translucent 15% tints are kept as named brushes because
-      yu-ui has no per-hue token for every status color (blue/cyan/emerald).
-      Theme-derived icons, text and borders come from yu-ui palette tokens (Iv*Brush);
+      DeepVisionSharp.UI has no per-hue token for every status color (blue/cyan/emerald).
+      Theme-derived icons, text and borders come from DeepVisionSharp.UI palette tokens (Iv*Brush);
       this file only holds the shell's own status hues, which must not change with the theme.
     -->
 

@@ -1,10 +1,10 @@
-<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Pages/Sections/LabelingToolRailSection.axaml（左栏壳 + 快捷键按钮） | 转换: WPF-UI Button+SymbolIcon→Button+IvIconButtonStyle+yu:Icon；QuestionCircle24→Help、ArrowLeft24→ChevronLeft（近义降级）；颜色/圆角走 Iv* 令牌 -->
+<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Pages/Sections/LabelingToolRailSection.axaml（左栏壳 + 快捷键按钮） | 转换: WPF-UI Button+SymbolIcon→Button+IvIconButtonStyle+dvsui:Icon；QuestionCircle24→Help、ArrowLeft24→ChevronLeft（近义降级）；颜色/圆角走 Iv* 令牌 -->
 <UserControl
     x:Class="DeepVisionSharp.Shell.Views.Pages.Sections.LabelingToolRailSection"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters"
-    xmlns:yu="http://schemas.yu-ui/xaml"
+    xmlns:dvsui="http://schemas.deepvisionsharp.ui/xaml"
     FontFamily="{DynamicResource IvFontFamily}"
     FontSize="{DynamicResource IvFontSizeBody}"
     Foreground="{DynamicResource IvText1Brush}">
@@ -62,7 +62,7 @@
                                     </ContextMenu>
                                 </Button.ContextMenu>
                                 <!-- 源 SymbolIcon QuestionCircle24 → IvIcons.Help（直接等价） -->
-                                <yu:Icon Data="{x:Static yu:IvIcons.Help}" ViewSize="{DynamicResource IvIconSize}" />
+                                <dvsui:Icon Data="{x:Static dvsui:IvIcons.Help}" ViewSize="{DynamicResource IvIconSize}" />
                             </Button>
                             <Button
                                 VerticalAlignment="Center"
@@ -71,7 +71,7 @@
                                 Style="{StaticResource IvIconButtonStyle}"
                                 ToolTip="返回图库">
                                 <!-- 源 SymbolIcon ArrowLeft24 → IvIcons.ChevronLeft（近义降级：长箭头变尖角） -->
-                                <yu:Icon Data="{x:Static yu:IvIcons.ChevronLeft}" ViewSize="{DynamicResource IvIconSize}" />
+                                <dvsui:Icon Data="{x:Static dvsui:IvIcons.ChevronLeft}" ViewSize="{DynamicResource IvIconSize}" />
                             </Button>
                         </StackPanel>
                     </Grid>

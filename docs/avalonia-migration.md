@@ -40,9 +40,9 @@ git ls-tree -r --name-only 9c82dda -- src/DeepVisionSharp.Shell.Avalonia/Views/D
 | --- | --- | --- | --- |
 | 业务层 | `Domain` / `Application` / `Infrastructure` / `Tiling` / `TorchSharp` / `Bootstrap` | 稳定 | 领域模型、用例、SQLite、推理、训练子进程。与 UI 无关 |
 | 共享表现层 | `src/DeepVisionSharp.Presentation` | 稳定，两个壳共用 | ViewModel（`ObservableObject` / `RelayCommand`）、应用服务、**框架无关端口**。零 UI 引用 |
-| 生产壳 | `src/DeepVisionSharp.Shell` | **生产在用，功能完整** | WPF + `yu-ui`(WPF)。7 个页面、16 个对话框内容视图、任务中心、启动期能力（文件日志/单实例/崩溃转储/异常上报） |
-| 迁移中壳体 | `src/DeepVisionSharp.Shell.Avalonia` | **迁移中，不能替换生产壳** | Avalonia 12 + `yu-ui.avalonia`。容器、端口、7 个页面（基线时 3 个接真 VM）、26 个对话框内容视图 |
-| 控件库 | `src/yu-ui`（WPF）/ `src/yu-ui.avalonia` | 两套并行 | 自绘壳层控件与设计令牌。**两套互不引用**，同名控件各自实现 |
+| 生产壳 | `src/DeepVisionSharp.Shell` | **生产在用，功能完整** | WPF + `DeepVisionSharp.UI`(WPF)。7 个页面、16 个对话框内容视图、任务中心、启动期能力（文件日志/单实例/崩溃转储/异常上报） |
+| 迁移中壳体 | `src/DeepVisionSharp.Shell.Avalonia` | **迁移中，不能替换生产壳** | Avalonia 12 + `DeepVisionSharp.UI.Avalonia`。容器、端口、7 个页面（基线时 3 个接真 VM）、26 个对话框内容视图 |
+| 控件库 | `src/DeepVisionSharp.UI`（WPF）/ `src/DeepVisionSharp.UI.Avalonia` | 两套并行 | 自绘壳层控件与设计令牌。**两套互不引用**，同名控件各自实现 |
 
 ### 1.2 依赖方向（箭头表示「谁引用谁」，被引用方永不知道引用方存在）
 
@@ -50,14 +50,14 @@ git ls-tree -r --name-only 9c82dda -- src/DeepVisionSharp.Shell.Avalonia/Views/D
         ┌──────────────────────────┐        ┌────────────────────────────────┐
         │ DeepVisionSharp.Shell    │        │ DeepVisionSharp.Shell.Avalonia │
         │ (WPF, 生产)               │        │ (Avalonia, 迁移中)              │
-        │  yu-ui (WPF)             │        │  yu-ui.avalonia                │
+        │  DeepVisionSharp.UI (WPF)             │        │  DeepVisionSharp.UI.Avalonia                │
         └───────────┬──────────────┘        └───────────────┬────────────────┘
                     │                                       │
                     └───────────────┬───────────────────────┘
                                     ▼
                     ┌───────────────────────────────┐
                     │ DeepVisionSharp.Presentation  │  ← 只有 ViewModel / 服务 / 端口
-                    │ net10.0，零 UI 依赖            │     不知道 WPF、Avalonia、yu-ui
+                    │ net10.0，零 UI 依赖            │     不知道 WPF、Avalonia、DeepVisionSharp.UI
                     └───────────────┬───────────────┘
                                     ▼
         ┌───────────────────────────────────────────────────────┐
@@ -78,8 +78,8 @@ git ls-tree -r --name-only 9c82dda -- src/DeepVisionSharp.Shell.Avalonia/Views/D
 | Avalonia 页面 | 7 个（`Views/*Page.axaml`），其中 3 个接真 VM、4 个用 stub |
 | Avalonia 对话框内容视图 | 26 个（`Views/Dialogs/Contents/*.axaml`；WPF 对应 16 个） |
 | `AppDialogKind` | 20 项，Avalonia 描述表 20 项全覆盖 |
-| `yu-ui`（WPF） | 10 个 `.cs` / 974 行；30 个 `.xaml` / 3,091 行 |
-| `yu-ui.avalonia` | 7 个 `.cs` / 710 行；21 个 `.axaml` / 1,836 行 |
+| `DeepVisionSharp.UI`（WPF） | 10 个 `.cs` / 974 行；30 个 `.xaml` / 3,091 行 |
+| `DeepVisionSharp.UI.Avalonia` | 7 个 `.cs` / 710 行；21 个 `.axaml` / 1,836 行 |
 | Avalonia stub 上下文（`ViewModels/Sample*.cs`） | 7 个文件 / 3,533 行（另有 `ViewModels/Dialogs/` 5 个文件 / 1,329 行） |
 | 自动化测试 | 4 个测试工程，覆盖 Tiling / TorchSharp / Application / Infrastructure；Presentation 与两个 Shell 无测试 |
 
@@ -104,15 +104,15 @@ git ls-tree -r --name-only 9c82dda -- src/DeepVisionSharp.Shell.Avalonia/Views/D
 | `DeepVisionSharp.Application` | `net10.0` | MediatR 抽象、`IProcessLauncher` / `ILocalFileDialogService` 等端口接口 |
 | `DeepVisionSharp.Presentation` | `net10.0` | `CommunityToolkit.Mvvm 8.4.0`、`Microsoft.Extensions.{DI,Logging}.Abstractions 10.0.0`；只引用 Domain + Application |
 | `DeepVisionSharp.Bootstrap` | `net10.0-windows` | Application + Infrastructure，只提供 `AddDeepVision()` |
-| `DeepVisionSharp.Shell`（WPF） | `net10.0-windows`，`UseWPF=true`，`PlatformTarget=x64` | `yu-ui`、`Microsoft.Extensions.Hosting 10.0.0`、`CommunityToolkit.Mvvm 8.4.0` |
-| `DeepVisionSharp.Shell.Avalonia` | `net10.0-windows` | `Avalonia / Avalonia.Desktop / Avalonia.Themes.Fluent 12.1.5`、`yu-ui.avalonia`、`System.Diagnostics.PerformanceCounter 10.0.0`、`Microsoft.Extensions.Hosting 10.0.0` |
-| `yu-ui`（WPF） | `net10.0-windows` | WPF 控件库 |
-| `yu-ui.avalonia` | **`net10.0`（不是 `-windows`）** | Avalonia 控件库；能被非 `-windows` TFM 的宿主（离屏渲染进程）加载 |
+| `DeepVisionSharp.Shell`（WPF） | `net10.0-windows`，`UseWPF=true`，`PlatformTarget=x64` | `DeepVisionSharp.UI`、`Microsoft.Extensions.Hosting 10.0.0`、`CommunityToolkit.Mvvm 8.4.0` |
+| `DeepVisionSharp.Shell.Avalonia` | `net10.0-windows` | `Avalonia / Avalonia.Desktop / Avalonia.Themes.Fluent 12.1.5`、`DeepVisionSharp.UI.Avalonia`、`System.Diagnostics.PerformanceCounter 10.0.0`、`Microsoft.Extensions.Hosting 10.0.0` |
+| `DeepVisionSharp.UI`（WPF） | `net10.0-windows` | WPF 控件库 |
+| `DeepVisionSharp.UI.Avalonia` | **`net10.0`（不是 `-windows`）** | Avalonia 控件库；能被非 `-windows` TFM 的宿主（离屏渲染进程）加载 |
 | `DeepVisionSharp.Infrastructure` / `TorchSharp` | `net10.0-windows` | — |
 | `DeepVisionSharp.Tiling` | `net10.0` | — |
 | `tests/*`（4 个） | `net10.0` / `net10.0-windows` | 只覆盖 Tiling、TorchSharp、Application、Infrastructure；**没有 Presentation / Shell 测试** |
 
-`yu-ui.avalonia` 的 `net10.0` 不是笔误：离屏渲染宿主与非 Windows 目标进程要加载它。
+`DeepVisionSharp.UI.Avalonia` 的 `net10.0` 不是笔误：离屏渲染宿主与非 Windows 目标进程要加载它。
 Avalonia Shell 的组合根因此**故意不用** `Host.CreateDefaultBuilder()`（`AppComposition.cs` 有注释）——
 默认建造器会给 `-windows` 宿主挂 EventLog provider，在被非 `-windows` 进程加载时直接抛异常。
 
@@ -131,7 +131,7 @@ Avalonia Shell 的组合根因此**故意不用** `Host.CreateDefaultBuilder()`�
 命令一：禁用的命名空间必须没有任何命中（`System.Windows.Input` 是 BCL 的 `ICommand`，**不算** UI 依赖）：
 
 ```bash
-rg -n "using System\.Windows;|using System\.Windows\.(Media|Controls|Shapes|Documents|Threading|Interop)|using Avalonia|using YuUI" \
+rg -n "using System\.Windows;|using System\.Windows\.(Media|Controls|Shapes|Documents|Threading|Interop)|using Avalonia|using DeepVisionSharp.UI.Avalonia" \
    src/DeepVisionSharp.Presentation -g "*.cs"
 # 期望：无输出（exit=1）
 ```
@@ -158,7 +158,7 @@ rg -n "Reference" src/DeepVisionSharp.Presentation/DeepVisionSharp.Presentation.
 | --- | --- | --- | --- | --- | --- |
 | 1 | `IUiDispatcher` | `Presentation/Ports/IUiDispatcher.cs` | `Shell/Services/WpfUiDispatcher.cs` | `Shell.Avalonia/Services/AvaloniaUiDispatcher.cs` | 契约一致：无优先级重载在已处 UI 线程时内联执行；带 `UiDispatchPriority` 的重载**总是排队**，保证 `ApplicationIdle` 等到布局完成。差异在 owner 来源：WPF 在构造时抓 `Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher`（无 `Application.Current` 的 STA 验证进程也能用）；Avalonia 直接用 `Dispatcher.UIThread` 单例 |
 | 2 | `IUiTimerFactory`（+ `IUiTimer`） | `Ports/IUiTimerFactory.cs`、`Ports/IUiTimer.cs` | `WpfUiTimerFactory.cs` | `AvaloniaUiTimerFactory.cs` | 同一语义：`DispatcherTimer`，tick 落在 UI 线程，`Dispose` 之后 tick 置空 |
-| 3 | `ITextInputFocusProbe` | `Ports/ITextInputFocusProbe.cs` | `WpfTextInputFocusProbe.cs` | `AvaloniaTextInputFocusProbe.cs` | WPF 沿逻辑树+视觉树向上判 `TextBoxBase`/`PasswordBox`/可编辑或展开的 `ComboBox`；Avalonia 沿**视觉树**判 `TextBox`/`ComboBox{IsEditable,IsDropDownOpen}`，`PasswordBox` 无对应（yu-ui `NumericBox` 内是 `PART_TextBox`，仍被覆盖） |
+| 3 | `ITextInputFocusProbe` | `Ports/ITextInputFocusProbe.cs` | `WpfTextInputFocusProbe.cs` | `AvaloniaTextInputFocusProbe.cs` | WPF 沿逻辑树+视觉树向上判 `TextBoxBase`/`PasswordBox`/可编辑或展开的 `ComboBox`；Avalonia 沿**视觉树**判 `TextBox`/`ComboBox{IsEditable,IsDropDownOpen}`，`PasswordBox` 无对应（DeepVisionSharp.UI `NumericBox` 内是 `PART_TextBox`，仍被覆盖） |
 | 4 | `IClipboardService` | `Ports/IClipboardService.cs` | `WpfClipboardService.cs` | `AvaloniaClipboardService.cs` | 异常契约相同（文件不存在 / 空文件抛）。差异：WPF 同步 `Clipboard.SetImage(BitmapImage)` 并 `Freeze()`；Avalonia 走 `SetBitmapAsync` 且**必须保留最近一次 Bitmap 不释放**（粘贴时才读），失败路径自己 Dispose——这条容易写成 use-after-dispose。Avalonia 的 `SetText` 在剪贴板不可用 / 空串时静默返回，WPF 会把底层异常抛出 |
 | 5 | `IImageSourceFactory` | `Ports/IImageSourceFactory.cs` | `WpfImageSourceFactory.cs`（返回 `BitmapImage`） | `AvaloniaImageSourceFactory.cs`（返回 **Avalonia `Bitmap`**） | 接口返回 `object?`，ViewModel 不读成员，绑定层直接当图片用。解码语义逐值对齐：缩略图按解码宽度降采样；像素尺寸从解码后的位图读；读文件共享模式 `FileShare.ReadWrite \| FileShare.Delete`（别的进程正在写也能读）。**不要**在 ViewModel 里把返回值 cast 成具体类型 |
 | 6 | `IAppThemeService` | `Ports/IAppThemeService.cs` | `Shell/Services/AppThemeService.cs` | `AvaloniaAppThemeService.cs` | 偏好枚举 `ShellThemePreference` 共用；`System` 的判定都读注册表 `HKCU\...\Themes\Personalize\AppsUseLightTheme`。落地机制不同：WPF 调 `IvTheme.Apply(app, IvThemeMode)`；Avalonia 设 `Application.RequestedThemeVariant` |
@@ -204,7 +204,7 @@ Program/App.OnStartup
 ```
 
 WPF 的 `App` 还提供了两个验证入口：`StartupArgsOverride`（验证宿主预置参数）和 `virtual CreateHost(...)`
-（验证宿主只替换叶子注册）。`Views/YuUiStyleProbeWindow.xaml` 是控件视觉基准页。
+（验证宿主只替换叶子注册）。`Views/DeepVisionSharpUIStyleProbeWindow.xaml` 是控件视觉基准页。
 
 ### 4.2 Avalonia（迁移中）
 
@@ -273,8 +273,8 @@ MainWindow 构造
 2. 颜色/圆角/尺寸走 `{DynamicResource Iv*}`；只有源里本来就是硬编码常量时才照抄常量。
 3. **页面根节点不要写 implicit `TextBlock` 样式**：Avalonia 里文字基线来自 `ThemedWindow` 的
    `ControlTheme`（`FontFamily=IvFontFamily`、`FontSize=IvFontSizeBody`=14，见
-   `yu-ui.avalonia/Themes/Generic.axaml`），页面靠继承吃基线。用 implicit 样式压它会连带压掉图标按钮和主按钮配色
-   （WPF 侧的历史坑，见 `docs/yu-ui-migration.md` §1）。
+   `DeepVisionSharp.UI.Avalonia/Themes/Generic.axaml`），页面靠继承吃基线。用 implicit 样式压它会连带压掉图标按钮和主按钮配色
+   （WPF 侧的历史坑，见 `docs/DeepVisionSharp.UI-migration.md` §1）。
 4. 源控件缺失时**在页内留几何**而不是换成「差不多的图标」，例：
    `Views/InferencePage.axaml` 顶部用 `StreamGeometry` 定义 `InferenceIcon.Stop` / `InferenceIcon.ChartMultiple`。
 5. 不一致处一律在返回报告/本文 §7 记录，不许默默改行为。
@@ -317,7 +317,7 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\agent-render\render-aval
 harness 还会报「文本重叠 / 被裁切」类 layout issue；同一个页面从 `MainWindow` 里导航进去渲染就正常。
 
 **原因**：页面本身不声明文字基线。`FontFamily=IvFontFamily` / `FontSize=IvFontSizeBody`(14) 是
-`yu-ui.avalonia/Themes/Generic.axaml` 里 `controls:ThemedWindow` 的 `ControlTheme` 给的，页面靠**继承**吃这两个值。
+`DeepVisionSharp.UI.Avalonia/Themes/Generic.axaml` 里 `controls:ThemedWindow` 的 `ControlTheme` 给的，页面靠**继承**吃这两个值。
 单页渲染没有窗口这一层，文字退回默认字体与字号，行高与照抄时算好的像素框对不上，就互相压。
 
 **做法**：`-ViewType` 一律传 `DeepVisionSharp.Shell.Avalonia.MainWindow`，用 `DV_RENDER_PAGE` 之类的外部开关
@@ -375,7 +375,7 @@ harness 还会报「文本重叠 / 被裁切」类 layout issue；同一个页�
 
 ### 7.2 图标缺口：`IvIcons` 没有 `Stop` / `ChartMultiple`
 
-- 两套 `IvIcons`（`yu-ui/Icons/IvIcons.cs` 与 `yu-ui.avalonia/Icons/IvIcons.g.cs`）各 77 个几何，**缺 `Stop`、
+- 两套 `IvIcons`（`DeepVisionSharp.UI/Icons/IvIcons.cs` 与 `DeepVisionSharp.UI.Avalonia/Icons/IvIcons.g.cs`）各 77 个几何，**缺 `Stop`、
   `ChartMultiple`**（deepvision 的 `DvIcon` 里有）。
 - WPF 训练页把 `Stop24` 降级成 `IvIcons.Close`（`Views/Pages/TrainingPageResources.xaml:547` 有注明）；
   Avalonia 训练页同样用 `IvIcons.Close`。
@@ -433,7 +433,7 @@ harness 还会报「文本重叠 / 被裁切」类 layout issue；同一个页�
 - 根目录 `agent-render.json` 的 `AvaloniaRealShell`、仓库内工厂 `scripts/agent-render/ViewFactoryAvaloniaReal.cs`
   与包装脚本 `scripts/agent-render/render-avalonia-real.ps1` 已替代仓库外临时文件；默认 7 条路由 + stub training。
 - 工厂内的 `ResourceSources` 是唯一资源字典来源；脚本不再传 `-ResourceDictionary`，避免两处漂移。
-- 脚本动态收集业务 DLL，`yu-ui.avalonia.dll` 只取 `src/yu-ui.avalonia/bin/Debug/net10.0`，并由 `Sync-NativeDeps`
+- 脚本动态收集业务 DLL，`DeepVisionSharp.UI.Avalonia.dll` 只取 `src/DeepVisionSharp.UI.Avalonia/bin/Debug/net10.0`，并由 `Sync-NativeDeps`
   同步 `SQLite.Interop.dll`，避免「查询失败 + 空列表」的假象。
 - 产物落 `.outputs/agent-render/<timestamp>/`（已 gitignore），包含 `shots/`、`binding-errors/`、`summary/`、`report.json`；
   截图依赖本机 `%LOCALAPPDATA%`，不是跨机器 fixture，生成物不要提交。

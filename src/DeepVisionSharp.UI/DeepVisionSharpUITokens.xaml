@@ -1,0 +1,14 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!--
+      DeepVisionSharp.UI 令牌入口（只有令牌，没有隐式样式）。
+      现有页面在迁移期间只 merge 这一个文件：不改变任何控件外观，零回归。
+      源: InCube.UI.Avalonia/Tokens/*.axaml
+    -->
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/DeepVisionSharp.UI;component/Tokens/Palette.xaml" />
+        <ResourceDictionary Source="/DeepVisionSharp.UI;component/Tokens/Metrics.xaml" />
+        <ResourceDictionary Source="/DeepVisionSharp.UI;component/Tokens/Typography.xaml" />
+        <ResourceDictionary Source="/DeepVisionSharp.UI;component/Tokens/Motion.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+</ResourceDictionary>

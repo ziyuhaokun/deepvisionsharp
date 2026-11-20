@@ -5,8 +5,8 @@
 
 ## 1. 目标
 
-把 WPF-UI 从 Shell 里彻底摘掉，外壳改为 yu-ui 语言：
-自绘标题栏（`yu:ThemedWindow`）+ 自建侧边导航 + yu-ui 的提示条 / 对话框宿主。
+把 WPF-UI 从 Shell 里彻底摘掉，外壳改为 DeepVisionSharp.UI 语言：
+自绘标题栏（`dvsui:ThemedWindow`）+ 自建侧边导航 + DeepVisionSharp.UI 的提示条 / 对话框宿主。
 **对用户可见的行为必须保持**：导航项与顺序、主题切换、退出确认、提示条语义、对话框按钮与返回值、自动化 ID。
 
 ## 2. 宿主契约（父代理已落地，勿改签名）
@@ -40,7 +40,7 @@ public interface IPageHost
 public interface IDialogHost
 {
     bool IsAttached { get; }
-    Task<AppDialogResult> ShowAsync(YuUI.Controls.Dialog dialog, CancellationToken cancellationToken);
+    Task<AppDialogResult> ShowAsync(DeepVisionSharp.UI.Controls.Dialog dialog, CancellationToken cancellationToken);
     void Close(AppDialogResult result);
 }
 ```
@@ -109,9 +109,9 @@ services.AddSingleton<IAppDialogService>(sp => sp.GetRequiredService<AppDialogSe
 | `PageHost` | `ContentControl` | `IPageHost` 的内容区 |
 | `NavList` | `ListBox` | 侧边导航；每项 `Tag` 为 `AppRoute` 枚举值，选中即导航 |
 | `ThemeToggleButton` | `Button` | 主题切换（`IvIconButtonStyle`） |
-| `ThemeToggleIcon` | `yu:Icon` | 图标随主题在 `IvIcons.WeatherSunny`?`WeatherMoon` 间切换（**见第 5 节：IvIcons 里没有天气图标，用 Bolt/Sparkles 与 Scan 的替代方案由壳层 lane 自定并登记**） |
+| `ThemeToggleIcon` | `dvsui:Icon` | 图标随主题在 `IvIcons.WeatherSunny`?`WeatherMoon` 间切换（**见第 5 节：IvIcons 里没有天气图标，用 Bolt/Sparkles 与 Scan 的替代方案由壳层 lane 自定并登记**） |
 | `SnackbarLayer` | `Grid`/`Border` | `ISnackbarHost` 的浮层容器（右下角、`Panel.ZIndex=100`、`IsHitTestVisible=False`） |
-| `ShellDialog` | `yu:Dialog` | `IDialogHost` 的对话框 |
+| `ShellDialog` | `dvsui:Dialog` | `IDialogHost` 的对话框 |
 | `DialogLayer` | `Grid` | 对话框浮层（`Panel.ZIndex=200`） |
 | `ShellTaskCenter` | `controls:TaskCenterPanel` | 保留原名与位置（`ZIndex=90`） |
 
@@ -127,7 +127,7 @@ services.AddSingleton<IAppDialogService>(sp => sp.GetRequiredService<AppDialogSe
 | 6 | 推理 | `IvIcons.Bolt` | `dv.nav.inference` | `AppRoute.Inference` |
 | 7 | 设置（底部） | `IvIcons.Settings` | `dv.nav.settings` | `AppRoute.Settings` |
 
-样式：`ListBox` 隐式样式 + 每项 `Style="{StaticResource IvSidebarItemStyle}"`（yu-ui 已提供，32 高、左 2px 强调条）。
+样式：`ListBox` 隐式样式 + 每项 `Style="{StaticResource IvSidebarItemStyle}"`（DeepVisionSharp.UI 已提供，32 高、左 2px 强调条）。
 
 ## 5. 已知缺口（必须登记，不许自己造视觉）
 
@@ -143,7 +143,7 @@ services.AddSingleton<IAppDialogService>(sp => sp.GetRequiredService<AppDialogSe
 | 父代理（已完成） | `Services/Hosting/ISnackbarHost.cs`、`Services/Hosting/IPageHost.cs`、`Services/Hosting/IDialogHost.cs`、`Services/IAppThemeService.cs`、本文件 |
 | P 服务层 | `Services/Navigation/AppNavigationService.cs`、`Services/ShellSnackbarNotifier.cs`、`Services/Dialogs/AppDialogService.cs`、`Services/WpfAppThemeService.cs`（改名为 `Services/AppThemeService.cs`）、`ShellHost.cs`、`DeepVisionSharp.Shell.csproj`、`Services/Labeling/LabelingKeyboardNavigation.cs` |
 | Q 壳层 | `MainWindow.xaml`、`MainWindow.xaml.cs` |
-| R 资源与收尾 | `App.xaml`、`App.xaml.cs`、`docs/yu-ui-migration.md`、`CHANGELOG.md`、`CHANGELOG.Developer.md` |
+| R 资源与收尾 | `App.xaml`、`App.xaml.cs`、`docs/DeepVisionSharp.UI-migration.md`、`CHANGELOG.md`、`CHANGELOG.Developer.md` |
 
 ## 7. 返回要求
 
@@ -154,10 +154,10 @@ services.AddSingleton<IAppDialogService>(sp => sp.GetRequiredService<AppDialogSe
 
 **agent-offscreen-render 的 `windowHost` 模式只截 `window.Content`**（宿主源码 `assets/wpf/Program.cs` 取 `window?.Content`；README 与 `references/integration.md` 也写明"截取 Window.Content"）。
 
-后果：**画在 `Window` 的 `ControlTemplate` 里的 chrome（本例即 `yu:ThemedWindow` 的 `PART_TitleBar`：标题、图标、最小化/最大化/关闭）永远不会出现在截图里**，看起来像"内容从 y=0 开始、标题栏不见了"。这与 XAML 怎么写无关。
+后果：**画在 `Window` 的 `ControlTemplate` 里的 chrome（本例即 `dvsui:ThemedWindow` 的 `PART_TitleBar`：标题、图标、最小化/最大化/关闭）永远不会出现在截图里**，看起来像"内容从 y=0 开始、标题栏不见了"。这与 XAML 怎么写无关。
 
 已排除的假设（附证据方向，避免重走）：
-- 主题字典 merge 失效 —— 同机制下 `yu:Icon`/`FormSection`/`FormRow`/`NumericBox` 默认样式均正常。
+- 主题字典 merge 失效 —— 同机制下 `dvsui:Icon`/`FormSection`/`FormRow`/`NumericBox` 默认样式均正常。
 - 图标几何有问题 —— 四个窗口按钮几何在 12px 下单独渲染正常。
 - 模板 / `DefaultStyleKey` 没命中 —— 对真实窗口取 `Style`、`Template.TargetType` 均指向 `ThemedWindow`，`PART_TitleBar`(700×52) 与三个 `PART_*Button`(40×32) 都在树上且位置正确。
 

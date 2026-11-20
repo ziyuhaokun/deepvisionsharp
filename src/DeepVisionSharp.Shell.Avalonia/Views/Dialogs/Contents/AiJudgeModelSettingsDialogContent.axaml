@@ -1,7 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:iv="clr-namespace:YuUI.Controls;assembly=yu-ui.avalonia"
-             xmlns:ui="clr-namespace:YuUI;assembly=yu-ui.avalonia"
+             xmlns:iv="clr-namespace:DeepVisionSharp.UI.Avalonia.Controls;assembly=DeepVisionSharp.UI.Avalonia"
+             xmlns:ui="clr-namespace:DeepVisionSharp.UI.Avalonia;assembly=DeepVisionSharp.UI.Avalonia"
              x:Class="DeepVisionSharp.Shell.Avalonia.Views.Dialogs.Contents.AiJudgeModelSettingsDialogContent"
              MinWidth="620" MaxWidth="720"
              TextElement.Foreground="{DynamicResource IvText1Brush}">

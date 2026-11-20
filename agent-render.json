@@ -19,7 +19,7 @@
       "watch": [
         "src/DeepVisionSharp.Shell.Avalonia/**",
         "src/DeepVisionSharp.Presentation/**",
-        "src/yu-ui.avalonia/**",
+        "src/DeepVisionSharp.UI.Avalonia/**",
         "scripts/agent-render/ViewFactoryAvaloniaReal.cs"
       ]
     }

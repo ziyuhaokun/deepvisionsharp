@@ -32,26 +32,26 @@ internal static class ViewFactory
 {
     private static readonly string[] ResourceSources =
     [
-        "avares://yu-ui.avalonia/Tokens/Palette.axaml",
-        "avares://yu-ui.avalonia/Tokens/Metrics.axaml",
-        "avares://yu-ui.avalonia/Tokens/Typography.axaml",
-        "avares://yu-ui.avalonia/Tokens/Motion.axaml",
-        "avares://yu-ui.avalonia/Themes/Generic.axaml",
-        "avares://yu-ui.avalonia/Themes/Forms.axaml",
-        "avares://yu-ui.avalonia/Styles/Common.axaml",
-        "avares://yu-ui.avalonia/Styles/Button.axaml",
-        "avares://yu-ui.avalonia/Styles/ButtonImplicit.axaml",
-        "avares://yu-ui.avalonia/Styles/TextInput.axaml",
-        "avares://yu-ui.avalonia/Styles/Selection.axaml",
-        "avares://yu-ui.avalonia/Styles/Switch.axaml",
-        "avares://yu-ui.avalonia/Styles/ProgressBar.axaml",
-        "avares://yu-ui.avalonia/Styles/Container.axaml",
-        "avares://yu-ui.avalonia/Styles/ScrollBar.axaml",
-        "avares://yu-ui.avalonia/Styles/Slider.axaml",
-        "avares://yu-ui.avalonia/Styles/List.axaml",
-        "avares://yu-ui.avalonia/Styles/ComboBox.axaml",
-        "avares://yu-ui.avalonia/Styles/TreeView.axaml",
-        "avares://yu-ui.avalonia/Styles/Menu.axaml",
+        "avares://DeepVisionSharp.UI.Avalonia/Tokens/Palette.axaml",
+        "avares://DeepVisionSharp.UI.Avalonia/Tokens/Metrics.axaml",
+        "avares://DeepVisionSharp.UI.Avalonia/Tokens/Typography.axaml",
+        "avares://DeepVisionSharp.UI.Avalonia/Tokens/Motion.axaml",
+        "avares://DeepVisionSharp.UI.Avalonia/Themes/Generic.axaml",
+        "avares://DeepVisionSharp.UI.Avalonia/Themes/Forms.axaml",
+        "avares://DeepVisionSharp.UI.Avalonia/Styles/Common.axaml",
+        "avares://DeepVisionSharp.UI.Avalonia/Styles/Button.axaml",
+        "avares://DeepVisionSharp.UI.Avalonia/Styles/ButtonImplicit.axaml",
+        "avares://DeepVisionSharp.UI.Avalonia/Styles/TextInput.axaml",
+        "avares://DeepVisionSharp.UI.Avalonia/Styles/Selection.axaml",
+        "avares://DeepVisionSharp.UI.Avalonia/Styles/Switch.axaml",
+        "avares://DeepVisionSharp.UI.Avalonia/Styles/ProgressBar.axaml",
+        "avares://DeepVisionSharp.UI.Avalonia/Styles/Container.axaml",
+        "avares://DeepVisionSharp.UI.Avalonia/Styles/ScrollBar.axaml",
+        "avares://DeepVisionSharp.UI.Avalonia/Styles/Slider.axaml",
+        "avares://DeepVisionSharp.UI.Avalonia/Styles/List.axaml",
+        "avares://DeepVisionSharp.UI.Avalonia/Styles/ComboBox.axaml",
+        "avares://DeepVisionSharp.UI.Avalonia/Styles/TreeView.axaml",
+        "avares://DeepVisionSharp.UI.Avalonia/Styles/Menu.axaml",
     ];
 
     /// <summary>DV_RENDER_PAGE → 路由与页面类型。页面类型只用于核对「导航服务是否已经挂上真页面」以及未迁移时的兜底。</summary>
@@ -125,6 +125,10 @@ internal static class ViewFactory
             }
 
             NavigateInShell(window, target.Route, target.PageType);
+            if (target.Route == AppRoute.Settings)
+            {
+                ApplySettingsViewState(window);
+            }
         }
 
         _isLoading = LoadingProbe(window);
@@ -150,6 +154,11 @@ internal static class ViewFactory
         }
 
         Pump(TimeSpan.FromMilliseconds(600));
+
+        if (FindControl<ContentControl>(view, "ContentHost")?.Content is SettingsPage settingsPage)
+        {
+            ApplySettingsViewState(settingsPage);
+        }
 
         if (_services.GetService(typeof(DashboardViewModel)) is DashboardViewModel dashboard)
         {
@@ -209,6 +218,54 @@ internal static class ViewFactory
         ((IPageHost)window).Show(page, route);
         Console.WriteLine($"[render] route {route} not migrated yet: hosted {page.GetType().Name} into shell content host");
     }
+
+    /// <summary>取证专用：DV_RENDER_SETTINGS_CATEGORY / DV_RENDER_SETTINGS_THEME 让设置页直接落在指定状态。</summary>
+    private static void ApplySettingsViewState(Control host)
+    {
+        var settings = host switch
+        {
+            SettingsPage { DataContext: SettingsViewModel viewModel } => viewModel,
+            MainWindow window => window.FindControl<ContentControl>("ContentHost")?.Content switch
+            {
+                SettingsPage { DataContext: SettingsViewModel viewModel } => viewModel,
+                _ => _services!.GetService(typeof(SettingsViewModel)) as SettingsViewModel,
+            },
+            _ => _services!.GetService(typeof(SettingsViewModel)) as SettingsViewModel,
+        };
+        if (settings is null)
+        {
+            return;
+        }
+
+        var requestedCategory = Environment.GetEnvironmentVariable("DV_RENDER_SETTINGS_CATEGORY");
+        if (!string.IsNullOrWhiteSpace(requestedCategory))
+        {
+            if (!Enum.TryParse<SettingsCategory>(requestedCategory, ignoreCase: true, out var category))
+            {
+                throw new InvalidOperationException(
+                    $"DV_RENDER_SETTINGS_CATEGORY={requestedCategory} 无效，可用值：{string.Join(" / ", Enum.GetNames<SettingsCategory>())}");
+            }
+
+            settings.SelectCategoryCommand.Execute(category);
+            Console.WriteLine($"[render] settings category -> {category}");
+        }
+
+        var requestedTheme = Environment.GetEnvironmentVariable("DV_RENDER_SETTINGS_THEME");
+        if (!string.IsNullOrWhiteSpace(requestedTheme))
+        {
+            if (!Enum.TryParse<ShellThemePreference>(requestedTheme, ignoreCase: true, out var theme))
+            {
+                throw new InvalidOperationException(
+                    $"DV_RENDER_SETTINGS_THEME={requestedTheme} 无效，可用值：{string.Join(" / ", Enum.GetNames<ShellThemePreference>())}");
+            }
+
+            settings.SelectThemeCommand.Execute(theme);
+            Console.WriteLine($"[render] settings theme -> {theme}");
+        }
+    }
+
+    private static T? FindControl<T>(Control root, string name) where T : Control =>
+        root.FindControl<T>(name) ?? (root as MainWindow)?.FindControl<T>(name);
 
     /// <summary>加载态从内容区页面的 DataContext 上取，避免和页面各自 New 出来的 ViewModel 实例对不上。</summary>
     private static Func<bool>? LoadingProbe(MainWindow window) => window.FindControl<ContentControl>("ContentHost")?.Content switch

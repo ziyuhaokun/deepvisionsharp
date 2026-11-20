@@ -6,7 +6,7 @@
 
     <ResourceDictionary.MergedDictionaries>
         <!-- 下面的卡片样式 BasedOn IvCardStyle：WPF 的 StaticResource 不跨同级 merge 的字典，故本字典自带容器样式 -->
-        <ResourceDictionary Source="pack://application:,,,/yu-ui;component/Styles/Container.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp.UI;component/Styles/Container.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />

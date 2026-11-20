@@ -5,7 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:yu="http://schemas.yu-ui/xaml"
+    xmlns:dvsui="http://schemas.deepvisionsharp.ui/xaml"
     xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters"
     xmlns:sections="clr-namespace:DeepVisionSharp.Shell.Views.Pages.Sections"
     xmlns:services="clr-namespace:DeepVisionSharp.Presentation.Services;assembly=DeepVisionSharp.Presentation"
@@ -78,11 +78,11 @@
                                 Width="32"
                                 Height="32"
                                 Style="{StaticResource IconTileStyle}">
-                                <yu:Icon
+                                <dvsui:Icon
                                     x:Name="CategoryIcon"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
-                                    Data="{x:Static yu:IvIcons.Grid}"
+                                    Data="{x:Static dvsui:IvIcons.Grid}"
                                     ViewSize="{DynamicResource IvIconSize}" />
                             </Border>
                             <TextBlock
@@ -95,16 +95,16 @@
                         </Grid>
                         <DataTemplate.Triggers>
                             <DataTrigger Binding="{Binding Id}" Value="{x:Static vm:SettingsCategory.Appearance}">
-                                <Setter TargetName="CategoryIcon" Property="Data" Value="{x:Static yu:IvIcons.Palette}" />
+                                <Setter TargetName="CategoryIcon" Property="Data" Value="{x:Static dvsui:IvIcons.Palette}" />
                             </DataTrigger>
                             <DataTrigger Binding="{Binding Id}" Value="{x:Static vm:SettingsCategory.Storage}">
-                                <Setter TargetName="CategoryIcon" Property="Data" Value="{x:Static yu:IvIcons.Folder}" />
+                                <Setter TargetName="CategoryIcon" Property="Data" Value="{x:Static dvsui:IvIcons.Folder}" />
                             </DataTrigger>
                             <DataTrigger Binding="{Binding Id}" Value="{x:Static vm:SettingsCategory.About}">
-                                <Setter TargetName="CategoryIcon" Property="Data" Value="{x:Static yu:IvIcons.Info}" />
+                                <Setter TargetName="CategoryIcon" Property="Data" Value="{x:Static dvsui:IvIcons.Info}" />
                             </DataTrigger>
                             <DataTrigger Binding="{Binding Id}" Value="{x:Static vm:SettingsCategory.Advanced}">
-                                <Setter TargetName="CategoryIcon" Property="Data" Value="{x:Static yu:IvIcons.Settings}" />
+                                <Setter TargetName="CategoryIcon" Property="Data" Value="{x:Static dvsui:IvIcons.Settings}" />
                             </DataTrigger>
                         </DataTemplate.Triggers>
                     </DataTemplate>

@@ -3,7 +3,7 @@
     x:Class="DeepVisionSharp.Shell.Views.Training.Sections.TrainingResultsSection"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:yu="http://schemas.yu-ui/xaml"
+    xmlns:dvsui="http://schemas.deepvisionsharp.ui/xaml"
     xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters"
     xmlns:controls="clr-namespace:DeepVisionSharp.Shell.Controls"
     xmlns:trainingControls="clr-namespace:DeepVisionSharp.Shell.Views.Training.Controls"
@@ -40,9 +40,9 @@
                                                 <ColumnDefinition Width="Auto" />
                                                 <ColumnDefinition Width="*" />
                                             </Grid.ColumnDefinitions>
-                                            <yu:Icon
+                                            <dvsui:Icon
                                                 Margin="0,1,12,0"
-                                                Data="{x:Static yu:IvIcons.Error}"
+                                                Data="{x:Static dvsui:IvIcons.Error}"
                                                 Foreground="{DynamicResource IvDangerBrush}"
                                                 ViewSize="{DynamicResource IvIconSize}" />
                                             <StackPanel Grid.Column="1">
@@ -391,9 +391,9 @@
                                         Style="{StaticResource EmptyStatePanelStyle}"
                                         Visibility="{Binding Monitor.ShowResultsEmptyState, Converter={StaticResource BooleanToVisibilityConverter}}">
                                         <!-- 源 WPF-UI SymbolIcon ChartMultiple24 在 IvIcons 里没有图表几何，降级为 Sliders -->
-                                        <yu:Icon
+                                        <dvsui:Icon
                                             HorizontalAlignment="Center"
-                                            Data="{x:Static yu:IvIcons.Sliders}"
+                                            Data="{x:Static dvsui:IvIcons.Sliders}"
                                             Foreground="{DynamicResource IvText2Brush}"
                                             ViewSize="36" />
                                         <TextBlock

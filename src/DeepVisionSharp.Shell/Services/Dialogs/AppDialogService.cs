@@ -3,7 +3,7 @@ using System.Windows.Automation;
 using System.Windows.Controls;
 using DeepVisionSharp.Shell.Services.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using YuUI.Controls;
+using DeepVisionSharp.UI.Controls;
 using WpfBinding = System.Windows.Data.Binding;
 using WpfBindingMode = System.Windows.Data.BindingMode;
 using WpfButton = System.Windows.Controls.Button;

@@ -4,7 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters"
-    xmlns:yu="http://schemas.yu-ui/xaml"
+    xmlns:dvsui="http://schemas.deepvisionsharp.ui/xaml"
     FontFamily="{DynamicResource IvFontFamily}"
     FontSize="{DynamicResource IvFontSizeBody}"
     Foreground="{DynamicResource IvText1Brush}">
@@ -47,10 +47,10 @@
                                         Style="{StaticResource IvPrimaryButtonStyle}">
                                         <StackPanel Orientation="Horizontal">
                                             <!-- 源 SymbolIcon Wrench24 → IvIcons.Settings（近义降级） -->
-                                            <yu:Icon
+                                            <dvsui:Icon
                                                 Margin="0,0,6,0"
                                                 VerticalAlignment="Center"
-                                                Data="{x:Static yu:IvIcons.Settings}"
+                                                Data="{x:Static dvsui:IvIcons.Settings}"
                                                 ViewSize="{DynamicResource IvIconSize}" />
                                             <TextBlock VerticalAlignment="Center" Text="执行检查修复" />
                                         </StackPanel>

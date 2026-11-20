@@ -3,7 +3,7 @@
     x:Class="DeepVisionSharp.Shell.Views.Pages.Sections.ModelsFilterSection"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:yu="http://schemas.yu-ui/xaml"
+    xmlns:dvsui="http://schemas.deepvisionsharp.ui/xaml"
     xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -24,12 +24,12 @@
                     <TextBox
                         Padding="30,0,8,0"
                         Text="{Binding List.Keyword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        yu:IvPlaceholder.Text="搜索模型名称或描述..." />
-                    <yu:Icon
+                        dvsui:IvPlaceholder.Text="搜索模型名称或描述..." />
+                    <dvsui:Icon
                         Margin="8,0,0,0"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Center"
-                        Data="{x:Static yu:IvIcons.Search}"
+                        Data="{x:Static dvsui:IvIcons.Search}"
                         Foreground="{DynamicResource IvText3Brush}"
                         IsHitTestVisible="False"
                         ViewSize="{DynamicResource IvIconSize}" />
@@ -55,9 +55,9 @@
                     Margin="12,0,0,0"
                     Command="{Binding List.ClearFiltersCommand}">
                     <StackPanel Orientation="Horizontal">
-                        <yu:Icon
+                        <dvsui:Icon
                             VerticalAlignment="Center"
-                            Data="{x:Static yu:IvIcons.Refresh}"
+                            Data="{x:Static dvsui:IvIcons.Refresh}"
                             ViewSize="{DynamicResource IvIconSize}" />
                         <TextBlock
                             Margin="8,0,0,0"

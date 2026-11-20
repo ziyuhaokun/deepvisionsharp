@@ -5,7 +5,7 @@
     <ProjectReference Include="..\DeepVisionSharp.Bootstrap\DeepVisionSharp.Bootstrap.csproj" />
     <ProjectReference Include="..\DeepVisionSharp.Domain\DeepVisionSharp.Domain.csproj" />
     <ProjectReference Include="..\DeepVisionSharp.Presentation\DeepVisionSharp.Presentation.csproj" />
-    <ProjectReference Include="..\yu-ui\yu-ui.csproj" />
+    <ProjectReference Include="..\DeepVisionSharp.UI\DeepVisionSharp.UI.csproj" />
   </ItemGroup>
 
   <ItemGroup>

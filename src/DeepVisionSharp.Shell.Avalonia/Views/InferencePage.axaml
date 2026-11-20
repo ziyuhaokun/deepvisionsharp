@@ -4,8 +4,8 @@
 -->
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:iv="clr-namespace:YuUI.Controls;assembly=yu-ui.avalonia"
-             xmlns:ui="clr-namespace:YuUI;assembly=yu-ui.avalonia"
+             xmlns:iv="clr-namespace:DeepVisionSharp.UI.Avalonia.Controls;assembly=DeepVisionSharp.UI.Avalonia"
+             xmlns:ui="clr-namespace:DeepVisionSharp.UI.Avalonia;assembly=DeepVisionSharp.UI.Avalonia"
              xmlns:dv="clr-namespace:DeepVisionSharp.Shell.Avalonia.Controls.Inference"
              xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base"
              xmlns:local="clr-namespace:DeepVisionSharp.Shell.Avalonia.Views"
@@ -19,7 +19,7 @@
         <local:IndexEqualsConverter x:Key="IndexEqualsConverter" />
         <local:CountIsZeroConverter x:Key="CountIsZeroConverter" />
 
-        <!-- yu-ui 的 IvIcons 没有 Stop / ChartMultiple 等价几何，这两条按 deepvision 的 DvIcon 原样留在本页 -->
+        <!-- DeepVisionSharp.UI.Avalonia 的 IvIcons 没有 Stop / ChartMultiple 等价几何，这两条按 deepvision 的 DvIcon 原样留在本页 -->
         <StreamGeometry x:Key="InferenceIcon.Stop">M6 6h12v12h-12z</StreamGeometry>
         <StreamGeometry x:Key="InferenceIcon.ChartMultiple">M3 3v16a2 2 0 0 0 2 2h16 M7 14v3 M12 10v7 M17 6v11</StreamGeometry>
 

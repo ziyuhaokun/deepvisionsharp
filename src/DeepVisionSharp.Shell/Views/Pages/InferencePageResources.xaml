@@ -4,7 +4,7 @@
     xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters">
 
         <!--
-          yu-ui 主题（令牌 + 样式）在本字典自持一份：字典里的 BasedOn / 刷子引用都要在本字典作用域内可解析。
+          DeepVisionSharp.UI 主题（令牌 + 样式）在本字典自持一份：字典里的 BasedOn / 刷子引用都要在本字典作用域内可解析。
           页面与各 Section 的根元素另各 merge 一次，作用域仍然是各自页面，不影响未迁移的页面。
         -->
         <ResourceDictionary.MergedDictionaries>
@@ -15,7 +15,7 @@
 
         <!--
           文字基线（FontFamily / FontSize / Foreground）由各视图根元素声明后靠继承传递。
-          这里刻意不写 implicit TextBlock 样式：它会压掉控件级字号与主按钮白字（docs/yu-ui-migration.md §1）。
+          这里刻意不写 implicit TextBlock 样式：它会压掉控件级字号与主按钮白字（docs/DeepVisionSharp.UI-migration.md §1）。
         -->
 
         <Style x:Key="PanelHeaderStyle" TargetType="{x:Type Border}">

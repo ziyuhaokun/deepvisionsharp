@@ -1,5 +1,5 @@
-<!-- 契约: docs/shell-chrome-contract.md §3/§4（宿主挂载 + MainWindow 命名元素 + 导航表）| 转换: FluentWindow → yu:ThemedWindow（自绘 52 标题栏）、原标题栏的中央/尾部内容下移到 40 高工具条行、NavigationView → 168 宽侧栏 ListBox、SnackbarPresenter/ContentDialogHost → SnackbarLayer/DialogLayer -->
-<yu:ThemedWindow
+<!-- 契约: docs/shell-chrome-contract.md §3/§4（宿主挂载 + MainWindow 命名元素 + 导航表）| 转换: FluentWindow → dvsui:ThemedWindow（自绘 52 标题栏）、原标题栏的中央/尾部内容下移到 40 高工具条行、NavigationView → 168 宽侧栏 ListBox、SnackbarPresenter/ContentDialogHost → SnackbarLayer/DialogLayer -->
+<dvsui:ThemedWindow
     x:Class="DeepVisionSharp.Shell.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -7,7 +7,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:nav="clr-namespace:DeepVisionSharp.Presentation.Services.Navigation;assembly=DeepVisionSharp.Presentation"
-    xmlns:yu="http://schemas.yu-ui/xaml"
+    xmlns:dvsui="http://schemas.deepvisionsharp.ui/xaml"
     Title="{Binding Title}"
     Width="1600"
     Height="1000"
@@ -67,9 +67,9 @@
                     Click="ToggleThemeMode"
                     Style="{StaticResource IvIconButtonStyle}"
                     ToolTipService.ToolTip="切换到深色模式">
-                    <yu:Icon
+                    <dvsui:Icon
                         x:Name="ThemeToggleIcon"
-                        Data="{x:Static yu:IvIcons.Sparkles}"
+                        Data="{x:Static dvsui:IvIcons.Sparkles}"
                         Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
                         ViewSize="16" />
                 </Button>
@@ -110,7 +110,7 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <yu:Icon VerticalAlignment="Center" Data="{x:Static yu:IvIcons.Home}" ViewSize="16" />
+                            <dvsui:Icon VerticalAlignment="Center" Data="{x:Static dvsui:IvIcons.Home}" ViewSize="16" />
                             <TextBlock
                                 Grid.Column="1"
                                 Margin="10,0,0,0"
@@ -130,7 +130,7 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <yu:Icon VerticalAlignment="Center" Data="{x:Static yu:IvIcons.Images}" ViewSize="16" />
+                            <dvsui:Icon VerticalAlignment="Center" Data="{x:Static dvsui:IvIcons.Images}" ViewSize="16" />
                             <TextBlock
                                 Grid.Column="1"
                                 Margin="10,0,0,0"
@@ -150,7 +150,7 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <yu:Icon VerticalAlignment="Center" Data="{x:Static yu:IvIcons.Bookmark}" ViewSize="16" />
+                            <dvsui:Icon VerticalAlignment="Center" Data="{x:Static dvsui:IvIcons.Bookmark}" ViewSize="16" />
                             <TextBlock
                                 Grid.Column="1"
                                 Margin="10,0,0,0"
@@ -170,7 +170,7 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <yu:Icon VerticalAlignment="Center" Data="{x:Static yu:IvIcons.Grid}" ViewSize="16" />
+                            <dvsui:Icon VerticalAlignment="Center" Data="{x:Static dvsui:IvIcons.Grid}" ViewSize="16" />
                             <TextBlock
                                 Grid.Column="1"
                                 Margin="10,0,0,0"
@@ -190,7 +190,7 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <yu:Icon VerticalAlignment="Center" Data="{x:Static yu:IvIcons.Play}" ViewSize="16" />
+                            <dvsui:Icon VerticalAlignment="Center" Data="{x:Static dvsui:IvIcons.Play}" ViewSize="16" />
                             <TextBlock
                                 Grid.Column="1"
                                 Margin="10,0,0,0"
@@ -210,7 +210,7 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <yu:Icon VerticalAlignment="Center" Data="{x:Static yu:IvIcons.Bolt}" ViewSize="16" />
+                            <dvsui:Icon VerticalAlignment="Center" Data="{x:Static dvsui:IvIcons.Bolt}" ViewSize="16" />
                             <TextBlock
                                 Grid.Column="1"
                                 Margin="10,0,0,0"
@@ -230,7 +230,7 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <yu:Icon VerticalAlignment="Center" Data="{x:Static yu:IvIcons.Settings}" ViewSize="16" />
+                            <dvsui:Icon VerticalAlignment="Center" Data="{x:Static dvsui:IvIcons.Settings}" ViewSize="16" />
                             <TextBlock
                                 Grid.Column="1"
                                 Margin="10,0,0,0"
@@ -284,11 +284,11 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <yu:Icon
+                <dvsui:Icon
                     x:Name="SnackbarIcon"
                     Margin="0,2,0,0"
                     VerticalAlignment="Top"
-                    Data="{x:Static yu:IvIcons.Info}"
+                    Data="{x:Static dvsui:IvIcons.Info}"
                     Foreground="{DynamicResource IvInfoBrush}"
                     ViewSize="16" />
                 <StackPanel Grid.Column="1" Margin="10,0,0,0">
@@ -306,13 +306,13 @@
             </Grid>
         </Border>
 
-        <!-- 对话框浮层：IDialogHost，遮罩与卡片由 yu:Dialog 自己的模板画 -->
+        <!-- 对话框浮层：IDialogHost，遮罩与卡片由 dvsui:Dialog 自己的模板画 -->
         <Grid
             x:Name="DialogLayer"
             Grid.RowSpan="2"
             Panel.ZIndex="200"
             Visibility="Collapsed">
-            <yu:Dialog x:Name="ShellDialog" />
+            <dvsui:Dialog x:Name="ShellDialog" />
         </Grid>
     </Grid>
-</yu:ThemedWindow>
+</dvsui:ThemedWindow>

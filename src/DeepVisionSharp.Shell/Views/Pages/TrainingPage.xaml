@@ -5,7 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:yu="http://schemas.yu-ui/xaml"
+    xmlns:dvsui="http://schemas.deepvisionsharp.ui/xaml"
     xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters"
     xmlns:training="clr-namespace:DeepVisionSharp.Shell.Views.Training"
     xmlns:domain="clr-namespace:DeepVisionSharp.Domain.Entities;assembly=DeepVisionSharp.Domain"
@@ -59,7 +59,7 @@
                             IsEnabled="{Binding JobList.IsTrainingWorkflow}"
                             Style="{StaticResource IvPrimaryButtonStyle}">
                             <StackPanel Orientation="Horizontal">
-                                <yu:Icon Data="{x:Static yu:IvIcons.Add}" ViewSize="{DynamicResource IvIconSize}" />
+                                <dvsui:Icon Data="{x:Static dvsui:IvIcons.Add}" ViewSize="{DynamicResource IvIconSize}" />
                                 <TextBlock
                                     Margin="8,0,0,0"
                                     VerticalAlignment="Center"
@@ -70,7 +70,7 @@
                             AutomationProperties.AutomationId="dv.training.refresh"
                             Command="{Binding JobList.LoadCommand}">
                             <StackPanel Orientation="Horizontal">
-                                <yu:Icon Data="{x:Static yu:IvIcons.Refresh}" ViewSize="{DynamicResource IvIconSize}" />
+                                <dvsui:Icon Data="{x:Static dvsui:IvIcons.Refresh}" ViewSize="{DynamicResource IvIconSize}" />
                                 <TextBlock
                                     Margin="8,0,0,0"
                                     VerticalAlignment="Center"
@@ -93,9 +93,9 @@
                 CornerRadius="{DynamicResource IvRadiusControl}"
                 Visibility="{Binding JobList.ShowProjectRequired, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <StackPanel Style="{StaticResource EmptyStatePanelStyle}">
-                    <yu:Icon
+                    <dvsui:Icon
                         HorizontalAlignment="Center"
-                        Data="{x:Static yu:IvIcons.Play}"
+                        Data="{x:Static dvsui:IvIcons.Play}"
                         Foreground="{DynamicResource IvText2Brush}"
                         ViewSize="36" />
                     <TextBlock
@@ -151,9 +151,9 @@
                                     IsHitTestVisible="False"
                                     Style="{StaticResource TaskListEmptyHintStyle}"
                                     Visibility="{Binding JobList.HasEmptyJobList, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                    <yu:Icon
+                                    <dvsui:Icon
                                         HorizontalAlignment="Center"
-                                        Data="{x:Static yu:IvIcons.Recipe}"
+                                        Data="{x:Static dvsui:IvIcons.Recipe}"
                                         Foreground="{DynamicResource IvText2Brush}"
                                         ViewSize="28" />
                                     <TextBlock
@@ -191,9 +191,9 @@
                         Visibility="{Binding JobList.ShowSelectJobPrompt, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <Grid VerticalAlignment="Stretch">
                             <StackPanel Style="{StaticResource EmptyStatePanelStyle}">
-                                <yu:Icon
+                                <dvsui:Icon
                                     HorizontalAlignment="Center"
-                                    Data="{x:Static yu:IvIcons.Pointer}"
+                                    Data="{x:Static dvsui:IvIcons.Pointer}"
                                     Foreground="{DynamicResource IvText2Brush}"
                                     ViewSize="36" />
                                 <TextBlock

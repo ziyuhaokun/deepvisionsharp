@@ -1,4 +1,4 @@
-<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Pages/DashboardPage.axaml（行 0 标题栏） | 转换: iv:Icon→yu:Icon（FontSize 15 → ViewSize 15）；工具条按钮用源 ControlTheme DvToolbarButtonStyle（34 高 / 13,0 内边距 / 13 号字）；「导入第三方」源有、本仓库无对应命令，故不添加 -->
+<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Pages/DashboardPage.axaml（行 0 标题栏） | 转换: iv:Icon→dvsui:Icon（FontSize 15 → ViewSize 15）；工具条按钮用源 ControlTheme DvToolbarButtonStyle（34 高 / 13,0 内边距 / 13 号字）；「导入第三方」源有、本仓库无对应命令，故不添加 -->
 <UserControl
     UseLayoutRounding="True"
     x:Class="DeepVisionSharp.Shell.Views.Pages.Sections.DashboardHeaderSection"
@@ -6,7 +6,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:yu="http://schemas.yu-ui/xaml"
+    xmlns:dvsui="http://schemas.deepvisionsharp.ui/xaml"
     mc:Ignorable="d">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -48,10 +48,10 @@
                 IsEnabled="{Binding Transfer.IsNotTransferring}"
                 Style="{StaticResource DvToolbarButtonStyle}">
                 <StackPanel Orientation="Horizontal">
-                    <yu:Icon
+                    <dvsui:Icon
                         Margin="0,0,6,0"
                         VerticalAlignment="Center"
-                        Data="{x:Static yu:IvIcons.ArrowUp}"
+                        Data="{x:Static dvsui:IvIcons.ArrowUp}"
                         ViewSize="15" />
                     <TextBlock VerticalAlignment="Center" Text="导入" />
                 </StackPanel>
@@ -64,10 +64,10 @@
                 Command="{Binding Editor.ShowCreateProjectDialogCommand}"
                 Style="{StaticResource IvPrimaryButtonStyle}">
                 <StackPanel Orientation="Horizontal">
-                    <yu:Icon
+                    <dvsui:Icon
                         Margin="0,0,6,0"
                         VerticalAlignment="Center"
-                        Data="{x:Static yu:IvIcons.Add}"
+                        Data="{x:Static dvsui:IvIcons.Add}"
                         ViewSize="15" />
                     <TextBlock VerticalAlignment="Center" Text="新建项目" />
                 </StackPanel>

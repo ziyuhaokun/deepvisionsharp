@@ -1,10 +1,10 @@
-<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Pages/Sections/LabelingFilmStripSection.axaml（样本条带） | 转换: WPF-UI Button+SymbolIcon→Button+yu:Icon（导航按钮走 IvIconButtonStyle 派生）；SymbolIcon→yu:Icon+ViewSize；颜色/字号/圆角走 Iv* 令牌；横向条带布局结构不变 -->
+<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Pages/Sections/LabelingFilmStripSection.axaml（样本条带） | 转换: WPF-UI Button+SymbolIcon→Button+dvsui:Icon（导航按钮走 IvIconButtonStyle 派生）；SymbolIcon→dvsui:Icon+ViewSize；颜色/字号/圆角走 Iv* 令牌；横向条带布局结构不变 -->
 <UserControl
     x:Class="DeepVisionSharp.Shell.Views.Pages.Sections.LabelingFilmStripSection"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters"
-    xmlns:yu="http://schemas.yu-ui/xaml"
+    xmlns:dvsui="http://schemas.deepvisionsharp.ui/xaml"
     FontFamily="{DynamicResource IvFontFamily}"
     FontSize="{DynamicResource IvFontSizeBody}"
     Foreground="{DynamicResource IvText1Brush}">
@@ -58,14 +58,14 @@
                             <Image
                                 Source="{Binding Thumbnail}"
                                 Stretch="UniformToFill" />
-                            <yu:Icon
+                            <dvsui:Icon
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
                                 Foreground="{DynamicResource IvText3Brush}"
                                 ViewSize="20">
-                                <yu:Icon.Style>
-                                    <Style TargetType="{x:Type yu:Icon}">
-                                        <Setter Property="Data" Value="{x:Static yu:IvIcons.Image}" />
+                                <dvsui:Icon.Style>
+                                    <Style TargetType="{x:Type dvsui:Icon}">
+                                        <Setter Property="Data" Value="{x:Static dvsui:IvIcons.Image}" />
                                         <Setter Property="Visibility" Value="Collapsed" />
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding Thumbnail}" Value="{x:Null}">
@@ -73,8 +73,8 @@
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
-                                </yu:Icon.Style>
-                            </yu:Icon>
+                                </dvsui:Icon.Style>
+                            </dvsui:Icon>
 
                             <StackPanel
                                 Margin="4,4,0,0"
@@ -104,16 +104,16 @@
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Top"
                                 Orientation="Horizontal">
-                                <yu:Icon
+                                <dvsui:Icon
                                     Margin="0,0,4,0"
                                     VerticalAlignment="Center"
                                     Foreground="{DynamicResource IvWarningBrush}"
                                     ToolTip="标注锚点"
                                     ViewSize="12">
-                                    <yu:Icon.Style>
-                                        <Style TargetType="{x:Type yu:Icon}">
+                                    <dvsui:Icon.Style>
+                                        <Style TargetType="{x:Type dvsui:Icon}">
                                             <!-- 源 SymbolIcon Pin24 → IvIcons.Flag（近义降级：图钉变旗） -->
-                                            <Setter Property="Data" Value="{x:Static yu:IvIcons.Flag}" />
+                                            <Setter Property="Data" Value="{x:Static dvsui:IvIcons.Flag}" />
                                             <Setter Property="Visibility" Value="Collapsed" />
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding IsAnchor}" Value="True">
@@ -121,8 +121,8 @@
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
-                                    </yu:Icon.Style>
-                                </yu:Icon>
+                                    </dvsui:Icon.Style>
+                                </dvsui:Icon>
                                 <Ellipse
                                     Width="8"
                                     Height="8"
@@ -222,7 +222,7 @@
                                         Command="{Binding Samples.NavigatePreviousSampleCommand}"
                                         Style="{StaticResource SampleNavButtonStyle}"
                                         ToolTip="上一张">
-                                        <yu:Icon Data="{x:Static yu:IvIcons.ChevronLeft}" ViewSize="{DynamicResource IvIconSize}" />
+                                        <dvsui:Icon Data="{x:Static dvsui:IvIcons.ChevronLeft}" ViewSize="{DynamicResource IvIconSize}" />
                                     </Button>
                                     <TextBlock
                                         MinWidth="56"
@@ -239,7 +239,7 @@
                                         Command="{Binding Samples.NavigateNextSampleCommand}"
                                         Style="{StaticResource SampleNavButtonStyle}"
                                         ToolTip="下一张（→；差异分类可用 Tab）">
-                                        <yu:Icon Data="{x:Static yu:IvIcons.ChevronRight}" ViewSize="{DynamicResource IvIconSize}" />
+                                        <dvsui:Icon Data="{x:Static dvsui:IvIcons.ChevronRight}" ViewSize="{DynamicResource IvIconSize}" />
                                     </Button>
                                 </StackPanel>
                             </Border>
@@ -275,7 +275,7 @@
                                         Command="{Binding Samples.GoToPreviousSamplePageCommand}"
                                         Style="{StaticResource SamplePageNavButtonStyle}"
                                         ToolTip="上一页">
-                                        <yu:Icon Data="{x:Static yu:IvIcons.ChevronLeft}" ViewSize="{DynamicResource IvIconSize}" />
+                                        <dvsui:Icon Data="{x:Static dvsui:IvIcons.ChevronLeft}" ViewSize="{DynamicResource IvIconSize}" />
                                     </Button>
                                     <TextBlock
                                         MinWidth="40"
@@ -290,23 +290,23 @@
                                         Command="{Binding Samples.GoToNextSamplePageCommand}"
                                         Style="{StaticResource SamplePageNavButtonStyle}"
                                         ToolTip="下一页">
-                                        <yu:Icon Data="{x:Static yu:IvIcons.ChevronRight}" ViewSize="{DynamicResource IvIconSize}" />
+                                        <dvsui:Icon Data="{x:Static dvsui:IvIcons.ChevronRight}" ViewSize="{DynamicResource IvIconSize}" />
                                     </Button>
                                 </StackPanel>
                                 <Button Command="{Binding Samples.ToggleSamplePanelCommand}" Style="{StaticResource SamplePanelToggleButtonStyle}">
-                                    <!-- 源在样式里用 Setter Property="Icon" 切换箭头，这里改成 yu:Icon + 同一 DataTrigger -->
-                                    <yu:Icon ViewSize="{DynamicResource IvIconSize}">
-                                        <yu:Icon.Style>
-                                            <Style TargetType="{x:Type yu:Icon}">
-                                                <Setter Property="Data" Value="{x:Static yu:IvIcons.ChevronDown}" />
+                                    <!-- 源在样式里用 Setter Property="Icon" 切换箭头，这里改成 dvsui:Icon + 同一 DataTrigger -->
+                                    <dvsui:Icon ViewSize="{DynamicResource IvIconSize}">
+                                        <dvsui:Icon.Style>
+                                            <Style TargetType="{x:Type dvsui:Icon}">
+                                                <Setter Property="Data" Value="{x:Static dvsui:IvIcons.ChevronDown}" />
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding Samples.IsSamplePanelExpanded}" Value="True">
-                                                        <Setter Property="Data" Value="{x:Static yu:IvIcons.ChevronUp}" />
+                                                        <Setter Property="Data" Value="{x:Static dvsui:IvIcons.ChevronUp}" />
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
-                                        </yu:Icon.Style>
-                                    </yu:Icon>
+                                        </dvsui:Icon.Style>
+                                    </dvsui:Icon>
                                 </Button>
                             </StackPanel>
                         </Grid>

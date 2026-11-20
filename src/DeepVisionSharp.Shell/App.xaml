@@ -5,12 +5,12 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <!-- yu-ui 全量入口（令牌 + 隐式样式），而不是只含令牌的 YuUiTokens.xaml：
+                <!-- DeepVisionSharp.UI 全量入口（令牌 + 隐式样式），而不是只含令牌的 DeepVisionSharpUITokens.xaml：
                      WPF-UI 的 ThemesDictionary / ControlsDictionary 已删除，按钮、输入框、列表、
                      滚动条、ComboBox、ProgressBar 这些原生控件的全局基线只能由这里提供。
                      IvTheme.Apply 会深度找到这里嵌套的 Tokens/Palette.xaml 并原地换入，位置不变。 -->
-                <ResourceDictionary Source="pack://application:,,,/yu-ui;component/YuUiTheme.xaml" />
-                <!-- Shell 级状态色（训练任务状态、数据集角色、任务中心、模型状态）：与 yu-ui 键名不重叠。 -->
+                <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp.UI;component/DeepVisionSharpUITheme.xaml" />
+                <!-- Shell 级状态色（训练任务状态、数据集角色、任务中心、模型状态）：与 DeepVisionSharp.UI 键名不重叠。 -->
                 <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Resources/StatusPalette.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>

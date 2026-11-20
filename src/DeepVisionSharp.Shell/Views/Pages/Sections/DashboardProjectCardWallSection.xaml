@@ -1,4 +1,4 @@
-﻿<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Pages/DashboardPage.axaml（卡片墙 ItemsControl + 卡片模板） | 转换: Border.projectCard→ContentControl+ProjectCardStyle（保留卡片级 AutomationId）；ImageBrush/BlurEffect/ScaleTransform/TextTrimming 原生可用；项目类型图标源用 ProjectTypeVisualConverter=Icon，本仓库转换器无 Icon 参数，沿用 DataTrigger 按 TypeKey 取 IvIcons 几何 -->
+<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Pages/DashboardPage.axaml（卡片墙 ItemsControl + 卡片模板） | 转换: Border.projectCard→ContentControl+ProjectCardStyle（保留卡片级 AutomationId）；ImageBrush/BlurEffect/ScaleTransform/TextTrimming 原生可用；项目类型图标源用 ProjectTypeVisualConverter=Icon，本仓库转换器无 Icon 参数，沿用 DataTrigger 按 TypeKey 取 IvIcons 几何 -->
 <UserControl
     UseLayoutRounding="True"
     x:Class="DeepVisionSharp.Shell.Views.Pages.Sections.DashboardProjectCardWallSection"
@@ -6,7 +6,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:yu="http://schemas.yu-ui/xaml"
+    xmlns:dvsui="http://schemas.deepvisionsharp.ui/xaml"
     xmlns:vo="clr-namespace:DeepVisionSharp.Domain.ValueObjects;assembly=DeepVisionSharp.Domain"
     mc:Ignorable="d">
     <UserControl.Resources>
@@ -88,23 +88,23 @@
                                 </Border>
 
                                 <!-- 无封面时的类型图标（源 FontSize=30，居中） -->
-                                <yu:Icon
+                                <dvsui:Icon
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
                                     Foreground="{Binding TypeKey, Converter={StaticResource ProjectTypeVisualConverter}, ConverterParameter=Foreground}"
                                     Visibility="{Binding HasThumbnail, Converter={StaticResource InverseBooleanToVisibilityConverter}}"
                                     ViewSize="30">
-                                    <yu:Icon.Style>
-                                        <Style TargetType="{x:Type yu:Icon}">
-                                            <Setter Property="Data" Value="{x:Static yu:IvIcons.Image}" />
+                                    <dvsui:Icon.Style>
+                                        <Style TargetType="{x:Type dvsui:Icon}">
+                                            <Setter Property="Data" Value="{x:Static dvsui:IvIcons.Image}" />
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding TypeKey}" Value="{x:Static vo:ProjectTypes.Detection}">
-                                                    <Setter Property="Data" Value="{x:Static yu:IvIcons.Scan}" />
+                                                    <Setter Property="Data" Value="{x:Static dvsui:IvIcons.Scan}" />
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
-                                    </yu:Icon.Style>
-                                </yu:Icon>
+                                    </dvsui:Icon.Style>
+                                </dvsui:Icon>
                             </Grid>
                         </Border>
 
@@ -169,9 +169,9 @@
                                 <StackPanel
                                     Margin="0,0,16,0"
                                     Orientation="Horizontal">
-                                    <yu:Icon
+                                    <dvsui:Icon
                                         VerticalAlignment="Center"
-                                        Data="{x:Static yu:IvIcons.Image}"
+                                        Data="{x:Static dvsui:IvIcons.Image}"
                                         Foreground="{DynamicResource IvText3Brush}"
                                         ViewSize="14" />
                                     <TextBlock
@@ -181,9 +181,9 @@
                                         Text="{Binding SampleCountText}" />
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal">
-                                    <yu:Icon
+                                    <dvsui:Icon
                                         VerticalAlignment="Center"
-                                        Data="{x:Static yu:IvIcons.Flag}"
+                                        Data="{x:Static dvsui:IvIcons.Flag}"
                                         Foreground="{DynamicResource IvText3Brush}"
                                         ViewSize="14" />
                                     <TextBlock
@@ -202,9 +202,9 @@
                                 </Grid.ColumnDefinitions>
 
                                 <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
-                                    <yu:Icon
+                                    <dvsui:Icon
                                         VerticalAlignment="Center"
-                                        Data="{x:Static yu:IvIcons.Clock}"
+                                        Data="{x:Static dvsui:IvIcons.Clock}"
                                         Foreground="{DynamicResource IvText3Brush}"
                                         ViewSize="14" />
                                     <TextBlock
@@ -226,10 +226,10 @@
                                     Style="{StaticResource IvSubtleButtonStyle}">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock VerticalAlignment="Center" Text="进入项目" />
-                                        <yu:Icon
+                                        <dvsui:Icon
                                             Margin="6,0,0,0"
                                             VerticalAlignment="Center"
-                                            Data="{x:Static yu:IvIcons.ArrowRight}"
+                                            Data="{x:Static dvsui:IvIcons.ArrowRight}"
                                             ViewSize="14" />
                                     </StackPanel>
                                 </Button>
@@ -264,7 +264,7 @@
                                             Header="删除项目" />
                                     </ContextMenu>
                                 </Button.ContextMenu>
-                                <yu:Icon Data="{x:Static yu:IvIcons.More}" ViewSize="{DynamicResource IvIconSize}" />
+                                <dvsui:Icon Data="{x:Static dvsui:IvIcons.More}" ViewSize="{DynamicResource IvIconSize}" />
                             </Button>
                         </Grid>
                     </Grid>

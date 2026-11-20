@@ -7,7 +7,7 @@
 
 - Windows + PowerShell 7（`#requires -Version 7.0`）。
 - agent-render 工具仓库根（含 `scripts/render.ps1`）：用环境变量 `AGENT_RENDER_ROOT` 指定，或调用时传 `-AgentRenderRoot`。
-- 已构建 Avalonia Shell 与 `yu-ui.avalonia`（脚本只读它们的 `bin/Debug` 输出，不在本脚本里构建/还原）。
+- 已构建 Avalonia Shell 与 `DeepVisionSharp.UI.Avalonia`（脚本只读它们的 `bin/Debug` 输出，不在本脚本里构建/还原）。
 - 真实数据默认读当前机器的 `%LOCALAPPDATA%\DeepVisionSharp\Data`。**截图依赖本机数据，不是跨机器 fixture**；换机器复现时先准备等价数据，不能只靠提交图片。
 - 配置文件与脚本里不放密钥；生成物也不要提交。
 
@@ -37,6 +37,18 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\agent-render\render-aval
   -Pages 'dashboard,training' -OutRoot 'C:\work\deepvisionsharp\.outputs\agent-render'
 ```
 
+设置页分区取证：`DV_RENDER_SETTINGS_CATEGORY` 可设为 `Appearance` / `Storage` / `About`（Advanced 需要调试解锁，脚本不处理）；
+`DV_RENDER_SETTINGS_THEME` 可设为 `Light` / `Dark`，在页面加载后覆盖本机持久化主题，避免「预设写 light、截图是深色」。
+例如：
+
+```powershell
+$env:DV_RENDER_SETTINGS_CATEGORY='Storage'
+$env:DV_RENDER_SETTINGS_THEME='Light'
+pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\agent-render\render-avalonia-real.ps1 -Pages settings
+```
+
+截图文件名仍为 `inwin-settings.png`，需要留档时自行改名。
+
 ## 产物
 
 每次运行写入 `<OutRoot>/<timestamp>/`（`yyyyMMdd-HHmmss`）：
@@ -51,6 +63,6 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\agent-render\render-aval
 ## 实现约束
 
 - `ViewFactoryAvaloniaReal.cs` 中的 `ResourceSources` 是唯一资源字典来源；包装脚本不再传 `-ResourceDictionary`，避免两处漂移。
-- 脚本动态收集 Shell 输出目录下的业务 DLL（FreeSql 需要反射加载 provider），并固定只把 `src/yu-ui.avalonia/bin/Debug/net10.0/yu-ui.avalonia.dll` 作为 `yu-ui.avalonia.dll` 的唯一来源，过滤 Shell 输出下的同名副本。
-- `Sync-NativeDeps` 会把 `SQLite.Interop.dll` 同步到离屏宿主的 `out/` 和 `out/runtimes/win-x64/native/`，否则真实数据查询失败会伪装成「空列表」。
+- 脚本动态收集 Shell 输出目录下的业务 DLL（FreeSql 需要反射加载 provider），并固定只把 `src/DeepVisionSharp.UI.Avalonia/bin/Debug/net10.0/DeepVisionSharp.UI.Avalonia.dll` 作为 `DeepVisionSharp.UI.Avalonia.dll` 的唯一来源，过滤 Shell 输出下的同名副本。
+- `Sync-HostRuntimeFiles` 会把 `SQLite.Interop.dll` 与 `CHANGELOG.md` 同步到离屏宿主的 `out/`；否则真实数据查询失败会伪装成「空列表」，设置页「关于」会报 4 条绑定错误。
 - 页面必须从 `MainWindow` 导航进入；直接渲染裸 `UserControl` 会丢掉窗口级字体/样式并产生假 layout issue。

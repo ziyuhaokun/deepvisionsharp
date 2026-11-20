@@ -8,8 +8,8 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Styling;
 
-using YuUI;
-using YuUI.Controls;
+using DeepVisionSharp.UI.Avalonia;
+using DeepVisionSharp.UI.Avalonia.Controls;
 
 namespace DeepVisionSharp.Shell.Avalonia.Services;
 
@@ -23,7 +23,7 @@ namespace DeepVisionSharp.Shell.Avalonia.Services;
 /// 同样不吞掉任何失败信息，区别只是退出动作挂在窗口关闭事件上。
 /// </para>
 /// <para>
-/// 用系统原生标题栏（<see cref="WindowDecorations.Full"/>）而不是 yu-ui 的自绘标题栏：
+/// 用系统原生标题栏（<see cref="WindowDecorations.Full"/>）而不是 DeepVisionSharp.UI.Avalonia 的自绘标题栏：
 /// 这条路径本身就是「外壳还没起来」，自绘标题栏没有可用的拖动/关闭逻辑，
 /// 而原生标题栏自带关闭按钮，用户不会看到关不掉的窗口。
 /// </para>

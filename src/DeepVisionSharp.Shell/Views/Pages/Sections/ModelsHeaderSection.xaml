@@ -3,7 +3,7 @@
     x:Class="DeepVisionSharp.Shell.Views.Pages.Sections.ModelsHeaderSection"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:yu="http://schemas.yu-ui/xaml"
+    xmlns:dvsui="http://schemas.deepvisionsharp.ui/xaml"
     xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -29,9 +29,9 @@
                     Orientation="Horizontal">
                     <Button Command="{Binding LoadCommand}">
                         <StackPanel Orientation="Horizontal">
-                            <yu:Icon
+                            <dvsui:Icon
                                 VerticalAlignment="Center"
-                                Data="{x:Static yu:IvIcons.Refresh}"
+                                Data="{x:Static dvsui:IvIcons.Refresh}"
                                 ViewSize="{DynamicResource IvIconSize}" />
                             <TextBlock
                                 Margin="8,0,0,0"

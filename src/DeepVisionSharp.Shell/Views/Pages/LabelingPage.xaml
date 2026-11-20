@@ -1,4 +1,4 @@
-<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Pages/LabelingPage.axaml | 转换: WPF-UI → yu-ui；页面级 merge YuUiTheme.xaml 提供隐式样式，文字基线在根 Grid 上用 TextElement.* 附加属性声明一次 -->
+<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Pages/LabelingPage.axaml | 转换: WPF-UI → DeepVisionSharp.UI；页面级 merge DeepVisionSharpUITheme.xaml 提供隐式样式，文字基线在根 Grid 上用 TextElement.* 附加属性声明一次 -->
 <Page
     x:Class="DeepVisionSharp.Shell.Views.Pages.LabelingPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"

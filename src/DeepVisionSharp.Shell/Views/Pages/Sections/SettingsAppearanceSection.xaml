@@ -5,7 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters"
     xmlns:services="clr-namespace:DeepVisionSharp.Presentation.Services;assembly=DeepVisionSharp.Presentation"
-    xmlns:yu="http://schemas.yu-ui/xaml"
+    xmlns:dvsui="http://schemas.deepvisionsharp.ui/xaml"
     FontFamily="{DynamicResource IvFontFamily}"
     FontSize="{DynamicResource IvFontSizeBody}"
     Foreground="{DynamicResource IvText1Brush}">
@@ -27,10 +27,10 @@
                                             <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
                                         <Border Style="{StaticResource IconTileStyle}">
-                                            <yu:Icon
+                                            <dvsui:Icon
                                                 HorizontalAlignment="Center"
                                                 VerticalAlignment="Center"
-                                                Data="{x:Static yu:IvIcons.Palette}"
+                                                Data="{x:Static dvsui:IvIcons.Palette}"
                                                 ViewSize="{DynamicResource IvIconSize}" />
                                         </Border>
                                         <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
@@ -79,10 +79,10 @@
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
                                     <Border Style="{StaticResource IconTileStyle}">
-                                        <yu:Icon
+                                        <dvsui:Icon
                                             HorizontalAlignment="Center"
                                             VerticalAlignment="Center"
-                                            Data="{x:Static yu:IvIcons.Warning}"
+                                            Data="{x:Static dvsui:IvIcons.Warning}"
                                             ViewSize="{DynamicResource IvIconSize}" />
                                     </Border>
                                     <StackPanel Grid.Column="1" Margin="12,0,16,0" VerticalAlignment="Center">

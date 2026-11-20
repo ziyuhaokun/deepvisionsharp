@@ -1,11 +1,11 @@
-<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Labeling/Cards/LabelingBoxListCard.axaml | 转换: WPF-UI Button+SymbolIcon→Button+yu:Icon（纯图标走 IconButtonStyle）；Square24→Shape、Eraser24→Close；颜色/字号/圆角走 Iv* 令牌（选中态品牌蓝沿用源硬编码常量） -->
+<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Labeling/Cards/LabelingBoxListCard.axaml | 转换: WPF-UI Button+SymbolIcon→Button+dvsui:Icon（纯图标走 IconButtonStyle）；Square24→Shape、Eraser24→Close；颜色/字号/圆角走 Iv* 令牌（选中态品牌蓝沿用源硬编码常量） -->
 <UserControl
     x:Class="DeepVisionSharp.Shell.Views.Labeling.Cards.LabelingBoxListCard"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:yu="http://schemas.yu-ui/xaml"
+    xmlns:dvsui="http://schemas.deepvisionsharp.ui/xaml"
     xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters"
     d:DesignHeight="600"
     d:DesignWidth="340"
@@ -58,7 +58,7 @@
                 Style="{StaticResource IconButtonStyle}"
                 ToolTip="清空当前样本的所有框">
                 <!-- 源 SymbolIcon Eraser24 在 IvIcons 里没有等价几何，降级为 Close -->
-                <yu:Icon Data="{x:Static yu:IvIcons.Close}" ViewSize="{DynamicResource IvIconSize}" />
+                <dvsui:Icon Data="{x:Static dvsui:IvIcons.Close}" ViewSize="{DynamicResource IvIconSize}" />
             </Button>
         </Grid>
 
@@ -154,7 +154,7 @@
                                             CommandParameter="{Binding}"
                                             Style="{StaticResource IconButtonStyle}"
                                             ToolTip="删除此目标">
-                                            <yu:Icon Data="{x:Static yu:IvIcons.Delete}" ViewSize="{DynamicResource IvIconSize}" />
+                                            <dvsui:Icon Data="{x:Static dvsui:IvIcons.Delete}" ViewSize="{DynamicResource IvIconSize}" />
                                         </Button>
                                     </Grid>
                                 </Border>
@@ -173,9 +173,9 @@
                     <Border BorderBrush="Transparent" BorderThickness="0">
                         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                             <!-- 源 SymbolIcon Square24 → IvIcons.Shape（近义降级：实心方块变四角点框） -->
-                            <yu:Icon
+                            <dvsui:Icon
                                 HorizontalAlignment="Center"
-                                Data="{x:Static yu:IvIcons.Shape}"
+                                Data="{x:Static dvsui:IvIcons.Shape}"
                                 Foreground="{DynamicResource IvText3Brush}"
                                 ViewSize="26" />
                             <TextBlock

@@ -47,20 +47,20 @@ if ($unknownPages.Count -gt 0) {
 }
 
 $shellBin = Join-Path $RepoRoot 'src/DeepVisionSharp.Shell.Avalonia/bin/Debug/net10.0-windows'
-$uiBin = Join-Path $RepoRoot 'src/yu-ui.avalonia/bin/Debug/net10.0'
+$uiBin = Join-Path $RepoRoot 'src/DeepVisionSharp.UI.Avalonia/bin/Debug/net10.0'
 if (-not (Test-Path -LiteralPath $shellBin -PathType Container)) {
     throw "找不到 Shell 输出目录：$shellBin（先构建 Avalonia Shell）。"
 }
-$uiDll = Join-Path $uiBin 'yu-ui.avalonia.dll'
+$uiDll = Join-Path $uiBin 'DeepVisionSharp.UI.Avalonia.dll'
 if (-not (Test-Path -LiteralPath $uiDll -PathType Leaf)) {
-    throw "找不到 yu-ui.avalonia 输出：$uiDll（先构建 yu-ui.avalonia）。"
+    throw "找不到 DeepVisionSharp.UI.Avalonia 输出：$uiDll（先构建 DeepVisionSharp.UI.Avalonia）。"
 }
 
 # 业务程序集全部当引用传给宿主：FreeSql 用 Assembly.Load 反射加载 provider，
-# 只有进了宿主 deps.json 的 DLL 才找得到。yu-ui.avalonia.dll 只取 yu-ui.avalonia 项目的 bin，
+# 只有进了宿主 deps.json 的 DLL 才找得到。DeepVisionSharp.UI.Avalonia.dll 只取 DeepVisionSharp.UI.Avalonia 项目的 bin，
 # 不重复带 Shell 输出下复制的同名 DLL；Avalonia* 由宿主自己提供。
 $refs = @(Get-ChildItem -LiteralPath $shellBin -Filter '*.dll' -File |
-    Where-Object { $_.Name -notlike 'Avalonia*' -and $_.Name -ne 'yu-ui.avalonia.dll' } |
+    Where-Object { $_.Name -notlike 'Avalonia*' -and $_.Name -ne 'DeepVisionSharp.UI.Avalonia.dll' } |
     Select-Object -ExpandProperty FullName)
 $refs += $uiDll
 if ($refs.Count -eq 0) { throw "没有可传给渲染宿主的业务 DLL：$shellBin" }

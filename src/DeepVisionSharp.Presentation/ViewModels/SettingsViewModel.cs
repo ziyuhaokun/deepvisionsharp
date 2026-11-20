@@ -150,7 +150,7 @@ public sealed partial class SettingsViewModel : ObservableObject
     public bool HasChangeLogEntries => _changeLog.HasEntries;
 
     public string ChangeLogEmptyHint => HasChangeLogEntries
-        ? string.Empty
+        ? "暂无当前版本更新记录。"
         : "未找到用户版 CHANGELOG.md 或未能解析版本节。技术细节见仓库 CHANGELOG.Developer.md。";
 
     public string HistoricalVersionsHint => HasHistoricalChangeLogEntries

@@ -3,7 +3,7 @@
     x:Class="DeepVisionSharp.Shell.Views.Dialogs.Contents.GalleryBatchInferenceDialogContent"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:yu="http://schemas.yu-ui/xaml"
+    xmlns:dvsui="http://schemas.deepvisionsharp.ui/xaml"
     MinWidth="540"
     MaxWidth="640"
     FontFamily="{DynamicResource IvFontFamily}"
@@ -143,7 +143,7 @@
                     Margin="0,16,0,0"
                     Visibility="{Binding ShowsMaxDetections, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <TextBlock Style="{StaticResource DialogFieldLabelStyle}" Text="最大结果数" />
-                    <yu:NumericBox
+                    <dvsui:NumericBox
                         Margin="0,8,0,0"
                         IsEnabled="{Binding IsConfigInteractive}"
                         Maximum="1000"

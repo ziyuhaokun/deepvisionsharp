@@ -7,7 +7,7 @@ using Avalonia.Styling;
 using Avalonia.Threading;
 using DeepVisionSharp.Presentation.Automation;
 using DeepVisionSharp.Presentation.Services.Dialogs;
-using YuUI.Controls;
+using DeepVisionSharp.UI.Avalonia.Controls;
 
 namespace DeepVisionSharp.Shell.Avalonia.Services;
 

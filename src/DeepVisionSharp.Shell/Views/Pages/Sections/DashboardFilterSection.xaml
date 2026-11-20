@@ -1,4 +1,4 @@
-﻿<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Pages/DashboardPage.axaml（行 1 筛选栏） | 转换: TextBox PlaceholderText→yu:IvPlaceholder.Text；iv:Icon→yu:Icon（FontSize 15 → ViewSize 15，源的 16×16 命中框保留为 Width/Height）；ComboBox 的 SelectedValueBinding+ItemTemplate → SelectedValuePath+DisplayMemberPath -->
+<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Pages/DashboardPage.axaml（行 1 筛选栏） | 转换: TextBox PlaceholderText→dvsui:IvPlaceholder.Text；iv:Icon→dvsui:Icon（FontSize 15 → ViewSize 15，源的 16×16 命中框保留为 Width/Height）；ComboBox 的 SelectedValueBinding+ItemTemplate → SelectedValuePath+DisplayMemberPath -->
 <UserControl
     UseLayoutRounding="True"
     x:Class="DeepVisionSharp.Shell.Views.Pages.Sections.DashboardFilterSection"
@@ -6,7 +6,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:yu="http://schemas.yu-ui/xaml"
+    xmlns:dvsui="http://schemas.deepvisionsharp.ui/xaml"
     mc:Ignorable="d">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -26,14 +26,14 @@
                 VerticalContentAlignment="Center"
                 FontSize="{DynamicResource IvFontSizeBodySmall}"
                 Text="{Binding List.Keyword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                yu:IvPlaceholder.Text="搜索项目名称或描述..." />
-            <yu:Icon
+                dvsui:IvPlaceholder.Text="搜索项目名称或描述..." />
+            <dvsui:Icon
                 Width="16"
                 Height="16"
                 Margin="11,0,0,0"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center"
-                Data="{x:Static yu:IvIcons.Search}"
+                Data="{x:Static dvsui:IvIcons.Search}"
                 Foreground="{DynamicResource IvText3Brush}"
                 IsHitTestVisible="False"
                 ViewSize="15" />

@@ -1,11 +1,11 @@
-<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Labeling/Cards/LabelingEditActionsCard.axaml | 转换: WPF-UI Button+SymbolIcon→Button+ToolIconButtonStyle（IvIconButtonStyle 派生）+yu:Icon；Sparkle24→Sparkles；颜色/字号走 Iv* 令牌 -->
+<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Labeling/Cards/LabelingEditActionsCard.axaml | 转换: WPF-UI Button+SymbolIcon→Button+ToolIconButtonStyle（IvIconButtonStyle 派生）+dvsui:Icon；Sparkle24→Sparkles；颜色/字号走 Iv* 令牌 -->
 <UserControl
     x:Class="DeepVisionSharp.Shell.Views.Labeling.Cards.LabelingEditActionsCard"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:yu="http://schemas.yu-ui/xaml"
+    xmlns:dvsui="http://schemas.deepvisionsharp.ui/xaml"
     d:DesignHeight="200"
     d:DesignWidth="280"
     FontFamily="{DynamicResource IvFontFamily}"
@@ -33,7 +33,7 @@
                     ToolTip="导入图像"
                     Visibility="{Binding ShowImport, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <!-- 源 SymbolIcon ArrowUpload24 在 IvIcons 里没有等价几何，降级为 ArrowUp -->
-                    <yu:Icon Data="{x:Static yu:IvIcons.ArrowUp}" ViewSize="{DynamicResource IvIconSize}" />
+                    <dvsui:Icon Data="{x:Static dvsui:IvIcons.ArrowUp}" ViewSize="{DynamicResource IvIconSize}" />
                 </Button>
                 <Button
                     Margin="0,0,6,6"
@@ -43,7 +43,7 @@
                     ToolTip="移动到其他图库（默认当前图；勾选后迁移勾选的样本）"
                     Visibility="{Binding ShowMove, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <!-- 源 SymbolIcon FolderArrowRight24 → IvIcons.FolderOpen（近义降级：少了出向箭头） -->
-                    <yu:Icon Data="{x:Static yu:IvIcons.FolderOpen}" ViewSize="{DynamicResource IvIconSize}" />
+                    <dvsui:Icon Data="{x:Static dvsui:IvIcons.FolderOpen}" ViewSize="{DynamicResource IvIconSize}" />
                 </Button>
                 <Button
                     Margin="0,0,6,6"
@@ -72,7 +72,7 @@
                         </ContextMenu>
                     </Button.ContextMenu>
                     <!-- 源 SymbolIcon Sparkle24 → IvIcons.Sparkles（直接等价） -->
-                    <yu:Icon Data="{x:Static yu:IvIcons.Sparkles}" ViewSize="{DynamicResource IvIconSize}" />
+                    <dvsui:Icon Data="{x:Static dvsui:IvIcons.Sparkles}" ViewSize="{DynamicResource IvIconSize}" />
                 </Button>
             </WrapPanel>
         </StackPanel>

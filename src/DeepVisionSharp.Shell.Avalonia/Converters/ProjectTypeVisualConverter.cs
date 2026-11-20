@@ -1,14 +1,14 @@
 using System.Globalization;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
-using YuUI;
+using DeepVisionSharp.UI.Avalonia;
 
 namespace DeepVisionSharp.Shell.Avalonia.Converters;
 
 /// <summary>项目类型视觉：图标 + 主色 + 淡底色。</summary>
 internal sealed record ProjectTypeVisual(Geometry Icon, Color Color, Color TintColor);
 
-/// <summary>与 deepvision 的 ProjectTypeVisuals 逐值一致（色值不动，图标换成 yu-ui 图标集）。</summary>
+/// <summary>与 deepvision 的 ProjectTypeVisuals 逐值一致（色值不动，图标换成 DeepVisionSharp.UI.Avalonia 图标集）。</summary>
 internal static class ProjectTypeVisuals
 {
     // ProjectTypes 的类型键（Domain 的 ProjectTypes 常量，本波不引用 Domain）

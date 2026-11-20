@@ -3,7 +3,7 @@
     x:Class="DeepVisionSharp.Shell.Views.Pages.Sections.ModelsListSection"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:yu="http://schemas.yu-ui/xaml"
+    xmlns:dvsui="http://schemas.deepvisionsharp.ui/xaml"
     xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -21,9 +21,9 @@
                 CornerRadius="{DynamicResource IvRadiusSmall}"
                 Visibility="{Binding List.HasEmptyState, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <StackPanel HorizontalAlignment="Center">
-                    <yu:Icon
+                    <dvsui:Icon
                         HorizontalAlignment="Center"
-                        Data="{x:Static yu:IvIcons.Tray}"
+                        Data="{x:Static dvsui:IvIcons.Tray}"
                         Foreground="{DynamicResource IvText2Brush}"
                         ViewSize="42" />
                     <TextBlock
@@ -81,7 +81,7 @@
                                         CommandParameter="{Binding Id}"
                                         Style="{StaticResource IvIconButtonStyle}"
                                         ToolTip="打开模型目录">
-                                        <yu:Icon Data="{x:Static yu:IvIcons.FolderOpen}" ViewSize="{DynamicResource IvIconSize}" />
+                                        <dvsui:Icon Data="{x:Static dvsui:IvIcons.FolderOpen}" ViewSize="{DynamicResource IvIconSize}" />
                                     </Button>
                                 </Grid>
 
@@ -108,7 +108,7 @@
                                         </Border>
                                         <Border Style="{StaticResource ModelMetaPillStyle}">
                                             <StackPanel Orientation="Horizontal">
-                                                <yu:Icon Data="{x:Static yu:IvIcons.Bookmark}" ViewSize="14" />
+                                                <dvsui:Icon Data="{x:Static dvsui:IvIcons.Bookmark}" ViewSize="14" />
                                                 <TextBlock
                                                     Margin="5,0,0,0"
                                                     VerticalAlignment="Center"
@@ -120,7 +120,7 @@
                                             Style="{StaticResource ModelMetaPillStyle}"
                                             Visibility="{Binding ShowsInputChannelsBadge, Converter={StaticResource BooleanToVisibilityConverter}}">
                                             <StackPanel Orientation="Horizontal">
-                                                <yu:Icon Data="{x:Static yu:IvIcons.Image}" ViewSize="14" />
+                                                <dvsui:Icon Data="{x:Static dvsui:IvIcons.Image}" ViewSize="14" />
                                                 <TextBlock
                                                     Margin="5,0,0,0"
                                                     VerticalAlignment="Center"
@@ -178,9 +178,9 @@
                                         Command="{Binding DataContext.List.ExportModelCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
                                         CommandParameter="{Binding Id}">
                                         <StackPanel Orientation="Horizontal">
-                                            <yu:Icon
+                                            <dvsui:Icon
                                                 VerticalAlignment="Center"
-                                                Data="{x:Static yu:IvIcons.ArrowDown}"
+                                                Data="{x:Static dvsui:IvIcons.ArrowDown}"
                                                 ViewSize="{DynamicResource IvIconSize}" />
                                             <TextBlock
                                                 Margin="8,0,0,0"

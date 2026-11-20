@@ -1,9 +1,9 @@
-<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Pages/GalleryPage.axaml（顶栏按钮组） | 转换: WPF-UI Button→Button（Appearance 映射见 docs/yu-ui-migration.md §2.1）；SymbolIcon→yu:Icon；颜色/字号走 Iv* 令牌 -->
+<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Pages/GalleryPage.axaml（顶栏按钮组） | 转换: WPF-UI Button→Button（Appearance 映射见 docs/DeepVisionSharp.UI-migration.md §2.1）；SymbolIcon→dvsui:Icon；颜色/字号走 Iv* 令牌 -->
 <UserControl
     x:Class="DeepVisionSharp.Shell.Views.Pages.Sections.GalleryHeaderSection"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:yu="http://schemas.yu-ui/xaml"
+    xmlns:dvsui="http://schemas.deepvisionsharp.ui/xaml"
     xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -40,11 +40,11 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <yu:Icon
+                        <dvsui:Icon
                             Grid.Column="0"
                             Margin="0,0,6,0"
                             VerticalAlignment="Center"
-                            Data="{x:Static yu:IvIcons.Calculator}"
+                            Data="{x:Static dvsui:IvIcons.Calculator}"
                             ViewSize="15" />
                         <TextBlock
                             Grid.Column="1"
@@ -102,11 +102,11 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <yu:Icon
+                        <dvsui:Icon
                             Grid.Column="0"
                             Margin="0,0,6,0"
                             VerticalAlignment="Center"
-                            Data="{x:Static yu:IvIcons.ArrowUp}"
+                            Data="{x:Static dvsui:IvIcons.ArrowUp}"
                             ViewSize="15" />
                         <TextBlock
                             Grid.Column="1"
@@ -125,11 +125,11 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <yu:Icon
+                        <dvsui:Icon
                             Grid.Column="0"
                             Margin="0,0,6,0"
                             VerticalAlignment="Center"
-                            Data="{x:Static yu:IvIcons.Add}"
+                            Data="{x:Static dvsui:IvIcons.Add}"
                             ViewSize="15" />
                         <TextBlock
                             Grid.Column="1"

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -9,6 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>14.0</LangVersion>
     <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
+    <ApplicationIcon>Assets\logo.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,11 +26,11 @@
     <ProjectReference Include="..\DeepVisionSharp.Bootstrap\DeepVisionSharp.Bootstrap.csproj" />
     <ProjectReference Include="..\DeepVisionSharp.Domain\DeepVisionSharp.Domain.csproj" />
     <ProjectReference Include="..\DeepVisionSharp.Presentation\DeepVisionSharp.Presentation.csproj" />
-    <ProjectReference Include="..\yu-ui.avalonia\yu-ui.avalonia.csproj" />
+    <ProjectReference Include="..\DeepVisionSharp.UI.Avalonia\DeepVisionSharp.UI.Avalonia.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <!-- 用户版变更日志（设置页「关于」唯一数据源）；开发者版 CHANGELOG.Developer.md 不复制。 -->
+    <AvaloniaResource Include="Assets\**" />
     <None Include="..\..\CHANGELOG.md" Link="CHANGELOG.md" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 

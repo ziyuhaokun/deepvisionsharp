@@ -168,30 +168,6 @@ public sealed class SampleSettingsContext : ObservableObject
 
     public string ChangeLogEmptyHint => "暂无更新记录。";
 
-    public bool HasHistoricalChangeLogEntries => true;
-
-    public string HistoricalVersionsHint => "更早的版本节点：";
-
-    public IReadOnlyList<SampleChangeLogEntry> HistoricalChangeLogEntries { get; } =
-    [
-        new()
-        {
-            VersionBadge = "v0.9.0",
-            Title = "v0.9.0 · 2025-10-02",
-            Items =
-            [
-                "增加 AI 判定标准集。",
-                "修复批量推理报告漏检率统计。",
-            ],
-        },
-        new()
-        {
-            VersionBadge = "v0.8.0",
-            Title = "v0.8.0 · 2025-09-11",
-            Items = ["图库支持按比例拆分。"],
-        },
-    ];
-
     public ICommand SelectThemeCommand { get; }
 
     public ICommand ShowDebugAccessCommand { get; }

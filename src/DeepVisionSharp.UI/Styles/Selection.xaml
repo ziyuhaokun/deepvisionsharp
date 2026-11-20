@@ -1,0 +1,312 @@
+<!-- 源: Styles/Selection.axaml (204 行) | 转换: ControlTheme→隐式 Style(x:Key={x:Type ...}), Grid ColumnDefinitions→Grid.ColumnDefinitions, 伪类→Trigger, Transitions→Storyboard(时长照抄源字面值), controls:Icon→dvsui:Icon(FontSize→ViewSize), 半选由源里备好的 IndeterminateLayer 接 IsChecked=null -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:dvsui="clr-namespace:DeepVisionSharp.UI.Controls"
+                    xmlns:dvsuiroot="clr-namespace:DeepVisionSharp.UI">
+
+    <!-- 复选框：16×16 方框，选中层淡入 + 对勾 0.5→1 缩放，按下整体 0.88 缩放 -->
+    <Style x:Key="{x:Type CheckBox}" TargetType="CheckBox">
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        <Setter Property="Background" Value="{DynamicResource IvInputBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeStrongBrush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource IvFontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource IvFontSizeBody}" />
+        <Setter Property="MinHeight" Value="{DynamicResource IvControlHeightSmall}" />
+        <Setter Property="Padding" Value="8,0,0,0" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <Grid Background="Transparent">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <!-- 源（Avalonia）默认 UseLayoutRounding=True：14×14 内容区里居中 13×13 的 Check 落在 2,6；
+                              WPF 默认关闭会把 Icon 排到 1.5,5.5，整个对勾偏左上半像素。 -->
+                        <Grid x:Name="BoxRoot"
+                              Width="16"
+                              Height="16"
+                              UseLayoutRounding="True"
+                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                              RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform>
+                                <ScaleTransform x:Name="BoxScale" ScaleX="1" ScaleY="1" />
+                            </Grid.RenderTransform>
+                            <Border x:Name="Box"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="{DynamicResource IvRadiusSmall}" />
+                            <Border x:Name="CheckedLayer"
+                                    Background="{DynamicResource IvAccentBrush}"
+                                    BorderBrush="{DynamicResource IvAccentBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="{DynamicResource IvRadiusSmall}"
+                                    Opacity="0">
+                                <dvsui:Icon x:Name="Check"
+                                         Data="{x:Static dvsuiroot:IvIcons.Check}"
+                                         ViewSize="{DynamicResource IvFontSizeBodySmall}"
+                                         Foreground="{DynamicResource IvTextOnAccentBrush}"
+                                         HorizontalAlignment="Center"
+                                         VerticalAlignment="Center"
+                                         RenderTransformOrigin="0.5,0.5">
+                                    <!-- 基础值直接写选中态终值 scale(1)：WPF 的模板触发器在模板应用时不执行 EnterActions，
+                                         终值若只写在动画里，静态首帧会停在源模板声明的起始值 0.5。 -->
+                                    <dvsui:Icon.RenderTransform>
+                                        <ScaleTransform x:Name="CheckScale" ScaleX="1" ScaleY="1" />
+                                    </dvsui:Icon.RenderTransform>
+                                </dvsui:Icon>
+                            </Border>
+                            <Border x:Name="IndeterminateLayer"
+                                    Background="{DynamicResource IvAccentBrush}"
+                                    BorderBrush="{DynamicResource IvAccentBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="{DynamicResource IvRadiusSmall}"
+                                    Visibility="Collapsed">
+                                <Rectangle x:Name="Dash"
+                                           Width="8"
+                                           Height="2"
+                                           RadiusX="1"
+                                           RadiusY="1"
+                                           Fill="{DynamicResource IvTextOnAccentBrush}" />
+                            </Border>
+                        </Grid>
+                        <ContentPresenter x:Name="Content"
+                                          Grid.Column="1"
+                                          Margin="{TemplateBinding Padding}"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="True" />
+                                <Condition Property="IsEnabled" Value="True" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Box" Property="Background" Value="{DynamicResource IvSurface3Brush}" />
+                            <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource IvText3Brush}" />
+                            <Setter TargetName="CheckedLayer" Property="Background" Value="{DynamicResource IvAccentHoverBrush}" />
+                            <Setter TargetName="IndeterminateLayer" Property="Background" Value="{DynamicResource IvAccentHoverBrush}" />
+                        </MultiTrigger>
+                        <!-- 源 ^:checked：选中层淡入 0:0:0.120 + 对勾 scale(1) 0:0:0.200 缓动，并隐藏半选层 -->
+                        <Trigger Property="IsChecked" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="CheckIn">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="CheckedLayer"
+                                                         Storyboard.TargetProperty="Opacity"
+                                                         From="0"
+                                                         To="1"
+                                                         Duration="0:0:0.120" />
+                                        <DoubleAnimation Storyboard.TargetName="CheckScale"
+                                                         Storyboard.TargetProperty="ScaleX"
+                                                         From="0.5"
+                                                         To="1"
+                                                         Duration="0:0:0.200">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut" />
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="CheckScale"
+                                                         Storyboard.TargetProperty="ScaleY"
+                                                         From="0.5"
+                                                         To="1"
+                                                         Duration="0:0:0.200">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut" />
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <!-- 源取消勾选时过渡随状态失效 → 瞬回初始值；WPF 需显式停掉动画才能落回基础值 -->
+                            <Trigger.ExitActions>
+                                <StopStoryboard BeginStoryboardName="CheckIn" />
+                            </Trigger.ExitActions>
+                            <Setter TargetName="IndeterminateLayer" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="CheckedLayer" Property="Opacity" Value="1" />
+                        </Trigger>
+                        <!-- 源 IndeterminateLayer 的可见性规则缺失（Avalonia 侧无 :indeterminate 选择器），按该层与 Dash 的既有视觉接到 IsChecked=null -->
+                        <Trigger Property="IsChecked" Value="{x:Null}">
+                            <Setter TargetName="IndeterminateLayer" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <!-- 源 ^:pressed：整体 scale(0.88)，0:0:0.060 -->
+                        <Trigger Property="IsPressed" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="PressIn">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="BoxScale"
+                                                         Storyboard.TargetProperty="ScaleX"
+                                                         To="0.88"
+                                                         Duration="0:0:0.060" />
+                                        <DoubleAnimation Storyboard.TargetName="BoxScale"
+                                                         Storyboard.TargetProperty="ScaleY"
+                                                         To="0.88"
+                                                         Duration="0:0:0.060" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <StopStoryboard BeginStoryboardName="PressIn" />
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Box" Property="Background" Value="{DynamicResource IvSurfaceDisabledBrush}" />
+                            <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource IvStrokeBrush}" />
+                            <Setter TargetName="CheckedLayer" Property="Background" Value="{DynamicResource IvSurfaceDisabledBrush}" />
+                            <Setter TargetName="Dash" Property="Fill" Value="{DynamicResource IvTextDisabledBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{DynamicResource IvTextDisabledBrush}" />
+                <Setter Property="Cursor" Value="Arrow" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- 单选：16×16 圆环，选中层淡入 + 内点 0→1 缩放 -->
+    <Style x:Key="{x:Type RadioButton}" TargetType="RadioButton">
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        <Setter Property="Background" Value="{DynamicResource IvInputBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeStrongBrush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource IvFontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource IvFontSizeBody}" />
+        <Setter Property="MinHeight" Value="{DynamicResource IvControlHeightSmall}" />
+        <Setter Property="Padding" Value="8,0,0,0" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Grid Background="Transparent">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid x:Name="BoxRoot"
+                              Width="16"
+                              Height="16"
+                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                              RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform>
+                                <ScaleTransform x:Name="BoxScale" ScaleX="1" ScaleY="1" />
+                            </Grid.RenderTransform>
+                            <Ellipse x:Name="Ring"
+                                     Fill="{TemplateBinding Background}"
+                                     Stroke="{TemplateBinding BorderBrush}"
+                                     StrokeThickness="1" />
+                            <Ellipse x:Name="CheckedRing"
+                                     Fill="{DynamicResource IvAccentBrush}"
+                                     Opacity="0" />
+                            <Ellipse x:Name="Dot"
+                                     Width="6"
+                                     Height="6"
+                                     Fill="{DynamicResource IvTextOnAccentBrush}"
+                                     RenderTransformOrigin="0.5,0.5">
+                                <!-- 基础值直接写选中态终值 scale(1)：WPF 的模板触发器在模板应用时不执行 EnterActions，
+                                     终值若只写在动画里，静态首帧会停在源模板声明的起始值 0。 -->
+                                <Ellipse.RenderTransform>
+                                    <ScaleTransform x:Name="DotScale" ScaleX="1" ScaleY="1" />
+                                </Ellipse.RenderTransform>
+                            </Ellipse>
+                        </Grid>
+                        <ContentPresenter x:Name="Content"
+                                          Grid.Column="1"
+                                          Margin="{TemplateBinding Padding}"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="True" />
+                                <Condition Property="IsEnabled" Value="True" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Ring" Property="Fill" Value="{DynamicResource IvSurface3Brush}" />
+                            <Setter TargetName="Ring" Property="Stroke" Value="{DynamicResource IvText3Brush}" />
+                            <Setter TargetName="CheckedRing" Property="Fill" Value="{DynamicResource IvAccentHoverBrush}" />
+                        </MultiTrigger>
+                        <!-- 源 ^:checked：选中层淡入 0:0:0.120 + 内点 scale(1) 0:0:0.200 缓动 -->
+                        <Trigger Property="IsChecked" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="RadioCheckIn">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="CheckedRing"
+                                                         Storyboard.TargetProperty="Opacity"
+                                                         From="0"
+                                                         To="1"
+                                                         Duration="0:0:0.120" />
+                                        <DoubleAnimation Storyboard.TargetName="DotScale"
+                                                         Storyboard.TargetProperty="ScaleX"
+                                                         From="0"
+                                                         To="1"
+                                                         Duration="0:0:0.200">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut" />
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="DotScale"
+                                                         Storyboard.TargetProperty="ScaleY"
+                                                         From="0"
+                                                         To="1"
+                                                         Duration="0:0:0.200">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut" />
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <!-- 源取消勾选时过渡随状态失效 → 瞬回初始值；WPF 需显式停掉动画 -->
+                            <Trigger.ExitActions>
+                                <StopStoryboard BeginStoryboardName="RadioCheckIn" />
+                            </Trigger.ExitActions>
+                            <Setter TargetName="CheckedRing" Property="Opacity" Value="1" />
+                        </Trigger>
+                        <!-- 源 ^:pressed：整体 scale(0.88)，0:0:0.060 -->
+                        <Trigger Property="IsPressed" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="RadioPressIn">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="BoxScale"
+                                                         Storyboard.TargetProperty="ScaleX"
+                                                         To="0.88"
+                                                         Duration="0:0:0.060" />
+                                        <DoubleAnimation Storyboard.TargetName="BoxScale"
+                                                         Storyboard.TargetProperty="ScaleY"
+                                                         To="0.88"
+                                                         Duration="0:0:0.060" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <StopStoryboard BeginStoryboardName="RadioPressIn" />
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Ring" Property="Fill" Value="{DynamicResource IvSurfaceDisabledBrush}" />
+                            <Setter TargetName="Ring" Property="Stroke" Value="{DynamicResource IvStrokeBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{DynamicResource IvTextDisabledBrush}" />
+                <Setter Property="Cursor" Value="Arrow" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+</ResourceDictionary>

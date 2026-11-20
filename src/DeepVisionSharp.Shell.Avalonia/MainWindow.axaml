@@ -1,11 +1,12 @@
 <iv:ThemedWindow xmlns="https://github.com/avaloniaui"
                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                xmlns:iv="clr-namespace:YuUI.Controls;assembly=yu-ui.avalonia"
+                xmlns:iv="clr-namespace:DeepVisionSharp.UI.Avalonia.Controls;assembly=DeepVisionSharp.UI.Avalonia"
                 xmlns:local="clr-namespace:DeepVisionSharp.Shell.Avalonia"
-                xmlns:ui="clr-namespace:YuUI;assembly=yu-ui.avalonia"
+                xmlns:ui="clr-namespace:DeepVisionSharp.UI.Avalonia;assembly=DeepVisionSharp.UI.Avalonia"
                 xmlns:views="clr-namespace:DeepVisionSharp.Shell.Avalonia.Views.Controls"
                 x:Class="DeepVisionSharp.Shell.Avalonia.MainWindow"
                 Title="DeepVisionSharp"
+                Icon="avares://DeepVisionSharp.Avalonia/Assets/logo.ico"
                 Width="1600"
                 Height="1000"
                 MinWidth="900"
@@ -205,11 +206,10 @@
                 <Grid Width="{Binding #NavRail.Bounds.Width}" ClipToBounds="True"
                       Classes.collapsed="{Binding $parent[local:MainWindow].IsNavCollapsed}">
                     <StackPanel Name="BrandPanel" Orientation="Horizontal" VerticalAlignment="Center">
-                        <iv:Icon Width="22"
-                                 Height="22"
-                                 Data="{x:Static ui:IvIcons.Cube}"
-                                 FontSize="20"
-                                 Foreground="{DynamicResource IvAccentBrush}" />
+                        <Image Width="22"
+                               Height="22"
+                               Source="avares://DeepVisionSharp.Avalonia/Assets/logo.png"
+                               Stretch="Uniform" />
                         <TextBlock MaxWidth="154"
                                    Margin="9,0,0,0"
                                    VerticalAlignment="Center"

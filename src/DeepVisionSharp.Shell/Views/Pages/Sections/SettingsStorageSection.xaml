@@ -4,7 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters"
-    xmlns:yu="http://schemas.yu-ui/xaml"
+    xmlns:dvsui="http://schemas.deepvisionsharp.ui/xaml"
     FontFamily="{DynamicResource IvFontFamily}"
     FontSize="{DynamicResource IvFontSizeBody}"
     Foreground="{DynamicResource IvText1Brush}">
@@ -33,10 +33,10 @@
                                         Command="{Binding OpenAppDataFolderCommand}"
                                         DockPanel.Dock="Bottom">
                                         <StackPanel Orientation="Horizontal">
-                                            <yu:Icon
+                                            <dvsui:Icon
                                                 Margin="0,0,6,0"
                                                 VerticalAlignment="Center"
-                                                Data="{x:Static yu:IvIcons.FolderOpen}"
+                                                Data="{x:Static dvsui:IvIcons.FolderOpen}"
                                                 ViewSize="{DynamicResource IvIconSize}" />
                                             <TextBlock VerticalAlignment="Center" Text="打开" />
                                         </StackPanel>
@@ -45,10 +45,10 @@
                                         <StackPanel Orientation="Horizontal">
                                             <Border Style="{StaticResource IconTileStyle}">
                                                 <!-- 源 SymbolIcon Database24 → IvIcons.Tray（近义降级） -->
-                                                <yu:Icon
+                                                <dvsui:Icon
                                                     HorizontalAlignment="Center"
                                                     VerticalAlignment="Center"
-                                                    Data="{x:Static yu:IvIcons.Tray}"
+                                                    Data="{x:Static dvsui:IvIcons.Tray}"
                                                     ViewSize="{DynamicResource IvIconSize}" />
                                             </Border>
                                             <TextBlock
@@ -79,10 +79,10 @@
                                         Command="{Binding OpenModelsFolderCommand}"
                                         DockPanel.Dock="Bottom">
                                         <StackPanel Orientation="Horizontal">
-                                            <yu:Icon
+                                            <dvsui:Icon
                                                 Margin="0,0,6,0"
                                                 VerticalAlignment="Center"
-                                                Data="{x:Static yu:IvIcons.FolderOpen}"
+                                                Data="{x:Static dvsui:IvIcons.FolderOpen}"
                                                 ViewSize="{DynamicResource IvIconSize}" />
                                             <TextBlock VerticalAlignment="Center" Text="打开" />
                                         </StackPanel>
@@ -90,10 +90,10 @@
                                     <StackPanel>
                                         <StackPanel Orientation="Horizontal">
                                             <Border Style="{StaticResource IconTileStyle}">
-                                                <yu:Icon
+                                                <dvsui:Icon
                                                     HorizontalAlignment="Center"
                                                     VerticalAlignment="Center"
-                                                    Data="{x:Static yu:IvIcons.Cube}"
+                                                    Data="{x:Static dvsui:IvIcons.Cube}"
                                                     ViewSize="{DynamicResource IvIconSize}" />
                                             </Border>
                                             <TextBlock
@@ -124,10 +124,10 @@
                                         Command="{Binding OpenLogsFolderCommand}"
                                         DockPanel.Dock="Bottom">
                                         <StackPanel Orientation="Horizontal">
-                                            <yu:Icon
+                                            <dvsui:Icon
                                                 Margin="0,0,6,0"
                                                 VerticalAlignment="Center"
-                                                Data="{x:Static yu:IvIcons.FolderOpen}"
+                                                Data="{x:Static dvsui:IvIcons.FolderOpen}"
                                                 ViewSize="{DynamicResource IvIconSize}" />
                                             <TextBlock VerticalAlignment="Center" Text="打开" />
                                         </StackPanel>
@@ -135,10 +135,10 @@
                                     <StackPanel>
                                         <StackPanel Orientation="Horizontal">
                                             <Border Style="{StaticResource IconTileStyle}">
-                                                <yu:Icon
+                                                <dvsui:Icon
                                                     HorizontalAlignment="Center"
                                                     VerticalAlignment="Center"
-                                                    Data="{x:Static yu:IvIcons.Document}"
+                                                    Data="{x:Static dvsui:IvIcons.Document}"
                                                     ViewSize="{DynamicResource IvIconSize}" />
                                             </Border>
                                             <TextBlock
@@ -169,10 +169,10 @@
                                         Command="{Binding OpenCrashDumpsFolderCommand}"
                                         DockPanel.Dock="Bottom">
                                         <StackPanel Orientation="Horizontal">
-                                            <yu:Icon
+                                            <dvsui:Icon
                                                 Margin="0,0,6,0"
                                                 VerticalAlignment="Center"
-                                                Data="{x:Static yu:IvIcons.FolderOpen}"
+                                                Data="{x:Static dvsui:IvIcons.FolderOpen}"
                                                 ViewSize="{DynamicResource IvIconSize}" />
                                             <TextBlock VerticalAlignment="Center" Text="打开" />
                                         </StackPanel>
@@ -181,10 +181,10 @@
                                         <StackPanel Orientation="Horizontal">
                                             <Border Style="{StaticResource IconTileStyle}">
                                                 <!-- 源 SymbolIcon Bug24 在 IvIcons 里没有等价几何，降级为 Warning -->
-                                                <yu:Icon
+                                                <dvsui:Icon
                                                     HorizontalAlignment="Center"
                                                     VerticalAlignment="Center"
-                                                    Data="{x:Static yu:IvIcons.Warning}"
+                                                    Data="{x:Static dvsui:IvIcons.Warning}"
                                                     ViewSize="{DynamicResource IvIconSize}" />
                                             </Border>
                                             <TextBlock
@@ -234,10 +234,10 @@
                                         Margin="0,0,8,0"
                                         Command="{Binding RefreshStorageInfoCommand}">
                                         <StackPanel Orientation="Horizontal">
-                                            <yu:Icon
+                                            <dvsui:Icon
                                                 Margin="0,0,6,0"
                                                 VerticalAlignment="Center"
-                                                Data="{x:Static yu:IvIcons.Refresh}"
+                                                Data="{x:Static dvsui:IvIcons.Refresh}"
                                                 ViewSize="{DynamicResource IvIconSize}" />
                                             <TextBlock VerticalAlignment="Center" Text="刷新" />
                                         </StackPanel>
@@ -246,10 +246,10 @@
                                         Command="{Binding ClearCacheCommand}"
                                         IsEnabled="{Binding IsNotCleaningCache}">
                                         <StackPanel Orientation="Horizontal">
-                                            <yu:Icon
+                                            <dvsui:Icon
                                                 Margin="0,0,6,0"
                                                 VerticalAlignment="Center"
-                                                Data="{x:Static yu:IvIcons.Delete}"
+                                                Data="{x:Static dvsui:IvIcons.Delete}"
                                                 ViewSize="{DynamicResource IvIconSize}" />
                                             <TextBlock VerticalAlignment="Center" Text="清理缓存" />
                                         </StackPanel>

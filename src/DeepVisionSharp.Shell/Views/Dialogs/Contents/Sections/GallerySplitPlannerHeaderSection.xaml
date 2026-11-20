@@ -3,7 +3,7 @@
     x:Class="DeepVisionSharp.Shell.Views.Dialogs.Contents.Sections.GallerySplitPlannerHeaderSection"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:yu="http://schemas.yu-ui/xaml"
+    xmlns:dvsui="http://schemas.deepvisionsharp.ui/xaml"
     FontFamily="{DynamicResource IvFontFamily}"
     FontSize="{DynamicResource IvFontSizeBody}"
     Foreground="{DynamicResource IvText1Brush}">
@@ -31,10 +31,10 @@
                     Height="36"
                     Background="{DynamicResource IvAccentSubtleBrush}"
                     CornerRadius="{DynamicResource IvRadiusControl}">
-                    <yu:Icon
+                    <dvsui:Icon
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
-                        Data="{x:Static yu:IvIcons.Images}"
+                        Data="{x:Static dvsui:IvIcons.Images}"
                         Foreground="{DynamicResource IvAccentBrush}"
                         ViewSize="20" />
                 </Border>

@@ -7,7 +7,7 @@
     <ResourceDictionary.MergedDictionaries>
         <!-- DvToolbarButtonStyle 的 BasedOn 是 IvButtonBaseStyle：WPF 的 StaticResource 不跨同级 merge 的字典，
              所以本字典自带按钮底模（各视图根部另有同样的 merge，WPF 允许重复合并）。 -->
-        <ResourceDictionary Source="pack://application:,,,/yu-ui;component/Styles/Button.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp.UI;component/Styles/Button.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
     <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />

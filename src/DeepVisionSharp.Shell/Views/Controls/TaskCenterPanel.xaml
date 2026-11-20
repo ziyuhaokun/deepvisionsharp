@@ -6,7 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="clr-namespace:DeepVisionSharp.Presentation.ViewModels;assembly=DeepVisionSharp.Presentation"
-    xmlns:yu="http://schemas.yu-ui/xaml"
+    xmlns:dvsui="http://schemas.deepvisionsharp.ui/xaml"
     d:DesignHeight="420"
     d:DesignWidth="400"
     FontFamily="{DynamicResource IvFontFamily}"
@@ -78,7 +78,7 @@
 
             <!--
                 源 TaskIconButtonStyle 基于 WPF-UI 隐式 Button + Appearance="Transparent"。
-                yu-ui 里 Appearance=Transparent 对应 IvSubtleButtonStyle（透明底 + 透明描边，hover 只叠 IvStateHoverBrush 层）。
+                DeepVisionSharp.UI 里 Appearance=Transparent 对应 IvSubtleButtonStyle（透明底 + 透明描边，hover 只叠 IvStateHoverBrush 层）。
                 底模的 MinHeight=IvControlHeight(30) 会压过显式 Height=28，故显式归零保留原 30×28 占位。
             -->
             <Style
@@ -150,10 +150,10 @@
                                     Background="{DynamicResource IvControlFillBrush}"
                                     CornerRadius="8">
                                     <!-- 源 SymbolIcon TaskListSquareLtr24 → IvIcons.List -->
-                                    <yu:Icon
+                                    <dvsui:Icon
                                         HorizontalAlignment="Center"
                                         VerticalAlignment="Center"
-                                        Data="{x:Static yu:IvIcons.List}"
+                                        Data="{x:Static dvsui:IvIcons.List}"
                                         ViewSize="{DynamicResource IvIconSize}" />
                                 </Border>
 
@@ -200,20 +200,20 @@
                             Command="{Binding ToggleExpandedCommand}"
                             Style="{StaticResource TaskIconButtonStyle}"
                             ToolTip="{Binding ExpandToggleToolTip}">
-                            <!-- 源按钮 Icon 属性（SymbolIcon ChevronUp24，收起态 ChevronDown24）→ yu:Icon 的 Data 触发器 -->
-                            <yu:Icon ViewSize="{DynamicResource IvIconSize}">
-                                <yu:Icon.Style>
-                                    <!-- 元素级 Style 不设 Template，BasedOn 取 yu-ui 的默认样式（Controls/Icon.xaml，随 YuUiTheme 一起 merge） -->
-                                    <Style BasedOn="{StaticResource {x:Type yu:Icon}}" TargetType="{x:Type yu:Icon}">
-                                        <Setter Property="Data" Value="{x:Static yu:IvIcons.ChevronUp}" />
+                            <!-- 源按钮 Icon 属性（SymbolIcon ChevronUp24，收起态 ChevronDown24）→ dvsui:Icon 的 Data 触发器 -->
+                            <dvsui:Icon ViewSize="{DynamicResource IvIconSize}">
+                                <dvsui:Icon.Style>
+                                    <!-- 元素级 Style 不设 Template，BasedOn 取 DeepVisionSharp.UI 的默认样式（Controls/Icon.xaml，随 DeepVisionSharpUITheme 一起 merge） -->
+                                    <Style BasedOn="{StaticResource {x:Type dvsui:Icon}}" TargetType="{x:Type dvsui:Icon}">
+                                        <Setter Property="Data" Value="{x:Static dvsui:IvIcons.ChevronUp}" />
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsExpanded}" Value="False">
-                                                <Setter Property="Data" Value="{x:Static yu:IvIcons.ChevronDown}" />
+                                                <Setter Property="Data" Value="{x:Static dvsui:IvIcons.ChevronDown}" />
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
-                                </yu:Icon.Style>
-                            </yu:Icon>
+                                </dvsui:Icon.Style>
+                            </dvsui:Icon>
                         </Button>
                     </Grid>
                 </Border>
@@ -284,19 +284,19 @@
                                                         CommandParameter="{Binding Id}"
                                                         Style="{StaticResource TaskIconButtonStyle}"
                                                         ToolTip="查看日志">
-                                                        <!-- 源按钮 Icon 属性（SymbolIcon ChevronDown24，展开态 ChevronUp24）→ yu:Icon 的 Data 触发器 -->
-                                                        <yu:Icon ViewSize="{DynamicResource IvIconSize}">
-                                                            <yu:Icon.Style>
-                                                                <Style BasedOn="{StaticResource {x:Type yu:Icon}}" TargetType="{x:Type yu:Icon}">
-                                                                    <Setter Property="Data" Value="{x:Static yu:IvIcons.ChevronDown}" />
+                                                        <!-- 源按钮 Icon 属性（SymbolIcon ChevronDown24，展开态 ChevronUp24）→ dvsui:Icon 的 Data 触发器 -->
+                                                        <dvsui:Icon ViewSize="{DynamicResource IvIconSize}">
+                                                            <dvsui:Icon.Style>
+                                                                <Style BasedOn="{StaticResource {x:Type dvsui:Icon}}" TargetType="{x:Type dvsui:Icon}">
+                                                                    <Setter Property="Data" Value="{x:Static dvsui:IvIcons.ChevronDown}" />
                                                                     <Style.Triggers>
                                                                         <DataTrigger Binding="{Binding IsExpanded}" Value="True">
-                                                                            <Setter Property="Data" Value="{x:Static yu:IvIcons.ChevronUp}" />
+                                                                            <Setter Property="Data" Value="{x:Static dvsui:IvIcons.ChevronUp}" />
                                                                         </DataTrigger>
                                                                     </Style.Triggers>
                                                                 </Style>
-                                                            </yu:Icon.Style>
-                                                        </yu:Icon>
+                                                            </dvsui:Icon.Style>
+                                                        </dvsui:Icon>
                                                     </Button>
                                                     <Button
                                                         Command="{Binding DataContext.DismissTaskCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
@@ -304,7 +304,7 @@
                                                         Style="{StaticResource TaskIconButtonStyle}"
                                                         ToolTip="关闭">
                                                         <!-- 源按钮 Icon 属性（SymbolIcon Dismiss24）→ IvIcons.Close -->
-                                                        <yu:Icon Data="{x:Static yu:IvIcons.Close}" ViewSize="{DynamicResource IvIconSize}" />
+                                                        <dvsui:Icon Data="{x:Static dvsui:IvIcons.Close}" ViewSize="{DynamicResource IvIconSize}" />
                                                     </Button>
                                                 </StackPanel>
                                             </Grid>

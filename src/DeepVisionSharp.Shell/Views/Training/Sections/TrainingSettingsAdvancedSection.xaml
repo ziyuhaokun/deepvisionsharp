@@ -3,7 +3,7 @@
     x:Class="DeepVisionSharp.Shell.Views.Training.Sections.TrainingSettingsAdvancedSection"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:yu="http://schemas.yu-ui/xaml"
+    xmlns:dvsui="http://schemas.deepvisionsharp.ui/xaml"
     xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters"
     xmlns:vo="clr-namespace:DeepVisionSharp.Domain.ValueObjects;assembly=DeepVisionSharp.Domain"
     xmlns:controls="clr-namespace:DeepVisionSharp.Shell.Controls"
@@ -60,7 +60,7 @@
                                                         <ColumnDefinition Width="Auto" />
                                                         <ColumnDefinition Width="*" MinWidth="180" />
                                                     </Grid.ColumnDefinitions>
-                                                    <yu:NumericBox
+                                                    <dvsui:NumericBox
                                                         Grid.Column="0"
                                                         Style="{StaticResource TrainingConfigNumberBoxStyle}"
                                                         MinWidth="180"
@@ -76,7 +76,7 @@
                                                         VerticalAlignment="Center"
                                                         FontSize="{DynamicResource IvFontSizeSubtitle}"
                                                         Text="×" />
-                                                    <yu:NumericBox
+                                                    <dvsui:NumericBox
                                                         Grid.Column="2"
                                                         Style="{StaticResource TrainingConfigNumberBoxStyle}"
                                                         MinWidth="180"
@@ -124,7 +124,7 @@
                                                                 Text="水平翻转概率" />
                                                             <controls:ParamHelpButton Title="水平翻转概率" HelpText="0–1，默认 0" />
                                                         </StackPanel>
-                                                        <yu:NumericBox
+                                                        <dvsui:NumericBox
                                                             Maximum="1"
                                                             Minimum="0"
                                                             Step="0.05"
@@ -140,7 +140,7 @@
                                                                 Text="垂直翻转概率" />
                                                             <controls:ParamHelpButton Title="垂直翻转概率" HelpText="0–1，默认 0" />
                                                         </StackPanel>
-                                                        <yu:NumericBox
+                                                        <dvsui:NumericBox
                                                             Maximum="1"
                                                             Minimum="0"
                                                             Step="0.05"
@@ -184,7 +184,7 @@
                                                                 Text="NMS IoU" />
                                                             <controls:ParamHelpButton Title="NMS IoU" HelpText="0.05–0.95，默认 0.45" />
                                                         </StackPanel>
-                                                        <yu:NumericBox
+                                                        <dvsui:NumericBox
                                                             Maximum="0.95"
                                                             Minimum="0.05"
                                                             Step="0.05"
@@ -199,7 +199,7 @@
                                                                 Text="评估置信度" />
                                                             <controls:ParamHelpButton Title="评估置信度" HelpText="0.01–0.99，默认 0.25" />
                                                         </StackPanel>
-                                                        <yu:NumericBox
+                                                        <dvsui:NumericBox
                                                             Maximum="0.99"
                                                             Minimum="0.01"
                                                             Step="0.05"
@@ -221,7 +221,7 @@
                                                                 Text="最大框数" />
                                                             <controls:ParamHelpButton Title="最大框数" HelpText="1–1000，默认 100" />
                                                         </StackPanel>
-                                                        <yu:NumericBox
+                                                        <dvsui:NumericBox
                                                             Maximum="1000"
                                                             Minimum="1"
                                                             Step="10"

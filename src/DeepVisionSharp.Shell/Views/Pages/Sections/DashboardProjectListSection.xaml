@@ -1,4 +1,4 @@
-<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Pages/DashboardPage.axaml（行 2 滚动内容区） | 转换: IsVisible→Visibility+BooleanToVisibilityConverter / InverseBooleanToVisibilityConverter；iv:Icon→yu:Icon（FontSize 26 → ViewSize 26）；空状态里源并排的「清除筛选」按钮在本仓库 Dashboard VM 无对应命令，故不添加 -->
+<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Pages/DashboardPage.axaml（行 2 滚动内容区） | 转换: IsVisible→Visibility+BooleanToVisibilityConverter / InverseBooleanToVisibilityConverter；iv:Icon→dvsui:Icon（FontSize 26 → ViewSize 26）；空状态里源并排的「清除筛选」按钮在本仓库 Dashboard VM 无对应命令，故不添加 -->
 <UserControl
     UseLayoutRounding="True"
     x:Class="DeepVisionSharp.Shell.Views.Pages.Sections.DashboardProjectListSection"
@@ -6,7 +6,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:yu="http://schemas.yu-ui/xaml"
+    xmlns:dvsui="http://schemas.deepvisionsharp.ui/xaml"
     xmlns:sections="clr-namespace:DeepVisionSharp.Shell.Views.Pages.Sections"
     mc:Ignorable="d">
     <UserControl.Resources>
@@ -40,10 +40,10 @@
                         HorizontalAlignment="Center"
                         Background="{DynamicResource IvControlFillBrush}"
                         CornerRadius="28">
-                        <yu:Icon
+                        <dvsui:Icon
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
-                            Data="{x:Static yu:IvIcons.FolderOpen}"
+                            Data="{x:Static dvsui:IvIcons.FolderOpen}"
                             Foreground="{DynamicResource IvText2Brush}"
                             ViewSize="26" />
                     </Border>
@@ -75,10 +75,10 @@
                         Style="{StaticResource IvPrimaryButtonStyle}"
                         Visibility="{Binding List.HasProjects, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
                         <StackPanel Orientation="Horizontal">
-                            <yu:Icon
+                            <dvsui:Icon
                                 Margin="0,0,6,0"
                                 VerticalAlignment="Center"
-                                Data="{x:Static yu:IvIcons.Add}"
+                                Data="{x:Static dvsui:IvIcons.Add}"
                                 ViewSize="15" />
                             <TextBlock VerticalAlignment="Center" Text="新建项目" />
                         </StackPanel>
