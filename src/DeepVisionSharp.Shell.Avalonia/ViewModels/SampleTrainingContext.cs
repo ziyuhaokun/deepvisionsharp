@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 using DeepVisionSharp.Application.Models;
+using DeepVisionSharp.Domain.Entities;
 using DeepVisionSharp.Presentation.ViewModels;
 
 namespace DeepVisionSharp.Shell.Avalonia.ViewModels;
@@ -42,6 +43,7 @@ public sealed class SampleTrainingJobList : ObservableObject
         {
             Id = "job-2",
             Name = "冷轧线划伤检测 · yolo11n",
+            Status = TrainingJobStatus.Running,
             StatusDisplay = "训练中",
             MetaText = "第 12 / 50 轮 · 已训练 6 分 21 秒 · GPU",
             BestModelPath = "runs/detect/job-2/weights/best.pt",
@@ -54,6 +56,7 @@ public sealed class SampleTrainingJobList : ObservableObject
             {
                 Id = "job-1",
                 Name = "电芯外观分类 · yolo11s-cls",
+                Status = TrainingJobStatus.Succeeded,
                 StatusDisplay = "已完成",
                 MetaText = "best top1 0.962 · 用时 18 分 07 秒",
                 BestModelPath = "runs/classify/job-1/weights/best.pt",
@@ -63,6 +66,7 @@ public sealed class SampleTrainingJobList : ObservableObject
             {
                 Id = "job-3",
                 Name = "注塑件异常检测 · patchcore",
+                Status = TrainingJobStatus.Draft,
                 StatusDisplay = "草稿",
                 MetaText = "已选数据集：注塑件良品采样（980 张）",
                 BestModelPath = string.Empty,
@@ -123,6 +127,8 @@ public sealed class SampleTrainingJob : ObservableObject
     public required string Id { get; init; }
 
     public required string Name { get; init; }
+
+    public required TrainingJobStatus Status { get; init; }
 
     public required string StatusDisplay { get; init; }
 

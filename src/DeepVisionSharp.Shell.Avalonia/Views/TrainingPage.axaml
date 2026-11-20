@@ -4,7 +4,49 @@
              xmlns:ui="clr-namespace:DeepVisionSharp.UI.Avalonia;assembly=DeepVisionSharp.UI.Avalonia"
              xmlns:dv="clr-namespace:DeepVisionSharp.Shell.Avalonia.Controls.Training"
              xmlns:training="clr-namespace:DeepVisionSharp.Shell.Avalonia.Controls.Training"
+             xmlns:conv="using:Avalonia.Data.Converters"
+             xmlns:domain="using:DeepVisionSharp.Domain.Entities"
              x:Class="DeepVisionSharp.Shell.Avalonia.Views.TrainingPage">
+
+    <UserControl.Resources>
+        <ControlTheme x:Key="TrainingJobItemTheme" TargetType="ListBoxItem">
+            <Setter Property="Padding" Value="12,9" />
+            <Setter Property="Margin" Value="0,0,0,4" />
+            <Setter Property="MinHeight" Value="60" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="JobRow" Background="Transparent" BorderBrush="Transparent"
+                            BorderThickness="1" CornerRadius="6">
+                        <Grid>
+                            <Border Name="SelectionIndicator" Width="3" Margin="0,9,0,9"
+                                    HorizontalAlignment="Left" CornerRadius="1.5"
+                                    Background="{DynamicResource IvAccentBrush}" IsVisible="False" />
+                            <ContentPresenter Name="PART_ContentPresenter"
+                                              Margin="{TemplateBinding Padding}"
+                                              VerticalAlignment="Center"
+                                              Content="{TemplateBinding Content}"
+                                              ContentTemplate="{TemplateBinding ContentTemplate}" />
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover:not(:disabled) /template/ Border#JobRow">
+                <Setter Property="Background" Value="{DynamicResource IvSurfaceSubtleHoverBrush}" />
+            </Style>
+            <Style Selector="^:selected /template/ Border#JobRow">
+                <Setter Property="Background" Value="{DynamicResource IvAccentSubtleBrush}" />
+            </Style>
+            <Style Selector="^:selected /template/ Border#SelectionIndicator">
+                <Setter Property="IsVisible" Value="True" />
+            </Style>
+            <Style Selector="^:focus-visible /template/ Border#JobRow">
+                <Setter Property="BorderBrush" Value="{DynamicResource IvFocusBrush}" />
+            </Style>
+            <Style Selector="^:disabled">
+                <Setter Property="Opacity" Value="0.5" />
+            </Style>
+        </ControlTheme>
+    </UserControl.Resources>
 
     <UserControl.Styles>
         <Style Selector="Button.trainingTab">
@@ -27,6 +69,28 @@
         </Style>
         <Style Selector="Border.emptyState">
             <Setter Property="Padding" Value="24" />
+        </Style>
+        <Style Selector="Border.trainingJobStatus">
+            <Setter Property="Padding" Value="7,3" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Background" Value="{DynamicResource IvSurface3Brush}" />
+            <Setter Property="TextElement.Foreground" Value="{DynamicResource IvText2Brush}" />
+        </Style>
+        <Style Selector="Border.trainingJobStatus.preparing">
+            <Setter Property="Background" Value="{DynamicResource IvWarningSubtleBrush}" />
+            <Setter Property="TextElement.Foreground" Value="{DynamicResource IvWarningTextBrush}" />
+        </Style>
+        <Style Selector="Border.trainingJobStatus.running">
+            <Setter Property="Background" Value="{DynamicResource IvInfoSubtleBrush}" />
+            <Setter Property="TextElement.Foreground" Value="{DynamicResource IvAccentTextBrush}" />
+        </Style>
+        <Style Selector="Border.trainingJobStatus.succeeded">
+            <Setter Property="Background" Value="{DynamicResource IvSuccessSubtleBrush}" />
+            <Setter Property="TextElement.Foreground" Value="{DynamicResource IvSuccessTextBrush}" />
+        </Style>
+        <Style Selector="Border.trainingJobStatus.failed">
+            <Setter Property="Background" Value="{DynamicResource IvDangerSubtleBrush}" />
+            <Setter Property="TextElement.Foreground" Value="{DynamicResource IvDangerTextBrush}" />
         </Style>
     </UserControl.Styles>
 
@@ -77,50 +141,78 @@
                 </StackPanel>
             </Border>
 
-            <Grid IsVisible="{Binding JobList.IsTrainingWorkflow}" ColumnDefinitions="0.32*,Auto,*">
-                <Border Grid.Column="0"
-                        Classes="panelSurface"
-                        Padding="14"
-                        IsVisible="{Binding JobList.IsTrainingWorkflow}">
-                    <DockPanel LastChildFill="True">
-                        <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
-                            <TextBlock VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold" Text="训练任务" />
-                            <Border MinWidth="20" Padding="6,0" HorizontalAlignment="Right" VerticalAlignment="Center" Background="{DynamicResource IvControlFillBrush}" CornerRadius="4">
-                                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource IvText2Brush}" Text="{Binding JobList.JobCount}" />
-                            </Border>
-                        </Grid>
+            <Grid IsVisible="{Binding JobList.IsTrainingWorkflow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="0.4*" MinWidth="208" MaxWidth="360" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
 
-                        <Grid>
-                            <ListBox ItemsSource="{Binding JobList.Jobs}"
-                                     SelectedItem="{Binding JobList.SelectedJob}">
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <Grid RowDefinitions="Auto,Auto" Margin="0,0,0,6">
-                                            <Grid ColumnDefinitions="*,Auto">
-                                                <TextBlock Margin="0,0,8,0"
-                                                           VerticalAlignment="Center"
-                                                           FontSize="13"
-                                                           FontWeight="SemiBold"
-                                                           Foreground="{DynamicResource IvText1Brush}"
-                                                           Text="{Binding Name}"
-                                                           TextTrimming="CharacterEllipsis" />
-                                                <Border Grid.Column="1" Padding="8,3" Background="{DynamicResource IvControlFillBrush}" CornerRadius="10">
-                                                    <TextBlock FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource IvText2Brush}" Text="{Binding StatusDisplay}" />
-                                                </Border>
-                                            </Grid>
-                                            <TextBlock Grid.Row="1" Margin="0,4,0,0" FontSize="11.5" Foreground="{DynamicResource IvText3Brush}" Text="{Binding MetaText}" TextTrimming="CharacterEllipsis" />
+                <Border Grid.Column="0" Classes="panelSurface">
+                    <Grid RowDefinitions="Auto,*">
+                        <Border Padding="14,12"
+                                BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                                BorderThickness="0,0,0,1">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                <TextBlock VerticalAlignment="Center"
+                                           FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource IvText1Brush}"
+                                           Text="训练任务" />
+                                <TextBlock Grid.Column="1" VerticalAlignment="Center"
+                                           FontSize="12"
+                                           Foreground="{DynamicResource IvText2Brush}"
+                                           Text="{Binding JobList.JobCount, StringFormat='{}{0} 项'}" />
+                            </Grid>
+                        </Border>
+
+                        <ListBox Grid.Row="1" Margin="8"
+                                 Background="Transparent" BorderThickness="0" Padding="0"
+                                 AutomationProperties.Name="训练任务"
+                                 ItemsSource="{Binding JobList.Jobs}"
+                                 SelectedItem="{Binding JobList.SelectedJob, Mode=TwoWay}"
+                                 ItemContainerTheme="{StaticResource TrainingJobItemTheme}"
+                                 IsVisible="{Binding !JobList.HasEmptyJobList}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Spacing="6">
+                                        <TextBlock FontSize="13" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource IvText1Brush}"
+                                                   Text="{Binding Name}"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   ToolTip.Tip="{Binding Name}" />
+                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                            <TextBlock VerticalAlignment="Center"
+                                                       FontSize="11.5"
+                                                       Foreground="{DynamicResource IvText2Brush}"
+                                                       Text="{Binding MetaText}"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       ToolTip.Tip="{Binding MetaText}" />
+                                            <Border Grid.Column="1" Classes="trainingJobStatus"
+                                                    Classes.preparing="{Binding Status, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter={x:Static domain:TrainingJobStatus.Preparing}}"
+                                                    Classes.running="{Binding Status, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter={x:Static domain:TrainingJobStatus.Running}}"
+                                                    Classes.succeeded="{Binding Status, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter={x:Static domain:TrainingJobStatus.Succeeded}}"
+                                                    Classes.failed="{Binding Status, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter={x:Static domain:TrainingJobStatus.Failed}}">
+                                                <TextBlock FontSize="11" FontWeight="SemiBold"
+                                                           Text="{Binding StatusDisplay}" />
+                                            </Border>
                                         </Grid>
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
-                            </ListBox>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
 
-                            <StackPanel Margin="10,0" IsHitTestVisible="False" IsVisible="{Binding JobList.HasEmptyJobList}" VerticalAlignment="Center">
-                                <iv:Icon HorizontalAlignment="Center" FontSize="26" Foreground="{DynamicResource IvText3Brush}" Data="{x:Static ui:IvIcons.Documents}" />
-                                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Center" FontSize="12.5" FontWeight="SemiBold" Text="暂无任务" TextAlignment="Center" />
-                                <TextBlock Margin="0,3,0,0" HorizontalAlignment="Center" FontSize="11.5" Foreground="{DynamicResource IvText3Brush}" Text="点击“新建任务”开始训练" TextAlignment="Center" TextWrapping="Wrap" />
-                            </StackPanel>
-                        </Grid>
-                    </DockPanel>
+                        <StackPanel Grid.Row="1" Margin="16" Spacing="6"
+                                    VerticalAlignment="Center" IsHitTestVisible="False"
+                                    IsVisible="{Binding JobList.HasEmptyJobList}">
+                            <iv:Icon HorizontalAlignment="Center" FontSize="26"
+                                     Foreground="{DynamicResource IvText3Brush}" Data="{x:Static ui:IvIcons.Documents}" />
+                            <TextBlock FontSize="13" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource IvText1Brush}"
+                                       Text="暂无训练任务" TextAlignment="Center" />
+                            <TextBlock FontSize="12" Foreground="{DynamicResource IvText2Brush}"
+                                       Text="点击右上角的“新建任务”开始配置。" TextAlignment="Center" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
                 </Border>
 
                 <GridSplitter Grid.Column="1" Width="6" Background="Transparent" ResizeDirection="Columns" />
