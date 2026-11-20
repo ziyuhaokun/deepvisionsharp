@@ -25,9 +25,6 @@ namespace DeepVisionSharp.Shell.Avalonia.Composition;
 /// <summary>
 /// Avalonia Shell 的组合根：业务层注册全部来自框架无关的 <see cref="DependencyInjection.AddDeepVision"/>，
 /// 这里只补齐「Avalonia 版端口实现 + 表现层服务 + 页面」。
-/// <para>
-/// 与 WPF Shell 的 <c>ShellHost</c> 逐项对应，去掉 WPF 专属部分（文件日志 provider、单实例、WER dump）。
-/// </para>
 /// </summary>
 public static class AppComposition
 {
@@ -62,7 +59,7 @@ public static class AppComposition
 
     /// <summary>
     /// Shell 层注册：Avalonia 端口实现、表现层服务、页面 ViewModel / 页面与主窗口。
-    /// 生命周期照 WPF <c>ShellHost</c>：首页 Dashboard 单例，其余页面 VM 与页面都是 Transient。
+    /// 首页 Dashboard 单例，其余页面 VM 与页面都是 Transient。
     /// </summary>
     public static IServiceCollection AddAvaloniaShell(this IServiceCollection services, DeepVisionLaunchOptions options)
     {
@@ -79,7 +76,14 @@ public static class AppComposition
         services.AddSingleton<AvaloniaSnackbarHost>();
         services.AddSingleton<ISnackbarHost>(sp => sp.GetRequiredService<AvaloniaSnackbarHost>());
         services.AddSingleton<IAppDialogService, AvaloniaDialogService>();
-        services.AddSingleton<ILocalFileDialogService, AvaloniaLocalFileDialogService>();
+        if (options.IsUiTest)
+        {
+            services.AddSingleton<ILocalFileDialogService, StubLocalFileDialogService>();
+        }
+        else
+        {
+            services.AddSingleton<ILocalFileDialogService, AvaloniaLocalFileDialogService>();
+        }
         services.AddSingleton<IProcessLauncher, AvaloniaProcessLauncher>();
 
         // ---- 表现层服务 ----
@@ -92,7 +96,7 @@ public static class AppComposition
         // 设置页读日志保留预算。文件日志 provider 归本 Shell 的日志接线，两边解析到同一个实例。
         services.AddSingleton(new FileLoggerOptions());
 
-        // ---- 训练工作区（照 WPF 的 TrainingWorkspaceRegistration；资源监控复用 Avalonia 端口实现）----
+        // ---- 训练工作区 ----
         services.AddTransient<TrainingMetricsPoller>();
         services.AddTransient<TrainingPreviewPoller>();
         services.AddTransient<TrainingResourcePoller>();
