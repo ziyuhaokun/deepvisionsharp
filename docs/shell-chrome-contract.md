@@ -149,3 +149,16 @@ services.AddSingleton<IAppDialogService>(sp => sp.GetRequiredService<AppDialogSe
 
 每个 lane 返回：文件清单、行为等价性说明（旧 → 新调用链）、无法等价点、自检输出
 （`rg -n 'Wpf\.Ui|ui:|lepo\.co|SymbolRegular'` 在你负责的文件里为 0）。
+
+## 8. 验收通道限制（踩过的坑，写下来免得再查）
+
+**agent-offscreen-render 的 `windowHost` 模式只截 `window.Content`**（宿主源码 `assets/wpf/Program.cs` 取 `window?.Content`；README 与 `references/integration.md` 也写明"截取 Window.Content"）。
+
+后果：**画在 `Window` 的 `ControlTemplate` 里的 chrome（本例即 `yu:ThemedWindow` 的 `PART_TitleBar`：标题、图标、最小化/最大化/关闭）永远不会出现在截图里**，看起来像"内容从 y=0 开始、标题栏不见了"。这与 XAML 怎么写无关。
+
+已排除的假设（附证据方向，避免重走）：
+- 主题字典 merge 失效 —— 同机制下 `yu:Icon`/`FormSection`/`FormRow`/`NumericBox` 默认样式均正常。
+- 图标几何有问题 —— 四个窗口按钮几何在 12px 下单独渲染正常。
+- 模板 / `DefaultStyleKey` 没命中 —— 对真实窗口取 `Style`、`Template.TargetType` 均指向 `ThemedWindow`，`PART_TitleBar`(700×52) 与三个 `PART_*Button`(40×32) 都在树上且位置正确。
+
+审计标题栏的正确方式：用「窗口级」截图（渲染 Window 本体，而不是它的 Content），或用 `get_layout` 在 Window 视觉树上查 `PART_TitleBar` / `PART_*Button`。
