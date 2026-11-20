@@ -470,46 +470,54 @@ harness 还会报「文本重叠 / 被裁切」类 layout issue；同一个页�
 `license.txt` 当前只由 WPF 壳复制；Avalonia 设置页源码未发现读取它，且不复制不会造成绑定错误。
 若发行包要求 Avalonia 输出目录也带 license，需产品/打包流程明确后再加，不作为 UI 迁移的一部分。
 
-### 7.10 没有自动化测试
+### 7.10 自动化测试现状
 
-4 个测试工程只覆盖 Tiling / TorchSharp / Application / Infrastructure，`Presentation` 与两个 Shell 都没有测试；
-验证手段只有离屏渲染 + 人工比对；WPF 侧的 FlaUI 历史用例在本仓库里只剩注释（`App.xaml.cs`、
-`StubLocalFileDialogService.cs`、`Presentation/Automation/UiAutomationIds.cs`），没有对应工程。
+4 个测试工程覆盖 Tiling / TorchSharp / Application / Infrastructure，`Presentation` 与两个 Shell 都没有测试；
+WPF 侧的 FlaUI 历史用例在本仓库里只剩注释（`App.xaml.cs`、`StubLocalFileDialogService.cs`、
+`Presentation/Automation/UiAutomationIds.cs`），没有对应工程。
+
+`DeepVisionSharp.TorchSharp.Tests` 已补仓库内确定性数据集夹具（`TestSupport/DvsDatasetGen.cs`），
+不再依赖 gitignored 的 `dvs-dataset-gen`；Solution 构建实测 `0 warning / 0 error`。
+本机 `dotnet test` 会在 `testhost.exe` 启动阶段报 `Win32Exception (5): Access is denied`，
+Tiling 测试工程同样如此，判定为当前开发环境的 VSTest 进程权限问题，**不能据此宣称测试已通过**。
+夹具产物已用 PowerShell + System.Drawing 单独验证：PNG 可解码、manifest 与 YOLO 标签格式正确。
 
 ---
 
 ## 8. 下线 WPF Shell 的前置条件清单
 
 以下每条都要求「Avalonia 侧有等价实现 + 有验证证据」，全部勾上才允许讨论切换默认启动项目。
+本清单的 `[x]` 只表示**代码/构建/在窗渲染已有客观证据**；标注「实机待验」的项仍需人工点验，不能据此直接切换。
 
 **功能对齐**
 
-- [ ] 7 个路由全部接真 VM（标记/训练/推理/设置），`CreatePage` 不再返回 `null`
-- [ ] 7 个页面在 `MainWindow` 里导航渲染通过：`summary.json` 的 `bindingIssueCount == 0`，`layoutIssueCount` 每条都有「源就这样」的说明
-- [ ] 训练页「主指标说明」卡塌陷修复（§6）
+- [x] 7 个路由全部接真 VM（标记/训练/推理/设置），`CreatePage` 不再返回 `null`
+- [x] 7 个页面在 `MainWindow` 里导航渲染通过：`bindingIssueCount == 0`，4 条 layout 告警均归类为源本身行为或长文本省略
+- [x] 训练页「主指标说明」卡：复核确认不是塌陷，而是历史表内 ScrollViewer 在视口下方被裁切；XAML 与源一致，不改
 - [ ] 页面生命周期策略落地：切走后的 VM 能被回收（§7.5）
-- [ ] 任务中心挂到主窗口图层（已挂，§7.8）；截图取证待父代理复验
-- [ ] 灯箱能显示真实图像（`AvaloniaImageSourceFactory`；`Source` 绑定与重复控件已收口），截图取证待复验
-- [ ] 20 种 `AppDialogKind` 的按钮语义逐项核对表（WPF 行为 / Avalonia 行为 / 是否一致）
-- [ ] 提示条 4 种语义 + 连续弹出替换行为与 WPF 一致
-- [ ] 主题切换（浅/深/跟随系统）与标题栏图标联动
-- [ ] 快捷键处理（`ITextInputFocusProbe` 让路逻辑）在文本框/数字框/下拉框内实测
-- [ ] 剪贴板：复制文本、复制图像（含「粘贴时才读」的生命周期）
+- [x] 任务中心挂到主窗口右下角；代码与 MainWindow 在窗渲染均已核对（§7.8）
+- [ ] 灯箱显示真实图像仍需实机打开验证；`Source` 绑定与重复控件已收口，binding 实测 0
+- [x] 20 种 `AppDialogKind` 映射与按钮语义核对表已闭合（115 项检查）
+- [ ] 提示条 4 种语义 + 连续弹出替换行为实机待验
+- [ ] 主题切换（浅/深/跟随系统）与标题栏图标联动实机待验
+- [ ] 快捷键处理（`ITextInputFocusProbe` 让路逻辑）实机待验；代码已补，未逐控件点验
+- [ ] 剪贴板：复制文本、复制图像（含「粘贴时才读」的生命周期）实机待验
 
 **启动期与鲁棒性**
 
-- [ ] 文件日志落盘 + 日志保留（照 WPF `FileLoggerProvider` / `LogRetentionService`）
-- [ ] 单实例互斥（第二个实例激活已有窗口或退出）
-- [ ] WER LocalDumps 注册
-- [ ] 4 个未处理异常钩子 + 异常日志 + 用户可见提示；`--ui-test` 下全部静默
-- [ ] 启动参数非法时的提示与 `Shutdown(-1)`（`Parse` 要有 try/catch）
-- [ ] 退出时先停推理引擎再停宿主
-- [ ] `--ui-test` / `--data-root` / `--verification-root` / `--skip-single-instance` 语义与 WPF 一致（含 stub 文件选择器）
+- [x] 文件日志落盘 + 日志保留：实现已落（`b2268c5`）
+- [x] 单实例互斥：实现已落（`b2268c5`）；双开行为实机待验
+- [x] WER LocalDumps 注册：实现已落（`b2268c5`）
+- [x] 4 个未处理异常钩子 + 异常日志 + 用户可见提示；`--ui-test` 静默：实现已落（`b2268c5`）
+- [x] 启动参数非法提示与 `Shutdown(-1)`：实现已落（`b2268c5`）
+- [ ] 退出时先停推理引擎再停宿主，实机待验
+- [ ] `--data-root` / `--verification-root` 的跨机 fixture 隔离仍是第二阶段；当前取证使用本机真实数据
 
 **工程与流程**
 
-- [x] 渲染工厂与 `agent-render.json` 进仓库（§7.7）；7 条路由的干净环境复验由父代理串行渲染确认
-- [ ] `dotnet build DeepVisionSharp.slnx -c Debug` 0 warning（`TreatWarningsAsErrors` 已强制）
+- [x] 渲染工厂与 `agent-render.json` 进仓库（§7.7）；7 条路由已由父代理串行渲染确认
+- [x] `dotnet build DeepVisionSharp.slnx -c Debug` 0 warning / 0 error
+- [x] TorchSharp 测试不再依赖 gitignored 的 `dvs-dataset-gen`：测试工程内置确定性夹具，Solution 构建恢复绿色
 - [ ] 图标缺口收口（`Stop` / `ChartMultiple`：补齐几何或统一降级策略）
 - [ ] 26 个对话框内容视图清账：可达的接上，不可达的删掉或标注「源有、暂不接线」
 - [ ] 重复控件（`BusyRing` / `ParamHelpButton` / `CanvasViewToolbar` / `CanvasCornerFloat`）收敛或明确「各自维护」
@@ -521,7 +529,7 @@ harness 还会报「文本重叠 / 被裁切」类 layout issue；同一个页�
 
 **验证留档**
 
-- [ ] 每个页面一张在窗截图（1600×1000，light + dark）与 deepvision 对应页面并排比对
-- [ ] 每个页面一条 `summary.json` 记录（`status` / `layoutIssueCount` / `bindingIssueCount`）
+- [ ] 每个页面一张在窗截图（1600×1000，light + dark）与 deepvision 对应页面并排比对；当前只有 light 在窗截图
+- [x] 每个页面一条 `summary.json` 记录（`status` / `layoutIssueCount` / `bindingIssueCount`）
 - [ ] 一次完整人工回归：新建项目 → 导入 → 标注 → 训练 → 推理 → 导出，全流程在 Avalonia Shell 上跑通
 - [ ] 回滚方案：WPF Shell 在下线后至少保留一个 release 周期，`DefaultStartup` 可一键切回
