@@ -1,4 +1,5 @@
-using Microsoft.Win32;
+using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 using RuntimePackage.Engine.Installation;
 using RuntimePackage.Engine.Models;
 using RuntimePackage.Engine.Packaging;
@@ -8,9 +9,6 @@ using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using Wpf.Ui.Controls;
 using System.Windows.Input;
 
 namespace RuntimePackage.SetupHost;
@@ -54,7 +52,7 @@ internal sealed class SetupViewModel : INotifyPropertyChanged
     private string _publisher = string.Empty;
     private string _welcomeText = string.Empty;
     private string _logoPath = string.Empty;
-    private ImageSource? _logoImage;
+    private Bitmap? _logoImage;
     private string _versionSummary = string.Empty;
     private string _buildDetails = string.Empty;
     private bool _showBuildDetails;
@@ -94,7 +92,6 @@ internal sealed class SetupViewModel : INotifyPropertyChanged
     public ICommand InstallCommand { get; }
     public ICommand FinishCommand { get; }
     public ICommand CloseCommand { get; }
-    public ICommand BrowseCommand { get; }
 
     public SetupViewModel()
     {
@@ -103,7 +100,6 @@ internal sealed class SetupViewModel : INotifyPropertyChanged
         InstallCommand = new RelayCommand(_ => NavigateNext(), _ => CanGoNext);
         FinishCommand = new RelayCommand(_ => { Finish(); RequestClose?.Invoke(this, EventArgs.Empty); });
         CloseCommand = new RelayCommand(_ => RequestClose?.Invoke(this, EventArgs.Empty), _ => !IsInstalling);
-        BrowseCommand = new RelayCommand(_ => BrowseInstallDirectory());
 
         // Re-evaluate command CanExecute when any property changes
         PropertyChanged += (_, _) =>
@@ -132,6 +128,8 @@ internal sealed class SetupViewModel : INotifyPropertyChanged
                 OnPropertyChanged(nameof(IsPreparationRunning));
                 OnPropertyChanged(nameof(IsPreparationOverlayVisible));
                 OnPropertyChanged(nameof(IsSidebarBrandingVisible));
+                OnPropertyChanged(nameof(IsFirstStep));
+                OnPropertyChanged(nameof(IsActionStep));
                 OnPropertyChanged(nameof(BackButtonText));
                 OnPropertyChanged(nameof(WindowTitle));
                 OnPropertyChanged(nameof(CloseButtonText));
@@ -158,6 +156,10 @@ internal sealed class SetupViewModel : INotifyPropertyChanged
         CurrentPage is SetupPage.Welcome or SetupPage.License or SetupPage.Options or SetupPage.UninstallConfirm;
 
     public bool IsInstallVisible => CurrentPage == SetupPage.Options;
+
+    public bool IsFirstStep => CurrentPage is SetupPage.Welcome or SetupPage.UninstallConfirm;
+
+    public bool IsActionStep => CurrentPage is SetupPage.Installing or SetupPage.Uninstalling;
 
     public bool IsFinishVisible => CurrentPage == SetupPage.Complete;
 
@@ -272,13 +274,15 @@ internal sealed class SetupViewModel : INotifyPropertyChanged
         }
     }
 
-    public ImageSource? LogoImage
+    public Bitmap? LogoImage
     {
         get => _logoImage;
         private set
         {
+            var previous = _logoImage;
             if (SetProperty(ref _logoImage, value))
             {
+                previous?.Dispose();
                 OnPropertyChanged(nameof(HasLogo));
             }
         }
@@ -514,20 +518,6 @@ internal sealed class SetupViewModel : INotifyPropertyChanged
             case SetupPage.Options:
                 CurrentPage = HasLicense ? SetupPage.License : SetupPage.Welcome;
                 break;
-        }
-    }
-
-    public void BrowseInstallDirectory()
-    {
-        var dialog = new OpenFolderDialog
-        {
-            Multiselect = false,
-            Title = "选择安装目录"
-        };
-
-        if (dialog.ShowDialog() == true)
-        {
-            InstallDirectory = dialog.FolderName;
         }
     }
 
@@ -1026,13 +1016,7 @@ internal sealed class SetupViewModel : INotifyPropertyChanged
                 $"安装目录中已经存在文件或安装记录：\n{installDirectory}\n\n继续安装将先清空该目录中的现有内容，然后重新安装。是否继续？");
         }
 
-        var result = System.Windows.MessageBox.Show(
-            $"安装目录中已经存在文件或安装记录：\n{installDirectory}\n\n继续安装将先清空该目录中的现有内容，然后重新安装。是否继续？",
-            "覆盖安装",
-            System.Windows.MessageBoxButton.YesNo,
-            System.Windows.MessageBoxImage.Warning,
-            System.Windows.MessageBoxResult.No);
-        return result == System.Windows.MessageBoxResult.Yes;
+        return false;
     }
 
     private void UpdateDiskSpaceInfo()
@@ -1081,7 +1065,7 @@ internal sealed class SetupViewModel : INotifyPropertyChanged
 
     private void AddLog(string message)
     {
-        System.Windows.Application.Current.Dispatcher.Invoke(() =>
+        Dispatcher.UIThread.Invoke(() =>
         {
             Logs.Add(message);
         });
@@ -1119,7 +1103,7 @@ internal sealed class SetupViewModel : INotifyPropertyChanged
         return candidates.FirstOrDefault(File.Exists) ?? string.Empty;
     }
 
-    private static ImageSource? LoadLogoImage(string logoPath)
+    private static Bitmap? LoadLogoImage(string logoPath)
     {
         if (string.IsNullOrWhiteSpace(logoPath) || !File.Exists(logoPath))
         {
@@ -1134,13 +1118,7 @@ internal sealed class SetupViewModel : INotifyPropertyChanged
                 FileAccess.Read,
                 FileShare.ReadWrite | FileShare.Delete);
 
-            var image = new BitmapImage();
-            image.BeginInit();
-            image.CacheOption = BitmapCacheOption.OnLoad;
-            image.StreamSource = stream;
-            image.EndInit();
-            image.Freeze();
-            return image;
+            return new Bitmap(stream);
         }
         catch
         {

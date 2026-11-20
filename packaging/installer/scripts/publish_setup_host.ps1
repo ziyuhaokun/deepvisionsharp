@@ -64,7 +64,7 @@ function ConvertTo-SafeFileNamePart {
 }
 
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
-$projectPath = Join-Path $repoRoot "src\RuntimePackage.SetupHost.Wpf\RuntimePackage.SetupHost.Wpf.csproj"
+$projectPath = Join-Path $repoRoot "src\RuntimePackage.SetupHost.Avalonia\RuntimePackage.SetupHost.Avalonia.csproj"
 $outputPath = Join-Path $repoRoot "artifacts\setuphost\$RuntimeIdentifier"
 
 $publishArgs = @(
@@ -105,7 +105,7 @@ if (-not [string]::IsNullOrWhiteSpace($PackagePath)) {
 
     New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 
-    $setupHostExecutablePath = Join-Path $outputPath "RuntimePackage.SetupHost.Wpf.exe"
+    $setupHostExecutablePath = Join-Path $outputPath "RuntimePackage.SetupHost.Avalonia.exe"
     if (-not (Test-Path -LiteralPath $setupHostExecutablePath)) {
         throw "Published SetupHost not found: $setupHostExecutablePath"
     }

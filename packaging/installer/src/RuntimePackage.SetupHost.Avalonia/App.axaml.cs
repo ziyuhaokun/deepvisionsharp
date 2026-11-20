@@ -3,17 +3,47 @@ using RuntimePackage.Engine.Packaging;
 using RuntimePackage.Engine.Services;
 using System.Diagnostics;
 using System.IO;
-using System.Windows;
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 
 namespace RuntimePackage.SetupHost;
 
 public partial class App : Application
 {
+    private IClassicDesktopStyleApplicationLifetime _desktop = null!;
     private string? _embeddedPackageRoot;
 
-    private async void OnStartup(object sender, StartupEventArgs e)
+    public override void Initialize() => AvaloniaXamlLoader.Load(this);
+
+    public override void OnFrameworkInitializationCompleted()
     {
-        if (TryRunUninstallMode(e.Args))
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            _desktop = desktop;
+            desktop.Exit += OnExit;
+            Dispatcher.UIThread.Post(() => Start(desktop.Args ?? []));
+        }
+
+        base.OnFrameworkInitializationCompleted();
+    }
+
+    private async void Start(string[] args)
+    {
+        try
+        {
+            await StartAsync(args);
+        }
+        catch (Exception ex)
+        {
+            ShutdownWithMessage($"无法启动安装程序：{ex.Message}", args.Contains("--quiet", StringComparer.OrdinalIgnoreCase), 1);
+        }
+    }
+
+    private async Task StartAsync(string[] args)
+    {
+        if (TryRunUninstallMode(args))
         {
             return;
         }
@@ -21,7 +51,7 @@ public partial class App : Application
         var setupExecutablePath = ResolveExecutablePath();
         string? packagePath = null;
 
-        if (TryParsePackageMode(e.Args, out _, out var parsedPackagePath))
+        if (TryParsePackageMode(args, out var parsedPackagePath))
         {
             packagePath = parsedPackagePath;
         }
@@ -44,18 +74,7 @@ public partial class App : Application
             }
         }
 
-        Exit += (_, _) =>
-        {
-            if (!string.IsNullOrWhiteSpace(_embeddedPackageRoot))
-            {
-                TempDirectoryCleanup.TryDeleteDirectory(_embeddedPackageRoot);
-            }
-        };
-
-        var viewModel = new SetupViewModel();
-        var window = new SetupShellWindow(viewModel);
-        MainWindow = window;
-        window.Show();
+        var viewModel = OpenWizard();
 
         if (!string.IsNullOrWhiteSpace(packagePath))
         {
@@ -65,6 +84,22 @@ public partial class App : Application
         {
             await viewModel.LoadBundledPackageAsync(setupExecutablePath, CancellationToken.None);
         }
+    }
+
+    private void OnExit(object? sender, ControlledApplicationLifetimeExitEventArgs e)
+    {
+        if (_embeddedPackageRoot is not null)
+        {
+            TempDirectoryCleanup.TryDeleteDirectory(_embeddedPackageRoot);
+        }
+    }
+
+    private SetupViewModel OpenWizard()
+    {
+        var window = new SetupShellWindow();
+        _desktop.MainWindow = window;
+        window.Show();
+        return window.ViewModel;
     }
 
     private bool TryRunUninstallMode(string[] args)
@@ -170,7 +205,7 @@ public partial class App : Application
         }
 
         Process.Start(startInfo);
-        Shutdown(0);
+        _desktop.Shutdown(0);
         return true;
     }
 
@@ -189,22 +224,22 @@ public partial class App : Application
 
     private async Task ShowUninstallWizardAsync(string installationRecordPath)
     {
-        var viewModel = new SetupViewModel();
-        var window = new SetupShellWindow(viewModel);
-        MainWindow = window;
-        window.Show();
-
+        var viewModel = OpenWizard();
         await viewModel.LoadUninstallRecordAsync(installationRecordPath, CancellationToken.None);
     }
 
     private void ShutdownWithMessage(string message, bool quiet, int exitCode)
     {
-        if (!quiet)
+        if (quiet)
         {
-            MessageBox.Show(message, "安装程序", MessageBoxButton.OK);
+            _desktop.Shutdown(exitCode);
+            return;
         }
 
-        Shutdown(exitCode);
+        var notice = new SetupNoticeWindow("安装程序", message);
+        _desktop.ShutdownMode = Avalonia.Controls.ShutdownMode.OnExplicitShutdown;
+        notice.Closed += (_, _) => _desktop.Shutdown(exitCode);
+        notice.Show();
     }
 
     private static string ResolveExecutablePath() =>
@@ -231,12 +266,8 @@ public partial class App : Application
         return normalizedCandidate.StartsWith(parentPrefix, StringComparison.OrdinalIgnoreCase);
     }
 
-    private static bool TryParsePackageMode(
-        string[] args,
-        out string setupExecutablePath,
-        out string packagePath)
+    private static bool TryParsePackageMode(string[] args, out string packagePath)
     {
-        setupExecutablePath = ResolveExecutablePath();
         packagePath = string.Empty;
 
         for (var i = 0; i < args.Length; i++)

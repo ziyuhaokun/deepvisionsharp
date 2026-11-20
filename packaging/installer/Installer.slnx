@@ -2,7 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/RuntimePackage.Engine/RuntimePackage.Engine.csproj" />
     <Project Path="src/RuntimePackage.Packager.Cli/RuntimePackage.Packager.Cli.csproj" />
-    <Project Path="src/RuntimePackage.SetupHost.Wpf/RuntimePackage.SetupHost.Wpf.csproj" />
+    <Project Path="src/RuntimePackage.SetupHost.Avalonia/RuntimePackage.SetupHost.Avalonia.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/RuntimePackage.Engine.Tests/RuntimePackage.Engine.Tests.csproj" />

@@ -36,7 +36,7 @@ $assetsDir = Join-Path $repoRoot "packaging\assets"
 $versionDir = Join-Path $repoRoot "packaging\version"
 $packagerProject = Join-Path $PackagerRepo "src\RuntimePackage.Packager.Cli\RuntimePackage.Packager.Cli.csproj"
 $publishSetupHostScript = Join-Path $PackagerRepo "scripts\publish_setup_host.ps1"
-$setupHostPath = Join-Path $PackagerRepo "artifacts\setuphost\$RuntimeIdentifier\RuntimePackage.SetupHost.Wpf.exe"
+$setupHostPath = Join-Path $PackagerRepo "artifacts\setuphost\$RuntimeIdentifier\RuntimePackage.SetupHost.Avalonia.exe"
 
 Write-Host "Building installer for shell: $Shell"
 Write-Host "Project: $csprojPath"

@@ -1,0 +1,178 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:conv="using:Avalonia.Data.Converters"
+        xmlns:local="using:RuntimePackage.SetupHost"
+        x:Class="RuntimePackage.SetupHost.SetupShellWindow"
+        Title="{Binding WindowTitle}"
+        Width="920" Height="600" MinWidth="840" MinHeight="540"
+        CanResize="False" WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="SetupPanelBrush" Color="#F2F4F7" />
+                    <SolidColorBrush x:Key="SetupStrokeBrush" Color="#DDE1E7" />
+                    <SolidColorBrush x:Key="SetupSecondaryBrush" Color="#4D5867" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="SetupPanelBrush" Color="#242831" />
+                    <SolidColorBrush x:Key="SetupStrokeBrush" Color="#3B424E" />
+                    <SolidColorBrush x:Key="SetupSecondaryBrush" Color="#BAC2CF" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+            <DataTemplate x:Key="LogItemTemplate">
+                <TextBlock Margin="0,0,0,6" FontSize="12" TextWrapping="Wrap" Text="{Binding}" />
+            </DataTemplate>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Window.Styles>
+        <Style Selector="TextBlock.heading">
+            <Setter Property="FontSize" Value="28" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style Selector="TextBlock.secondary">
+            <Setter Property="Foreground" Value="{DynamicResource SetupSecondaryBrush}" />
+        </Style>
+        <Style Selector="TextBlock.step">
+            <Setter Property="Foreground" Value="{DynamicResource SetupSecondaryBrush}" />
+        </Style>
+        <Style Selector="TextBlock.step.current">
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundAccentBrush}" />
+        </Style>
+        <Style Selector="Border.panel">
+            <Setter Property="Padding" Value="14" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Background" Value="{DynamicResource SetupPanelBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SetupStrokeBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="*,Auto" ColumnDefinitions="272,*">
+        <Border Grid.RowSpan="2" Padding="28,36,24,24"
+                Background="{DynamicResource SetupPanelBrush}"
+                BorderBrush="{DynamicResource SetupStrokeBrush}" BorderThickness="0,0,1,0"
+                IsVisible="{Binding IsSidebarBrandingVisible}">
+            <StackPanel Spacing="8">
+                <Border Width="216" Height="84" Padding="12" Margin="0,0,0,12"
+                        HorizontalAlignment="Left" CornerRadius="12" Background="#101215"
+                        IsVisible="{Binding HasLogo}">
+                    <Image Source="{Binding LogoImage}" Stretch="Uniform" />
+                </Border>
+                <TextBlock FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap" Text="{Binding ProductTitle}" />
+                <TextBlock Classes="secondary" Text="{Binding VersionSummary}" />
+                <TextBlock Classes="secondary" Text="{Binding Publisher}" />
+                <StackPanel Margin="0,24,0,0" Spacing="12">
+                    <TextBlock FontSize="12" FontWeight="SemiBold" Text="{Binding StepsTitle}" />
+                    <TextBlock Classes="step" Classes.current="{Binding IsFirstStep}" Text="{Binding FirstStepText}" />
+                    <TextBlock Classes="step" Classes.current="{Binding CurrentPage, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter={x:Static local:SetupPage.License}}"
+                               IsVisible="{Binding IsInstallMode}" Text="许可协议" />
+                    <TextBlock Classes="step" Classes.current="{Binding CurrentPage, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter={x:Static local:SetupPage.Options}}"
+                               IsVisible="{Binding IsInstallMode}" Text="安装选项" />
+                    <TextBlock Classes="step" Classes.current="{Binding IsActionStep}" Text="{Binding ActionStepText}" />
+                    <TextBlock Classes="step" Classes.current="{Binding IsFinishVisible}" Text="完成" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Column="1" Margin="32,28,32,16">
+            <StackPanel VerticalAlignment="Center" Spacing="16"
+                        IsVisible="{Binding CurrentPage, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter={x:Static local:SetupPage.Welcome}}">
+                <TextBlock Classes="heading" TextWrapping="Wrap" Text="{Binding ProductTitle, StringFormat='欢迎安装 {0}'}" />
+                <TextBlock Classes="secondary" FontSize="15" TextWrapping="Wrap" Text="{Binding WelcomeText}" />
+            </StackPanel>
+
+            <Grid RowDefinitions="Auto,*,Auto" RowSpacing="16"
+                  IsVisible="{Binding CurrentPage, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter={x:Static local:SetupPage.License}}">
+                <TextBlock Classes="heading" Text="许可协议" />
+                <Border Grid.Row="1" Classes="panel">
+                    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                        <TextBlock TextWrapping="Wrap" Text="{Binding LicenseText}" />
+                    </ScrollViewer>
+                </Border>
+                <CheckBox Grid.Row="2" Content="我已阅读并接受许可协议" IsChecked="{Binding LicenseAccepted}" />
+            </Grid>
+
+            <StackPanel Spacing="8" IsVisible="{Binding IsInstallVisible}">
+                <TextBlock Classes="heading" Text="安装选项" />
+                <TextBlock Margin="0,14,0,0" FontWeight="SemiBold" Text="安装目录" />
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                    <TextBox AutomationProperties.Name="安装目录" Text="{Binding InstallDirectory, Mode=TwoWay}" />
+                    <Button Grid.Column="1" Content="浏览" Click="BrowseInstallDirectory" />
+                </Grid>
+                <TextBlock Classes="secondary" FontSize="12" Text="{Binding DiskSpaceInfo}" />
+                <TextBlock Margin="0,14,0,0" FontWeight="SemiBold" Text="快捷方式" />
+                <CheckBox Content="创建开始菜单快捷方式" IsChecked="{Binding CreateStartMenuShortcut}" />
+                <CheckBox Content="创建桌面快捷方式" IsChecked="{Binding CreateDesktopShortcut}" />
+            </StackPanel>
+
+            <StackPanel VerticalAlignment="Center" Spacing="16"
+                        IsVisible="{Binding CurrentPage, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter={x:Static local:SetupPage.UninstallConfirm}}">
+                <TextBlock Classes="heading" TextWrapping="Wrap" Text="{Binding ProductTitle, StringFormat='卸载 {0}'}" />
+                <TextBlock Classes="secondary" FontSize="15" TextWrapping="Wrap" Text="{Binding UninstallSummary}" />
+                <Border Classes="panel">
+                    <StackPanel Spacing="8">
+                        <TextBlock FontWeight="SemiBold" Text="卸载位置" />
+                        <TextBlock TextWrapping="Wrap" Text="{Binding InstallDirectory}" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <Grid RowDefinitions="Auto,Auto,Auto,*" RowSpacing="12" IsVisible="{Binding IsActionStep}">
+                <TextBlock Classes="heading" Text="{Binding WindowTitle}" />
+                <TextBlock Grid.Row="1" Classes="secondary" TextWrapping="Wrap" Text="{Binding ProgressText}" />
+                <Grid Grid.Row="2" ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                    <ProgressBar VerticalAlignment="Center" Value="{Binding InstallProgress, Mode=OneWay}" />
+                    <TextBlock Grid.Column="1" Text="{Binding InstallProgress, StringFormat='{}{0}%'}" />
+                </Grid>
+                <Border Grid.Row="3" Classes="panel">
+                    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                        <ItemsControl ItemsSource="{Binding Logs}" ItemTemplate="{StaticResource LogItemTemplate}"
+                                      SizeChanged="ScrollLogToEnd" />
+                    </ScrollViewer>
+                </Border>
+            </Grid>
+
+            <StackPanel VerticalAlignment="Center" Spacing="16" IsVisible="{Binding IsFinishVisible}">
+                <TextBlock Classes="heading" Text="{Binding CompleteTitle}" />
+                <TextBlock Classes="secondary" TextWrapping="Wrap" Text="{Binding CompleteMessage}" />
+                <Border Classes="panel" IsVisible="{Binding IsInstallFailed}">
+                    <ScrollViewer MaxHeight="180" HorizontalScrollBarVisibility="Disabled">
+                        <TextBlock TextWrapping="Wrap" Text="{Binding FailureDetail}" />
+                    </ScrollViewer>
+                </Border>
+                <StackPanel Spacing="8" IsVisible="{Binding ShowPostInstallActions}">
+                    <CheckBox Content="安装完成后启动程序" IsChecked="{Binding LaunchOnComplete}" />
+                    <CheckBox Content="打开安装目录" IsChecked="{Binding OpenInstallDirectory}" />
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+
+        <StackPanel Grid.ColumnSpan="2" Width="440" HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Spacing="16" IsVisible="{Binding IsPreparationOverlayVisible}">
+            <TextBlock Classes="heading" HorizontalAlignment="Center" Text="{Binding PreparationTitle}" />
+            <TextBlock Classes="secondary" TextAlignment="Center" TextWrapping="Wrap" Text="{Binding PreparationText}" />
+            <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsPreparationRunning}" />
+            <Border Classes="panel" MaxHeight="170" IsVisible="{Binding PreparationFailed}">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                    <ItemsControl ItemsSource="{Binding Logs}" ItemTemplate="{StaticResource LogItemTemplate}"
+                                  SizeChanged="ScrollLogToEnd" />
+                </ScrollViewer>
+            </Border>
+        </StackPanel>
+
+        <Border Grid.Row="1" Grid.Column="1" Padding="32,14"
+                BorderBrush="{DynamicResource SetupStrokeBrush}" BorderThickness="0,1,0,0">
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                <Button HorizontalAlignment="Left" Content="返回" IsVisible="{Binding CanGoBack}" Command="{Binding BackCommand}" />
+                <Button Grid.Column="1" Classes="accent" MinWidth="100" HorizontalContentAlignment="Center"
+                        IsVisible="{Binding IsNextVisible}" Content="{Binding NextButtonText}" Command="{Binding NextCommand}" />
+                <Button Grid.Column="1" Classes="accent" MinWidth="100" HorizontalContentAlignment="Center"
+                        IsVisible="{Binding IsFinishVisible}" Content="完成" Command="{Binding FinishCommand}" />
+                <Button Grid.Column="2" MinWidth="84" HorizontalContentAlignment="Center"
+                        Content="{Binding CloseButtonText}" Command="{Binding CloseCommand}" />
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
