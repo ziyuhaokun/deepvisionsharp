@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Styling;
 using DeepVisionSharp.Presentation.ViewModels.Models;
 using DeepVisionSharp.Shell.Avalonia.ViewModels;
 
@@ -22,6 +23,13 @@ public partial class ModelsPage : UserControl
     public ModelsPage(ModelsViewModel? viewModel)
     {
         InitializeComponent();
+
+        // Use the Fluent MenuItem template for this page's flyout.
+        if (global::Avalonia.Application.Current?.Styles.TryGetResource(typeof(MenuItem), null, out var resource) == true
+            && resource is ControlTheme menuItemTheme)
+        {
+            Resources[typeof(MenuItem)] = menuItemTheme;
+        }
 
         _viewModel = viewModel;
         DataContext = (object?)viewModel ?? new SampleModelsContext();

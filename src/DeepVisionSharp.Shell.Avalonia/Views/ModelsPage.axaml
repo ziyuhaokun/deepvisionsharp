@@ -363,49 +363,52 @@
                                                 </StackPanel>
                                             </Button>
 
-                                            <!-- deepvision 的 ContextMenuButton 只为左键弹出菜单，这里先用普通按钮保住外观 -->
-                                            <Button Grid.Column="2"
+                                            <Button x:Name="ModelActionsButton"
+                                                    Grid.Column="2"
                                                     Width="30"
                                                     Height="30"
                                                     Margin="8,0,0,0"
                                                     Padding="0"
+                                                    AutomationProperties.Name="更多模型操作"
+                                                    ContextFlyout="{Binding $self.Flyout}"
+                                                    Tag="{Binding $parent[UserControl].DataContext}"
                                                     Theme="{StaticResource IvIconButtonStyle}"
                                                     ToolTip.Tip="更多模型操作">
                                                 <iv:Icon FontSize="16" Data="{x:Static ui:IvIcons.More}" />
-                                                <Button.ContextMenu>
-                                                    <ContextMenu>
+                                                <Button.Flyout>
+                                                    <MenuFlyout Placement="BottomEdgeAlignedRight">
                                                         <MenuItem Header="重新生成 Paddle 检测模型"
-                                                                  Command="{Binding $parent[UserControl].DataContext.List.RetryPpOcrDetectionExportCommand}"
-                                                                  CommandParameter="{Binding Id}"
-                                                                  IsVisible="{Binding CanExportPpOcrDetection}" />
+                                                                  Command="{Binding #ModelActionsButton.Tag.List.RetryPpOcrDetectionExportCommand}"
+                                                                  CommandParameter="{Binding #ModelActionsButton.DataContext.Id}"
+                                                                  IsVisible="{Binding #ModelActionsButton.DataContext.CanExportPpOcrDetection}" />
                                                         <MenuItem Header="导出 Paddle 检测 bundle"
-                                                                  Command="{Binding $parent[UserControl].DataContext.List.ExportPpOcrDetectionBundleCommand}"
-                                                                  CommandParameter="{Binding Id}"
-                                                                  IsVisible="{Binding CanExportPpOcrDetection}" />
+                                                                  Command="{Binding #ModelActionsButton.Tag.List.ExportPpOcrDetectionBundleCommand}"
+                                                                  CommandParameter="{Binding #ModelActionsButton.DataContext.Id}"
+                                                                  IsVisible="{Binding #ModelActionsButton.DataContext.CanExportPpOcrDetection}" />
                                                         <MenuItem Header="转化 IR 模型"
-                                                                  Command="{Binding $parent[UserControl].DataContext.List.ConvertOpenVinoCommand}"
-                                                                  CommandParameter="{Binding Id}"
-                                                                  IsVisible="{Binding CanConvertOpenVino}" />
+                                                                  Command="{Binding #ModelActionsButton.Tag.List.ConvertOpenVinoCommand}"
+                                                                  CommandParameter="{Binding #ModelActionsButton.DataContext.Id}"
+                                                                  IsVisible="{Binding #ModelActionsButton.DataContext.CanConvertOpenVino}" />
                                                         <MenuItem Header="量化 IR 模型 (INT8)"
-                                                                  Command="{Binding $parent[UserControl].DataContext.List.QuantizeOpenVinoInt8Command}"
-                                                                  CommandParameter="{Binding Id}"
-                                                                  IsVisible="{Binding CanQuantizeOpenVinoInt8}" />
+                                                                  Command="{Binding #ModelActionsButton.Tag.List.QuantizeOpenVinoInt8Command}"
+                                                                  CommandParameter="{Binding #ModelActionsButton.DataContext.Id}"
+                                                                  IsVisible="{Binding #ModelActionsButton.DataContext.CanQuantizeOpenVinoInt8}" />
                                                         <MenuItem Header="导出 IR 模型"
-                                                                  Command="{Binding $parent[UserControl].DataContext.List.ExportOpenVinoCommand}"
-                                                                  CommandParameter="{Binding Id}"
-                                                                  IsVisible="{Binding CanExportOpenVino}" />
+                                                                  Command="{Binding #ModelActionsButton.Tag.List.ExportOpenVinoCommand}"
+                                                                  CommandParameter="{Binding #ModelActionsButton.DataContext.Id}"
+                                                                  IsVisible="{Binding #ModelActionsButton.DataContext.CanExportOpenVino}" />
                                                         <MenuItem Header="打开目录"
-                                                                  Command="{Binding $parent[UserControl].DataContext.List.OpenModelFolderCommand}"
-                                                                  CommandParameter="{Binding Id}" />
+                                                                  Command="{Binding #ModelActionsButton.Tag.List.OpenModelFolderCommand}"
+                                                                  CommandParameter="{Binding #ModelActionsButton.DataContext.Id}" />
                                                         <MenuItem Header="编辑"
-                                                                  Command="{Binding $parent[UserControl].DataContext.Editor.ShowEditModelDialogCommand}"
-                                                                  CommandParameter="{Binding}" />
+                                                                  Command="{Binding #ModelActionsButton.Tag.Editor.ShowEditModelDialogCommand}"
+                                                                  CommandParameter="{Binding #ModelActionsButton.DataContext}" />
                                                         <Separator />
                                                         <MenuItem Header="删除"
-                                                                  Command="{Binding $parent[UserControl].DataContext.List.ConfirmDeleteModelCommand}"
-                                                                  CommandParameter="{Binding Id}" />
-                                                    </ContextMenu>
-                                                </Button.ContextMenu>
+                                                                  Command="{Binding #ModelActionsButton.Tag.List.ConfirmDeleteModelCommand}"
+                                                                  CommandParameter="{Binding #ModelActionsButton.DataContext.Id}" />
+                                                    </MenuFlyout>
+                                                </Button.Flyout>
                                             </Button>
                                         </Grid>
                                     </Border>
