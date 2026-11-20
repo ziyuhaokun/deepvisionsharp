@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System.IO;
-using System.Windows.Input;
 using DeepVisionSharp.Application.Galleries;
 using DeepVisionSharp.Application.Projects;
 using DeepVisionSharp.Domain.Common;
@@ -69,12 +68,6 @@ public sealed partial class DashboardProjectTransferViewModel : ObservableObject
         string.IsNullOrWhiteSpace(TransferCurrentFile)
             ? "正在准备文件…"
             : Path.GetFileName(TransferCurrentFile);
-
-    /// <summary>
-    /// deepvision 首页有「导入 .opt 项目包」入口；本仓库没有任何 .opt 导入后端（Application 里无 ImportOptProject），
-    /// 所以命令恒不可执行，按钮只会以禁用态出现。
-    /// </summary>
-    public ICommand ImportOptProjectCommand => UnavailableCommand.Instance;
 
     [RelayCommand(CanExecute = nameof(CanRunProjectTransfer))]
     private async Task ExportProjectAsync(Guid projectId)

@@ -100,18 +100,6 @@
                         <TextBlock VerticalAlignment="Center" Text="导入" />
                     </StackPanel>
                 </Button>
-                <Button Margin="0,0,8,0"
-                        Command="{Binding Transfer.ImportOptProjectCommand}"
-                        IsEnabled="{Binding Transfer.IsNotTransferring}"
-                        Theme="{StaticResource DvToolbarButtonStyle}">
-                    <StackPanel Orientation="Horizontal">
-                        <iv:Icon Margin="0,0,6,0"
-                                 VerticalAlignment="Center"
-                                 FontSize="15"
-                                 Data="{x:Static ui:IvIcons.Documents}" />
-                        <TextBlock VerticalAlignment="Center" Text="导入第三方" />
-                    </StackPanel>
-                </Button>
                 <Button Height="34"
                         Padding="14,0"
                         Command="{Binding Editor.ShowCreateProjectDialogCommand}"

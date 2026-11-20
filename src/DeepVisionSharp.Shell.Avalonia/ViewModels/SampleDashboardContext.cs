@@ -176,7 +176,6 @@ public sealed class SampleDashboardTransfer
     public SampleDashboardTransfer()
     {
         ImportProjectCommand = new RelayCommand(() => { });
-        ImportOptProjectCommand = new RelayCommand(() => { });
         ExportProjectCommand = new RelayCommand(() => { });
     }
 
@@ -195,8 +194,6 @@ public sealed class SampleDashboardTransfer
     public string TransferProgressText => "0 / 0 个文件";
 
     public ICommand ImportProjectCommand { get; }
-
-    public ICommand ImportOptProjectCommand { get; }
 
     public ICommand ExportProjectCommand { get; }
 }

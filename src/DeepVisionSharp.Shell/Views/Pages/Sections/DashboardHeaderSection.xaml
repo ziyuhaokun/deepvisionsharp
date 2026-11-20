@@ -1,4 +1,4 @@
-<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Pages/DashboardPage.axaml（行 0 标题栏） | 转换: iv:Icon→dvsui:Icon（FontSize 15 → ViewSize 15）；工具条按钮用源 ControlTheme DvToolbarButtonStyle（34 高 / 13,0 内边距 / 13 号字）；「导入第三方」源有、本仓库无对应命令，故不添加 -->
+<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Pages/DashboardPage.axaml（行 0 标题栏） | 转换: iv:Icon→dvsui:Icon（FontSize 15 → ViewSize 15）；工具条按钮用源 ControlTheme DvToolbarButtonStyle（34 高 / 13,0 内边距 / 13 号字） -->
 <UserControl
     UseLayoutRounding="True"
     x:Class="DeepVisionSharp.Shell.Views.Pages.Sections.DashboardHeaderSection"
