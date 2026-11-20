@@ -24,9 +24,12 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
+                        <!-- 源（Avalonia）默认 UseLayoutRounding=True：14×14 内容区里居中 13×13 的 Check 落在 2,6；
+                              WPF 默认关闭会把 Icon 排到 1.5,5.5，整个对勾偏左上半像素。 -->
                         <Grid x:Name="BoxRoot"
                               Width="16"
                               Height="16"
+                              UseLayoutRounding="True"
                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                               RenderTransformOrigin="0.5,0.5">
                             <Grid.RenderTransform>
@@ -50,8 +53,10 @@
                                          HorizontalAlignment="Center"
                                          VerticalAlignment="Center"
                                          RenderTransformOrigin="0.5,0.5">
+                                    <!-- 基础值直接写选中态终值 scale(1)：WPF 的模板触发器在模板应用时不执行 EnterActions，
+                                         终值若只写在动画里，静态首帧会停在源模板声明的起始值 0.5。 -->
                                     <yu:Icon.RenderTransform>
-                                        <ScaleTransform x:Name="CheckScale" ScaleX="0.5" ScaleY="0.5" />
+                                        <ScaleTransform x:Name="CheckScale" ScaleX="1" ScaleY="1" />
                                     </yu:Icon.RenderTransform>
                                 </yu:Icon>
                             </Border>
@@ -94,10 +99,12 @@
                                     <Storyboard>
                                         <DoubleAnimation Storyboard.TargetName="CheckedLayer"
                                                          Storyboard.TargetProperty="Opacity"
+                                                         From="0"
                                                          To="1"
                                                          Duration="0:0:0.120" />
                                         <DoubleAnimation Storyboard.TargetName="CheckScale"
                                                          Storyboard.TargetProperty="ScaleX"
+                                                         From="0.5"
                                                          To="1"
                                                          Duration="0:0:0.200">
                                             <DoubleAnimation.EasingFunction>
@@ -106,6 +113,7 @@
                                         </DoubleAnimation>
                                         <DoubleAnimation Storyboard.TargetName="CheckScale"
                                                          Storyboard.TargetProperty="ScaleY"
+                                                         From="0.5"
                                                          To="1"
                                                          Duration="0:0:0.200">
                                             <DoubleAnimation.EasingFunction>
@@ -120,6 +128,7 @@
                                 <StopStoryboard BeginStoryboardName="CheckIn" />
                             </Trigger.ExitActions>
                             <Setter TargetName="IndeterminateLayer" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="CheckedLayer" Property="Opacity" Value="1" />
                         </Trigger>
                         <!-- 源 IndeterminateLayer 的可见性规则缺失（Avalonia 侧无 :indeterminate 选择器），按该层与 Dash 的既有视觉接到 IsChecked=null -->
                         <Trigger Property="IsChecked" Value="{x:Null}">
@@ -203,8 +212,10 @@
                                      Height="6"
                                      Fill="{DynamicResource IvTextOnAccentBrush}"
                                      RenderTransformOrigin="0.5,0.5">
+                                <!-- 基础值直接写选中态终值 scale(1)：WPF 的模板触发器在模板应用时不执行 EnterActions，
+                                     终值若只写在动画里，静态首帧会停在源模板声明的起始值 0。 -->
                                 <Ellipse.RenderTransform>
-                                    <ScaleTransform x:Name="DotScale" ScaleX="0" ScaleY="0" />
+                                    <ScaleTransform x:Name="DotScale" ScaleX="1" ScaleY="1" />
                                 </Ellipse.RenderTransform>
                             </Ellipse>
                         </Grid>
@@ -232,10 +243,12 @@
                                     <Storyboard>
                                         <DoubleAnimation Storyboard.TargetName="CheckedRing"
                                                          Storyboard.TargetProperty="Opacity"
+                                                         From="0"
                                                          To="1"
                                                          Duration="0:0:0.120" />
                                         <DoubleAnimation Storyboard.TargetName="DotScale"
                                                          Storyboard.TargetProperty="ScaleX"
+                                                         From="0"
                                                          To="1"
                                                          Duration="0:0:0.200">
                                             <DoubleAnimation.EasingFunction>
@@ -244,6 +257,7 @@
                                         </DoubleAnimation>
                                         <DoubleAnimation Storyboard.TargetName="DotScale"
                                                          Storyboard.TargetProperty="ScaleY"
+                                                         From="0"
                                                          To="1"
                                                          Duration="0:0:0.200">
                                             <DoubleAnimation.EasingFunction>
@@ -257,6 +271,7 @@
                             <Trigger.ExitActions>
                                 <StopStoryboard BeginStoryboardName="RadioCheckIn" />
                             </Trigger.ExitActions>
+                            <Setter TargetName="CheckedRing" Property="Opacity" Value="1" />
                         </Trigger>
                         <!-- 源 ^:pressed：整体 scale(0.88)，0:0:0.060 -->
                         <Trigger Property="IsPressed" Value="True">

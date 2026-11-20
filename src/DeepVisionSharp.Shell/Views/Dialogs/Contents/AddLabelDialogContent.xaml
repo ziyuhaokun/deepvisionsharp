@@ -1,4 +1,5 @@
 <UserControl
+    UseLayoutRounding="True"
     x:Class="DeepVisionSharp.Shell.Views.Dialogs.Contents.AddLabelDialogContent"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"

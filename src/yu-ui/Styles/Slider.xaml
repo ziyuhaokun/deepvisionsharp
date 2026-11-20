@@ -80,6 +80,13 @@
     <Style x:Key="{x:Type Slider}" TargetType="Slider">
         <Setter Property="MinHeight" Value="{DynamicResource IvControlHeightSmall}" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <!--
+            Avalonia 的 TopLevel.LayoutRounding 默认 true，轨道在 20 高网格里居中得到的 8.5 会被
+            取整到 8，轨道与滑块都落在整像素上。WPF 的 UseLayoutRounding 默认 false，同样的 8.5
+            会画出半覆盖的抗锯齿边，轨道上下各多一条半透明行、滑块左右各多一条半透明列。
+            这里显式打开以对齐 Avalonia 的版面取整，属性可继承到 Track 及其子元素。
+        -->
+        <Setter Property="UseLayoutRounding" Value="True" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Slider">

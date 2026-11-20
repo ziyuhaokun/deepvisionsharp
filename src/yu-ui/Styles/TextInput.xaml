@@ -48,7 +48,10 @@
                                    IsHitTestVisible="False"
                                    Visibility="Collapsed" />
                         <!-- 源 TextPresenter 的 Margin=TemplateBinding Padding；WPF 由 TextBox 把 Padding 下发给宿主，宿主不再加 Margin -->
+                        <!-- 源模板只给 TextPresenter 绑了 Margin、没绑 VerticalAlignment，实际渲染是贴着框顶（Avalonia 渲染图取证：14 号字行高 19，字迹 3..15，框高 30）；
+                             WPF TextBoxView 会把字在宿主高度内垂直居中，所以这里把宿主按内容高度顶对齐，才能和源渲染同位置 -->
                         <ScrollViewer x:Name="PART_ContentHost"
+                                      VerticalAlignment="Top"
                                       Focusable="False"
                                       HorizontalScrollBarVisibility="Hidden"
                                       VerticalScrollBarVisibility="Hidden" />

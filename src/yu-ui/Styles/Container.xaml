@@ -14,6 +14,9 @@
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Padding" Value="{DynamicResource IvCardPadding}" />
         <Setter Property="Focusable" Value="False" />
+        <!-- Avalonia 的 TopLevel.LayoutRounding 默认 true，卡片高度会被取整到整像素；WPF 默认 false，
+             行高 18.59 会让卡片落在 44.59 上，底边描边被摊成两条半透明行。打开版面取整对齐 Avalonia。 -->
+        <Setter Property="UseLayoutRounding" Value="True" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ContentControl">
@@ -37,6 +40,8 @@
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Padding" Value="10,8" />
         <Setter Property="Focusable" Value="False" />
+        <!-- 同 IvCardStyle：对齐 Avalonia 默认开启的版面取整 -->
+        <Setter Property="UseLayoutRounding" Value="True" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ContentControl">
