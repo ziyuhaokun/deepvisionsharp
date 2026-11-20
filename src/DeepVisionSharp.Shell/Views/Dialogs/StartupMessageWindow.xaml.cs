@@ -1,7 +1,7 @@
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using Wpf.Ui.Controls;
+using YuUI;
 
 namespace DeepVisionSharp.Shell.Views.Dialogs;
 
@@ -35,7 +35,7 @@ public partial class StartupMessageWindow : Window
                 MessageText.Text = string.IsNullOrWhiteSpace(message)
                     ? "应用启动时发生错误，详细信息已写入日志。"
                     : message;
-                MessageIcon.Symbol = SymbolRegular.ErrorCircle24;
+                MessageIcon.Data = IvIcons.Error;
                 IconContainer.Background = CreateTintBrush(Color.FromRgb(239, 68, 68), 0.16);
                 MessageIcon.Foreground = new SolidColorBrush(Color.FromRgb(239, 68, 68));
                 ConfirmButton.Content = "确定";
@@ -46,7 +46,7 @@ public partial class StartupMessageWindow : Window
                 MessageText.Text = string.IsNullOrWhiteSpace(message)
                     ? "检测到已有运行中的实例。请切换到已打开的窗口继续使用，无需再次启动。"
                     : message;
-                MessageIcon.Symbol = SymbolRegular.AppGeneric24;
+                MessageIcon.Data = IvIcons.AppWindow;
                 IconContainer.Background = CreateTintBrush(Color.FromRgb(245, 158, 11), 0.16);
                 MessageIcon.Foreground = new SolidColorBrush(Color.FromRgb(245, 158, 11));
                 ConfirmButton.Content = "知道了";
@@ -55,7 +55,7 @@ public partial class StartupMessageWindow : Window
             default:
                 TitleText.Text = Title;
                 MessageText.Text = message;
-                MessageIcon.Symbol = SymbolRegular.Info24;
+                MessageIcon.Data = IvIcons.Info;
                 IconContainer.Background = CreateTintBrush(GetBrushColor(accentBrush), 0.16);
                 MessageIcon.Foreground = accentBrush;
                 ConfirmButton.Content = "确定";
