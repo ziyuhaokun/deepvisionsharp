@@ -274,7 +274,7 @@ public sealed class AnnotationCanvas : Control
     public void FitToView()
     {
         _pan = default;
-        ZoomScale = 1;
+        SetCurrentValue(ZoomScaleProperty, 1d);
         RaiseViewChanged();
     }
 
@@ -363,7 +363,13 @@ public sealed class AnnotationCanvas : Control
     {
         base.OnPointerPressed(e);
 
-        if (e.GetCurrentPoint(this).Properties.IsMiddleButtonPressed)
+        if (!HasImage)
+        {
+            return;
+        }
+
+        var buttons = e.GetCurrentPoint(this).Properties;
+        if (buttons.PointerUpdateKind == PointerUpdateKind.RightButtonPressed)
         {
             _isPanning = true;
             _dragStartScreen = e.GetPosition(this);
@@ -373,7 +379,19 @@ public sealed class AnnotationCanvas : Control
             return;
         }
 
-        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed || IsReadOnly || !HasImage)
+        if (!buttons.IsLeftButtonPressed)
+        {
+            return;
+        }
+
+        if (e.Pointer.Type == PointerType.Mouse && e.ClickCount == 2)
+        {
+            FitToView();
+            e.Handled = true;
+            return;
+        }
+
+        if (IsReadOnly)
         {
             return;
         }
@@ -441,6 +459,14 @@ public sealed class AnnotationCanvas : Control
 
         if (_isPanning)
         {
+            // Avalonia reports a button release as a move while another mouse button is held.
+            if (!e.GetCurrentPoint(this).Properties.IsRightButtonPressed)
+            {
+                EndPan(e.Pointer);
+                e.Handled = true;
+                return;
+            }
+
             var current = e.GetPosition(this);
             _pan += current - _dragStartScreen;
             _dragStartScreen = current;
@@ -485,11 +511,9 @@ public sealed class AnnotationCanvas : Control
     {
         base.OnPointerReleased(e);
 
-        if (_isPanning && e.InitialPressMouseButton == MouseButton.Middle)
+        if (_isPanning && e.InitialPressMouseButton == MouseButton.Right)
         {
-            _isPanning = false;
-            ResetCursor();
-            e.Pointer.Capture(null);
+            EndPan(e.Pointer);
             e.Handled = true;
             return;
         }
@@ -771,6 +795,13 @@ public sealed class AnnotationCanvas : Control
         _originalBounds = default;
         _previewBounds = null;
         _dragTarget = null;
+    }
+
+    private void EndPan(IPointer pointer)
+    {
+        _isPanning = false;
+        ResetCursor();
+        pointer.Capture(null);
     }
 
     private void ResetCursor() => Cursor = null;
