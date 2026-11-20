@@ -30,6 +30,18 @@
         </Style>
     </ControlTheme>
 
+    <!-- 轨道两侧的翻页按钮：Track 会自己接管 IsVisible，模板里写 IsVisible=False 无效，
+         不给模板就会套默认按钮样式画出一块圆角灰块。这里只留透明命中区，保留「点轨道翻页」。 -->
+    <ControlTheme x:Key="IvScrollBarPageButtonStyle" TargetType="RepeatButton">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="Transparent" />
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+
     <ControlTheme x:Key="{x:Type ScrollBar}" TargetType="ScrollBar">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Width" Value="12" />
@@ -47,15 +59,19 @@
                             <Thumb Theme="{StaticResource IvScrollBarThumbStyle}" />
                         </Track.Thumb>
                         <Track.IncreaseButton>
-                            <RepeatButton IsVisible="False" Focusable="False" />
+                            <RepeatButton Theme="{StaticResource IvScrollBarPageButtonStyle}" />
                         </Track.IncreaseButton>
                         <Track.DecreaseButton>
-                            <RepeatButton IsVisible="False" Focusable="False" />
+                            <RepeatButton Theme="{StaticResource IvScrollBarPageButtonStyle}" />
                         </Track.DecreaseButton>
                     </Track>
                 </Border>
             </ControlTemplate>
         </Setter>
+        <!-- Avalonia 的竖向 Track 默认 Minimum 在底部；不反转的话滑块方向与滚动方向相反（偏移 0 时滑块在最下面）。Fluent 模板同样给竖向 Track 设了 IsDirectionReversed。 -->
+        <Style Selector="^:vertical /template/ Track#PART_Track">
+            <Setter Property="IsDirectionReversed" Value="True" />
+        </Style>
         <Style Selector="^:horizontal">
             <Setter Property="Width" Value="NaN" />
             <Setter Property="MinWidth" Value="0" />
