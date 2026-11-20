@@ -14,7 +14,8 @@
         <Setter Property="Padding" Value="{DynamicResource IvInputPadding}" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="CaretBrush" Value="{DynamicResource IvText1Brush}" />
-        <Setter Property="SelectionBrush" Value="{DynamicResource IvAccentBrush}" />
+        <Setter Property="SelectionBrush" Value="{DynamicResource IvTextSelectionBrush}" />
+        <Setter Property="SelectionForegroundBrush" Value="{DynamicResource IvText1Brush}" />
         <Setter Property="Template">
             <ControlTemplate>
                 <Grid TextElement.Foreground="{TemplateBinding Foreground}">

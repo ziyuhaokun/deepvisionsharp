@@ -15,6 +15,7 @@
             <SolidColorBrush x:Key="IvBandBrush" Color="#F1F2F3" />
             <SolidColorBrush x:Key="IvControlFillBrush" Color="#FFFFFF" />
             <SolidColorBrush x:Key="IvInputBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="IvTextSelectionBrush" Color="#B9D3F4" />
             <SolidColorBrush x:Key="IvPopupBrush" Color="#FFFFFF" />
             <SolidColorBrush x:Key="IvOverlayBrush" Color="#59000000" />
             <SolidColorBrush x:Key="IvStrokeSubtleBrush" Color="#E2E3E5" />
@@ -105,6 +106,7 @@
             <SolidColorBrush x:Key="IvBandBrush" Color="#242528" />
             <SolidColorBrush x:Key="IvControlFillBrush" Color="#26272A" />
             <SolidColorBrush x:Key="IvInputBrush" Color="#141516" />
+            <SolidColorBrush x:Key="IvTextSelectionBrush" Color="#395D85" />
             <SolidColorBrush x:Key="IvPopupBrush" Color="#26272A" />
             <SolidColorBrush x:Key="IvOverlayBrush" Color="#99000000" />
             <SolidColorBrush x:Key="IvStrokeSubtleBrush" Color="#2D2E31" />
