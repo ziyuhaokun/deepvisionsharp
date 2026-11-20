@@ -1038,30 +1038,27 @@
             </StackPanel>
         </ScrollViewer>
 
-        <ScrollViewer Grid.Row="0"
-                      Margin="16,6,16,0"
-                      HorizontalScrollBarVisibility="Disabled"
-                      MinHeight="0"
-                      VerticalAlignment="Stretch"
-                      VerticalScrollBarVisibility="Auto"
-                      IsVisible="{Binding Monitor.IsResourcesSectionActive}">
-            <StackPanel Margin="0,4,0,12" VerticalAlignment="Top">
-                <Border Margin="0,0,0,12"
-                        Padding="12"
-                        BorderBrush="{DynamicResource IvWarningBrush}"
-                        BorderThickness="1"
-                        CornerRadius="6"
-                        IsVisible="{Binding Monitor.Resources.HasResourcePollingError}">
-                    <TextBlock Foreground="{DynamicResource IvWarningBrush}"
-                               Text="{Binding Monitor.Resources.ResourcePollingError}"
-                               TextWrapping="Wrap" />
-                </Border>
+        <Grid Grid.Row="0" Margin="16,0" RowDefinitions="Auto,*"
+              IsVisible="{Binding Monitor.IsResourcesSectionActive}">
+            <Border Margin="0,10,0,2"
+                    Padding="12"
+                    BorderBrush="{DynamicResource IvWarningBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    IsVisible="{Binding Monitor.Resources.HasResourcePollingError}">
+                <TextBlock Foreground="{DynamicResource IvWarningBrush}"
+                           Text="{Binding Monitor.Resources.ResourcePollingError}"
+                           TextWrapping="Wrap" />
+            </Border>
 
-                <Grid>
+            <ScrollViewer Grid.Row="1"
+                          HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Auto"
+                          IsVisible="{Binding Monitor.Resources.HasResourceData}">
+                <StackPanel Margin="0,10,0,12">
                     <UniformGrid VerticalAlignment="Top"
                                  Columns="3"
-                                 Rows="1"
-                                 IsVisible="{Binding Monitor.Resources.HasResourceData}">
+                                 Rows="1">
                         <Border Margin="0,0,8,0" Classes="metricCard">
                             <StackPanel>
                                 <TextBlock Classes="fieldLabel" Text="CPU 使用率" />
@@ -1121,34 +1118,33 @@
                             </StackPanel>
                         </Border>
                     </UniformGrid>
+                    <TextBlock Margin="2,10,0,0"
+                               FontSize="11.5"
+                               Foreground="{DynamicResource IvText3Brush}"
+                               Text="每 2 秒采样一次 · 仅统计本机进程占用" />
+                </StackPanel>
+            </ScrollViewer>
 
-                    <StackPanel Classes="emptyState" IsVisible="{Binding !Monitor.Resources.HasResourceData}">
-                        <iv:Icon HorizontalAlignment="Center"
-                                 FontSize="30"
-                                 Foreground="{DynamicResource IvText3Brush}"
-                                 Data="{x:Static ui:IvIcons.Cube}" />
-                        <TextBlock Margin="0,10,0,0"
-                                   HorizontalAlignment="Center"
-                                   FontSize="15"
-                                   FontWeight="SemiBold"
-                                   Text="暂无数据" />
-                        <TextBlock Margin="0,4,0,0"
-                                   HorizontalAlignment="Center"
-                                   FontSize="12.5"
-                                   Foreground="{DynamicResource IvText2Brush}"
-                                   Text="切换到资源页后将显示系统资源监控"
-                                   TextAlignment="Center"
-                                   TextWrapping="Wrap" />
-                    </StackPanel>
-                </Grid>
-
-                <TextBlock Margin="2,10,0,0"
-                           FontSize="11.5"
-                           Foreground="{DynamicResource IvText3Brush}"
-                           Text="每 2 秒采样一次 · 仅统计本机进程占用"
-                           IsVisible="{Binding Monitor.Resources.HasResourceData}" />
+            <StackPanel Grid.Row="1" Margin="0,8" Classes="emptyState"
+                        IsVisible="{Binding !Monitor.Resources.HasResourceData}">
+                <iv:Icon HorizontalAlignment="Center"
+                         FontSize="30"
+                         Foreground="{DynamicResource IvText3Brush}"
+                         Data="{x:Static ui:IvIcons.Cube}" />
+                <TextBlock Margin="0,10,0,0"
+                           HorizontalAlignment="Center"
+                           FontSize="15"
+                           FontWeight="SemiBold"
+                           Text="暂无数据" />
+                <TextBlock Margin="0,4,0,0"
+                           HorizontalAlignment="Center"
+                           FontSize="12.5"
+                           Foreground="{DynamicResource IvText2Brush}"
+                           Text="切换到资源页后将显示系统资源监控"
+                           TextAlignment="Center"
+                           TextWrapping="Wrap" />
             </StackPanel>
-        </ScrollViewer>
+        </Grid>
 
         <Grid Grid.Row="0"
               Margin="16,6,16,0"
