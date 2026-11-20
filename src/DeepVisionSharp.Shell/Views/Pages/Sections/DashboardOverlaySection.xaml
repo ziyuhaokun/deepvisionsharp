@@ -4,12 +4,12 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters"
     mc:Ignorable="d">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/yu-ui;component/YuUiTheme.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Views/Pages/DashboardPageResources.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
@@ -19,7 +19,7 @@
         <Border
             Grid.RowSpan="3"
             Panel.ZIndex="90"
-            Background="#80000000">
+            Background="{DynamicResource IvOverlayBrush}">
             <Border.Style>
                 <Style TargetType="{x:Type Border}">
                     <Setter Property="Visibility" Value="Collapsed" />
@@ -36,31 +36,33 @@
                     </Style.Triggers>
                 </Style>
             </Border.Style>
-            <ui:Card
+            <ContentControl
                 Padding="24"
                 HorizontalAlignment="Center"
-                VerticalAlignment="Center">
+                VerticalAlignment="Center"
+                Style="{StaticResource IvCardStyle}">
                 <StackPanel Orientation="Horizontal">
-                    <ui:ProgressRing
+                    <ProgressBar
                         Width="32"
-                        Height="32"
+                        Height="6"
+                        VerticalAlignment="Center"
                         IsIndeterminate="True" />
                     <TextBlock
                         Margin="14,0,0,0"
                         VerticalAlignment="Center"
-                        FontSize="15"
+                        FontSize="{DynamicResource IvFontSizeSubtitle}"
                         FontWeight="SemiBold"
                         Text="正在处理项目…" />
                 </StackPanel>
-            </ui:Card>
+            </ContentControl>
         </Border>
 
         <Border
             Grid.RowSpan="3"
             Panel.ZIndex="100"
-            Background="#B3000000"
+            Background="{DynamicResource IvOverlayBrush}"
             Visibility="{Binding Transfer.IsTransferring, Converter={StaticResource BooleanToVisibilityConverter}}">
-            <ui:Card
+            <ContentControl
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 Style="{StaticResource TransferOverlayCardStyle}">
@@ -72,22 +74,22 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <ui:ProgressRing
+                        <ProgressBar
                             Width="40"
-                            Height="40"
-                            VerticalAlignment="Top"
+                            Height="6"
+                            VerticalAlignment="Center"
                             IsIndeterminate="True" />
 
                         <StackPanel Grid.Column="1" Margin="16,0,12,0">
                             <TextBlock
-                                FontSize="18"
+                                FontSize="{DynamicResource IvFontSizeHeading}"
                                 FontWeight="SemiBold"
                                 Text="{Binding Transfer.TransferStage}" />
                             <TextBlock
                                 Margin="0,6,0,0"
-                                FontFamily="Cascadia Mono, Consolas, Courier New"
-                                FontSize="13"
-                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                FontFamily="{DynamicResource IvMonoFontFamily}"
+                                FontSize="{DynamicResource IvFontSizeBodySmall}"
+                                Foreground="{DynamicResource IvText2Brush}"
                                 Text="{Binding Transfer.TransferCurrentFileDisplay}"
                                 TextTrimming="CharacterEllipsis"
                                 ToolTip="{Binding Transfer.TransferCurrentFile}" />
@@ -96,9 +98,9 @@
                         <TextBlock
                             Grid.Column="2"
                             VerticalAlignment="Top"
-                            FontSize="28"
+                            FontSize="{DynamicResource IvFontSizeDisplay}"
                             FontWeight="SemiBold"
-                            Foreground="{DynamicResource SystemAccentColorPrimaryBrush}"
+                            Foreground="{DynamicResource IvAccentBrush}"
                             Text="{Binding Transfer.TransferProgressPercentText}" />
                     </Grid>
 
@@ -110,17 +112,17 @@
 
                     <Grid Margin="0,10,0,0">
                         <TextBlock
-                            FontSize="13"
-                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                            FontSize="{DynamicResource IvFontSizeBodySmall}"
+                            Foreground="{DynamicResource IvText2Brush}"
                             Text="{Binding Transfer.TransferProgressText}" />
                         <TextBlock
                             HorizontalAlignment="Right"
-                            FontSize="13"
-                            Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                            FontSize="{DynamicResource IvFontSizeBodySmall}"
+                            Foreground="{DynamicResource IvText3Brush}"
                             Text="请勿关闭应用" />
                     </Grid>
                 </StackPanel>
-            </ui:Card>
+            </ContentControl>
         </Border>
     </Grid>
 </UserControl>

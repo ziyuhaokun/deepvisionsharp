@@ -2,11 +2,15 @@
     x:Class="DeepVisionSharp.Shell.Views.Pages.Sections.SettingsStorageSection"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-    xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters">
+    xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters"
+    xmlns:yu="http://schemas.yu-ui/xaml"
+    FontFamily="{DynamicResource IvFontFamily}"
+    FontSize="{DynamicResource IvFontSizeBody}"
+    Foreground="{DynamicResource IvText1Brush}">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/yu-ui;component/YuUiTheme.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Views/Pages/SettingsPageResources.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
@@ -17,32 +21,41 @@
                             Margin="0,0,0,14"
                             Columns="2"
                             Rows="2">
-                            <ui:Card Margin="0,0,10,10" Padding="14" VerticalAlignment="Stretch">
+                            <ContentControl
+                                Margin="0,0,10,10"
+                                VerticalAlignment="Stretch"
+                                Style="{StaticResource IvCardStyle}">
                                 <DockPanel LastChildFill="True">
-                                    <ui:Button
+                                    <Button
                                         Margin="0,12,0,0"
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Bottom"
-                                        Appearance="Secondary"
                                         Command="{Binding OpenAppDataFolderCommand}"
-                                        DockPanel.Dock="Bottom"
-                                        Icon="{ui:SymbolIcon FolderOpen24}">
-                                        打开
-                                    </ui:Button>
+                                        DockPanel.Dock="Bottom">
+                                        <StackPanel Orientation="Horizontal">
+                                            <yu:Icon
+                                                Margin="0,0,6,0"
+                                                VerticalAlignment="Center"
+                                                Data="{x:Static yu:IvIcons.FolderOpen}"
+                                                ViewSize="{DynamicResource IvIconSize}" />
+                                            <TextBlock VerticalAlignment="Center" Text="打开" />
+                                        </StackPanel>
+                                    </Button>
                                     <StackPanel>
                                         <StackPanel Orientation="Horizontal">
                                             <Border Style="{StaticResource IconTileStyle}">
-                                                <ui:SymbolIcon
+                                                <!-- 源 SymbolIcon Database24 → IvIcons.Tray（近义降级） -->
+                                                <yu:Icon
                                                     HorizontalAlignment="Center"
                                                     VerticalAlignment="Center"
-                                                    FontSize="16"
-                                                    Symbol="Database24" />
+                                                    Data="{x:Static yu:IvIcons.Tray}"
+                                                    ViewSize="{DynamicResource IvIconSize}" />
                                             </Border>
                                             <TextBlock
                                                 Margin="10,0,0,0"
                                                 VerticalAlignment="Center"
                                                 FontWeight="SemiBold"
-                                                Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                Foreground="{DynamicResource IvText1Brush}"
                                                 Text="应用数据" />
                                         </StackPanel>
                                         <TextBlock Style="{StaticResource MetricSizeStyle}" Text="{Binding AppDataSize}" />
@@ -52,34 +65,42 @@
                                             ToolTip="{Binding AppDataDirectory}" />
                                     </StackPanel>
                                 </DockPanel>
-                            </ui:Card>
+                            </ContentControl>
 
-                            <ui:Card Margin="0,0,0,10" Padding="14" VerticalAlignment="Stretch">
+                            <ContentControl
+                                Margin="0,0,0,10"
+                                VerticalAlignment="Stretch"
+                                Style="{StaticResource IvCardStyle}">
                                 <DockPanel LastChildFill="True">
-                                    <ui:Button
+                                    <Button
                                         Margin="0,12,0,0"
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Bottom"
-                                        Appearance="Secondary"
                                         Command="{Binding OpenModelsFolderCommand}"
-                                        DockPanel.Dock="Bottom"
-                                        Icon="{ui:SymbolIcon FolderOpen24}">
-                                        打开
-                                    </ui:Button>
+                                        DockPanel.Dock="Bottom">
+                                        <StackPanel Orientation="Horizontal">
+                                            <yu:Icon
+                                                Margin="0,0,6,0"
+                                                VerticalAlignment="Center"
+                                                Data="{x:Static yu:IvIcons.FolderOpen}"
+                                                ViewSize="{DynamicResource IvIconSize}" />
+                                            <TextBlock VerticalAlignment="Center" Text="打开" />
+                                        </StackPanel>
+                                    </Button>
                                     <StackPanel>
                                         <StackPanel Orientation="Horizontal">
                                             <Border Style="{StaticResource IconTileStyle}">
-                                                <ui:SymbolIcon
+                                                <yu:Icon
                                                     HorizontalAlignment="Center"
                                                     VerticalAlignment="Center"
-                                                    FontSize="16"
-                                                    Symbol="Cube24" />
+                                                    Data="{x:Static yu:IvIcons.Cube}"
+                                                    ViewSize="{DynamicResource IvIconSize}" />
                                             </Border>
                                             <TextBlock
                                                 Margin="10,0,0,0"
                                                 VerticalAlignment="Center"
                                                 FontWeight="SemiBold"
-                                                Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                Foreground="{DynamicResource IvText1Brush}"
                                                 Text="预训练权重" />
                                         </StackPanel>
                                         <TextBlock Style="{StaticResource MetricSizeStyle}" Text="{Binding ModelsSize}" />
@@ -89,34 +110,42 @@
                                             ToolTip="{Binding ModelsDirectory}" />
                                     </StackPanel>
                                 </DockPanel>
-                            </ui:Card>
+                            </ContentControl>
 
-                            <ui:Card Margin="0,0,10,0" Padding="14" VerticalAlignment="Stretch">
+                            <ContentControl
+                                Margin="0,0,10,0"
+                                VerticalAlignment="Stretch"
+                                Style="{StaticResource IvCardStyle}">
                                 <DockPanel LastChildFill="True">
-                                    <ui:Button
+                                    <Button
                                         Margin="0,12,0,0"
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Bottom"
-                                        Appearance="Secondary"
                                         Command="{Binding OpenLogsFolderCommand}"
-                                        DockPanel.Dock="Bottom"
-                                        Icon="{ui:SymbolIcon FolderOpen24}">
-                                        打开
-                                    </ui:Button>
+                                        DockPanel.Dock="Bottom">
+                                        <StackPanel Orientation="Horizontal">
+                                            <yu:Icon
+                                                Margin="0,0,6,0"
+                                                VerticalAlignment="Center"
+                                                Data="{x:Static yu:IvIcons.FolderOpen}"
+                                                ViewSize="{DynamicResource IvIconSize}" />
+                                            <TextBlock VerticalAlignment="Center" Text="打开" />
+                                        </StackPanel>
+                                    </Button>
                                     <StackPanel>
                                         <StackPanel Orientation="Horizontal">
                                             <Border Style="{StaticResource IconTileStyle}">
-                                                <ui:SymbolIcon
+                                                <yu:Icon
                                                     HorizontalAlignment="Center"
                                                     VerticalAlignment="Center"
-                                                    FontSize="16"
-                                                    Symbol="DocumentText24" />
+                                                    Data="{x:Static yu:IvIcons.Document}"
+                                                    ViewSize="{DynamicResource IvIconSize}" />
                                             </Border>
                                             <TextBlock
                                                 Margin="10,0,0,0"
                                                 VerticalAlignment="Center"
                                                 FontWeight="SemiBold"
-                                                Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                Foreground="{DynamicResource IvText1Brush}"
                                                 Text="日志文件" />
                                         </StackPanel>
                                         <TextBlock Style="{StaticResource MetricSizeStyle}" Text="{Binding LogsSize}" />
@@ -129,34 +158,40 @@
                                             Text="{Binding LogRetentionText}" />
                                     </StackPanel>
                                 </DockPanel>
-                            </ui:Card>
+                            </ContentControl>
 
-                            <ui:Card Padding="14" VerticalAlignment="Stretch">
+                            <ContentControl VerticalAlignment="Stretch" Style="{StaticResource IvCardStyle}">
                                 <DockPanel LastChildFill="True">
-                                    <ui:Button
+                                    <Button
                                         Margin="0,12,0,0"
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Bottom"
-                                        Appearance="Secondary"
                                         Command="{Binding OpenCrashDumpsFolderCommand}"
-                                        DockPanel.Dock="Bottom"
-                                        Icon="{ui:SymbolIcon FolderOpen24}">
-                                        打开
-                                    </ui:Button>
+                                        DockPanel.Dock="Bottom">
+                                        <StackPanel Orientation="Horizontal">
+                                            <yu:Icon
+                                                Margin="0,0,6,0"
+                                                VerticalAlignment="Center"
+                                                Data="{x:Static yu:IvIcons.FolderOpen}"
+                                                ViewSize="{DynamicResource IvIconSize}" />
+                                            <TextBlock VerticalAlignment="Center" Text="打开" />
+                                        </StackPanel>
+                                    </Button>
                                     <StackPanel>
                                         <StackPanel Orientation="Horizontal">
                                             <Border Style="{StaticResource IconTileStyle}">
-                                                <ui:SymbolIcon
+                                                <!-- 源 SymbolIcon Bug24 在 IvIcons 里没有等价几何，降级为 Warning -->
+                                                <yu:Icon
                                                     HorizontalAlignment="Center"
                                                     VerticalAlignment="Center"
-                                                    FontSize="16"
-                                                    Symbol="Bug24" />
+                                                    Data="{x:Static yu:IvIcons.Warning}"
+                                                    ViewSize="{DynamicResource IvIconSize}" />
                                             </Border>
                                             <TextBlock
                                                 Margin="10,0,0,0"
                                                 VerticalAlignment="Center"
                                                 FontWeight="SemiBold"
-                                                Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                Foreground="{DynamicResource IvText1Brush}"
                                                 Text="崩溃转储" />
                                         </StackPanel>
                                         <TextBlock Style="{StaticResource MetricSizeStyle}" Text="{Binding CrashDumpsSize}" />
@@ -166,11 +201,11 @@
                                             ToolTip="{Binding CrashDumpsDirectory}" />
                                     </StackPanel>
                                 </DockPanel>
-                            </ui:Card>
+                            </ContentControl>
                         </UniformGrid>
 
                         <TextBlock Style="{StaticResource SectionTitleStyle}" Text="缓存维护" />
-                        <ui:Card Style="{StaticResource SettingsCardStyle}">
+                        <ContentControl Style="{StaticResource SettingsCardStyle}">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
@@ -187,28 +222,40 @@
                                     Grid.Column="1"
                                     VerticalAlignment="Center"
                                     Orientation="Horizontal">
-                                    <ui:ProgressRing
-                                        Width="18"
-                                        Height="18"
+                                    <!-- 源 WPF-UI ProgressRing（18×18 环）→ 不确定态 ProgressBar（条形） -->
+                                    <ProgressBar
+                                        Width="48"
+                                        Height="6"
                                         Margin="0,0,10,0"
+                                        VerticalAlignment="Center"
                                         IsIndeterminate="True"
                                         Visibility="{Binding IsCleaningCache, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                                    <ui:Button
+                                    <Button
                                         Margin="0,0,8,0"
-                                        Appearance="Secondary"
-                                        Command="{Binding RefreshStorageInfoCommand}"
-                                        Icon="{ui:SymbolIcon ArrowClockwise24}">
-                                        刷新
-                                    </ui:Button>
-                                    <ui:Button
-                                        Appearance="Secondary"
+                                        Command="{Binding RefreshStorageInfoCommand}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <yu:Icon
+                                                Margin="0,0,6,0"
+                                                VerticalAlignment="Center"
+                                                Data="{x:Static yu:IvIcons.Refresh}"
+                                                ViewSize="{DynamicResource IvIconSize}" />
+                                            <TextBlock VerticalAlignment="Center" Text="刷新" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button
                                         Command="{Binding ClearCacheCommand}"
-                                        Icon="{ui:SymbolIcon Delete24}"
                                         IsEnabled="{Binding IsNotCleaningCache}">
-                                        清理缓存
-                                    </ui:Button>
+                                        <StackPanel Orientation="Horizontal">
+                                            <yu:Icon
+                                                Margin="0,0,6,0"
+                                                VerticalAlignment="Center"
+                                                Data="{x:Static yu:IvIcons.Delete}"
+                                                ViewSize="{DynamicResource IvIconSize}" />
+                                            <TextBlock VerticalAlignment="Center" Text="清理缓存" />
+                                        </StackPanel>
+                                    </Button>
                                 </StackPanel>
                             </Grid>
-                        </ui:Card>
+                        </ContentControl>
                     </StackPanel>
 </UserControl>

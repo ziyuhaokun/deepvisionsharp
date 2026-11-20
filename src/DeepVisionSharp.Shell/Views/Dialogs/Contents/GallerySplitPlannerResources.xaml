@@ -1,35 +1,34 @@
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
 
         <Style x:Key="DialogFieldLabelStyle" TargetType="{x:Type TextBlock}">
-            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontSize" Value="{DynamicResource IvFontSizeBodySmall}" />
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
         </Style>
 
         <Style x:Key="PrimaryTextStyle" TargetType="{x:Type TextBlock}">
-            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
         </Style>
 
         <Style x:Key="MutedTextStyle" TargetType="{x:Type TextBlock}">
-            <Setter Property="FontSize" Value="12" />
-            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+            <Setter Property="FontSize" Value="{DynamicResource IvFontSizeCaption}" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
         </Style>
 
         <Style x:Key="ErrorTextStyle" TargetType="{x:Type TextBlock}">
-            <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource IvDangerBrush}" />
             <Setter Property="TextWrapping" Value="Wrap" />
         </Style>
 
         <Style x:Key="SplitModeGroupStyle" TargetType="{x:Type TextBlock}">
             <Setter Property="Margin" Value="2,10,0,6" />
-            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontSize" Value="{DynamicResource IvFontSizeSmall}" />
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
         </Style>
 
         <Style x:Key="SplitModeCardStyle" TargetType="{x:Type RadioButton}">
@@ -37,17 +36,17 @@
             <Setter Property="Padding" Value="9,7" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type RadioButton}">
                         <Border
                             x:Name="CardBorder"
                             Padding="{TemplateBinding Padding}"
-                            Background="{DynamicResource ControlFillColorDefaultBrush}"
-                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                            Background="{DynamicResource IvControlFillBrush}"
+                            BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
                             BorderThickness="1"
-                            CornerRadius="7">
+                            CornerRadius="{DynamicResource IvRadiusControl}">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
@@ -60,13 +59,13 @@
                                     VerticalAlignment="Top">
                                     <Ellipse
                                         Fill="Transparent"
-                                        Stroke="{DynamicResource TextFillColorSecondaryBrush}"
+                                        Stroke="{DynamicResource IvText2Brush}"
                                         StrokeThickness="1.5" />
                                     <Ellipse
                                         x:Name="CheckedDot"
                                         Width="8"
                                         Height="8"
-                                        Fill="{DynamicResource SystemAccentColorPrimaryBrush}"
+                                        Fill="{DynamicResource IvAccentBrush}"
                                         Visibility="Collapsed" />
                                 </Grid>
                                 <ContentPresenter
@@ -78,16 +77,16 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="CardBorder" Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+                                <Setter TargetName="CardBorder" Property="Background" Value="{DynamicResource IvSurfaceSubtleHoverBrush}" />
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="CardBorder" Property="Background" Value="{DynamicResource SystemFillColorAttentionBackgroundBrush}" />
-                                <Setter TargetName="CardBorder" Property="BorderBrush" Value="{DynamicResource SystemAccentColorPrimaryBrush}" />
+                                <Setter TargetName="CardBorder" Property="Background" Value="{DynamicResource IvAccentSubtleBrush}" />
+                                <Setter TargetName="CardBorder" Property="BorderBrush" Value="{DynamicResource IvAccentBrush}" />
                                 <Setter TargetName="CardBorder" Property="BorderThickness" Value="2" />
                                 <Setter TargetName="CheckedDot" Property="Visibility" Value="Visible" />
                             </Trigger>
                             <Trigger Property="IsKeyboardFocused" Value="True">
-                                <Setter TargetName="CardBorder" Property="BorderBrush" Value="{DynamicResource SystemAccentColorBrush}" />
+                                <Setter TargetName="CardBorder" Property="BorderBrush" Value="{DynamicResource IvAccentBrush}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -97,18 +96,18 @@
 
         <Style x:Key="OptionPanelStyle" TargetType="{x:Type Border}">
             <Setter Property="Padding" Value="14" />
-            <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+            <Setter Property="Background" Value="{DynamicResource IvSurfaceSubtleHoverBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="CornerRadius" Value="{DynamicResource IvRadiusControl}" />
         </Style>
 
         <Style x:Key="PreviewPanelStyle" TargetType="{x:Type Border}">
             <Setter Property="Margin" Value="0,12,0,0" />
             <Setter Property="Padding" Value="14" />
-            <Setter Property="Background" Value="{DynamicResource SystemFillColorAttentionBackgroundBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+            <Setter Property="Background" Value="{DynamicResource IvAccentSubtleBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="CornerRadius" Value="{DynamicResource IvRadiusControl}" />
         </Style>
 </ResourceDictionary>

@@ -4,7 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:yu="http://schemas.yu-ui/xaml"
     xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters"
     xmlns:sections="clr-namespace:DeepVisionSharp.Shell.Views.Pages.Sections"
     xmlns:services="clr-namespace:DeepVisionSharp.Shell.Services"
@@ -12,6 +12,10 @@
     Title="设置"
     d:DesignHeight="1000"
     d:DesignWidth="1680"
+    Background="{DynamicResource IvBackgroundBrush}"
+    FontFamily="{DynamicResource IvFontFamily}"
+    FontSize="{DynamicResource IvFontSizeBody}"
+    Foreground="{DynamicResource IvText1Brush}"
     Loaded="OnLoaded"
     SizeChanged="OnPageSizeChanged"
     Unloaded="OnUnloaded"
@@ -19,6 +23,7 @@
     <Page.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/yu-ui;component/YuUiTheme.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Views/Pages/SettingsPageResources.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
@@ -37,7 +42,7 @@
         Margin="24"
         MinHeight="0"
         VerticalAlignment="Stretch"
-        TextElement.Foreground="{DynamicResource TextFillColorPrimaryBrush}">
+        TextElement.Foreground="{DynamicResource IvText1Brush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" MinHeight="200" />
@@ -73,34 +78,33 @@
                                 Width="32"
                                 Height="32"
                                 Style="{StaticResource IconTileStyle}">
-                                <ui:SymbolIcon
+                                <yu:Icon
                                     x:Name="CategoryIcon"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
-                                    FontSize="16"
-                                    Style="{StaticResource ThemedSymbolIcon}"
-                                    Symbol="Code24" />
+                                    Data="{x:Static yu:IvIcons.Grid}"
+                                    ViewSize="{DynamicResource IvIconSize}" />
                             </Border>
                             <TextBlock
                                 Grid.Column="1"
                                 Margin="10,0,0,0"
                                 VerticalAlignment="Center"
                                 FontWeight="SemiBold"
-                                Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                Foreground="{DynamicResource IvText1Brush}"
                                 Text="{Binding Title}" />
                         </Grid>
                         <DataTemplate.Triggers>
                             <DataTrigger Binding="{Binding Id}" Value="{x:Static vm:SettingsCategory.Appearance}">
-                                <Setter TargetName="CategoryIcon" Property="Symbol" Value="PaintBrush24" />
+                                <Setter TargetName="CategoryIcon" Property="Data" Value="{x:Static yu:IvIcons.Palette}" />
                             </DataTrigger>
                             <DataTrigger Binding="{Binding Id}" Value="{x:Static vm:SettingsCategory.Storage}">
-                                <Setter TargetName="CategoryIcon" Property="Symbol" Value="Folder24" />
+                                <Setter TargetName="CategoryIcon" Property="Data" Value="{x:Static yu:IvIcons.Folder}" />
                             </DataTrigger>
                             <DataTrigger Binding="{Binding Id}" Value="{x:Static vm:SettingsCategory.About}">
-                                <Setter TargetName="CategoryIcon" Property="Symbol" Value="Info24" />
+                                <Setter TargetName="CategoryIcon" Property="Data" Value="{x:Static yu:IvIcons.Info}" />
                             </DataTrigger>
                             <DataTrigger Binding="{Binding Id}" Value="{x:Static vm:SettingsCategory.Advanced}">
-                                <Setter TargetName="CategoryIcon" Property="Symbol" Value="Wrench24" />
+                                <Setter TargetName="CategoryIcon" Property="Data" Value="{x:Static yu:IvIcons.Settings}" />
                             </DataTrigger>
                         </DataTemplate.Triggers>
                     </DataTemplate>

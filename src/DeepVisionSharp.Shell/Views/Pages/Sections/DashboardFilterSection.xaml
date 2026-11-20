@@ -4,12 +4,13 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:yu="http://schemas.yu-ui/xaml"
     xmlns:converters="clr-namespace:DeepVisionSharp.Shell.Converters"
     mc:Ignorable="d">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/yu-ui;component/YuUiTheme.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Views/Pages/DashboardPageResources.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
@@ -19,10 +20,10 @@
                     Grid.Row="1"
                     Margin="0,16,0,0"
                     Padding="14"
-                    Background="{DynamicResource ControlFillColorSecondaryBrush}"
-                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                    Background="{DynamicResource IvSurface3Brush}"
+                    BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
                     BorderThickness="1"
-                    CornerRadius="10">
+                    CornerRadius="{DynamicResource IvRadiusSmall}">
                     <DockPanel LastChildFill="True">
                         <ComboBox
                             DockPanel.Dock="Right"
@@ -35,12 +36,21 @@
                             ItemsSource="{Binding List.ProjectTypeOptions}"
                             SelectedValue="{Binding List.SelectedType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                             SelectedValuePath="Value" />
-                        <ui:TextBox
-                            MinWidth="160"
-                            VerticalAlignment="Center"
-                            Icon="{ui:SymbolIcon Search24}"
-                            PlaceholderText="搜索项目名称或描述..."
-                            Text="{Binding List.Keyword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <Grid MinWidth="160">
+                            <TextBox
+                                Padding="30,0,8,0"
+                                VerticalAlignment="Center"
+                                Text="{Binding List.Keyword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                yu:IvPlaceholder.Text="搜索项目名称或描述..." />
+                            <yu:Icon
+                                Margin="8,0,0,0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Data="{x:Static yu:IvIcons.Search}"
+                                Foreground="{DynamicResource IvText3Brush}"
+                                IsHitTestVisible="False"
+                                ViewSize="{DynamicResource IvIconSize}" />
+                        </Grid>
                     </DockPanel>
                 </Border>
 </UserControl>

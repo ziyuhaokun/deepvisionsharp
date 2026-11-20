@@ -9,6 +9,9 @@
     SizeToContent="Height"
     AllowsTransparency="True"
     Background="Transparent"
+    FontFamily="{DynamicResource IvFontFamily}"
+    FontSize="{DynamicResource IvFontSizeBody}"
+    Foreground="{DynamicResource IvText1Brush}"
     KeyDown="OnKeyDown"
     MouseLeftButtonDown="OnWindowMouseLeftButtonDown"
     ResizeMode="NoResize"
@@ -16,10 +19,18 @@
     Topmost="True"
     WindowStartupLocation="CenterScreen"
     WindowStyle="None">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/yu-ui;component/YuUiTheme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
     <Border
         Margin="16"
-        Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
-        BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+        Background="{DynamicResource IvSurface1Brush}"
+        BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
         BorderThickness="1"
         CornerRadius="12"
         SnapsToDevicePixels="True">
@@ -43,9 +54,9 @@
             <Border
                 Grid.Row="0"
                 Padding="18,14"
-                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
                 BorderThickness="0,0,0,1"
-                Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                Background="{DynamicResource IvSurfaceSubtleHoverBrush}"
                 CornerRadius="12,12,0,0">
                 <DockPanel LastChildFill="True">
                     <Image
@@ -59,9 +70,9 @@
                     <TextBlock
                         Margin="10,0,0,0"
                         VerticalAlignment="Center"
-                        FontSize="13"
+                        FontSize="{DynamicResource IvFontSizeBodySmall}"
                         FontWeight="SemiBold"
-                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                        Foreground="{DynamicResource IvText1Brush}"
                         Text="DeepVisionSharp"
                         TextTrimming="CharacterEllipsis" />
                 </DockPanel>
@@ -79,6 +90,7 @@
                     Margin="0,0,0,18"
                     HorizontalAlignment="Center"
                     CornerRadius="32">
+                    <!-- 保留 WPF-UI：code-behind 用 SymbolRegular 给 MessageIcon.Symbol 赋值，改 yu:Icon 需同步改 StartupMessageWindow.xaml.cs -->
                     <ui:SymbolIcon
                         x:Name="MessageIcon"
                         Width="30"
@@ -91,9 +103,9 @@
                 <TextBlock
                     x:Name="TitleText"
                     HorizontalAlignment="Center"
-                    FontSize="18"
+                    FontSize="{DynamicResource IvFontSizeHeading}"
                     FontWeight="SemiBold"
-                    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                    Foreground="{DynamicResource IvText1Brush}"
                     TextAlignment="Center"
                     TextWrapping="Wrap" />
 
@@ -102,8 +114,8 @@
                     MaxWidth="340"
                     Margin="0,10,0,0"
                     HorizontalAlignment="Center"
-                    FontSize="13"
-                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    FontSize="{DynamicResource IvFontSizeBodySmall}"
+                    Foreground="{DynamicResource IvText2Brush}"
                     LineHeight="20"
                     TextAlignment="Center"
                     TextWrapping="Wrap" />
@@ -113,16 +125,16 @@
             <Border
                 Grid.Row="2"
                 Padding="20,16,20,20">
-                <ui:Button
+                <Button
                     x:Name="ConfirmButton"
                     MinHeight="40"
                     HorizontalAlignment="Stretch"
-                    Appearance="Primary"
                     Click="OnConfirmClick"
                     Content="知道了"
                     FontWeight="SemiBold"
                     IsDefault="True"
-                    Padding="0,10" />
+                    Padding="0,10"
+                    Style="{StaticResource IvPrimaryButtonStyle}" />
             </Border>
         </Grid>
     </Border>

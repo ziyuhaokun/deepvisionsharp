@@ -1,3 +1,4 @@
+<!-- 源: Vision.DeepVision.Shell.Avalonia/Views/Pages/GalleryPage.axaml | 转换: WPF-UI → yu-ui；页面级 merge YuUiTheme.xaml 提供隐式样式，文字基线在 PageRoot 上用 TextElement.* 附加属性声明一次 -->
 <Page
     x:Class="DeepVisionSharp.Shell.Views.Pages.GalleryPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -6,7 +7,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:sections="clr-namespace:DeepVisionSharp.Shell.Views.Pages.Sections"
-    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     Title="图库"
     d:DesignHeight="1000"
     d:DesignWidth="1680"
@@ -16,12 +16,20 @@
     <Page.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/yu-ui;component/YuUiTheme.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Views/Pages/GalleryPageResources.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Page.Resources>
 
-    <Grid x:Name="PageRoot" SizeChanged="OnPageSizeChanged">
+    <!-- 文字基线（页面级声明一次，靠属性继承下发到各分区）：Page 不是 Control，没有 FontSize/Foreground，改用 TextElement 附加属性 -->
+    <Grid
+        x:Name="PageRoot"
+        Background="{DynamicResource IvBackgroundBrush}"
+        SizeChanged="OnPageSizeChanged"
+        TextElement.FontFamily="{DynamicResource IvFontFamily}"
+        TextElement.FontSize="{DynamicResource IvFontSizeBody}"
+        TextElement.Foreground="{DynamicResource IvText1Brush}">
         <Grid.RowDefinitions>
             <!-- 行 0：固定页面标题与操作按钮栏 -->
             <RowDefinition Height="Auto" />

@@ -6,10 +6,13 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:sections="clr-namespace:DeepVisionSharp.Shell.Views.Pages.Sections"
-    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     Title="项目"
     d:DesignHeight="1000"
     d:DesignWidth="1680"
+    Background="{DynamicResource IvBackgroundBrush}"
+    FontFamily="{DynamicResource IvFontFamily}"
+    FontSize="{DynamicResource IvFontSizeBody}"
+    Foreground="{DynamicResource IvText1Brush}"
     Loaded="OnLoaded"
     SizeChanged="OnPageSizeChanged"
     Unloaded="OnUnloaded"
@@ -18,6 +21,7 @@
     <Page.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/yu-ui;component/YuUiTheme.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Views/Pages/DashboardPageResources.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>

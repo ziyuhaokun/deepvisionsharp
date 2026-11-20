@@ -4,16 +4,26 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     MinWidth="380"
+    FontFamily="{DynamicResource IvFontFamily}"
+    FontSize="{DynamicResource IvFontSizeBody}"
+    Foreground="{DynamicResource IvText1Brush}"
     FocusManager.FocusedElement="{Binding ElementName=PasswordInput}">
     <UserControl.Resources>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/yu-ui;component/YuUiTheme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        </ResourceDictionary>
     </UserControl.Resources>
 
     <StackPanel>
         <TextBlock
-            FontSize="13"
+            FontSize="{DynamicResource IvFontSizeBodySmall}"
             FontWeight="SemiBold"
             Text="维护密码" />
+        <!-- 保留 WPF-UI：Password / RevealButtonEnabled 无 WPF 等价（原生 PasswordBox.Password 不是 DP，无法绑定），迁移需改 .cs，见返回清单 -->
         <ui:PasswordBox
             x:Name="PasswordInput"
             Margin="0,8,0,0"
@@ -23,7 +33,7 @@
             RevealButtonEnabled="True" />
         <TextBlock
             Margin="0,10,0,0"
-            Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+            Foreground="{DynamicResource IvDangerBrush}"
             Text="{Binding ErrorMessage}"
             Visibility="{Binding HasErrorMessage, Converter={StaticResource BooleanToVisibilityConverter}}" />
     </StackPanel>

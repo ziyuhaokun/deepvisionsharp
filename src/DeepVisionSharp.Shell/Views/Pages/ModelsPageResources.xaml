@@ -1,22 +1,17 @@
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <!-- 本字典里的 BasedOn="{StaticResource IvCardStyle}" 是静态引用，必须在同一字典作用域内可解析，
+         所以这里自己也 merge 一次主题（各视图根部另有同样的 merge，WPF 允许重复合并）。 -->
     <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="pack://application:,,,/yu-ui;component/YuUiTheme.xaml" />
         <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Resources/StatusPalette.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
 
-        <Style TargetType="{x:Type TextBlock}">
-            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
-        </Style>
-
-        <Style
-            x:Key="ModelCardStyle"
-            BasedOn="{StaticResource {x:Type ui:Card}}"
-            TargetType="{x:Type ui:Card}">
+        <Style x:Key="ModelCardStyle" BasedOn="{StaticResource IvCardStyle}" TargetType="{x:Type ContentControl}">
             <Setter Property="Padding" Value="18" />
             <Setter Property="Margin" Value="0,0,16,16" />
             <Setter Property="Width" Value="360" />
@@ -24,44 +19,44 @@
         </Style>
 
         <Style x:Key="ModelCardTitleTextStyle" TargetType="{x:Type TextBlock}">
-            <Setter Property="FontSize" Value="17" />
+            <Setter Property="FontSize" Value="{DynamicResource IvFontSizeHeading}" />
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
         </Style>
 
         <Style x:Key="ModelDescriptionTextStyle" TargetType="{x:Type TextBlock}">
-            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontSize" Value="{DynamicResource IvFontSizeCaption}" />
             <Setter Property="LineHeight" Value="18" />
-            <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText3Brush}" />
         </Style>
 
         <Style x:Key="ModelCardMetaTextStyle" TargetType="{x:Type TextBlock}">
-            <Setter Property="FontSize" Value="12" />
-            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+            <Setter Property="FontSize" Value="{DynamicResource IvFontSizeCaption}" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
         </Style>
 
         <Style x:Key="ModelCardBadgeTextStyle" TargetType="{x:Type TextBlock}">
-            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontSize" Value="{DynamicResource IvFontSizeSmall}" />
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
             <Style.Triggers>
                 <DataTrigger Binding="{Binding Status}" Value="创建中">
-                    <Setter Property="Foreground" Value="{DynamicResource SystemAccentColorPrimaryBrush}" />
+                    <Setter Property="Foreground" Value="{DynamicResource IvAccentTextBrush}" />
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Status}" Value="待训练">
-                    <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" />
+                    <Setter Property="Foreground" Value="{DynamicResource IvWarningTextBrush}" />
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Status}" Value="训练中">
                     <Setter Property="Foreground" Value="{StaticResource ModelStatusTrainingTextBrush}" />
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Status}" Value="训练完成">
-                    <Setter Property="Foreground" Value="{DynamicResource SystemFillColorSuccessBrush}" />
+                    <Setter Property="Foreground" Value="{DynamicResource IvSuccessTextBrush}" />
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Status}" Value="已发布">
                     <Setter Property="Foreground" Value="{StaticResource ModelStatusPublishedTextBrush}" />
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Status}" Value="归档">
-                    <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}" />
+                    <Setter Property="Foreground" Value="{DynamicResource IvText3Brush}" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -71,8 +66,8 @@
             <Setter Property="Padding" Value="8,3" />
             <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="CornerRadius" Value="6" />
-            <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+            <Setter Property="CornerRadius" Value="{DynamicResource IvRadiusControl}" />
+            <Setter Property="Background" Value="{DynamicResource IvSurface3Brush}" />
             <Style.Triggers>
                 <DataTrigger Binding="{Binding Status}" Value="创建中">
                     <Setter Property="Background" Value="{StaticResource ModelStatusCreatingTintBrush}" />
@@ -90,22 +85,22 @@
                     <Setter Property="Background" Value="{StaticResource ModelStatusPublishedTintBrush}" />
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Status}" Value="归档">
-                    <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+                    <Setter Property="Background" Value="{DynamicResource IvSurface3Brush}" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
 
         <Style x:Key="ModelCardPathTextStyle" TargetType="{x:Type TextBlock}">
-            <Setter Property="FontSize" Value="11" />
-            <Setter Property="FontFamily" Value="Cascadia Mono, Consolas, Courier New" />
-            <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}" />
+            <Setter Property="FontSize" Value="{DynamicResource IvFontSizeSmall}" />
+            <Setter Property="FontFamily" Value="{DynamicResource IvMonoFontFamily}" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText3Brush}" />
         </Style>
 
         <!-- Align with Dashboard project meta pills -->
         <Style x:Key="ModelMetaPillStyle" TargetType="{x:Type Border}">
             <Setter Property="Padding" Value="8,5" />
             <Setter Property="Margin" Value="0,0,8,8" />
-            <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
-            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Background" Value="{DynamicResource IvSurface3Brush}" />
+            <Setter Property="CornerRadius" Value="{DynamicResource IvRadiusControl}" />
         </Style>
 </ResourceDictionary>
