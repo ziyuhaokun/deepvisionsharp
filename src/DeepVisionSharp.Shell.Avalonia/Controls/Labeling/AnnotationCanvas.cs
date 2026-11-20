@@ -132,6 +132,7 @@ public sealed class AnnotationCanvas : Control
     {
         ClipToBounds = true;
         Focusable = true;
+        RenderOptions.SetBitmapInterpolationMode(this, BitmapInterpolationMode.None);
     }
 
     private enum DragMode
