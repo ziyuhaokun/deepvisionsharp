@@ -1,0 +1,14 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        Avalonia 的 Border.BoxShadow 要求 BoxShadows 结构体，WPF 的 DropShadowEffect 不能直接搬。
+        这三个令牌统一用 BoxShadows 类型，写法为 "offsetX offsetY blur spread color"。
+    -->
+
+    <BoxShadows x:Key="IvPopupShadow">0 3 12 0 #2E000000</BoxShadows>
+    <BoxShadows x:Key="IvPopupBoxShadow">0 3 12 0 #2E000000</BoxShadows>
+    <BoxShadows x:Key="IvControlShadow">0 0 0 0 #00000000</BoxShadows>
+    <BoxShadows x:Key="IvThumbShadow">0 0 0 0 #00000000</BoxShadows>
+
+</ResourceDictionary>

@@ -1,0 +1,134 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- 按钮底模：填充层 + 悬停层 + 按下层，圆角令牌 IvRadiusButton -->
+    <ControlTheme x:Key="IvButtonBaseStyle" TargetType="Button">
+        <Setter Property="Background" Value="{DynamicResource IvControlFillBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource IvControlBorderBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FontFamily" Value="{DynamicResource IvFontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource IvFontSizeBody}" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="MinHeight" Value="{DynamicResource IvControlHeight}" />
+        <Setter Property="Padding" Value="{DynamicResource IvControlPadding}" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid>
+                    <Border Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{DynamicResource IvRadiusButton}" />
+                    <Border Name="HoverLayer"
+                            Background="{DynamicResource IvStateHoverBrush}"
+                            CornerRadius="{DynamicResource IvRadiusButton}"
+                            Opacity="0" />
+                    <Border Name="PressLayer"
+                            Background="{DynamicResource IvStatePressedBrush}"
+                            CornerRadius="{DynamicResource IvRadiusButton}"
+                            Opacity="0" />
+                    <ContentPresenter Margin="{TemplateBinding Padding}"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+        <Style Selector="^:pointerover">
+            <Setter Property="BorderBrush" Value="{DynamicResource IvControlBorderHoverBrush}" />
+        </Style>
+        <Style Selector="^:pointerover /template/ Border#HoverLayer">
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.100" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="^:pressed /template/ Border#PressLayer">
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Background" Value="{DynamicResource IvSurfaceDisabledBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource IvTextDisabledBrush}" />
+            <Setter Property="Cursor" Value="Arrow" />
+        </Style>
+    </ControlTheme>
+
+    <ControlTheme x:Key="IvPrimaryButtonStyle" TargetType="Button"
+                  BasedOn="{StaticResource IvButtonBaseStyle}">
+        <Setter Property="Background" Value="{DynamicResource IvPrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource IvPrimaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource IvTextOnPrimaryBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Style Selector="^:pointerover">
+            <Setter Property="Background" Value="{DynamicResource IvPrimaryHoverBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvPrimaryHoverBrush}" />
+        </Style>
+        <Style Selector="^:pressed">
+            <Setter Property="Background" Value="{DynamicResource IvPrimaryPressedBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvPrimaryPressedBrush}" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="FontWeight" Value="Normal" />
+        </Style>
+    </ControlTheme>
+
+    <ControlTheme x:Key="IvDangerButtonStyle" TargetType="Button"
+                  BasedOn="{StaticResource IvButtonBaseStyle}">
+        <Setter Property="Background" Value="{DynamicResource IvControlFillBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource IvDangerBorderBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource IvDangerTextBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Style Selector="^:pointerover">
+            <Setter Property="Background" Value="{DynamicResource IvDangerSubtleBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvDangerBorderBrush}" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="FontWeight" Value="Normal" />
+        </Style>
+    </ControlTheme>
+
+    <ControlTheme x:Key="IvSubtleButtonStyle" TargetType="Button"
+                  BasedOn="{StaticResource IvButtonBaseStyle}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Style Selector="^:pointerover">
+            <Setter Property="BorderBrush" Value="Transparent" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+        </Style>
+    </ControlTheme>
+
+    <ControlTheme x:Key="IvIconButtonStyle" TargetType="Button"
+                  BasedOn="{StaticResource IvSubtleButtonStyle}">
+        <Setter Property="Width" Value="{DynamicResource IvIconButtonSize}" />
+        <Setter Property="Height" Value="{DynamicResource IvIconButtonSize}" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="FontSize" Value="{DynamicResource IvIconSize}" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+        <Style Selector="^:pointerover">
+            <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        </Style>
+    </ControlTheme>
+
+    <ControlTheme x:Key="IvDangerIconButtonStyle" TargetType="Button"
+                  BasedOn="{StaticResource IvIconButtonStyle}">
+        <Setter Property="Foreground" Value="{DynamicResource IvDangerBrush}" />
+        <Style Selector="^:pointerover">
+            <Setter Property="Background" Value="{DynamicResource IvDangerSubtleBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource IvDangerBrush}" />
+        </Style>
+    </ControlTheme>
+
+</ResourceDictionary>

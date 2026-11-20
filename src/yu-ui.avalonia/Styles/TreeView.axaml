@@ -1,0 +1,27 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        树：先对齐尺度与配色（行高 26、4,2 内边距、透明底），模板沿用 Fluent。
+        左列 16px 展开箭头 + 1px 圆角行底 + 活动选中强调底，需要独立一轮复刻并验证展开/折叠。
+    -->
+    <ControlTheme x:Key="{x:Type TreeViewItem}" TargetType="TreeViewItem">
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="MinHeight" Value="26" />
+        <Style Selector="^:disabled">
+            <Setter Property="Foreground" Value="{DynamicResource IvTextDisabledBrush}" />
+        </Style>
+    </ControlTheme>
+
+    <ControlTheme x:Key="{x:Type TreeView}" TargetType="TreeView">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="4" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        <Style Selector="^:disabled">
+            <Setter Property="Opacity" Value="0.5" />
+        </Style>
+    </ControlTheme>
+
+</ResourceDictionary>

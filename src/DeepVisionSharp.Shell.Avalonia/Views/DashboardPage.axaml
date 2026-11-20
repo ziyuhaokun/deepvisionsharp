@@ -1,0 +1,512 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iv="clr-namespace:YuUI.Controls;assembly=yu-ui.avalonia"
+             xmlns:ui="clr-namespace:YuUI;assembly=yu-ui.avalonia"
+             xmlns:conv="clr-namespace:DeepVisionSharp.Shell.Avalonia.Converters"
+             x:Class="DeepVisionSharp.Shell.Avalonia.Views.DashboardPage">
+
+    <UserControl.Resources>
+        <conv:ProjectTypeVisualConverter x:Key="ProjectTypeVisualConverter" />
+        <conv:AnyTrueConverter x:Key="AnyTrueConverter" />
+
+        <ControlTheme x:Key="DvToolbarButtonStyle" TargetType="Button"
+                      BasedOn="{StaticResource IvButtonBaseStyle}">
+            <Setter Property="Height" Value="34" />
+            <Setter Property="Padding" Value="13,0" />
+            <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeBrush}" />
+            <Setter Property="FontSize" Value="13" />
+            <Style Selector="^:pointerover">
+                <Setter Property="Background" Value="{DynamicResource IvStateHoverBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource IvControlBorderHoverBrush}" />
+            </Style>
+        </ControlTheme>
+    </UserControl.Resources>
+
+    <UserControl.Styles>
+        <Style Selector="Border.projectCard">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0,0,12,12" />
+            <Setter Property="Height" Value="212" />
+            <Setter Property="ClipToBounds" Value="True" />
+            <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+        </Style>
+        <Style Selector="Border.projectCard:pointerover">
+            <Setter Property="BorderBrush" Value="{DynamicResource IvAccentBorderBrush}" />
+        </Style>
+        <Style Selector="Border.typeChip">
+            <Setter Property="Height" Value="20" />
+            <Setter Property="Padding" Value="6,0" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="CornerRadius" Value="3" />
+        </Style>
+        <Style Selector="TextBlock.projectTitle">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        </Style>
+        <Style Selector="TextBlock.projectDescription">
+            <Setter Property="FontSize" Value="12.5" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        </Style>
+        <Style Selector="TextBlock.projectMeta">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+        </Style>
+        <Style Selector="TextBlock.typeChipText">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+        </Style>
+        <Style Selector="Border.overlayCard">
+            <Setter Property="Padding" Value="28" />
+            <Setter Property="MinWidth" Value="480" />
+            <Setter Property="MaxWidth" Value="520" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid Margin="32,28" RowDefinitions="Auto,Auto,*">
+        <Grid ColumnDefinitions="*,Auto">
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock FontFamily="{DynamicResource IvDisplayFontFamily}"
+                           FontSize="24"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource IvText1Brush}"
+                           Text="项目" />
+                <TextBlock Margin="0,5,0,0"
+                           FontSize="12.5"
+                           Foreground="{DynamicResource IvText2Brush}"
+                           Text="{Binding List.OverviewSummary}" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" Orientation="Horizontal">
+                <Button Margin="0,0,8,0"
+                        Command="{Binding Transfer.ImportProjectCommand}"
+                        IsEnabled="{Binding Transfer.IsNotTransferring}"
+                        Theme="{StaticResource DvToolbarButtonStyle}">
+                    <StackPanel Orientation="Horizontal">
+                        <iv:Icon Margin="0,0,6,0"
+                                 VerticalAlignment="Center"
+                                 FontSize="15"
+                                 Data="{x:Static ui:IvIcons.ArrowUp}" />
+                        <TextBlock VerticalAlignment="Center" Text="导入" />
+                    </StackPanel>
+                </Button>
+                <Button Margin="0,0,8,0"
+                        Command="{Binding Transfer.ImportOptProjectCommand}"
+                        IsEnabled="{Binding Transfer.IsNotTransferring}"
+                        Theme="{StaticResource DvToolbarButtonStyle}">
+                    <StackPanel Orientation="Horizontal">
+                        <iv:Icon Margin="0,0,6,0"
+                                 VerticalAlignment="Center"
+                                 FontSize="15"
+                                 Data="{x:Static ui:IvIcons.Documents}" />
+                        <TextBlock VerticalAlignment="Center" Text="导入第三方" />
+                    </StackPanel>
+                </Button>
+                <Button Height="34"
+                        Padding="14,0"
+                        Command="{Binding Editor.ShowCreateProjectDialogCommand}"
+                        Theme="{StaticResource IvPrimaryButtonStyle}">
+                    <StackPanel Orientation="Horizontal">
+                        <iv:Icon Margin="0,0,6,0"
+                                 VerticalAlignment="Center"
+                                 FontSize="15"
+                                 Data="{x:Static ui:IvIcons.Add}" />
+                        <TextBlock VerticalAlignment="Center" Text="新建项目" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <StackPanel Grid.Row="1" Margin="0,20,0,0" Orientation="Horizontal">
+            <Grid Width="420">
+                <TextBox Height="34"
+                         Padding="34,0,10,0"
+                         VerticalContentAlignment="Center"
+                         FontSize="13"
+                         PlaceholderText="搜索项目名称或描述..."
+                         Text="{Binding List.Keyword, Mode=TwoWay}" />
+                <iv:Icon Width="16"
+                         Height="16"
+                         Margin="11,0,0,0"
+                         HorizontalAlignment="Left"
+                         VerticalAlignment="Center"
+                         FontSize="15"
+                         IsHitTestVisible="False"
+                         Foreground="{DynamicResource IvText3Brush}"
+                         Data="{x:Static ui:IvIcons.Search}" />
+            </Grid>
+
+            <ComboBox Width="176"
+                      Height="34"
+                      Margin="10,0,0,0"
+                      VerticalAlignment="Center"
+                      ItemsSource="{Binding List.ProjectTypeOptions}"
+                      SelectedValue="{Binding List.SelectedType, Mode=TwoWay}"
+                      SelectedValueBinding="{Binding Value}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Label}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="2"
+                      HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="0,16,0,8">
+                <Border MinHeight="300"
+                        Padding="28"
+                        Background="{DynamicResource IvSurface2Brush}"
+                        BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        IsVisible="{Binding List.HasEmptyState}">
+                    <StackPanel MaxWidth="420" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Border Width="56"
+                                Height="56"
+                                HorizontalAlignment="Center"
+                                Background="{DynamicResource IvControlFillBrush}"
+                                CornerRadius="28">
+                            <iv:Icon HorizontalAlignment="Center"
+                                     VerticalAlignment="Center"
+                                     FontSize="26"
+                                     Foreground="{DynamicResource IvText2Brush}"
+                                     Data="{x:Static ui:IvIcons.FolderOpen}" />
+                        </Border>
+                        <TextBlock Margin="0,16,0,0"
+                                   HorizontalAlignment="Center"
+                                   FontSize="17"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource IvText1Brush}"
+                                   Text="{Binding List.EmptyStateTitle}" />
+                        <TextBlock Margin="0,6,0,0"
+                                   HorizontalAlignment="Center"
+                                   FontSize="12.5"
+                                   Foreground="{DynamicResource IvText2Brush}"
+                                   Text="{Binding List.EmptyStateDescription}"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap" />
+                        <StackPanel Margin="0,18,0,0" HorizontalAlignment="Center" Orientation="Horizontal">
+                            <Button Height="34"
+                                    Padding="14,0"
+                                    Command="{Binding List.ClearFiltersCommand}"
+                                    Theme="{StaticResource IvPrimaryButtonStyle}"
+                                    IsVisible="{Binding List.HasProjects}">
+                                <StackPanel Orientation="Horizontal">
+                                    <iv:Icon Margin="0,0,6,0"
+                                             VerticalAlignment="Center"
+                                             FontSize="15"
+                                             Data="{x:Static ui:IvIcons.Refresh}" />
+                                    <TextBlock VerticalAlignment="Center" Text="清除筛选" />
+                                </StackPanel>
+                            </Button>
+                            <Button Height="34"
+                                    Padding="14,0"
+                                    Command="{Binding Editor.ShowCreateProjectDialogCommand}"
+                                    Theme="{StaticResource IvPrimaryButtonStyle}"
+                                    IsVisible="{Binding !List.HasProjects}">
+                                <StackPanel Orientation="Horizontal">
+                                    <iv:Icon Margin="0,0,6,0"
+                                             VerticalAlignment="Center"
+                                             FontSize="15"
+                                             Data="{x:Static ui:IvIcons.Add}" />
+                                    <TextBlock VerticalAlignment="Center" Text="新建项目" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <ItemsControl ItemsSource="{Binding List.FilteredProjects}"
+                              IsVisible="{Binding List.HasFilteredProjects}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="{Binding CardColumns}" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Classes="projectCard">
+                                <Grid ColumnDefinitions="40*,60*">
+                                    <Border Grid.Column="0"
+                                            ClipToBounds="True"
+                                            CornerRadius="5,0,0,5"
+                                            Background="{Binding TypeKey, Converter={StaticResource ProjectTypeVisualConverter}, ConverterParameter=Tint}">
+                                        <Grid>
+                                            <Border CornerRadius="5,0,0,5"
+                                                    IsVisible="{Binding HasThumbnail}"
+                                                    Opacity="0.55">
+                                                <Border.Background>
+                                                    <ImageBrush Source="{Binding Thumbnail}" Stretch="UniformToFill" />
+                                                </Border.Background>
+                                                <Border.Effect>
+                                                    <BlurEffect Radius="14" />
+                                                </Border.Effect>
+                                                <Border.RenderTransform>
+                                                    <ScaleTransform ScaleX="1.12" ScaleY="1.12" />
+                                                </Border.RenderTransform>
+                                            </Border>
+
+                                            <Border Background="#66000000"
+                                                    CornerRadius="5,0,0,5"
+                                                    IsVisible="{Binding HasThumbnail}" />
+
+                                            <Border Margin="9"
+                                                    CornerRadius="3"
+                                                    IsVisible="{Binding HasThumbnail}">
+                                                <Border.Background>
+                                                    <ImageBrush Source="{Binding Thumbnail}" Stretch="Uniform" />
+                                                </Border.Background>
+                                            </Border>
+
+                                            <iv:Icon HorizontalAlignment="Center"
+                                                     VerticalAlignment="Center"
+                                                     FontSize="30"
+                                                     IsVisible="{Binding !HasThumbnail}"
+                                                     Foreground="{Binding TypeKey, Converter={StaticResource ProjectTypeVisualConverter}, ConverterParameter=Foreground}"
+                                                     Data="{Binding TypeKey, Converter={StaticResource ProjectTypeVisualConverter}, ConverterParameter=Icon}" />
+                                        </Grid>
+                                    </Border>
+
+                                    <Grid Grid.Column="1" Margin="16,12,14,12" RowDefinitions="Auto,Auto,Auto,*,Auto,Auto">
+                                        <Border Grid.Row="0"
+                                                Margin="0,0,32,0"
+                                                Classes="typeChip"
+                                                Background="{Binding TypeKey, Converter={StaticResource ProjectTypeVisualConverter}, ConverterParameter=Tint}">
+                                            <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                                <Ellipse Width="5"
+                                                         Height="5"
+                                                         VerticalAlignment="Center"
+                                                         Fill="{Binding TypeKey, Converter={StaticResource ProjectTypeVisualConverter}, ConverterParameter=Badge}" />
+                                                <TextBlock Margin="5,0,0,0"
+                                                           VerticalAlignment="Center"
+                                                           Classes="typeChipText"
+                                                           Text="{Binding TypeLabel}" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <TextBlock Grid.Row="1"
+                                                   Margin="0,5,32,0"
+                                                   Classes="projectTitle"
+                                                   Text="{Binding Name}"
+                                                   TextTrimming="CharacterEllipsis" />
+
+                                        <TextBlock Grid.Row="2"
+                                                   MaxHeight="37"
+                                                   Margin="0,6,0,0"
+                                                   Classes="projectDescription"
+                                                   Text="{Binding Description}" />
+
+                                        <StackPanel Grid.Row="4" Margin="0,10,0,0" Orientation="Horizontal">
+                                            <StackPanel Margin="0,0,16,0" Orientation="Horizontal">
+                                                <iv:Icon VerticalAlignment="Center"
+                                                         FontSize="14"
+                                                         Foreground="{DynamicResource IvText3Brush}"
+                                                         Data="{x:Static ui:IvIcons.Image}" />
+                                                <TextBlock Margin="5,0,0,0"
+                                                           VerticalAlignment="Center"
+                                                           Classes="projectMeta"
+                                                           Text="{Binding SampleCountText}" />
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <iv:Icon VerticalAlignment="Center"
+                                                         FontSize="14"
+                                                         Foreground="{DynamicResource IvText3Brush}"
+                                                         Data="{x:Static ui:IvIcons.Flag}" />
+                                                <TextBlock Margin="5,0,0,0"
+                                                           VerticalAlignment="Center"
+                                                           Classes="projectMeta"
+                                                           Text="{Binding LabelCountText}" />
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                        <Grid Grid.Row="5" Margin="0,8,0,0" ColumnDefinitions="*,Auto">
+                                            <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                                <iv:Icon VerticalAlignment="Center"
+                                                         FontSize="14"
+                                                         Foreground="{DynamicResource IvText3Brush}"
+                                                         Data="{x:Static ui:IvIcons.Clock}" />
+                                                <TextBlock Margin="5,0,0,0"
+                                                           VerticalAlignment="Center"
+                                                           FontSize="12"
+                                                           Foreground="{DynamicResource IvText2Brush}"
+                                                           Text="{Binding LastUpdatedText}" />
+                                            </StackPanel>
+                                            <Button Grid.Column="1"
+                                                    HorizontalAlignment="Right"
+                                                    Command="{Binding $parent[UserControl].DataContext.List.EnterProjectCommand}"
+                                                    CommandParameter="{Binding Id}"
+                                                    Theme="{StaticResource IvSubtleButtonStyle}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock VerticalAlignment="Center" Text="进入项目" />
+                                                    <iv:Icon Margin="6,0,0,0"
+                                                             VerticalAlignment="Center"
+                                                             FontSize="14"
+                                                             Data="{x:Static ui:IvIcons.ArrowRight}" />
+                                                </StackPanel>
+                                            </Button>
+                                        </Grid>
+
+                                        <!-- deepvision 的 ContextMenuButton 只为左键弹出菜单，这里先用普通按钮保住外观 -->
+                                        <Button HorizontalAlignment="Right"
+                                                VerticalAlignment="Top"
+                                                Width="28"
+                                                Height="28"
+                                                Padding="0"
+                                                Theme="{StaticResource IvIconButtonStyle}"
+                                                ToolTip.Tip="编辑、导出或删除项目">
+                                            <iv:Icon FontSize="16" Data="{x:Static ui:IvIcons.More}" />
+                                            <Button.ContextMenu>
+                                                <ContextMenu>
+                                                    <MenuItem Header="编辑项目"
+                                                              Command="{Binding $parent[UserControl].DataContext.Editor.ShowEditProjectDialogCommand}"
+                                                              CommandParameter="{Binding Id}" />
+                                                    <MenuItem Header="导出项目"
+                                                              Command="{Binding $parent[UserControl].DataContext.Transfer.ExportProjectCommand}"
+                                                              CommandParameter="{Binding Id}" />
+                                                    <Separator />
+                                                    <MenuItem Header="删除项目"
+                                                              Command="{Binding $parent[UserControl].DataContext.List.ConfirmDeleteProjectCommand}"
+                                                              CommandParameter="{Binding Id}" />
+                                                </ContextMenu>
+                                            </Button.ContextMenu>
+                                        </Button>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- 加载 / 项目操作遮罩（BusyRing 用不确定态 ProgressBar 占位） -->
+        <Border Grid.RowSpan="3"
+                ZIndex="90"
+                Background="{DynamicResource IvOverlayBrush}">
+            <Border.IsVisible>
+                <MultiBinding Converter="{StaticResource AnyTrueConverter}">
+                    <Binding Path="List.IsLoading" />
+                    <Binding Path="List.IsProjectOperationInProgress" />
+                    <Binding Path="Editor.IsSavingProject" />
+                </MultiBinding>
+            </Border.IsVisible>
+            <Border Padding="20,16"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Background="{DynamicResource IvSurface2Brush}"
+                    BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6">
+                <StackPanel Orientation="Horizontal">
+                    <ProgressBar Width="30" Height="30" IsIndeterminate="True" />
+                    <TextBlock Margin="14,0,0,0"
+                               VerticalAlignment="Center"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource IvText1Brush}"
+                               Text="正在处理项目…" />
+                </StackPanel>
+            </Border>
+        </Border>
+
+        <!-- 删除遮罩 -->
+        <Border Grid.RowSpan="3"
+                ZIndex="95"
+                Background="{DynamicResource IvOverlayBrush}"
+                IsVisible="{Binding List.IsDeletingProject}">
+            <Border Classes="overlayCard" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel>
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <ProgressBar Width="40" Height="40" VerticalAlignment="Top" IsIndeterminate="True" />
+                        <StackPanel Grid.Column="1" Margin="16,0,12,0">
+                            <TextBlock FontSize="18"
+                                       FontWeight="SemiBold"
+                                       Text="{Binding List.DeleteTitleText}"
+                                       TextTrimming="CharacterEllipsis" />
+                            <TextBlock Margin="0,6,0,0"
+                                       FontSize="13"
+                                       Foreground="{DynamicResource IvText2Brush}"
+                                       Text="{Binding List.DeleteStageText}" />
+                        </StackPanel>
+                        <TextBlock Grid.Column="2"
+                                   VerticalAlignment="Top"
+                                   FontSize="28"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource IvAccentBrush}"
+                                   Text="{Binding List.DeleteProgressPercentText}" />
+                    </Grid>
+                    <ProgressBar Margin="0,24,0,0"
+                                 Height="6"
+                                 IsIndeterminate="{Binding List.IsDeleteProgressIndeterminate}"
+                                 Maximum="1"
+                                 Value="{Binding List.DeleteProgressValue, Mode=OneWay}" />
+                    <Grid Margin="0,10,0,0" ColumnDefinitions="*,Auto">
+                        <TextBlock FontSize="13"
+                                   Foreground="{DynamicResource IvText2Brush}"
+                                   Text="{Binding List.DeleteProgressText}" />
+                        <TextBlock Grid.Column="1"
+                                   FontSize="13"
+                                   Foreground="{DynamicResource IvText2Brush}"
+                                   Text="请勿关闭应用" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Border>
+
+        <!-- 导入 / 导出遮罩 -->
+        <Border Grid.RowSpan="3"
+                ZIndex="100"
+                Background="{DynamicResource IvOverlayBrush}"
+                IsVisible="{Binding Transfer.IsTransferring}">
+            <Border Classes="overlayCard" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel>
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <ProgressBar Width="40" Height="40" VerticalAlignment="Top" IsIndeterminate="True" />
+                        <StackPanel Grid.Column="1" Margin="16,0,12,0">
+                            <TextBlock FontSize="18"
+                                       FontWeight="SemiBold"
+                                       Text="{Binding Transfer.TransferStage}" />
+                            <TextBlock Margin="0,6,0,0"
+                                       FontSize="13"
+                                       FontFamily="{DynamicResource IvMonoFontFamily}"
+                                       Foreground="{DynamicResource IvText2Brush}"
+                                       Text="{Binding Transfer.TransferCurrentFileDisplay}"
+                                       TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                        <TextBlock Grid.Column="2"
+                                   VerticalAlignment="Top"
+                                   FontSize="28"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource IvAccentBrush}"
+                                   Text="{Binding Transfer.TransferProgressPercentText}" />
+                    </Grid>
+                    <ProgressBar Margin="0,24,0,0"
+                                 Height="6"
+                                 Maximum="1"
+                                 Value="{Binding Transfer.TransferProgressValue, Mode=OneWay}" />
+                    <Grid Margin="0,10,0,0" ColumnDefinitions="*,Auto">
+                        <TextBlock FontSize="13"
+                                   Foreground="{DynamicResource IvText2Brush}"
+                                   Text="{Binding Transfer.TransferProgressText}" />
+                        <TextBlock Grid.Column="1"
+                                   FontSize="13"
+                                   Foreground="{DynamicResource IvText2Brush}"
+                                   Text="请勿关闭应用" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Border>
+    </Grid>
+</UserControl>

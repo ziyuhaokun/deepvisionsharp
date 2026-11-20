@@ -1,0 +1,110 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- 列表项：28 高、1px 圆角、悬停淡底、选中实底、活动选中强调底 -->
+    <ControlTheme x:Key="{x:Type ListBoxItem}" TargetType="ListBoxItem">
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="MinHeight" Value="28" />
+        <Setter Property="Padding" Value="10,0" />
+        <Setter Property="Margin" Value="0,0,0,1" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Name="Bd"
+                        Background="{TemplateBinding Background}"
+                        CornerRadius="{DynamicResource IvRadiusSmall}"
+                        Padding="{TemplateBinding Padding}">
+                    <ContentPresenter Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+        <Style Selector="^:pointerover /template/ Border#Bd">
+            <Setter Property="Background" Value="{DynamicResource IvSurfaceSubtleHoverBrush}" />
+        </Style>
+        <Style Selector="^:selected /template/ Border#Bd">
+            <Setter Property="Background" Value="{DynamicResource IvSurfaceSelectedBrush}" />
+        </Style>
+        <Style Selector="^:selected:focus /template/ Border#Bd">
+            <Setter Property="Background" Value="{DynamicResource IvAccentSubtleBrush}" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Foreground" Value="{DynamicResource IvTextDisabledBrush}" />
+        </Style>
+    </ControlTheme>
+
+    <!-- 列表框：1px 描边、4 内边距、纵向自动滚动 -->
+    <ControlTheme x:Key="{x:Type ListBox}" TargetType="ListBox">
+        <Setter Property="Background" Value="{DynamicResource IvInputBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="4" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="{DynamicResource IvRadiusControl}">
+                    <ScrollViewer Name="PART_ScrollViewer"
+                                  Padding="{TemplateBinding Padding}"
+                                  Focusable="False"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  VerticalScrollBarVisibility="Auto">
+                        <ItemsPresenter Name="PART_ItemsPresenter" />
+                    </ScrollViewer>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+        <Style Selector="^:disabled">
+            <Setter Property="Opacity" Value="0.5" />
+        </Style>
+    </ControlTheme>
+
+    <!-- 侧边列表项：32 高、左侧 2px 强调指示条、悬停/选中层淡入 -->
+    <ControlTheme x:Key="IvSidebarItemStyle" TargetType="ListBoxItem">
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        <Setter Property="Height" Value="32" />
+        <Setter Property="Padding" Value="20,0" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid Background="Transparent">
+                    <Border Name="Hover" Background="{DynamicResource IvSurfaceSubtleHoverBrush}" Opacity="0" />
+                    <Border Name="Selected" Background="{DynamicResource IvSurfaceSelectedBrush}" Opacity="0" />
+                    <Rectangle Name="Indicator"
+                               Width="2"
+                               HorizontalAlignment="Left"
+                               Fill="{DynamicResource IvAccentBrush}"
+                               Opacity="0" />
+                    <ContentPresenter Margin="{TemplateBinding Padding}"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+        <Style Selector="^:pointerover /template/ Border#Hover">
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.120" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="^:selected /template/ Border#Selected">
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="^:selected /template/ Rectangle#Indicator">
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+    </ControlTheme>
+
+</ResourceDictionary>

@@ -12,6 +12,8 @@
     <Project Path="src/DeepVisionSharp.TorchSharp/DeepVisionSharp.TorchSharp.csproj" />
     <Project Path="src/DeepVisionSharp.Bootstrap/DeepVisionSharp.Bootstrap.csproj" />
     <Project Path="src/yu-ui/yu-ui.csproj" />
+    <Project Path="src/yu-ui.avalonia/yu-ui.avalonia.csproj" />
+    <Project Path="src/DeepVisionSharp.Shell.Avalonia/DeepVisionSharp.Shell.Avalonia.csproj" />
     <Project Path="src/DeepVisionSharp.Shell/DeepVisionSharp.Shell.csproj" DefaultStartup="true" />
   </Folder>
   <Folder Name="/tests/">

@@ -1,0 +1,176 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:YuUI.Controls"
+                    xmlns:ui="clr-namespace:YuUI">
+
+    <!-- 分组容器：32 高标题带（IvBandBrush）+ 1px 描边主体 -->
+    <ControlTheme x:Key="{x:Type controls:FormSection}" TargetType="controls:FormSection">
+        <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Margin" Value="0,0,0,16" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}">
+                    <DockPanel>
+                        <Border Name="HeaderBand"
+                                DockPanel.Dock="Top"
+                                MinHeight="32"
+                                Padding="14,0"
+                                Background="{DynamicResource IvBandBrush}"
+                                BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                                BorderThickness="0,0,0,1">
+                            <ContentPresenter Content="{TemplateBinding Header}"
+                                              VerticalAlignment="Center"
+                                              TextElement.FontSize="{DynamicResource IvFontSizeBodySmall}"
+                                              TextElement.FontWeight="SemiBold" />
+                        </Border>
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}" />
+                    </DockPanel>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+        <Style Selector="^[HasHeader=False] /template/ Border#HeaderBand">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+    </ControlTheme>
+
+    <!-- 表单行：40 高、14,6 内边距、上缘分隔线，左标题右内容 -->
+    <ControlTheme x:Key="{x:Type controls:FormRow}" TargetType="controls:FormRow">
+        <Setter Property="MinHeight" Value="40" />
+        <Setter Property="Padding" Value="14,6" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid Background="Transparent">
+                    <Rectangle Height="1"
+                               VerticalAlignment="Top"
+                               Fill="{DynamicResource IvStrokeSubtleBrush}" />
+                    <Grid Margin="{TemplateBinding Padding}"
+                          VerticalAlignment="Center"
+                          ColumnDefinitions="*,Auto">
+                        <StackPanel Margin="0,0,16,0" VerticalAlignment="Center">
+                            <ContentPresenter Content="{TemplateBinding Header}" />
+                            <TextBlock Margin="0,2,0,0"
+                                       Text="{TemplateBinding Description}"
+                                       TextWrapping="Wrap"
+                                       FontSize="{DynamicResource IvFontSizeCaption}"
+                                       Foreground="{DynamicResource IvText2Brush}" />
+                        </StackPanel>
+                        <ContentPresenter Grid.Column="1"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          VerticalAlignment="Center" />
+                    </Grid>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+
+
+    <!-- 对话框：遮罩 + 居中卡片 -->
+    <ControlTheme x:Key="{x:Type controls:Dialog}" TargetType="controls:Dialog">
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource IvFontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource IvFontSizeBody}" />
+        <Setter Property="IsHitTestVisible" Value="True" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid>
+                    <Border Name="Overlay" Background="{DynamicResource IvOverlayBrush}" />
+                    <Grid Margin="16">
+                        <Border Name="Card"
+                                MinWidth="420"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Background="{DynamicResource IvSurface2Brush}"
+                                BorderBrush="{DynamicResource IvStrokeBrush}"
+                                BorderThickness="1"
+                                CornerRadius="{DynamicResource IvRadiusOverlay}"
+                                BoxShadow="{DynamicResource IvPopupShadow}"
+                                Padding="24,20,24,18">
+                            <Grid RowDefinitions="Auto,*,Auto">
+                                <DockPanel>
+                                    <controls:Icon DockPanel.Dock="Left"
+                                                   Margin="0,0,12,0"
+                                                   VerticalAlignment="Center"
+                                                   Data="{x:Static ui:IvIcons.Info}"
+                                                   FontSize="22"
+                                                   Foreground="{DynamicResource IvAccentBrush}" />
+                                    <TextBlock Text="{TemplateBinding Title}"
+                                               VerticalAlignment="Center"
+                                               TextWrapping="Wrap"
+                                               FontFamily="{DynamicResource IvDisplayFontFamily}"
+                                               FontSize="{DynamicResource IvFontSizeSubtitle}"
+                                               FontWeight="SemiBold" />
+                                </DockPanel>
+                                <ContentPresenter Grid.Row="2"
+                                                  Margin="0,16,0,0"
+                                                  HorizontalAlignment="Right"
+                                                  Content="{TemplateBinding Footer}" />
+                                <ScrollViewer Grid.Row="1"
+                                              Margin="0,10,0,0"
+                                              HorizontalScrollBarVisibility="Disabled"
+                                              VerticalScrollBarVisibility="Auto">
+                                    <ContentPresenter Content="{TemplateBinding Content}"
+                                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                      TextElement.Foreground="{DynamicResource IvText2Brush}" />
+                                </ScrollViewer>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+
+
+    <!-- 数字框：输入 + 单位 + 18 宽上下步进器 -->
+    <ControlTheme x:Key="{x:Type controls:NumericBox}" TargetType="controls:NumericBox">
+        <Setter Property="Background" Value="{DynamicResource IvInputBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FontFamily" Value="{DynamicResource IvFontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource IvFontSizeBody}" />
+        <Setter Property="MinHeight" Value="{DynamicResource IvControlHeight}" />
+        <Setter Property="MinWidth" Value="96" />
+        <Setter Property="Padding" Value="10,0,2,0" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid>
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{DynamicResource IvRadiusControl}" />
+                    <Grid Margin="{TemplateBinding Padding}" ColumnDefinitions="*,Auto,Auto">
+                        <TextBox Name="PART_TextBox"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 Padding="0"
+                                 VerticalAlignment="Center"
+                                 IsReadOnly="{TemplateBinding IsReadOnly}"
+                                 Foreground="{TemplateBinding Foreground}" />
+                        <TextBlock Grid.Column="1" Margin="6,0,6,0" VerticalAlignment="Center"
+                                   Text="{TemplateBinding Unit}"
+                                   FontSize="{DynamicResource IvFontSizeCaption}"
+                                   Foreground="{DynamicResource IvText3Brush}" />
+                        <Grid Grid.Column="2" Width="18" Margin="0,3" RowDefinitions="*,*">
+                            <Button Name="PART_UpButton" Padding="0" Background="Transparent" BorderThickness="0">
+                                <TextBlock Text="▲" FontSize="7" Foreground="{DynamicResource IvText2Brush}" />
+                            </Button>
+                            <Button Name="PART_DownButton" Grid.Row="1" Padding="0" Background="Transparent" BorderThickness="0">
+                                <TextBlock Text="▼" FontSize="7" Foreground="{DynamicResource IvText2Brush}" />
+                            </Button>
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+
+</ResourceDictionary>

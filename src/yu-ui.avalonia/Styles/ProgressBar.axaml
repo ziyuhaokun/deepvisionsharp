@@ -1,0 +1,57 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ControlTheme x:Key="{x:Type ProgressBar}" TargetType="ProgressBar">
+        <Setter Property="Foreground" Value="{DynamicResource IvAccentBrush}" />
+        <Setter Property="Background" Value="{DynamicResource IvSurface3Brush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Name="PART_Track"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        ClipToBounds="True">
+                    <Grid>
+                        <Border Name="PART_Indicator"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Stretch"
+                                Background="{TemplateBinding Foreground}" />
+                        <Canvas Name="IndeterminateRoot" IsVisible="False" ClipToBounds="True">
+                            <Border Name="IndeterminateBar"
+                                    Width="80"
+                                    Height="{Binding $parent[ProgressBar].Bounds.Height}"
+                                    Canvas.Left="-80"
+                                    Background="{TemplateBinding Foreground}"
+                                    Opacity="0.9" />
+                        </Canvas>
+                    </Grid>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+        <Style Selector="^:indeterminate /template/ Border#PART_Indicator">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="^:indeterminate /template/ Canvas#IndeterminateRoot">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <Style Selector="^:indeterminate /template/ Border#IndeterminateBar">
+            <Style.Animations>
+                <Animation Duration="0:0:1.200" IterationCount="INFINITE"
+                           Easing="{DynamicResource IvMotionEase}">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="Canvas.Left" Value="-80" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="Canvas.Left" Value="960" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Opacity" Value="0.45" />
+        </Style>
+    </ControlTheme>
+
+</ResourceDictionary>

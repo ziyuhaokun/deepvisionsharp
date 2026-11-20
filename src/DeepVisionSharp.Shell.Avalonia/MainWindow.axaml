@@ -1,0 +1,371 @@
+<iv:ThemedWindow xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:iv="clr-namespace:YuUI.Controls;assembly=yu-ui.avalonia"
+                xmlns:local="clr-namespace:DeepVisionSharp.Shell.Avalonia"
+                xmlns:pages="clr-namespace:DeepVisionSharp.Shell.Avalonia.Views"
+                xmlns:ui="clr-namespace:YuUI;assembly=yu-ui.avalonia"
+                x:Class="DeepVisionSharp.Shell.Avalonia.MainWindow"
+                Title="DeepVisionSharp"
+                Width="1600"
+                Height="1000"
+                MinWidth="900"
+                MinHeight="560"
+                CaptionHeight="44"
+                WindowStartupLocation="CenterScreen">
+
+    <iv:ThemedWindow.Resources>
+
+        <!-- 导航按钮：40 高、8,2 外边距、左侧 2×16 强调条 -->
+        <ControlTheme x:Key="NavButtonTheme" TargetType="RadioButton">
+            <Setter Property="Height" Value="40" />
+            <Setter Property="Margin" Value="8,2" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="Bd" Background="Transparent" CornerRadius="6">
+                        <Grid>
+                            <Rectangle Name="ActiveBar"
+                                       Width="2"
+                                       Height="16"
+                                       HorizontalAlignment="Left"
+                                       VerticalAlignment="Center"
+                                       Fill="{DynamicResource IvAccentBrush}"
+                                       Opacity="0"
+                                       RadiusX="1"
+                                       RadiusY="1" />
+                            <StackPanel Name="NavContent"
+                                        Margin="14,0,10,0"
+                                        Orientation="Horizontal"
+                                        VerticalAlignment="Center">
+                                <iv:Icon Name="NavIcon"
+                                         Width="18"
+                                         Height="18"
+                                         Margin="0,0,10,0"
+                                         VerticalAlignment="Center"
+                                         Data="{TemplateBinding Tag}"
+                                         FontSize="16"
+                                         Foreground="{DynamicResource IvText3Brush}" />
+                                <TextBlock Name="Label"
+                                           VerticalAlignment="Center"
+                                           FontSize="13"
+                                           Foreground="{DynamicResource IvText2Brush}"
+                                           Text="{TemplateBinding Content}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover /template/ Border#Bd">
+                <Setter Property="Background" Value="{DynamicResource IvStateHoverBrush}" />
+            </Style>
+            <Style Selector="^:pointerover /template/ iv|Icon#NavIcon">
+                <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+            </Style>
+            <Style Selector="^:pointerover /template/ TextBlock#Label">
+                <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+            </Style>
+            <Style Selector="^:checked /template/ Border#Bd">
+                <Setter Property="Background" Value="{DynamicResource IvAccentSubtleBrush}" />
+            </Style>
+            <Style Selector="^:checked /template/ Rectangle#ActiveBar">
+                <Setter Property="Opacity" Value="1" />
+            </Style>
+            <Style Selector="^:checked /template/ iv|Icon#NavIcon">
+                <Setter Property="Foreground" Value="{DynamicResource IvAccentTextBrush}" />
+            </Style>
+            <Style Selector="^:checked /template/ TextBlock#Label">
+                <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
+        </ControlTheme>
+
+        <!-- 标题栏动作按钮：40×32 -->
+        <ControlTheme x:Key="TitleActionButtonTheme" TargetType="Button">
+            <Setter Property="Width" Value="40" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="Bd" Background="{TemplateBinding Background}" CornerRadius="4">
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover /template/ Border#Bd">
+                <Setter Property="Background" Value="{DynamicResource IvStateHoverBrush}" />
+            </Style>
+            <Style Selector="^:pointerover">
+                <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+            </Style>
+            <Style Selector="^:pressed /template/ Border#Bd">
+                <Setter Property="Background" Value="{DynamicResource IvStatePressedBrush}" />
+            </Style>
+        </ControlTheme>
+
+        <ControlTheme x:Key="NavSectionLabelStyle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="14,0,0,5" />
+            <Setter Property="FontSize" Value="10.5" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText3Brush}" />
+        </ControlTheme>
+
+    </iv:ThemedWindow.Resources>
+
+    <iv:ThemedWindow.Styles>
+        <!-- 折叠态：40 宽居中按钮，隐藏文字，图标居中 -->
+        <Style Selector="RadioButton.navCollapsed">
+            <Setter Property="Width" Value="40" />
+            <Setter Property="Margin" Value="0,2" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="RadioButton.navCollapsed /template/ TextBlock#Label">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="RadioButton.navCollapsed /template/ StackPanel#NavContent">
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="RadioButton.navCollapsed /template/ iv|Icon#NavIcon">
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Border.navDivider">
+            <Setter Property="Height" Value="1" />
+            <Setter Property="Margin" Value="8" />
+            <Setter Property="Background" Value="{DynamicResource IvStrokeSubtleBrush}" />
+        </Style>
+        <Style Selector="Border.navDivider.collapsed">
+            <Setter Property="Width" Value="24" />
+            <Setter Property="Margin" Value="0,6" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="RadioButton.navCollapsed /template/ Rectangle#ActiveBar">
+            <Setter Property="Opacity" Value="0" />
+        </Style>
+        <!-- 品牌区：展开时与导航按钮左边对齐；折叠时在 64 宽栏内居中（(64-22)/2） -->
+        <Style Selector="StackPanel#BrandPanel">
+            <Setter Property="Margin" Value="16,0,0,0" />
+        </Style>
+        <Style Selector="Grid.collapsed StackPanel#BrandPanel">
+            <Setter Property="Margin" Value="21,0,0,0" />
+        </Style>
+        <Style Selector="TextBlock.navSection">
+            <Setter Property="IsVisible" Value="{Binding $parent[local:MainWindow].IsNavExpanded}" />
+            <Setter Property="Margin" Value="14,0,0,5" />
+            <Setter Property="FontSize" Value="10.5" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText3Brush}" />
+        </Style>
+    </iv:ThemedWindow.Styles>
+
+    <Grid Background="{DynamicResource IvBackgroundBrush}"
+          RowDefinitions="44,*"
+          ColumnDefinitions="Auto,*">
+
+        <!-- ===== 标题栏 ===== -->
+        <Border Grid.Row="0"
+                Grid.ColumnSpan="2"
+                Background="{DynamicResource IvSurface1Brush}"
+                BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                BorderThickness="0,0,0,1"
+                PointerPressed="OnCaptionPointerPressed"
+                DoubleTapped="OnCaptionDoubleTapped">
+            <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto">
+
+                <Grid Width="{Binding #NavRail.Bounds.Width}" ClipToBounds="True"
+                      Classes.collapsed="{Binding $parent[local:MainWindow].IsNavCollapsed}">
+                    <StackPanel Name="BrandPanel" Orientation="Horizontal" VerticalAlignment="Center">
+                        <iv:Icon Width="22"
+                                 Height="22"
+                                 Data="{x:Static ui:IvIcons.Cube}"
+                                 FontSize="20"
+                                 Foreground="{DynamicResource IvAccentBrush}" />
+                        <TextBlock MaxWidth="154"
+                                   Margin="9,0,0,0"
+                                   VerticalAlignment="Center"
+                                   FontSize="12.5"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource IvText1Brush}"
+                                   Text="{Binding $parent[local:MainWindow].Title}"
+                                   TextTrimming="CharacterEllipsis"
+                                   IsVisible="{Binding $parent[local:MainWindow].IsNavExpanded}" />
+                    </StackPanel>
+                </Grid>
+
+                <Border Grid.Column="1"
+                        Width="1"
+                        Margin="0,12,0,12"
+                        Background="{DynamicResource IvStrokeSubtleBrush}" />
+
+                <Button Grid.Column="2"
+                        Margin="8,0,0,0"
+                        VerticalAlignment="Center"
+                        AutomationProperties.AutomationId="dv.nav.toggle"
+                        AutomationProperties.Name="收起导航栏"
+                        Theme="{StaticResource TitleActionButtonTheme}"
+                        ToolTip.Tip="收起导航栏"
+                        Click="OnToggleNavigation">
+                    <Panel>
+                        <iv:Icon FontSize="16"
+                                 IsVisible="{Binding $parent[local:MainWindow].IsNavExpanded}"
+                                 Data="{x:Static ui:IvIcons.Menu}"
+                                 Foreground="{Binding $parent[Button].Foreground}" />
+                        <iv:Icon FontSize="16"
+                                 IsVisible="{Binding !$parent[local:MainWindow].IsNavExpanded}"
+                                 Data="{x:Static ui:IvIcons.ChevronRight}"
+                                 Foreground="{Binding $parent[Button].Foreground}" />
+                    </Panel>
+                </Button>
+
+                <Grid Grid.Column="3" Margin="8,0,16,0" VerticalAlignment="Center" ColumnDefinitions="Auto,*">
+                    <iv:Icon Width="15"
+                             Height="15"
+                             VerticalAlignment="Center"
+                             Data="{x:Static ui:IvIcons.FolderOpen}"
+                             FontSize="15"
+                             Foreground="{DynamicResource IvText3Brush}" />
+                    <!-- 与 WPF 版一致：有项目时显示项目名，无项目时显示占位文案 -->
+                    <TextBlock Grid.Column="1"
+                               Margin="7,0,0,0"
+                               VerticalAlignment="Center"
+                               AutomationProperties.AutomationId="dv.title.project-name"
+                               FontSize="12.5"
+                               Foreground="{DynamicResource IvText3Brush}"
+                               Text="{Binding $parent[local:MainWindow].CurrentProjectName}"
+                               IsVisible="{Binding $parent[local:MainWindow].HasCurrentProject}"
+                               TextTrimming="CharacterEllipsis"
+                               ToolTip.Tip="{Binding $parent[local:MainWindow].CurrentProjectName}" />
+                    <TextBlock Grid.Column="1"
+                               Margin="7,0,0,0"
+                               VerticalAlignment="Center"
+                               FontSize="12.5"
+                               Foreground="{DynamicResource IvText3Brush}"
+                               Text="未打开项目"
+                               IsVisible="{Binding !$parent[local:MainWindow].HasCurrentProject}"
+                               TextTrimming="CharacterEllipsis" />
+                </Grid>
+
+                <Button Grid.Column="4"
+                        Margin="0,0,128,0"
+                        VerticalAlignment="Top"
+                        AutomationProperties.Name="切换主题"
+                        Theme="{StaticResource TitleActionButtonTheme}"
+                        ToolTip.Tip="切换到深色模式"
+                        Click="OnToggleTheme">
+                    <iv:Icon Name="ThemeToggleIcon"
+                             FontSize="16"
+                             Data="{x:Static ui:IvIcons.Palette}"
+                             Foreground="{Binding $parent[Button].Foreground}" />
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- ===== 导航栏 ===== -->
+        <Border Name="NavRail"
+                Grid.Row="1"
+                Grid.Column="0"
+                Width="208"
+                ClipToBounds="True"
+                Background="{DynamicResource IvSurface1Brush}"
+                BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                BorderThickness="0,0,1,0">
+            <Border.Transitions>
+                <Transitions>
+                    <DoubleTransition Property="Width" Duration="0:0:0.2"
+                                      Easing="{DynamicResource IvMotionEase}" />
+                </Transitions>
+            </Border.Transitions>
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Bottom" Margin="8,0,8,12">
+                    <Border Classes="navDivider" Classes.collapsed="{Binding $parent[local:MainWindow].IsNavCollapsed}" />
+                    <RadioButton AutomationProperties.AutomationId="dv.nav.settings"
+                                 Content="设置"
+                                 ToolTip.Tip="设置"
+                                 GroupName="ShellNav"
+                                 Classes.navCollapsed="{Binding $parent[local:MainWindow].IsNavCollapsed}"
+                                 Theme="{StaticResource NavButtonTheme}"
+                                 Tag="{x:Static ui:IvIcons.Settings}" />
+                </StackPanel>
+
+                <StackPanel Margin="8,10,8,0">
+                    <TextBlock Classes="navSection" Text="数据工作流" />
+                    <RadioButton AutomationProperties.AutomationId="dv.nav.dashboard"
+                                 Content="项目"
+                                 ToolTip.Tip="项目"
+                                 GroupName="ShellNav"
+                                 Classes.navCollapsed="{Binding $parent[local:MainWindow].IsNavCollapsed}"
+                                 IsChecked="True"
+                                 Theme="{StaticResource NavButtonTheme}"
+                                 Tag="{x:Static ui:IvIcons.Home}" />
+                    <RadioButton AutomationProperties.AutomationId="dv.nav.gallery"
+                                 Content="图库"
+                                 ToolTip.Tip="图库"
+                                 GroupName="ShellNav"
+                                 Classes.navCollapsed="{Binding $parent[local:MainWindow].IsNavCollapsed}"
+                                 Theme="{StaticResource NavButtonTheme}"
+                                 Tag="{x:Static ui:IvIcons.Image}" />
+                    <RadioButton AutomationProperties.AutomationId="dv.nav.labeling"
+                                 Content="标记"
+                                 ToolTip.Tip="标记"
+                                 GroupName="ShellNav"
+                                 Classes.navCollapsed="{Binding $parent[local:MainWindow].IsNavCollapsed}"
+                                 Theme="{StaticResource NavButtonTheme}"
+                                 Tag="{x:Static ui:IvIcons.Bookmark}" />
+
+                    <Border Classes="navDivider"
+                            Classes.collapsed="{Binding $parent[local:MainWindow].IsNavCollapsed}"
+                            IsVisible="{Binding $parent[local:MainWindow].SupportsModelWorkflow}" />
+
+                    <Border IsVisible="{Binding $parent[local:MainWindow].SupportsModelWorkflow}">
+                        <TextBlock Classes="navSection" Text="模型与运行" />
+                    </Border>
+                    <RadioButton AutomationProperties.AutomationId="dv.nav.models"
+                                 Content="模型"
+                                 ToolTip.Tip="模型"
+                                 GroupName="ShellNav"
+                                 IsVisible="{Binding $parent[local:MainWindow].SupportsModelWorkflow}"
+                                 Classes.navCollapsed="{Binding $parent[local:MainWindow].IsNavCollapsed}"
+                                 Theme="{StaticResource NavButtonTheme}"
+                                 Tag="{x:Static ui:IvIcons.Cube}" />
+                    <RadioButton AutomationProperties.AutomationId="dv.nav.training"
+                                 Content="训练"
+                                 ToolTip.Tip="训练"
+                                 GroupName="ShellNav"
+                                 IsVisible="{Binding $parent[local:MainWindow].SupportsModelWorkflow}"
+                                 Classes.navCollapsed="{Binding $parent[local:MainWindow].IsNavCollapsed}"
+                                 Theme="{StaticResource NavButtonTheme}"
+                                 Tag="{x:Static ui:IvIcons.Play}" />
+                    <RadioButton AutomationProperties.AutomationId="dv.nav.inference"
+                                 Content="推理"
+                                 ToolTip.Tip="推理"
+                                 GroupName="ShellNav"
+                                 IsVisible="{Binding $parent[local:MainWindow].SupportsModelWorkflow}"
+                                 Classes.navCollapsed="{Binding $parent[local:MainWindow].IsNavCollapsed}"
+                                 Theme="{StaticResource NavButtonTheme}"
+                                 Tag="{x:Static ui:IvIcons.Bolt}" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- ===== 内容区（页面迁移中） ===== -->
+        <ContentControl Name="ContentHost" Grid.Row="1" Grid.Column="1">
+            <ContentControl.Transitions>
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.12" />
+                </Transitions>
+            </ContentControl.Transitions>
+            <pages:DashboardPage />
+        </ContentControl>
+
+        <!-- 对话框宿主：与 WPF 版一致，覆盖整个窗口、默认隐藏、ZIndex 最高 -->
+        <iv:Dialog Name="RootDialog"
+                   Grid.RowSpan="2"
+                   Grid.ColumnSpan="2"
+                   IsVisible="False" />
+    </Grid>
+
+</iv:ThemedWindow>

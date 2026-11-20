@@ -1,0 +1,63 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <FontFamily x:Key="IvFontFamily">Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI</FontFamily>
+    <FontFamily x:Key="IvDisplayFontFamily">Segoe UI Variable Display, Segoe UI, Microsoft YaHei UI</FontFamily>
+    <FontFamily x:Key="IvMonoFontFamily">Cascadia Mono, Consolas, Microsoft YaHei UI</FontFamily>
+
+    <x:Double x:Key="IvFontSizeTiny">9</x:Double>
+    <x:Double x:Key="IvFontSizeMini">10</x:Double>
+    <x:Double x:Key="IvFontSizeSmall">11</x:Double>
+    <x:Double x:Key="IvFontSizeCaption">12</x:Double>
+    <x:Double x:Key="IvFontSizeBodySmall">13</x:Double>
+    <x:Double x:Key="IvFontSizeBody">14</x:Double>
+    <x:Double x:Key="IvFontSizeBodyStrong">14</x:Double>
+    <x:Double x:Key="IvFontSizeSubtitle">15</x:Double>
+    <x:Double x:Key="IvFontSizeHeading">18</x:Double>
+    <x:Double x:Key="IvFontSizeTitle">20</x:Double>
+    <x:Double x:Key="IvFontSizeDisplay">24</x:Double>
+    <x:Double x:Key="IvIconSize">16</x:Double>
+
+    <Style x:Key="IvCaptionTextStyle" Selector="TextBlock">
+        <Setter Property="FontSize" Value="{DynamicResource IvFontSizeCaption}" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+    </Style>
+    <Style x:Key="IvBodyTextStyle" Selector="TextBlock">
+        <Setter Property="FontSize" Value="{DynamicResource IvFontSizeBody}" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+    </Style>
+    <Style x:Key="IvBodyStrongTextStyle" Selector="TextBlock">
+        <Setter Property="FontSize" Value="{DynamicResource IvFontSizeBodyStrong}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+    </Style>
+    <Style x:Key="IvSubtitleTextStyle" Selector="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource IvDisplayFontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource IvFontSizeSubtitle}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+    </Style>
+    <Style x:Key="IvTitleTextStyle" Selector="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource IvDisplayFontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource IvFontSizeTitle}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+    </Style>
+    <Style x:Key="IvDisplayTextStyle" Selector="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource IvDisplayFontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource IvFontSizeDisplay}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+    </Style>
+    <Style x:Key="IvCodeTextStyle" Selector="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource IvMonoFontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource IvFontSizeCaption}" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+    </Style>
+    <Style x:Key="IvNumericTextStyle" Selector="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource IvMonoFontFamily}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+    </Style>
+
+</ResourceDictionary>

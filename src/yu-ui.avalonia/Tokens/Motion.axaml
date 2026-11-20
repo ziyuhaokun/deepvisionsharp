@@ -1,0 +1,11 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="using:System">
+
+    <sys:TimeSpan x:Key="IvMotionTimeSpanFast">0:0:0.120</sys:TimeSpan>
+    <sys:TimeSpan x:Key="IvMotionTimeSpanNormal">0:0:0.200</sys:TimeSpan>
+    <sys:TimeSpan x:Key="IvMotionTimeSpanIndeterminate">0:0:1.200</sys:TimeSpan>
+
+    <CubicEaseOut x:Key="IvMotionEase" />
+
+</ResourceDictionary>

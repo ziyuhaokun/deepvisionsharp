@@ -1,0 +1,121 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- 滑轨：已滑过段用强调色，剩余段用描边色，高 3 -->
+    <ControlTheme x:Key="IvSliderTrackFillStyle" TargetType="RepeatButton">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="IsTabStop" Value="False" />
+        <Setter Property="Background" Value="{DynamicResource IvAccentBrush}" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid Background="Transparent">
+                    <Border Name="Bar" Background="{TemplateBinding Background}" />
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+
+    <ControlTheme x:Key="IvSliderTrackRestStyle" TargetType="RepeatButton"
+                  BasedOn="{StaticResource IvSliderTrackFillStyle}">
+        <Setter Property="Background" Value="{DynamicResource IvStrokeBrush}" />
+    </ControlTheme>
+
+    <!-- 滑块：8×16 方块，悬停时外扩 1.5px 强调描边淡入 -->
+    <ControlTheme x:Key="IvSliderThumbStyle" TargetType="Thumb">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Width" Value="8" />
+        <Setter Property="Height" Value="16" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid Background="Transparent">
+                    <Border Name="Ring"
+                            CornerRadius="1"
+                            BorderBrush="{DynamicResource IvAccentBrush}"
+                            BorderThickness="1.5"
+                            Opacity="0" />
+                    <Border Name="Knob"
+                            CornerRadius="1"
+                            Background="{DynamicResource IvThumbBrush}"
+                            BorderBrush="{DynamicResource IvControlBorderHoverBrush}"
+                            BorderThickness="1" />
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+        <Style Selector="^:pointerover /template/ Border#Ring">
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.120" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="^:disabled /template/ Border#Knob">
+            <Setter Property="Background" Value="{DynamicResource IvSurface4Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeBrush}" />
+        </Style>
+    </ControlTheme>
+
+    <ControlTheme x:Key="IvSliderThumbVerticalStyle" TargetType="Thumb"
+                  BasedOn="{StaticResource IvSliderThumbStyle}">
+        <Setter Property="Width" Value="16" />
+        <Setter Property="Height" Value="8" />
+    </ControlTheme>
+
+    <ControlTheme x:Key="{x:Type Slider}" TargetType="Slider">
+        <Setter Property="MinHeight" Value="{DynamicResource IvControlHeightSmall}" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid VerticalAlignment="Center" Height="20">
+                    <Track Name="PART_Track"
+                           Orientation="Horizontal"
+                           Minimum="{TemplateBinding Minimum}"
+                           Maximum="{TemplateBinding Maximum}"
+                           Value="{TemplateBinding Value}"
+                           IsDirectionReversed="{TemplateBinding IsDirectionReversed}">
+                        <Track.DecreaseButton>
+                            <RepeatButton Name="Fill" Height="3"
+                                          Theme="{StaticResource IvSliderTrackFillStyle}" />
+                        </Track.DecreaseButton>
+                        <Track.IncreaseButton>
+                            <RepeatButton Height="3"
+                                          Theme="{StaticResource IvSliderTrackRestStyle}" />
+                        </Track.IncreaseButton>
+                        <Track.Thumb>
+                            <Thumb Theme="{StaticResource IvSliderThumbStyle}" />
+                        </Track.Thumb>
+                    </Track>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+        <Style Selector="^:vertical">
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="MinWidth" Value="{DynamicResource IvControlHeightSmall}" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Grid HorizontalAlignment="Center" Width="20">
+                        <Track Name="PART_Track"
+                               Orientation="Vertical"
+                               Minimum="{TemplateBinding Minimum}"
+                               Maximum="{TemplateBinding Maximum}"
+                               Value="{TemplateBinding Value}"
+                               IsDirectionReversed="{TemplateBinding IsDirectionReversed}">
+                            <Track.DecreaseButton>
+                                <RepeatButton Name="Fill" Width="3"
+                                              Theme="{StaticResource IvSliderTrackFillStyle}" />
+                            </Track.DecreaseButton>
+                            <Track.IncreaseButton>
+                                <RepeatButton Width="3"
+                                              Theme="{StaticResource IvSliderTrackRestStyle}" />
+                            </Track.IncreaseButton>
+                            <Track.Thumb>
+                                <Thumb Theme="{StaticResource IvSliderThumbVerticalStyle}" />
+                            </Track.Thumb>
+                        </Track>
+                    </Grid>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+    </ControlTheme>
+
+</ResourceDictionary>

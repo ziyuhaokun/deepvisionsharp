@@ -1,0 +1,112 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:YuUI.Controls"
+                    xmlns:ui="clr-namespace:YuUI"
+                    xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base">
+
+    <!-- 下拉框：三层外框 + 30 宽箭头 + 弹层（Bottom，-8/+4 偏移，5 内边距） -->
+    <ControlTheme x:Key="{x:Type ComboBox}" TargetType="ComboBox">
+        <Setter Property="Background" Value="{DynamicResource IvControlFillBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource IvControlBorderBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FontFamily" Value="{DynamicResource IvFontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource IvFontSizeBody}" />
+        <Setter Property="MinHeight" Value="{DynamicResource IvControlHeight}" />
+        <Setter Property="Padding" Value="14,0,32,2" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="MaxDropDownHeight" Value="320" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid>
+                    <Border Name="FocusRing"
+                            Margin="-1"
+                            BorderBrush="{DynamicResource IvFocusRingBrush}"
+                            BorderThickness="2"
+                            CornerRadius="{DynamicResource IvRadiusFocusRingPill}"
+                            Opacity="0" />
+                    <Border Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{DynamicResource IvRadiusButton}" />
+                    <Border Name="HoverLayer"
+                            Background="{DynamicResource IvStateHoverBrush}"
+                            CornerRadius="{DynamicResource IvRadiusButton}"
+                            Opacity="0" />
+                    <ContentPresenter Name="SelectionBox"
+                                      Margin="{TemplateBinding Padding}"
+                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                      Content="{TemplateBinding SelectionBoxItem}"
+                                      ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                      IsHitTestVisible="False" />
+                    <TextBlock Name="Placeholder"
+                               Margin="{TemplateBinding Padding}"
+                               VerticalAlignment="Center"
+                               Foreground="{DynamicResource IvText3Brush}"
+                               Text="{TemplateBinding PlaceholderText}"
+                               IsHitTestVisible="False"
+                               IsVisible="{Binding $parent[ComboBox].SelectionBoxItem, Converter={x:Static conv:ObjectConverters.IsNull}}" />
+                    <controls:Icon Name="Chevron"
+                                   Width="30"
+                                   HorizontalAlignment="Right"
+                                   VerticalAlignment="Center"
+                                   Data="{x:Static ui:IvIcons.ChevronDown}"
+                                   FontSize="{DynamicResource IvFontSizeCaption}"
+                                   Foreground="{DynamicResource IvText2Brush}"
+                                   RenderTransformOrigin="50%,50%" />
+                    <Popup Name="PART_Popup"
+                           IsOpen="{TemplateBinding IsDropDownOpen}"
+                           Placement="Bottom"
+                           HorizontalOffset="-8"
+                           VerticalOffset="4">
+                        <Border Background="{DynamicResource IvPopupBrush}"
+                                BorderBrush="{DynamicResource IvStrokeBrush}"
+                                BorderThickness="1"
+                                CornerRadius="{DynamicResource IvRadiusOverlay}"
+                                Padding="5"
+                                MinWidth="120"
+                                MaxHeight="{TemplateBinding MaxDropDownHeight}"
+                                BoxShadow="{DynamicResource IvPopupBoxShadow}">
+                            <ScrollViewer>
+                                <ItemsPresenter />
+                            </ScrollViewer>
+                        </Border>
+                    </Popup>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+        <Style Selector="^:pointerover">
+            <Setter Property="BorderBrush" Value="{DynamicResource IvControlBorderHoverBrush}" />
+        </Style>
+        <Style Selector="^:pointerover /template/ Border#HoverLayer">
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.120" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Background" Value="{DynamicResource IvSurfaceDisabledBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource IvTextDisabledBrush}" />
+        </Style>
+    </ControlTheme>
+
+    <ControlTheme x:Key="{x:Type ComboBoxItem}" TargetType="ComboBoxItem">
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        <Setter Property="MinHeight" Value="28" />
+        <Setter Property="Padding" Value="10,0" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Style Selector="^:pointerover /template/ Border#Background">
+            <Setter Property="Background" Value="{DynamicResource IvSurfaceSubtleHoverBrush}" />
+        </Style>
+        <Style Selector="^:selected /template/ Border#Background">
+            <Setter Property="Background" Value="{DynamicResource IvAccentSubtleBrush}" />
+        </Style>
+    </ControlTheme>
+
+</ResourceDictionary>

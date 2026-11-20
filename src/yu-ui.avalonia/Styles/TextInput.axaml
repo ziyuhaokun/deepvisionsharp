@@ -1,0 +1,109 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:conv="using:Avalonia.Data.Converters">
+
+    <!-- 输入框：底框 + 焦点描边 + 外扩焦点环；占位文本用 Avalonia 原生 PlaceholderText -->
+    <ControlTheme x:Key="{x:Type TextBox}" TargetType="TextBox">
+        <Setter Property="Background" Value="{DynamicResource IvInputBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FontFamily" Value="{DynamicResource IvFontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource IvFontSizeBody}" />
+        <Setter Property="MinHeight" Value="{DynamicResource IvControlHeight}" />
+        <Setter Property="Padding" Value="{DynamicResource IvInputPadding}" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="CaretBrush" Value="{DynamicResource IvText1Brush}" />
+        <Setter Property="SelectionBrush" Value="{DynamicResource IvAccentBrush}" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid TextElement.Foreground="{TemplateBinding Foreground}">
+                    <Border Name="FocusRing"
+                            Margin="-1"
+                            BorderBrush="{DynamicResource IvFocusRingBrush}"
+                            BorderThickness="2"
+                            CornerRadius="{DynamicResource IvRadiusFocusRing}"
+                            Opacity="0" />
+                    <Border Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{DynamicResource IvRadiusControl}" />
+                    <Border Name="FocusBorder"
+                            BorderBrush="{DynamicResource IvFocusBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{DynamicResource IvRadiusControl}"
+                            Opacity="0" />
+                    <TextBlock Name="Placeholder"
+                               Margin="{TemplateBinding Padding}"
+                               Padding="2,0,0,0"
+                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                               Foreground="{DynamicResource IvText3Brush}"
+                               Text="{TemplateBinding PlaceholderText}"
+                               IsHitTestVisible="False"
+                               IsVisible="{Binding $parent[TextBox].Text,
+                                                   Converter={x:Static conv:StringConverters.IsNullOrEmpty}}" />
+                    <ScrollViewer Name="PART_ContentHost"
+                                  HorizontalScrollBarVisibility="Hidden"
+                                  VerticalScrollBarVisibility="Hidden">
+                        <TextPresenter Name="PART_TextPresenter"
+                                       Margin="{TemplateBinding Padding}"
+                                       Text="{TemplateBinding Text, Mode=TwoWay}"
+                                       CaretIndex="{TemplateBinding CaretIndex}"
+                                       SelectionStart="{TemplateBinding SelectionStart}"
+                                       SelectionEnd="{TemplateBinding SelectionEnd}"
+                                       SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
+                                       SelectionBrush="{TemplateBinding SelectionBrush}"
+                                       CaretBrush="{TemplateBinding CaretBrush}"
+                                       PasswordChar="{TemplateBinding PasswordChar}"
+                                       RevealPassword="{TemplateBinding RevealPassword}"
+                                       TextAlignment="{TemplateBinding TextAlignment}"
+                                       TextWrapping="{TemplateBinding TextWrapping}" />
+                    </ScrollViewer>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+        <Style Selector="^:pointerover">
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeStrongBrush}" />
+        </Style>
+        <Style Selector="^:focus /template/ Border#FocusBorder">
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.120" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="^:focus /template/ Border#FocusRing">
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.150" Easing="{DynamicResource IvMotionEase}" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Background" Value="{DynamicResource IvSurfaceDisabledBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource IvTextDisabledBrush}" />
+        </Style>
+        <Style Selector="^:read-only">
+            <Setter Property="Background" Value="{DynamicResource IvSurfaceSubtleHoverBrush}" />
+        </Style>
+    </ControlTheme>
+
+    <!-- 日志框：等宽、只读、整块背景 -->
+    <ControlTheme x:Key="IvLogTextBoxStyle" TargetType="TextBox"
+                  BasedOn="{StaticResource {x:Type TextBox}}">
+        <Setter Property="IsReadOnly" Value="True" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="AcceptsReturn" Value="True" />
+        <Setter Property="FontFamily" Value="{DynamicResource IvMonoFontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource IvFontSizeCaption}" />
+        <Setter Property="Background" Value="{DynamicResource IvBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
+        <Setter Property="Padding" Value="10,8" />
+        <Setter Property="VerticalContentAlignment" Value="Top" />
+    </ControlTheme>
+
+</ResourceDictionary>

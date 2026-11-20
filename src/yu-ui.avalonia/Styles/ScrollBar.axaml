@@ -1,0 +1,67 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- 滚动条滑块：常态 4px，悬停 8px 并加深；无箭头按钮 -->
+    <ControlTheme x:Key="IvScrollBarThumbStyle" TargetType="Thumb">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="Transparent">
+                    <Border Name="Bd"
+                            Width="4"
+                            HorizontalAlignment="Center"
+                            Background="{DynamicResource IvStrokeStrongBrush}"
+                            CornerRadius="1" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+        <Style Selector="^:pointerover /template/ Border#Bd">
+            <Setter Property="Background" Value="{DynamicResource IvText3Brush}" />
+            <Setter Property="Width" Value="8" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Width" Duration="0:0:0.120"
+                                      Easing="{DynamicResource IvMotionEase}" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="^:pressed /template/ Border#Bd">
+            <Setter Property="Background" Value="{DynamicResource IvText2Brush}" />
+        </Style>
+    </ControlTheme>
+
+    <ControlTheme x:Key="{x:Type ScrollBar}" TargetType="ScrollBar">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Width" Value="12" />
+        <Setter Property="MinWidth" Value="12" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{TemplateBinding Background}" Padding="2">
+                    <Track Name="PART_Track"
+                           Orientation="{TemplateBinding Orientation}"
+                           Minimum="{TemplateBinding Minimum}"
+                           Maximum="{TemplateBinding Maximum}"
+                           Value="{TemplateBinding Value}"
+                           ViewportSize="{TemplateBinding ViewportSize}">
+                        <Track.Thumb>
+                            <Thumb Theme="{StaticResource IvScrollBarThumbStyle}" />
+                        </Track.Thumb>
+                        <Track.IncreaseButton>
+                            <RepeatButton IsVisible="False" Focusable="False" />
+                        </Track.IncreaseButton>
+                        <Track.DecreaseButton>
+                            <RepeatButton IsVisible="False" Focusable="False" />
+                        </Track.DecreaseButton>
+                    </Track>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+        <Style Selector="^:horizontal">
+            <Setter Property="Width" Value="NaN" />
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="Height" Value="12" />
+            <Setter Property="MinHeight" Value="12" />
+        </Style>
+    </ControlTheme>
+
+</ResourceDictionary>

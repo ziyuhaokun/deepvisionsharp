@@ -1,0 +1,47 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        菜单：先对齐尺度与配色。WPF 版把顶级菜单项、子菜单项、弹出层外壳、
+        分隔符与 ToolTip 全部重写过；Avalonia 的 MenuItem 模板结构不同（Popup 挂在
+        MenuItem 自身），逐像素复刻需独立一轮验证，此处不草率替换。
+    -->
+    <ControlTheme x:Key="{x:Type Menu}" TargetType="Menu">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource IvFontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource IvFontSizeBody}" />
+        <Setter Property="Padding" Value="0" />
+    </ControlTheme>
+
+    <ControlTheme x:Key="{x:Type MenuItem}" TargetType="MenuItem">
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource IvFontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource IvFontSizeBody}" />
+        <Setter Property="MinHeight" Value="28" />
+        <Setter Property="Padding" Value="10,0" />
+        <Style Selector="^:disabled">
+            <Setter Property="Foreground" Value="{DynamicResource IvTextDisabledBrush}" />
+        </Style>
+    </ControlTheme>
+
+    <ControlTheme x:Key="{x:Type ContextMenu}" TargetType="ContextMenu">
+        <Setter Property="Background" Value="{DynamicResource IvPopupBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{DynamicResource IvRadiusControl}" />
+        <Setter Property="Padding" Value="4" />
+    </ControlTheme>
+
+    <ControlTheme x:Key="{x:Type ToolTip}" TargetType="ToolTip">
+        <Setter Property="Background" Value="{DynamicResource IvPopupBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{DynamicResource IvRadiusControl}" />
+        <Setter Property="Padding" Value="8,4" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource IvFontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource IvFontSizeCaption}" />
+    </ControlTheme>
+
+</ResourceDictionary>

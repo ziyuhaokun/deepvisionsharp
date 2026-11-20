@@ -1,0 +1,187 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+            <SolidColorBrush x:Key="IvBackgroundBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="IvSurface1Brush" Color="#F7F7F6" />
+            <SolidColorBrush x:Key="IvSurface2Brush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="IvSurface3Brush" Color="#F1F2F3" />
+            <SolidColorBrush x:Key="IvSurface4Brush" Color="#E3E4E6" />
+            <SolidColorBrush x:Key="IvSurfaceDisabledBrush" Color="#F3F3F2" />
+            <SolidColorBrush x:Key="IvSurfaceSubtleHoverBrush" Color="#0A000000" />
+            <SolidColorBrush x:Key="IvSurfaceSubtlePressedBrush" Color="#14000000" />
+            <SolidColorBrush x:Key="IvSurfaceSelectedBrush" Color="#E8E9EB" />
+            <SolidColorBrush x:Key="IvBandBrush" Color="#F1F2F3" />
+            <SolidColorBrush x:Key="IvControlFillBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="IvInputBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="IvPopupBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="IvOverlayBrush" Color="#59000000" />
+            <SolidColorBrush x:Key="IvStrokeSubtleBrush" Color="#E2E3E5" />
+            <SolidColorBrush x:Key="IvStrokeBrush" Color="#D5D7DA" />
+            <SolidColorBrush x:Key="IvStrokeStrongBrush" Color="#C3C6CA" />
+            <SolidColorBrush x:Key="IvControlBorderBrush" Color="#C3C6CA" />
+            <SolidColorBrush x:Key="IvControlBorderHoverBrush" Color="#979BA2" />
+            <SolidColorBrush x:Key="IvAccentBorderBrush" Color="#2C5D9F" />
+            <SolidColorBrush x:Key="IvDangerBorderBrush" Color="#B5382F" />
+            <SolidColorBrush x:Key="IvWarningBorderBrush" Color="#A86E00" />
+            <SolidColorBrush x:Key="IvText1Brush" Color="#1C1E21" />
+            <SolidColorBrush x:Key="IvText2Brush" Color="#4E535A" />
+            <SolidColorBrush x:Key="IvText3Brush" Color="#6A6F77" />
+            <SolidColorBrush x:Key="IvTextDisabledBrush" Color="#A4A8AE" />
+            <SolidColorBrush x:Key="IvTextOnAccentBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="IvPrimaryBrush" Color="#1F2124" />
+            <SolidColorBrush x:Key="IvPrimaryHoverBrush" Color="#36393E" />
+            <SolidColorBrush x:Key="IvPrimaryPressedBrush" Color="#0B0C0D" />
+            <SolidColorBrush x:Key="IvTextOnPrimaryBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="IvAccentBrush" Color="#2C5D9F" />
+            <SolidColorBrush x:Key="IvAccentHoverBrush" Color="#366BB0" />
+            <SolidColorBrush x:Key="IvAccentPressedBrush" Color="#244E87" />
+            <SolidColorBrush x:Key="IvAccentSubtleBrush" Color="#292C5D9F" />
+            <SolidColorBrush x:Key="IvAccentTextBrush" Color="#2C5D9F" />
+            <SolidColorBrush x:Key="IvFocusBrush" Color="#2C5D9F" />
+            <SolidColorBrush x:Key="IvFocusRingBrush" Color="#2C5D9F" />
+            <SolidColorBrush x:Key="IvSuccessBrush" Color="#1E7A44" />
+            <SolidColorBrush x:Key="IvSuccessSubtleBrush" Color="#EAF4EE" />
+            <SolidColorBrush x:Key="IvSuccessTextBrush" Color="#1E7A44" />
+            <SolidColorBrush x:Key="IvWarningBrush" Color="#A86E00" />
+            <SolidColorBrush x:Key="IvWarningTextBrush" Color="#8A5A00" />
+            <SolidColorBrush x:Key="IvWarningSubtleBrush" Color="#FBF3E2" />
+            <SolidColorBrush x:Key="IvDangerBrush" Color="#B5382F" />
+            <SolidColorBrush x:Key="IvDangerHoverBrush" Color="#C4463D" />
+            <SolidColorBrush x:Key="IvDangerPressedBrush" Color="#9C2F27" />
+            <SolidColorBrush x:Key="IvDangerSubtleBrush" Color="#FBEDEC" />
+            <SolidColorBrush x:Key="IvDangerTextBrush" Color="#B5382F" />
+            <SolidColorBrush x:Key="IvDangerRingBrush" Color="#B5382F" />
+            <SolidColorBrush x:Key="IvInfoBrush" Color="#2C5D9F" />
+            <SolidColorBrush x:Key="IvInfoSubtleBrush" Color="#EDF1F7" />
+            <SolidColorBrush x:Key="IvRowAltBrush" Color="#05000000" />
+            <SolidColorBrush x:Key="IvSwitchTrackBrush" Color="#C9CCD1" />
+            <SolidColorBrush x:Key="IvThumbBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="IvStateHoverBrush" Color="#0D000000" />
+            <SolidColorBrush x:Key="IvStatePressedBrush" Color="#1A000000" />
+            <Color x:Key="IvColorSuccess">#1E7A44</Color>
+            <Color x:Key="IvColorWarning">#A86E00</Color>
+            <Color x:Key="IvColorDanger">#B5382F</Color>
+            <Color x:Key="IvColorAccent">#2C5D9F</Color>
+            <SolidColorBrush x:Key="IvLogErrorFgBrush" Color="#B5382F" />
+            <SolidColorBrush x:Key="IvLogErrorBgBrush" Color="#FBEDEC" />
+            <SolidColorBrush x:Key="IvLogErrorAccentBrush" Color="#B5382F" />
+            <SolidColorBrush x:Key="IvLogWarnFgBrush" Color="#8A5A00" />
+            <SolidColorBrush x:Key="IvLogWarnBgBrush" Color="#FBF3E2" />
+            <SolidColorBrush x:Key="IvLogWarnAccentBrush" Color="#A86E00" />
+            <SolidColorBrush x:Key="IvLogInfoFgBrush" Color="#1C1E21" />
+            <SolidColorBrush x:Key="IvLogDebugFgBrush" Color="#4E535A" />
+            <SolidColorBrush x:Key="IvLogTraceFgBrush" Color="#6A6F77" />
+            <SolidColorBrush x:Key="IvLogDefaultFgBrush" Color="#2E3136" />
+            <SolidColorBrush x:Key="IvLogHighlightBgBrush" Color="#F2D46B" />
+            <SolidColorBrush x:Key="IvLogHighlightFgBrush" Color="#000000" />
+            <SolidColorBrush x:Key="IvHudBackgroundBrush" Color="#D918191D" />
+            <SolidColorBrush x:Key="IvHudHoverBackgroundBrush" Color="#E62A2B32" />
+            <SolidColorBrush x:Key="IvHudPressedBackgroundBrush" Color="#F2141518" />
+            <SolidColorBrush x:Key="IvHudBorderBrush" Color="#44FFFFFF" />
+            <SolidColorBrush x:Key="IvHudHoverBorderBrush" Color="#88FFFFFF" />
+            <SolidColorBrush x:Key="IvHudTextBrush" Color="#EBEBF0" />
+            <SolidColorBrush x:Key="IvHudTextStrongBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="IvHudScrimBrush" Color="#80000000" />
+            <SolidColorBrush x:Key="IvHudInfoTextBrush" Color="#93C5FD" />
+            <SolidColorBrush x:Key="IvHudDangerTextBrush" Color="#FCA5A5" />
+            <SolidColorBrush x:Key="IvImageCanvasBrush" Color="#0D0D0D" />
+            <SolidColorBrush x:Key="IvCaptionCloseHoverBrush" Color="#C75050" />
+            <SolidColorBrush x:Key="IvCaptionClosePressedBrush" Color="#A13A3A" />
+            <SolidColorBrush x:Key="IvCaptionCloseTextBrush" Color="#FFFFFF" />
+            <DropShadowEffect x:Key="IvControlShadow" BlurRadius="0" OffsetX="0" OffsetY="0" Opacity="0" Color="Black" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+            <SolidColorBrush x:Key="IvBackgroundBrush" Color="#1C1D1F" />
+            <SolidColorBrush x:Key="IvSurface1Brush" Color="#161718" />
+            <SolidColorBrush x:Key="IvSurface2Brush" Color="#212225" />
+            <SolidColorBrush x:Key="IvSurface3Brush" Color="#28292C" />
+            <SolidColorBrush x:Key="IvSurface4Brush" Color="#3A3C40" />
+            <SolidColorBrush x:Key="IvSurfaceDisabledBrush" Color="#1F2022" />
+            <SolidColorBrush x:Key="IvSurfaceSubtleHoverBrush" Color="#10FFFFFF" />
+            <SolidColorBrush x:Key="IvSurfaceSubtlePressedBrush" Color="#08FFFFFF" />
+            <SolidColorBrush x:Key="IvSurfaceSelectedBrush" Color="#2E2F33" />
+            <SolidColorBrush x:Key="IvBandBrush" Color="#242528" />
+            <SolidColorBrush x:Key="IvControlFillBrush" Color="#26272A" />
+            <SolidColorBrush x:Key="IvInputBrush" Color="#141516" />
+            <SolidColorBrush x:Key="IvPopupBrush" Color="#26272A" />
+            <SolidColorBrush x:Key="IvOverlayBrush" Color="#99000000" />
+            <SolidColorBrush x:Key="IvStrokeSubtleBrush" Color="#2D2E31" />
+            <SolidColorBrush x:Key="IvStrokeBrush" Color="#38393D" />
+            <SolidColorBrush x:Key="IvStrokeStrongBrush" Color="#4A4C50" />
+            <SolidColorBrush x:Key="IvControlBorderBrush" Color="#46484C" />
+            <SolidColorBrush x:Key="IvControlBorderHoverBrush" Color="#62656A" />
+            <SolidColorBrush x:Key="IvAccentBorderBrush" Color="#7096C8" />
+            <SolidColorBrush x:Key="IvDangerBorderBrush" Color="#E07A70" />
+            <SolidColorBrush x:Key="IvWarningBorderBrush" Color="#D2A451" />
+            <SolidColorBrush x:Key="IvText1Brush" Color="#DCDDDE" />
+            <SolidColorBrush x:Key="IvText2Brush" Color="#A2A5AA" />
+            <SolidColorBrush x:Key="IvText3Brush" Color="#80848B" />
+            <SolidColorBrush x:Key="IvTextDisabledBrush" Color="#56595E" />
+            <SolidColorBrush x:Key="IvTextOnAccentBrush" Color="#0D1520" />
+            <SolidColorBrush x:Key="IvPrimaryBrush" Color="#DADBDC" />
+            <SolidColorBrush x:Key="IvPrimaryHoverBrush" Color="#E9EAEB" />
+            <SolidColorBrush x:Key="IvPrimaryPressedBrush" Color="#C2C3C5" />
+            <SolidColorBrush x:Key="IvTextOnPrimaryBrush" Color="#121314" />
+            <SolidColorBrush x:Key="IvAccentBrush" Color="#7096C8" />
+            <SolidColorBrush x:Key="IvAccentHoverBrush" Color="#82A5D3" />
+            <SolidColorBrush x:Key="IvAccentPressedBrush" Color="#5F86B8" />
+            <SolidColorBrush x:Key="IvAccentSubtleBrush" Color="#407096C8" />
+            <SolidColorBrush x:Key="IvAccentTextBrush" Color="#8EB0DA" />
+            <SolidColorBrush x:Key="IvFocusBrush" Color="#7096C8" />
+            <SolidColorBrush x:Key="IvFocusRingBrush" Color="#7096C8" />
+            <SolidColorBrush x:Key="IvSuccessBrush" Color="#6DB383" />
+            <SolidColorBrush x:Key="IvSuccessSubtleBrush" Color="#1F2B23" />
+            <SolidColorBrush x:Key="IvSuccessTextBrush" Color="#8CC79F" />
+            <SolidColorBrush x:Key="IvWarningBrush" Color="#D2A451" />
+            <SolidColorBrush x:Key="IvWarningTextBrush" Color="#D2A451" />
+            <SolidColorBrush x:Key="IvWarningSubtleBrush" Color="#2F2818" />
+            <SolidColorBrush x:Key="IvDangerBrush" Color="#E07A70" />
+            <SolidColorBrush x:Key="IvDangerHoverBrush" Color="#E68B82" />
+            <SolidColorBrush x:Key="IvDangerPressedBrush" Color="#C9675E" />
+            <SolidColorBrush x:Key="IvDangerSubtleBrush" Color="#3A2422" />
+            <SolidColorBrush x:Key="IvDangerTextBrush" Color="#EC968D" />
+            <SolidColorBrush x:Key="IvDangerRingBrush" Color="#E07A70" />
+            <SolidColorBrush x:Key="IvInfoBrush" Color="#7096C8" />
+            <SolidColorBrush x:Key="IvInfoSubtleBrush" Color="#1E2632" />
+            <SolidColorBrush x:Key="IvRowAltBrush" Color="#06FFFFFF" />
+            <SolidColorBrush x:Key="IvSwitchTrackBrush" Color="#46484C" />
+            <SolidColorBrush x:Key="IvThumbBrush" Color="#E6E7E8" />
+            <SolidColorBrush x:Key="IvStateHoverBrush" Color="#12FFFFFF" />
+            <SolidColorBrush x:Key="IvStatePressedBrush" Color="#26000000" />
+            <Color x:Key="IvColorSuccess">#6DB383</Color>
+            <Color x:Key="IvColorWarning">#D2A451</Color>
+            <Color x:Key="IvColorDanger">#E07A70</Color>
+            <Color x:Key="IvColorAccent">#7096C8</Color>
+            <SolidColorBrush x:Key="IvLogErrorFgBrush" Color="#EC968D" />
+            <SolidColorBrush x:Key="IvLogErrorBgBrush" Color="#3A2422" />
+            <SolidColorBrush x:Key="IvLogErrorAccentBrush" Color="#E07A70" />
+            <SolidColorBrush x:Key="IvLogWarnFgBrush" Color="#E2BE7A" />
+            <SolidColorBrush x:Key="IvLogWarnBgBrush" Color="#2F2818" />
+            <SolidColorBrush x:Key="IvLogWarnAccentBrush" Color="#D2A451" />
+            <SolidColorBrush x:Key="IvLogInfoFgBrush" Color="#DCDDDE" />
+            <SolidColorBrush x:Key="IvLogDebugFgBrush" Color="#A2A5AA" />
+            <SolidColorBrush x:Key="IvLogTraceFgBrush" Color="#80848B" />
+            <SolidColorBrush x:Key="IvLogDefaultFgBrush" Color="#C4C6C9" />
+            <SolidColorBrush x:Key="IvLogHighlightBgBrush" Color="#B8902E" />
+            <SolidColorBrush x:Key="IvLogHighlightFgBrush" Color="#000000" />
+            <SolidColorBrush x:Key="IvHudBackgroundBrush" Color="#D918191D" />
+            <SolidColorBrush x:Key="IvHudHoverBackgroundBrush" Color="#E62A2B32" />
+            <SolidColorBrush x:Key="IvHudPressedBackgroundBrush" Color="#F2141518" />
+            <SolidColorBrush x:Key="IvHudBorderBrush" Color="#44FFFFFF" />
+            <SolidColorBrush x:Key="IvHudHoverBorderBrush" Color="#88FFFFFF" />
+            <SolidColorBrush x:Key="IvHudTextBrush" Color="#EBEBF0" />
+            <SolidColorBrush x:Key="IvHudTextStrongBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="IvHudScrimBrush" Color="#80000000" />
+            <SolidColorBrush x:Key="IvHudInfoTextBrush" Color="#93C5FD" />
+            <SolidColorBrush x:Key="IvHudDangerTextBrush" Color="#FCA5A5" />
+            <SolidColorBrush x:Key="IvImageCanvasBrush" Color="#0D0D0D" />
+            <SolidColorBrush x:Key="IvCaptionCloseHoverBrush" Color="#C75050" />
+            <SolidColorBrush x:Key="IvCaptionClosePressedBrush" Color="#A13A3A" />
+            <SolidColorBrush x:Key="IvCaptionCloseTextBrush" Color="#FFFFFF" />
+            <DropShadowEffect x:Key="IvControlShadow" BlurRadius="0" OffsetX="0" OffsetY="0" Opacity="0" Color="Black" />
+        </ResourceDictionary>
+    </ResourceDictionary.ThemeDictionaries>
+
+</ResourceDictionary>

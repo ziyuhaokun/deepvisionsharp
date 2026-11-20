@@ -1,0 +1,38 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="DeepVisionSharp.Shell.Avalonia.App"
+             RequestedThemeVariant="Light">
+
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://yu-ui.avalonia/Tokens/Palette.axaml" />
+        <ResourceInclude Source="avares://yu-ui.avalonia/Tokens/Metrics.axaml" />
+        <ResourceInclude Source="avares://yu-ui.avalonia/Tokens/Typography.axaml" />
+        <ResourceInclude Source="avares://yu-ui.avalonia/Tokens/Motion.axaml" />
+        <ResourceInclude Source="avares://yu-ui.avalonia/Themes/Generic.axaml" />
+        <ResourceInclude Source="avares://yu-ui.avalonia/Themes/Forms.axaml" />
+        <ResourceInclude Source="avares://yu-ui.avalonia/Styles/Common.axaml" />
+        <ResourceInclude Source="avares://yu-ui.avalonia/Styles/Button.axaml" />
+        <ResourceInclude Source="avares://yu-ui.avalonia/Styles/ButtonImplicit.axaml" />
+        <ResourceInclude Source="avares://yu-ui.avalonia/Styles/TextInput.axaml" />
+        <ResourceInclude Source="avares://yu-ui.avalonia/Styles/Selection.axaml" />
+        <ResourceInclude Source="avares://yu-ui.avalonia/Styles/Switch.axaml" />
+        <ResourceInclude Source="avares://yu-ui.avalonia/Styles/ProgressBar.axaml" />
+        <ResourceInclude Source="avares://yu-ui.avalonia/Styles/Container.axaml" />
+        <ResourceInclude Source="avares://yu-ui.avalonia/Styles/ScrollBar.axaml" />
+        <ResourceInclude Source="avares://yu-ui.avalonia/Styles/Slider.axaml" />
+        <ResourceInclude Source="avares://yu-ui.avalonia/Styles/List.axaml" />
+        <ResourceInclude Source="avares://yu-ui.avalonia/Styles/ComboBox.axaml" />
+        <ResourceInclude Source="avares://yu-ui.avalonia/Styles/TreeView.axaml" />
+        <ResourceInclude Source="avares://yu-ui.avalonia/Styles/Menu.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+
+  <Application.Styles>
+    <FluentTheme />
+    <StyleInclude Source="avares://yu-ui.avalonia/Themes/AppStyles.axaml" />
+  </Application.Styles>
+
+</Application>
