@@ -417,12 +417,4 @@ public partial class LabelingPage : UserControl
             UnhandledExceptionReporter.ReportStatic(ex, source, promptUser: false);
         }
     }
-
-    private void OnShortcutsHelpClicked(object? sender, RoutedEventArgs e)
-    {
-        if (sender is Control { ContextMenu: { } menu } element)
-        {
-            menu.Open(element);
-        }
-    }
 }

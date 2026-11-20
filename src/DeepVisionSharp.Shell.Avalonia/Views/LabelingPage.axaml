@@ -233,21 +233,30 @@
                                         Padding="0"
                                         VerticalAlignment="Center"
                                         AutomationProperties.AutomationId="dv.labeling.shortcuts-help"
-                                        Click="OnShortcutsHelpClicked"
+                                        AutomationProperties.Name="快捷键指南"
                                         Theme="{StaticResource IvSubtleButtonStyle}"
                                         ToolTip.Tip="快捷键指南">
                                     <iv:Icon VerticalAlignment="Center" FontSize="15" Data="{x:Static ui:IvIcons.Help}" />
-                                    <Button.ContextMenu>
-                                        <ContextMenu>
-                                            <MenuItem Header="常用快捷键速查" IsEnabled="False" FontWeight="Bold" />
-                                            <Separator />
-                                            <MenuItem Header="Ctrl + S：保存当前标注" IsEnabled="False" />
-                                            <MenuItem Header="Ctrl + Z / Y：撤销 / 重做" IsEnabled="False" />
-                                            <MenuItem Header="Delete：删除选中的标注" IsEnabled="False" />
-                                            <MenuItem Header="← / →：切换上一张 / 下一张样本" IsEnabled="False" />
-                                            <MenuItem Header="数字键 1~9：快速选择对应序号的标签类别" IsEnabled="False" />
-                                        </ContextMenu>
-                                    </Button.ContextMenu>
+                                    <Button.Flyout>
+                                        <Flyout Placement="BottomEdgeAlignedLeft">
+                                            <StackPanel Spacing="8" TextElement.Foreground="{DynamicResource IvText1Brush}">
+                                                <TextBlock FontWeight="SemiBold" Text="快捷键指南" />
+                                                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+                                                      ColumnSpacing="16" RowSpacing="6">
+                                                    <TextBlock Grid.Row="0" Text="Ctrl + S" />
+                                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="保存当前标注" />
+                                                    <TextBlock Grid.Row="1" Text="Ctrl + Z / Ctrl + Y" />
+                                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="撤销 / 重做" />
+                                                    <TextBlock Grid.Row="2" Text="Delete" />
+                                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="删除选中的标注" />
+                                                    <TextBlock Grid.Row="3" Text="← / →" />
+                                                    <TextBlock Grid.Row="3" Grid.Column="1" Text="切换上一张 / 下一张样本" />
+                                                    <TextBlock Grid.Row="4" Text="数字键 1–9" />
+                                                    <TextBlock Grid.Row="4" Grid.Column="1" Text="选择对应序号的标签类别" />
+                                                </Grid>
+                                            </StackPanel>
+                                        </Flyout>
+                                    </Button.Flyout>
                                 </Button>
                                 <Button Width="28"
                                         Height="28"
