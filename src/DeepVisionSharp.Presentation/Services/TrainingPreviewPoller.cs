@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Logging;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading;
 using DeepVisionSharp.Application.Ports;
@@ -14,8 +13,7 @@ public sealed class TrainingPreviewPoller : IDisposable
     private CancellationTokenSource? _cts;
     private Task? _runningTask;
     private Action<Exception>? _onError;
-    private Func<Task>? _activeOnChanged;
-    private Func<bool>? _activeCanContinue;
+    private Action<Guid, string>? _previewUpdatedHandler;
     private bool _errorReported;
     private DateTime _lastPreviewCheck = DateTime.MinValue;
 
@@ -26,8 +24,7 @@ public sealed class TrainingPreviewPoller : IDisposable
     }
 
     public void Start(
-        string? outputRoot,
-        ObservableCollection<string> previewImagePaths,
+        Guid jobId,
         Func<bool> canContinue,
         Func<Task> onChanged,
         Action<Exception> onError)
@@ -35,11 +32,16 @@ public sealed class TrainingPreviewPoller : IDisposable
         Stop();
         _onError = onError;
         _errorReported = false;
-        _activeCanContinue = canContinue;
-        _activeOnChanged = onChanged;
         if (_processHost is not null)
         {
-            _processHost.PreviewUpdated += OnProcessHostPreviewUpdated;
+            _previewUpdatedHandler = (updatedJobId, previewPath) =>
+            {
+                if (updatedJobId == jobId && canContinue())
+                {
+                    _ = RefreshFromEventAsync(onChanged);
+                }
+            };
+            _processHost.PreviewUpdated += _previewUpdatedHandler;
         }
 
         _cts = new CancellationTokenSource();
@@ -48,13 +50,11 @@ public sealed class TrainingPreviewPoller : IDisposable
 
     public void Stop()
     {
-        if (_processHost is not null)
+        if (_processHost is not null && _previewUpdatedHandler is not null)
         {
-            _processHost.PreviewUpdated -= OnProcessHostPreviewUpdated;
+            _processHost.PreviewUpdated -= _previewUpdatedHandler;
+            _previewUpdatedHandler = null;
         }
-
-        _activeCanContinue = null;
-        _activeOnChanged = null;
 
         try
         {
@@ -81,23 +81,15 @@ public sealed class TrainingPreviewPoller : IDisposable
         }
     }
 
-    private void OnProcessHostPreviewUpdated(Guid jobId, string previewPath)
+    private async Task RefreshFromEventAsync(Func<Task> onChanged)
     {
-        var onChanged = _activeOnChanged;
-        var canContinue = _activeCanContinue;
-        if (onChanged is not null && canContinue?.Invoke() == true)
+        try
         {
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    await onChanged().ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogDebug(ex, "Push-based preview refresh failed");
-                }
-            });
+            await onChanged().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Push-based preview refresh failed");
         }
     }
 
@@ -105,42 +97,21 @@ public sealed class TrainingPreviewPoller : IDisposable
 
     public void Reset() => _lastPreviewCheck = DateTime.MinValue;
 
-    public bool RefreshPreviewImages(string? outputRoot, ObservableCollection<string> previewImagePaths, bool force)
+    public IReadOnlyList<TrainingPreviewItem>? GetUpdatedPreviewImages(
+        string? outputRoot,
+        IReadOnlyList<TrainingPreviewItem> displayedImages,
+        bool force)
     {
-        var previewDir = string.IsNullOrWhiteSpace(outputRoot) ? null : Path.Combine(outputRoot, "preview");
-        if (string.IsNullOrWhiteSpace(previewDir) || !Directory.Exists(previewDir))
+        var images = _previewService.GetPreviewImages(outputRoot);
+        // Legacy files can keep their name when a training epoch overwrites them.
+        var lastWrite = images.Count == 0 ? DateTime.MinValue : images.Max(image => File.GetLastWriteTimeUtc(image.ImagePath));
+        if (!force && lastWrite <= _lastPreviewCheck && images.SequenceEqual(displayedImages))
         {
-            if (previewImagePaths.Count > 0)
-            {
-                previewImagePaths.Clear();
-                _lastPreviewCheck = DateTime.MinValue;
-                return true;
-            }
-
-            _lastPreviewCheck = DateTime.MinValue;
-            return false;
-        }
-
-        var files = _previewService.GetPreviewImagePaths(outputRoot).ToList();
-        var lastWrite = files.Count > 0 ? files.Max(File.GetLastWriteTimeUtc) : DateTime.MinValue;
-        // Same file names (preview_0.jpg…) are overwritten every epoch. Detect content
-        // refresh by mtime, then rebuild the collection so ItemsControl rebinds images.
-        if (!force
-            && files.Count == previewImagePaths.Count
-            && lastWrite <= _lastPreviewCheck
-            && files.SequenceEqual(previewImagePaths, StringComparer.OrdinalIgnoreCase))
-        {
-            return false;
-        }
-
-        previewImagePaths.Clear();
-        foreach (var file in files)
-        {
-            previewImagePaths.Add(file);
+            return null;
         }
 
         _lastPreviewCheck = lastWrite;
-        return true;
+        return images;
     }
 
     private async Task RunObservedAsync(

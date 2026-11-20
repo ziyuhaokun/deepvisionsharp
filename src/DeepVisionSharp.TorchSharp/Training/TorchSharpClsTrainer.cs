@@ -15,8 +15,6 @@ using DeepVisionSharp.Domain.ValueObjects;
 using static TorchSharp.torch;
 using static TorchSharp.torch.nn;
 using TorchDevice = TorchSharp.torch.Device;
-using CvScalar = OpenCvSharp.Scalar;
-using CvSize = OpenCvSharp.Size;
 
 namespace DeepVisionSharp.TorchSharp.Training;
 
@@ -194,9 +192,13 @@ public static class TorchSharpClsTrainer
                 }));
             options.Progress?.Invoke(epoch, options.Epochs, $"TorchSharp CLS epoch {epoch}/{options.Epochs}");
 
-            // Previews cost nine forward passes plus a JPEG encode. Once every five epochs (and on
-            // the first/last) is enough for the run panel and keeps the loop focused on training.
-            if (epoch == 1 || epoch == options.Epochs || epoch % 5 == 0)
+            if (earlyStopping.IsEnabled)
+            {
+                earlyStopping.Report(evaluation.Top1);
+            }
+
+            // Limit preview inference and JPEG encoding to the first, last and every fifth epoch.
+            if (epoch == 1 || epoch == options.Epochs || epoch % 5 == 0 || earlyStopping.ShouldStop)
             {
                 try
                 {
@@ -256,15 +258,11 @@ public static class TorchSharpClsTrainer
                 evaluation,
                 completedEpochs);
 
-            if (earlyStopping.IsEnabled)
+            if (earlyStopping.ShouldStop)
             {
-                earlyStopping.Report(evaluation.Top1);
-                if (earlyStopping.ShouldStop)
-                {
-                    options.Log?.Invoke(
-                        $"early stopping: 连续 {earlyStopping.BadEpochs} 轮无提升（best={earlyStopping.Best:F4}），在第 {epoch} 轮停止");
-                    break;
-                }
+                options.Log?.Invoke(
+                    $"early stopping: 连续 {earlyStopping.BadEpochs} 轮无提升（best={earlyStopping.Best:F4}），在第 {epoch} 轮停止");
+                break;
             }
 
             scheduler.step();
@@ -537,100 +535,150 @@ public static class TorchSharpClsTrainer
         Action<string>? previewGenerated,
         CancellationToken cancellationToken)
     {
-        var previewDir = Path.Combine(outputRoot, "preview");
-        Directory.CreateDirectory(previewDir);
-
-        // Preview images come from the validation split when there is one; falling back to the
-        // training split would show the operator images the model was fitted on.
-        var candidateSamples = dataset.ValSamples;
-        if (candidateSamples.Count == 0)
+        // Use validation images so previews represent held-out samples.
+        var samples = dataset.ValSamples;
+        if (samples.Count == 0)
         {
             return;
         }
 
-        var samplesToDisplay = candidateSamples.Take(9).ToList();
-        const int cellWidth = 320;
-        const int cellHeight = 320;
-        const int headerHeight = 36;
-        const int cols = 3;
-        var rows = (samplesToDisplay.Count + cols - 1) / cols;
+        const int maxSamples = 9;
+        const int maxImageSide = 480;
+        var previewDir = Path.Combine(outputRoot, "preview");
+        var sampleDirectoryName = $"{TrainingPreviewManifest.SampleDirectoryPrefix}{Guid.NewGuid():N}";
+        var sampleDirectory = Path.Combine(previewDir, sampleDirectoryName);
+        var manifestPath = Path.Combine(sampleDirectory, TrainingPreviewManifest.FileName);
+        var entries = new List<TrainingPreviewSample>(Math.Min(samples.Count, maxSamples));
+        Directory.CreateDirectory(sampleDirectory);
+        var published = false;
 
-        var canvasWidth = cols * cellWidth;
-        var canvasHeight = rows * (cellHeight + headerHeight);
-
-        using var canvas = new Mat(canvasHeight, canvasWidth, MatType.CV_8UC3, new CvScalar(30, 30, 35));
-
-        model.eval();
-        using (no_grad())
+        try
         {
-            for (var sampleDisplayIndex = 0; sampleDisplayIndex < samplesToDisplay.Count; sampleDisplayIndex++)
+            model.eval();
+            using var noGrad = no_grad();
+            foreach (var sample in samples.Take(maxSamples))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var sample = samplesToDisplay[sampleDisplayIndex];
-                var columnGridIndex = sampleDisplayIndex % cols;
-                var rowGridIndex = sampleDisplayIndex / cols;
-
-                var cellPositionX = columnGridIndex * cellWidth;
-                var cellPositionY = rowGridIndex * (cellHeight + headerHeight);
-
-                Mat? rawMat = null;
-                try
-                {
-                    rawMat = TorchSharpImageTensor.LoadMat(sample.ImagePath, 3);
-                }
-                catch
-                {
-                }
-
-                if (rawMat is null || rawMat.Empty())
+                using var source = TryLoadPreviewImage(sample.ImagePath);
+                if (source is null)
                 {
                     continue;
                 }
 
-                using (rawMat)
-                using (var resizedMat = new Mat())
+                using var input = TorchSharpImageTensor.ToClassificationTensor(
+                    source, inputWidth, inputHeight, device, preprocessing: preprocessing);
+                using var logits = model.forward(input);
+                using var probabilities = functional.softmax(logits, dim: 1);
+                using var indexTensor = probabilities.argmax(1);
+                var predictedIndex = (int)indexTensor.item<long>();
+                using var scoreTensor = probabilities[0, predictedIndex];
+                var confidence = scoreTensor.item<float>();
+                if (!float.IsFinite(confidence))
                 {
-                    Cv2.Resize(rawMat, resizedMat, new CvSize(cellWidth, cellHeight));
-
-                    using var inputTensor = TorchSharpImageTensor.ToClassificationTensor(rawMat, inputWidth, inputHeight, device, preprocessing: preprocessing);
-                    using var logits = model.forward(inputTensor);
-                    using var probabilities = functional.softmax(logits, dim: 1);
-                    var predIndex = (int)probabilities.argmax(1).item<long>();
-                    var confidence = probabilities[0, predIndex].item<float>();
-
-                    var isCorrect = predIndex == sample.ClassIndex;
-                    var groundTruthName = sample.ClassIndex < dataset.Classes.Count ? dataset.Classes[sample.ClassIndex] : $"C{sample.ClassIndex}";
-                    var predictedName = predIndex < dataset.Classes.Count ? dataset.Classes[predIndex] : $"C{predIndex}";
-
-                    var imageRegion = new Rect(cellPositionX, cellPositionY + headerHeight, cellWidth, cellHeight);
-                    using var subImage = new Mat(canvas, imageRegion);
-                    resizedMat.CopyTo(subImage);
-
-                    var headerRegion = new Rect(cellPositionX, cellPositionY, cellWidth, headerHeight);
-                    var headerColor = isCorrect ? new CvScalar(35, 120, 35) : new CvScalar(35, 35, 180);
-                    Cv2.Rectangle(canvas, headerRegion, headerColor, -1);
-
-                    var labelText = $"GT: {groundTruthName} | Pred: {predictedName} ({confidence:P0})";
-                    Cv2.PutText(
-                        canvas,
-                        labelText,
-                        new Point(cellPositionX + 8, cellPositionY + 24),
-                        HersheyFonts.HersheySimplex,
-                        0.52,
-                        CvScalar.All(255),
-                        1,
-                        LineTypes.AntiAlias);
-
-                    Cv2.Rectangle(canvas, new Rect(cellPositionX, cellPositionY, cellWidth, cellHeight + headerHeight), new CvScalar(60, 60, 65), 1);
+                    continue;
                 }
+
+                var imageFileName = $"sample_{entries.Count + 1:D2}.jpg";
+                var scale = Math.Min(1d, (double)maxImageSide / Math.Max(source.Width, source.Height));
+                using var thumbnail = new Mat();
+                if (scale < 1)
+                {
+                    var size = new OpenCvSharp.Size(
+                        Math.Max(1, (int)Math.Round(source.Width * scale)),
+                        Math.Max(1, (int)Math.Round(source.Height * scale)));
+                    Cv2.Resize(source, thumbnail, size, interpolation: InterpolationFlags.Area);
+                }
+
+                if (!Cv2.ImEncode(".jpg", scale < 1 ? thumbnail : source, out var bytes))
+                {
+                    continue;
+                }
+
+                File.WriteAllBytes(Path.Combine(sampleDirectory, imageFileName), bytes);
+                entries.Add(new TrainingPreviewSample(
+                    imageFileName,
+                    Path.GetFileName(sample.ImagePath),
+                    PreviewLabel(dataset.Classes, sample.ClassIndex),
+                    PreviewLabel(dataset.Classes, predictedIndex),
+                    confidence));
+            }
+
+            if (entries.Count == 0)
+            {
+                return;
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+            // Publish an immutable manifest only after all images in this batch have been written.
+            var manifest = new TrainingPreviewManifest(entries);
+            AtomicFileWriter.WriteAllText(manifestPath, JsonSerializer.Serialize(manifest));
+            published = true;
+            previewGenerated?.Invoke(Path.Combine(sampleDirectory, entries[0].ImageFileName));
+            PrunePreviewDirectories(previewDir, sampleDirectory);
+        }
+        finally
+        {
+            if (!published)
+            {
+                DeletePreviewDirectory(sampleDirectory);
             }
         }
+    }
 
-        if (Cv2.ImEncode(".jpg", canvas, out var jpgBytes))
+    private static Mat? TryLoadPreviewImage(string path)
+    {
+        try
         {
-            var previewPath = Path.Combine(previewDir, "preview_0.jpg");
-            File.WriteAllBytes(previewPath, jpgBytes);
-            previewGenerated?.Invoke(previewPath);
+            return TorchSharpImageTensor.LoadMat(path, 3);
+        }
+        catch (IOException)
+        {
+            return null;
+        }
+        catch (InvalidOperationException)
+        {
+            return null;
+        }
+    }
+
+    private static string PreviewLabel(IReadOnlyList<string> classes, int index) =>
+        index >= 0 && index < classes.Count ? classes[index] : $"C{index}";
+
+    private static void PrunePreviewDirectories(string previewDir, string currentDirectory)
+    {
+        try
+        {
+            var obsoleteDirectories = new DirectoryInfo(previewDir)
+                .EnumerateDirectories($"{TrainingPreviewManifest.SampleDirectoryPrefix}*")
+                .Where(directory => TrainingPreviewManifest.IsSampleDirectoryName(directory.Name)
+                    && !directory.Attributes.HasFlag(FileAttributes.ReparsePoint)
+                    && !string.Equals(directory.FullName, Path.GetFullPath(currentDirectory), StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(directory => directory.CreationTimeUtc)
+                .Skip(1);
+            foreach (var directory in obsoleteDirectories)
+            {
+                DeletePreviewDirectory(directory.FullName);
+            }
+        }
+        catch (IOException)
+        {
+        }
+        catch (UnauthorizedAccessException)
+        {
+        }
+    }
+
+    private static void DeletePreviewDirectory(string path)
+    {
+        try
+        {
+            Directory.Delete(path, recursive: true);
+        }
+        catch (IOException)
+        {
+        }
+        catch (UnauthorizedAccessException)
+        {
         }
     }
 

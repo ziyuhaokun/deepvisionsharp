@@ -41,7 +41,8 @@ public sealed partial class TrainingPreviewPanelViewModel : ObservableObject
         _uiDispatcher = uiDispatcher;
     }
 
-    public ObservableCollection<string> PreviewImagePaths { get; } = new();
+    [ObservableProperty]
+    private IReadOnlyList<TrainingPreviewItem> _previewImages = [];
 
     public ObservableCollection<string> TrainingPlotImagePaths { get; } = new();
 
@@ -75,8 +76,8 @@ public sealed partial class TrainingPreviewPanelViewModel : ObservableObject
     public string PreviewEmptyTitle => "\u6682\u65e0\u9884\u89c8";
 
     public string PreviewEmptyHint => IsSelectedJobClassificationModel
-        ? "训练过程中每个 epoch 将从验证集随机抽取样本，生成最多 4 张 3×3（每张 9 个）GT / Pred 预览"
-        : "训练过程中将生成推理预览图";
+        ? "训练过程中会定期生成最多 9 张验证集样本的独立预览。"
+        : "训练过程中会按轮次生成验证集的检测预览。";
 
     public void AttachPollingGate(Func<bool> canPollPreview) =>
         _canPollPreview = canPollPreview;
@@ -96,28 +97,21 @@ public sealed partial class TrainingPreviewPanelViewModel : ObservableObject
         PreviewPollingError = null;
         RefreshPreviewImages(force: true);
 
-        var jobId = _jobs.SelectedJob?.Id;
-        var previewDir = GetPreviewDirectory();
-        if (jobId is null || string.IsNullOrWhiteSpace(previewDir))
+        var job = _jobs.SelectedJob;
+        if (job is null || string.IsNullOrWhiteSpace(job.OutputRoot))
         {
             return;
         }
 
-        var outputRoot = _jobs.SelectedJob?.OutputRoot;
         _previewPolling.Start(
-            outputRoot,
-            PreviewImagePaths,
+            job.Id,
             () => _canPollPreview?.Invoke() ?? false,
             () => _uiDispatcher.InvokeAsync(() =>
             {
-                // Rebind even when path strings are unchanged but file content was rewritten
-                // (the trainer publishes fixed names preview_0.jpg / preview_1.jpg each epoch).
-                if (RefreshPreviewImages(force: false))
+                if (_jobs.SelectedJob?.Id == job.Id)
                 {
-                    OnPropertyChanged(nameof(PreviewImagePaths));
+                    RefreshPreviewImages(force: false);
                 }
-
-                HasPreviewImages = PreviewImagePaths.Count > 0;
             }),
             ReportPollingError);
     }
@@ -126,12 +120,15 @@ public sealed partial class TrainingPreviewPanelViewModel : ObservableObject
 
     public bool RefreshPreviewImages(bool force)
     {
-        var changed = _previewPolling.RefreshPreviewImages(
-            _jobs.SelectedJob?.OutputRoot,
-            PreviewImagePaths,
-            force);
-        HasPreviewImages = PreviewImagePaths.Count > 0;
-        return changed;
+        var images = _previewPolling.GetUpdatedPreviewImages(_jobs.SelectedJob?.OutputRoot, PreviewImages, force);
+        if (images is null)
+        {
+            return false;
+        }
+
+        PreviewImages = images;
+        HasPreviewImages = images.Count > 0;
+        return true;
     }
 
     public void RefreshTrainingPlotImages()
@@ -181,7 +178,7 @@ public sealed partial class TrainingPreviewPanelViewModel : ObservableObject
         PreviewLightboxImagePath = null;
     }
 
-    /// <summary>Copy a training preview JPEG (file path item) to the Windows clipboard as a bitmap.</summary>
+    /// <summary>Copy a training preview image to the Windows clipboard as a bitmap.</summary>
     [RelayCommand]
     private void CopyPreviewImage(string? imagePath)
     {
@@ -230,12 +227,6 @@ public sealed partial class TrainingPreviewPanelViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(ShowPreviewEmptyState));
         OnPropertyChanged(nameof(PreviewEmptyHint));
-    }
-
-    private string? GetPreviewDirectory()
-    {
-        var outputRoot = _jobs.SelectedJob?.OutputRoot;
-        return string.IsNullOrWhiteSpace(outputRoot) ? null : Path.Combine(outputRoot, "preview");
     }
 
     private void ReportPollingError(Exception ex)

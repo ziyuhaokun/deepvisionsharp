@@ -25,6 +25,12 @@
     </UserControl.Resources>
 
     <UserControl.Styles>
+        <Style Selector="TextBlock.previewPrediction">
+            <Setter Property="Foreground" Value="{DynamicResource IvDangerTextBrush}" />
+        </Style>
+        <Style Selector="TextBlock.previewPrediction.match">
+            <Setter Property="Foreground" Value="{DynamicResource IvSuccessTextBrush}" />
+        </Style>
         <Style Selector="TextBlock.sectionTitle">
             <Setter Property="Margin" Value="0,0,0,10" />
             <Setter Property="FontSize" Value="13" />
@@ -608,7 +614,7 @@
 
                 <Grid>
                     <ItemsControl VerticalAlignment="Top"
-                                  ItemsSource="{Binding Monitor.Preview.PreviewImagePaths}"
+                                  ItemsSource="{Binding Monitor.Preview.PreviewImages}"
                                   IsVisible="{Binding Monitor.Preview.HasPreviewImages}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -617,28 +623,63 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Button Width="720"
-                                        Height="720"
-                                        Margin="0,0,12,12"
-                                        Padding="0"
-                                        Background="{DynamicResource IvControlFillBrush}"
-                                        BorderBrush="{DynamicResource IvStrokeBrush}"
-                                        BorderThickness="1"
-                                        ClipToBounds="True"
-                                        Cursor="Hand"
-                                        Command="{Binding $parent[UserControl].DataContext.Monitor.Preview.OpenPreviewLightboxCommand}"
-                                        CommandParameter="{Binding}"
-                                        Theme="{StaticResource IvButtonBaseStyle}"
-                                        ToolTip.Tip="左键放大预览 · 右键复制到剪贴板">
-                                    <Button.ContextMenu>
-                                        <ContextMenu>
-                                            <MenuItem Header="复制到剪贴板"
-                                                      Command="{Binding $parent[UserControl].DataContext.Monitor.Preview.CopyPreviewImageCommand}"
-                                                      CommandParameter="{Binding}" />
-                                        </ContextMenu>
-                                    </Button.ContextMenu>
-                                    <Image Source="{Binding Converter={StaticResource FilePathToImageConverter}}" Stretch="Uniform" />
-                                </Button>
+                                <Border Width="248" Margin="0,0,12,12"
+                                        Background="{DynamicResource IvSurface2Brush}"
+                                        BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                                        BorderThickness="1" CornerRadius="6" ClipToBounds="True">
+                                    <Grid RowDefinitions="168,Auto,Auto">
+                                        <Button Name="PreviewImageButton" Margin="4" Padding="0"
+                                                MinWidth="0" MinHeight="0"
+                                                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                                HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+                                                AutomationProperties.Name="{Binding Title}"
+                                                Background="{DynamicResource IvSurface1Brush}"
+                                                BorderThickness="0" Cursor="Hand"
+                                                Command="{Binding $parent[UserControl].DataContext.Monitor.Preview.OpenPreviewLightboxCommand}"
+                                                CommandParameter="{Binding ImagePath}"
+                                                Tag="{Binding $parent[UserControl].DataContext.Monitor.Preview}"
+                                                Theme="{StaticResource IvButtonBaseStyle}"
+                                                ToolTip.Tip="点击放大预览">
+                                            <Button.ContextFlyout>
+                                                <Flyout Placement="Pointer">
+                                                    <Button Content="复制图片"
+                                                            Command="{Binding #PreviewImageButton.Tag.CopyPreviewImageCommand}"
+                                                            CommandParameter="{Binding #PreviewImageButton.DataContext.ImagePath}"
+                                                            Theme="{StaticResource IvSubtleButtonStyle}" />
+                                                </Flyout>
+                                            </Button.ContextFlyout>
+                                            <Image Source="{Binding ImagePath, Converter={StaticResource FilePathToImageConverter}}"
+                                                   Stretch="Uniform" />
+                                        </Button>
+                                        <Grid Grid.Row="1" Margin="10,2,6,4" ColumnDefinitions="*,Auto" ColumnSpacing="6">
+                                            <TextBlock VerticalAlignment="Center" FontSize="12" FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource IvText1Brush}"
+                                                       Text="{Binding Title}" TextTrimming="CharacterEllipsis"
+                                                       ToolTip.Tip="{Binding Title}" />
+                                            <Button Grid.Column="1" Width="26" Height="26" MinWidth="0" MinHeight="0" Padding="0"
+                                                    AutomationProperties.Name="复制图片"
+                                                    Command="{Binding $parent[UserControl].DataContext.Monitor.Preview.CopyPreviewImageCommand}"
+                                                    CommandParameter="{Binding ImagePath}"
+                                                    Theme="{StaticResource IvIconButtonStyle}"
+                                                    ToolTip.Tip="复制图片">
+                                                <iv:Icon FontSize="14" Data="{x:Static ui:IvIcons.Copy}" />
+                                            </Button>
+                                        </Grid>
+                                        <Grid Grid.Row="2" Margin="10,1,10,10" RowDefinitions="Auto,Auto"
+                                              ColumnDefinitions="Auto,*" ColumnSpacing="8" RowSpacing="4"
+                                              IsVisible="{Binding HasPrediction}">
+                                            <TextBlock FontSize="11" Foreground="{DynamicResource IvText2Brush}" Text="标注" />
+                                            <TextBlock Grid.Column="1" FontSize="11" Foreground="{DynamicResource IvText1Brush}"
+                                                       Text="{Binding GroundTruth}" TextTrimming="CharacterEllipsis"
+                                                       ToolTip.Tip="{Binding GroundTruth}" />
+                                            <TextBlock Grid.Row="1" FontSize="11" Foreground="{DynamicResource IvText2Brush}" Text="预测" />
+                                            <TextBlock Grid.Row="1" Grid.Column="1" FontSize="11" FontWeight="SemiBold"
+                                                       Classes="previewPrediction" Classes.match="{Binding PredictionMatchesLabel}"
+                                                       Text="{Binding PredictionText}" TextTrimming="CharacterEllipsis"
+                                                       ToolTip.Tip="{Binding PredictionText}" />
+                                        </Grid>
+                                    </Grid>
+                                </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>

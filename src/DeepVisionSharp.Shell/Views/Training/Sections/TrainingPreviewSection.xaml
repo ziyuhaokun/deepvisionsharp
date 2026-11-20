@@ -46,7 +46,7 @@
                                     <ItemsControl
                                         VerticalAlignment="Top"
                                         ItemTemplate="{StaticResource TrainingPreviewImageTemplate}"
-                                        ItemsSource="{Binding Monitor.Preview.PreviewImagePaths}"
+                                        ItemsSource="{Binding Monitor.Preview.PreviewImages}"
                                         Visibility="{Binding Monitor.Preview.HasPreviewImages, Converter={StaticResource BooleanToVisibilityConverter}}">
                                         <ItemsControl.ItemsPanel>
                                             <ItemsPanelTemplate>

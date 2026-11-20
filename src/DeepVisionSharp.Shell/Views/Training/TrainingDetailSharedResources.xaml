@@ -73,10 +73,8 @@
     </Style>
 
     <DataTemplate x:Key="TrainingPreviewImageTemplate">
-        <!-- Larger tile so classification 3×3 preview grids stay readable -->
         <Border
-            Width="720"
-            Height="720"
+            Width="248"
             Margin="0,0,12,12"
             Background="{DynamicResource IvSurface2Brush}"
             BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
@@ -89,22 +87,30 @@
             <Border.InputBindings>
                 <MouseBinding
                     Command="{Binding DataContext.Monitor.Preview.OpenPreviewLightboxCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
-                    CommandParameter="{Binding}"
+                    CommandParameter="{Binding ImagePath}"
                     MouseAction="LeftClick" />
             </Border.InputBindings>
             <Border.ContextMenu>
                 <ContextMenu>
                     <MenuItem
                         Command="{Binding PlacementTarget.Tag.Monitor.Preview.CopyPreviewImageCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                        CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                        CommandParameter="{Binding PlacementTarget.DataContext.ImagePath, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                         Header="复制到剪贴板" />
                 </ContextMenu>
             </Border.ContextMenu>
-            <Image
-                IsHitTestVisible="False"
-                RenderOptions.BitmapScalingMode="HighQuality"
-                Source="{Binding Converter={StaticResource FilePathToImageConverter}}"
-                Stretch="Uniform" />
+            <StackPanel IsHitTestVisible="False">
+                <Image Height="168" Margin="4"
+                       RenderOptions.BitmapScalingMode="HighQuality"
+                       Source="{Binding ImagePath, Converter={StaticResource FilePathToImageConverter}}"
+                       Stretch="Uniform" />
+                <TextBlock Margin="10,2,10,8" FontWeight="SemiBold"
+                           Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
+                <StackPanel Margin="10,0,10,8"
+                            Visibility="{Binding HasPrediction, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <TextBlock Text="{Binding GroundTruth, StringFormat='标注  {0}'}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Margin="0,4,0,0" Text="{Binding PredictionText, StringFormat='预测  {0}'}" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+            </StackPanel>
         </Border>
     </DataTemplate>
 

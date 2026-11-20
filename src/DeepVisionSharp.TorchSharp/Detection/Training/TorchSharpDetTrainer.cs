@@ -196,14 +196,15 @@ public static class TorchSharpDetTrainer
                 options.Epochs,
                 $"TorchSharp DET epoch {epoch}/{options.Epochs} mAP50={evaluation.Map50:F4}");
 
-            if (epoch == 1 || epoch == options.Epochs || epoch % 5 == 0)
+            scheduler.step();
+            var shouldStopEarly = !earlyStopping.Report(evaluation.Map50);
+            if (epoch == 1 || epoch == options.Epochs || epoch % 5 == 0 || shouldStopEarly)
             {
                 TryWritePreview(model, dataset, channels, inputWidth, inputHeight, device, options, epoch,
                     cancellationToken);
             }
 
-            scheduler.step();
-            if (!earlyStopping.Report(evaluation.Map50))
+            if (shouldStopEarly)
             {
                 options.Log?.Invoke(
                     $"TorchSharp DET early stop: {earlyStopping.BadEpochs} epochs without improvement");
@@ -411,6 +412,7 @@ public static class TorchSharpDetTrainer
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
+            using var noGrad = torch.no_grad();
             var sample = dataset.Val[0];
             using var source = TorchSharpImageTensor.LoadMat(sample.ImagePath, channels);
             var letterbox = DetectionLetterbox.For(source.Width, source.Height, width, height);
@@ -459,8 +461,11 @@ public static class TorchSharpDetTrainer
             var previewDirectory = Path.Combine(options.OutputRoot, "previews");
             Directory.CreateDirectory(previewDirectory);
             var path = Path.Combine(previewDirectory, $"epoch_{epoch:D4}.png");
-            Cv2.ImWrite(path, canvas);
-            options.PreviewGenerated(path);
+            if (Cv2.ImEncode(".png", canvas, out var bytes))
+            {
+                AtomicFileWriter.Write(path, temporary => File.WriteAllBytes(temporary, bytes));
+                options.PreviewGenerated(path);
+            }
         }
         catch (OperationCanceledException)
         {

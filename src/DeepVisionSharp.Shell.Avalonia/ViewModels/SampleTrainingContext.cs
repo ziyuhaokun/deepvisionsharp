@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 
 using DeepVisionSharp.Application.Models;
 using DeepVisionSharp.Domain.Entities;
+using DeepVisionSharp.Presentation.Services;
 using DeepVisionSharp.Presentation.ViewModels;
 
 namespace DeepVisionSharp.Shell.Avalonia.ViewModels;
@@ -747,7 +748,7 @@ public sealed class SampleTrainingPreviewSummary
         CopyPreviewImageCommand = new RelayCommand<string>(_ => { });
     }
 
-    public IReadOnlyList<string> PreviewImagePaths => [];
+    public IReadOnlyList<TrainingPreviewItem> PreviewImages => [];
 
     public IReadOnlyList<string> TrainingPlotImagePaths => [];
 
