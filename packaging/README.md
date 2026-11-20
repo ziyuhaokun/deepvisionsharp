@@ -6,7 +6,7 @@ From the project root, build the Windows x64 single-file installer:
 .\scripts\build_installer.ps1
 ```
 
-The build publishes the application as self-contained, publishes the RuntimePackage SetupHost, and bundles the application payload into `scripts/Output/DeepVisionSharp-{version}-x64.exe`. It does not install or launch the application.
+The build publishes the Avalonia application and Avalonia SetupHost as self-contained, then bundles the application payload into `scripts/Output/DeepVisionSharp-{version}-x64.exe`. It does not install or launch the application.
 
 ## Build prerequisites
 
@@ -26,13 +26,12 @@ This is a .NET application package (`runtime-type=app`), not a Python runtime pa
 - `-Configuration Release|Debug`: applies to the application, SetupHost and packager CLI; default `Release`.
 - `-RuntimeIdentifier win-x64`: only x64 is supported by the current native dependencies.
 - `-PackagerRepo`: optional tool source directory; defaults to `packaging/installer/`. `-PythonRepo` is kept as an alias.
-- `-Shell src`: the WPF application; `-Shell wpf` remains a deprecated alias. The removed Blazor shell is not accepted.
 
-Application publish output is `src/DeepVisionSharp.Shell/bin/{Configuration}/net10.0-windows/win-x64/publish`. The script cleans only that selected publish directory before publishing. The default SetupHost output is `packaging/installer/artifacts/setuphost/win-x64` (ignored by Git).
+Application publish output is `src/DeepVisionSharp.Shell.Avalonia/bin/{Configuration}/net10.0-windows/win-x64/publish`. The script cleans only that selected publish directory before publishing. The default SetupHost output is `packaging/installer/artifacts/setuphost/win-x64` (ignored by Git).
 
 ## Local tool source and verification
 
-`packaging/installer/Installer.slnx` contains the three tool projects and package regression tests. It is separate from the six-project product solution; no application project references these tools. The projects inherit the repository's language, warnings-as-errors and NuGet audit settings.
+`packaging/installer/Installer.slnx` contains the three tool projects and package regression tests. It is separate from the product solution; no application project references these tools. The projects inherit the repository's language, warnings-as-errors and NuGet audit settings.
 
 ```powershell
 dotnet build packaging/installer/Installer.slnx -c Release
@@ -51,7 +50,7 @@ The installer tool source lives in this repository. The existing `.vrp` format a
 - `packaging/assets/license.txt`: installer license text.
 - `packaging/assets/logo.ico`: installer executable icon.
 - `packaging/assets/logo.png`: wizard sidebar banner.
-- Root `CHANGELOG.md` and Shell `license.txt`: copied into the application publish directory. `CHANGELOG.Developer.md` stays in the source checkout.
+- Root `CHANGELOG.md` and `packaging/assets/license.txt`: copied into the application publish directory. `CHANGELOG.Developer.md` stays in the source checkout.
 
 The self-contained payload includes .NET and native TorchSharp/LibTorch and OpenCV dependencies. NVIDIA drivers remain a machine prerequisite for GPU execution, not installer content.
 

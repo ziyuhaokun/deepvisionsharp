@@ -8,6 +8,8 @@
 
 tags: detection / classification / refactor / ui
 
+- 产品入口、设计系统和 SetupHost 统一到 Avalonia。发布仍使用 `DeepVisionSharp.exe` 和现有 `.vrp` 包格式，标签统计及推理报告改用 Avalonia 矢量绘制。
+
 - UI 库改名：`yu-ui` → `DeepVisionSharp.UI`（WPF，`AssemblyName` / `RootNamespace` / 目录一致），`yu-ui.avalonia` → `DeepVisionSharp.UI.Avalonia`；XAML 命名空间 URI 改为 `http://schemas.deepvisionsharp.ui/xaml`（前缀由 `yu:` 改为 `dvsui:`，`Iv*` 资源键与 `IvIcons` / `IvTheme` 不变）；入口字典 `YuUi{Tokens,Styles,Theme}.xaml` → `DeepVisionSharpUI{Tokens,Styles,Theme}.xaml`，`YuUiStyleProbeWindow` → `DeepVisionSharpUIStyleProbeWindow`，`docs/yu-ui-migration.md` → `docs/DeepVisionSharp.UI-migration.md`。下方及更早条目里的旧名为历史记录，不回改。新根命名空间会遮蔽 `Avalonia`，`NumericBox.cs` 内两处限定名改为 `global::Avalonia.*`。
 
 - 新增 WPF 设计系统 `src/yu-ui`（项目 `yu-ui`，`AssemblyName=yu-ui`，`RootNamespace=YuUI`，XAML 命名空间 `http://schemas.yu-ui/xaml`，前缀 `yu:`）：`Tokens/`（Palette Light/Dark 各 88 键、Metrics 21、Typography 23、Motion 4）、`Icons/IvIcons`（77 个 24 画布描边图标，path 与源逐字符一致）、`Styles/`（14 个文件，隐式样式 + `Iv*` 显式样式键）、`Controls/`（`Icon` / `NumericBox` / `FormRow` / `FormSection` / `Dialog` / `ThemedWindow` / `IvPlaceholder`）、`Themes/`（`Generic.xaml` 默认样式总线、`AppStyles.xaml` 8 个键型样式）。三级入口：`YuUiTokens.xaml`（仅令牌）/ `YuUiStyles.xaml`（含隐式样式）/ `YuUiTheme.xaml`（全量）。移植规则见 `src/yu-ui/PORTING-CONTRACT.md`。

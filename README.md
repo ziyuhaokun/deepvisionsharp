@@ -5,7 +5,7 @@
 <h1 align="center">DeepVisionSharp</h1>
 
 <p align="center">
-  <strong>进程内视觉工作台。</strong> 标注、训练、推理都在一个 WPF 进程里完成，不启动 Python。
+  <strong>进程内视觉工作台。</strong> 标注、训练、推理都在一个 Avalonia 进程里完成，不启动 Python。
 </p>
 
 <p align="center">
@@ -27,7 +27,7 @@
 
 | 原则 | 落地 |
 | --- | --- |
-| 一个进程 | TorchSharp 0.107 + LibTorch 2.10 跑在 WPF 宿主里。没有 sidecar，没有 Ultralytics CLI。 |
+| 一个进程 | TorchSharp 0.107 + LibTorch 2.10 跑在 Avalonia 宿主里。没有 sidecar，没有 Ultralytics CLI。 |
 | 本机优先 | SQLite、图库、权重、日志都在 `%LOCALAPPDATA%\\DeepVisionSharp`。运行时不上报遥测。 |
 | 现场能装 | 自包含安装包，默认用户目录，不需要管理员，也不捆绑 Python。 |
 | 两类任务 | 分类：ResNet-Tiny / 18 / 34（torchvision 兼容）与 YOLO26-cls；检测：YOLO26-det n/s/m/l/x。SGD / Adam / AdamW。缺预训练权重就从随机初始化开训。 |
@@ -57,7 +57,7 @@ Windows x64 + [.NET 10 SDK](https://dotnet.microsoft.com/download)。GPU 训练 
 ```powershell
 git clone git@github.com:ziyuhaokun/deepvisionsharp.git
 cd deepvisionsharp
-dotnet run --project src/DeepVisionSharp.Shell/DeepVisionSharp.Shell.csproj
+dotnet run --project src/DeepVisionSharp.Shell.Avalonia/DeepVisionSharp.Shell.Avalonia.csproj
 ```
 
 可选，拉 torchvision 预训练权重（仅转换脚本需要 Python 3 + numpy）：
@@ -81,12 +81,16 @@ dotnet run --project src/DeepVisionSharp.Shell/DeepVisionSharp.Shell.csproj
 ```mermaid
 flowchart LR
   subgraph exe [DeepVisionSharp.exe]
-    Shell[Shell · WPF]
+    Shell[Shell.Avalonia]
+    UI[UI.Avalonia]
+    Presentation[Presentation]
     App[Application]
     Infra[Infrastructure]
     Torch[TorchSharp]
     Domain[Domain]
-    Shell --> App
+    Shell --> UI
+    Shell --> Presentation
+    Presentation --> App
     App --> Domain
     Infra --> App
     Infra --> Torch
@@ -95,11 +99,13 @@ flowchart LR
   Torch --> LibTorch[LibTorch 2.10]
 ```
 
-产品 solution：`DeepVisionSharp.slnx`（7 个 product project + 切图测试）。安装器工具在 `packaging/installer/Installer.slnx`，不进产品 solution。
+`DeepVisionSharp.slnx` 包含应用与业务测试。Avalonia 安装器及打包工具使用 `packaging/installer/Installer.slnx`。
 
 | Project | 职责 |
 | --- | --- |
-| `Shell` | WPF 主程序，`DeepVisionSharp.exe` |
+| `Shell.Avalonia` | 桌面主程序，`DeepVisionSharp.exe` |
+| `UI.Avalonia` | 主题、样式与通用 Avalonia 控件 |
+| `Presentation` | ViewModel、界面服务与端口 |
 | `Application` | CQRS、校验、Ports |
 | `Domain` | 实体与值对象 |
 | `Infrastructure` | SQLite、训练 / 推理调度 |
