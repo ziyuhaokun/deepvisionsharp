@@ -268,3 +268,69 @@ grep -rn 'StaticResource Iv[A-Za-z]*Brush' src/yu-ui src/DeepVisionSharp.Shell -
 # 4) 探针页本身是否还引用 WPF-UI（必须 0）
 grep -n "lepo.co" src/DeepVisionSharp.Shell/Views/YuUiStyleProbeWindow.xaml
 ```
+
+---
+
+## 8. 执行结果（方案 B）
+
+> 方案 B 的顺序：先按 §4 的建议顺序分波迁页面，页面归零后再动壳（`FluentWindow` → `yu:ThemedWindow`、自建导航、yu-ui 的提示条/对话框宿主），最后删 `App.xaml` 的 WPF-UI 字典与包引用。
+> 本节数据全部取自本仓库提交与 `rg` 实测，命令附在每条之后。
+
+### 8.1 页面迁移（三波，共 85 个文件）
+
+| 批次 | 提交 | 文件数 | 范围 |
+| --- | --- | ---: | --- |
+| 第一波 | `82a5b8c` | 52（全 xaml） | `Views/Pages`（含 `Sections/`）、4 个 `*PageResources.xaml`、`Views/Dialogs`（含 `Contents/` 与 `Sections/`） |
+| 第二波 | `6224986` | 28（全 xaml） | `Views/Training`（含 `Sections/`）、`Views/Labeling`（含 `Cards/`）、`Views/Controls/TaskCenterPanel.xaml`、`Views/Controls/ImageLightboxOverlay.xaml` |
+| 第三波 | `99cb63b` | 5（3 xaml + 2 cs） | 页面级最后 3 处残留：`Controls/PasswordBoxAssist.cs`、`Converters/ProjectTypeVisualConverter.cs`、`Contents/SettingsDebugAccessDialogContent.xaml`，外加 `Dialogs/StartupMessageWindow.xaml` 与 `.xaml.cs` |
+
+<!-- 口径：git show --numstat --format= <commit> | wc -l -->
+
+`src/yu-ui` 本身 42 个文件（随 `f0df86f` 入库）：令牌四件套（`Palette` / `Palette.Dark` / `Metrics` / `Typography` / `Motion`）、14 个 `Styles/*.xaml`、7 个自绘控件、77 个图标几何、`Themes/Generic.xaml` 与 `Themes/AppStyles.xaml`。三级入口不变：`YuUiTokens.xaml`（仅令牌）/ `YuUiStyles.xaml`（含隐式样式）/ `YuUiTheme.xaml`（全量）。
+
+### 8.2 壳层替换（第 3 步）
+
+旧 → 新调用链，接口定义与命名元素见 [`docs/shell-chrome-contract.md`](shell-chrome-contract.md)：
+
+| 旧（WPF-UI 4.3.0） | 新（yu-ui / 自建） | 行为等价说明 |
+| --- | --- | --- |
+| `ui:FluentWindow` + `ui:TitleBar`（`ExtendsContentIntoTitleBar`） | `yu:ThemedWindow`（52px 自绘标题栏） | 标题栏三键由模板 `PART_MinimizeButton` / `PART_MaximizeButton` / `PART_CloseButton` 提供；原标题栏里的「项目名」与「主题切换」移到标题栏下方的应用工具条行 |
+| `ui:NavigationView` + 7×`ui:NavigationViewItem` | 固定展开的 `ListBox`（`NavList`）+ `IvSidebarItemStyle` | 7 项的顺序、文案、图标与 `AutomationProperties.AutomationId` 逐个不变；`Tag` 承载 `AppRoute` |
+| `ui:ContentDialogHost` + `IContentDialogService` | `yu:Dialog`（`ShellDialog`）+ `IDialogHost.ShowAsync` 返回 `AppDialogResult` | 按钮文案、`AppDialogResult` 取值、取消令牌语义保持 |
+| `ui:SnackbarPresenter` + `ISnackbarService` | `ISnackbarHost`（`SnackbarKind`：Info / Success / Warning / Error + `TimeSpan`） | 未挂载时静默丢弃（与旧行为一致，启动早期不崩） |
+| 导航（`INavigationService.Navigate`） | `IPageHost`（`CurrentPage` / `Show`） | 未挂载时抛 `InvalidOperationException("导航宿主未挂载")`；页面在窗口建立后才导航 |
+| `ApplicationThemeManager.Apply/Changed` | `AppThemeService` 实现 `IAppThemeService`（`Current` / `Changed` / `Apply`） | 主题切换落到 `IvTheme.Apply(app, IvThemeMode)`，切换后提示条/对话框/页面同步换色 |
+| 服务层 `SetPresenter(...)` 注入 | `Attach(host)` | `MainWindow` 构造函数在 `InitializeComponent()` 之后依次 `Attach(this)`：导航 → 提示条 → 对话框 |
+
+### 8.3 全局资源接线（App.xaml）
+
+`MergedDictionaries` 只剩两条，顺序固定：
+
+1. `pack://application:,,,/yu-ui;component/YuUiTheme.xaml` —— **全量**入口（令牌 + 隐式样式），不是只含令牌的 `YuUiTokens.xaml`。`ui:ThemesDictionary` / `ui:ControlsDictionary` 删掉后，`Button` / `TextBox` / `ListBox` / `ScrollBar` / `ComboBox` / `ProgressBar` 的全局基线只能由这里提供；只 merge 令牌会让这些原生控件退回 WPF 默认外观，与已迁移页面的 yu-ui 视觉对不上（§5 第 2 步「全局启用」）。
+2. `pack://application:,,,/DeepVisionSharp;component/Resources/StatusPalette.xaml` —— Shell 自有状态色（训练任务、任务中心、模型库、数据集角色）。放第二位：键名与 `Iv*` 不重叠，页面级覆盖时仍以本地字典优先。
+
+主题切换不依赖 merge 位置：`IvTheme.Apply` 会深度找到这里嵌套的 `Tokens/Palette.xaml` 并原地换入（位置不变，合并字典按倒序解析）。
+
+`Resources/StatusPalette.xaml` 本次只做审计与注释订正：21 个键仍全部有页面引用，没有任何 `Iv*` 同名冲突，原注释里提到的 WPF-UI 语义刷子（`SystemFillColor*`）实测已无使用者；**颜色值一个未动**（训练/标注/任务状态色必须与主题无关，白字对比度才稳）。
+
+### 8.4 WPF-UI 移除状态
+
+- `src` 下 XAML 命名空间 `http://schemas.lepo.co/wpfui/2022/xaml`、C# 的 `Wpf.Ui*` 与 `SymbolRegular`：0 命中，App.xaml 的 `xmlns:ui` 与两个字典已删除；
+- 判据命令（结果须为 0 行）：
+
+```bash
+rg -n 'lepo\.co/wpfui' src --glob '*.xaml'
+rg -n 'Wpf\.Ui|SymbolRegular' src --glob '*.cs'
+rg -n 'ui:|Wpf\.Ui|lepo\.co|SymbolRegular' src
+```
+
+- `packaging/installer/src/RuntimePackage.SetupHost.Wpf` 是独立的安装器进程，自带 `WPF-UI` 包与自己的 `App.xaml` 字典，**不在本次范围**：它不引用 `src/yu-ui`，改它只会扩大安装回归面（判据命令要排除该目录）。
+
+### 8.5 剩余风险
+
+| 风险 | 影响 | 处置 / 验收点 |
+| --- | --- | --- |
+| `ThemedWindow` 标题栏与原 `ui:TitleBar` 内容合并 | 标题栏只有「左图标 + 标题 + 右三键」；原 `TitleBar` 里的项目名与主题切换必须挪到标题栏下方工具条行，漏挪即功能丢失 | 已按 §5 挪到工具条行；验收：项目名显示、主题切换可点且图标随主题变化、三键可用、双击标题栏最大化 |
+| Mica 毛玻璃丢失 | `WindowBackdropType="Mica"` 无等价物，窗口底色改为 `{DynamicResource IvBackgroundBrush}`，标题栏与内容同色，没有亚克力透景 | 接受视觉变化，不再引用 `WindowBackdropType`；深浅切换后确认标题栏与内容无断层 |
+| `NavigationView` 折叠能力丢失 | 自建侧栏固定展开（宽 168），没有汉堡按钮、折叠成图标条与条目上翻 | 当前产品无折叠/分组/搜索需求（§2 判断）；真出现需单独立项重写侧栏 |
+| 残留 WPF-UI 语义色键（实测，本轮未清） | 删掉 `ui:ThemesDictionary` 后 `TextFillColor*Brush` / `ControlStrokeColor*Brush` / `ControlFillColor*Brush` / `SolidBackgroundFillColor*Brush` / `ApplicationBackgroundBrush` / `CardBackgroundFillColor*Brush` / `SystemAccentColor*` 不再存在。仍按名查找的 7 个文件：`Controls/CanvasCornerFloat.xaml`、`Controls/CanvasCornerFloat.xaml.cs`、`Controls/ParamHelpButton.xaml`、`Views/Dialogs/StartupMessageWindow.xaml.cs`、`Views/Dialogs/Contents/InferenceBatchReportDialogContent.xaml.cs`、`Views/Dialogs/Contents/ProjectLabelStatisticsDialogContent.xaml.cs`、`Views/Training/Controls/MetricLineChart.cs` | `DynamicResource` 引用静默落回 WPF 默认值（不崩、不报错，只是颜色错）；`.cs` 侧 `TryFindResource` / `FindBrush` / `SnapshotBrush` 带硬编码 fallback（`CanvasCornerFloat` 落 `#202020`，`MetricLineChart` 落 `Brushes.DimGray`/`LightGray`），退化不致命。建议下一轮按 `TextFillColor*→IvText*`、`ControlStrokeColor*→IvStroke*`、`ControlFillColor*→IvSurface*`、`ApplicationBackgroundBrush→IvBackgroundBrush`、`SystemAccentColorPrimaryBrush→IvAccentBrush` 映射清掉 |

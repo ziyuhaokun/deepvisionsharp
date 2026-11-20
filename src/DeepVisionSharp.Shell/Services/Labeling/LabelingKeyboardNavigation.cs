@@ -23,14 +23,6 @@ internal static class LabelingKeyboardNavigation
                 return true;
             }
 
-            var focusedType = focused.GetType();
-            if (focusedType.Name == "TextBox"
-                && focusedType.Namespace is not null
-                && focusedType.Namespace.StartsWith("Wpf.Ui", StringComparison.Ordinal))
-            {
-                return true;
-            }
-
             focused = LogicalTreeHelper.GetParent(focused) as DependencyObject
                 ?? VisualTreeHelper.GetParent(focused);
         }

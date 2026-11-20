@@ -4,9 +4,10 @@
 
     <!--
       Shell-wide status palette. Solid fills stay theme-independent so white text keeps the
-      same contrast in both themes; WPF-UI semantic brushes (SystemFillColor*) are used for
-      icons, text and borders, and switch with the theme. Translucent 15% tints are kept as
-      named brushes because there is no semantic equivalent for every hue (blue/cyan/emerald).
+      same contrast in both themes. Translucent 15% tints are kept as named brushes because
+      yu-ui has no per-hue token for every status color (blue/cyan/emerald).
+      Theme-derived icons, text and borders come from yu-ui palette tokens (Iv*Brush);
+      this file only holds the shell's own status hues, which must not change with the theme.
     -->
 
     <!-- Training job status badges (solid fill + white text) -->

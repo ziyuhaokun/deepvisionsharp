@@ -25,9 +25,6 @@ using DeepVisionSharp.Shell.Views.Dialogs;
 using DeepVisionSharp.Shell.Views.Dialogs.Contents;
 using DeepVisionSharp.Shell.Views.Pages;
 
-using Wpf.Ui;
-using Wpf.Ui.DependencyInjection;
-
 namespace DeepVisionSharp.Shell;
 
 /// <summary>Shared product/verification composition. Overrides are registered last, at existing ports.</summary>
@@ -62,13 +59,12 @@ public static class ShellHost
                 services.AddDeepVision();
                 services.AddLabelingInferenceWriteBack();
 
-                services.AddNavigationViewPageProvider();
-                services.AddSingleton<INavigationService, NavigationService>();
-                services.AddSingleton<IAppNavigationService, AppNavigationService>();
-                services.AddSingleton<ISnackbarService, SnackbarService>();
-                services.AddSingleton<IContentDialogService, ContentDialogService>();
+                // MainWindow 要 Attach 到具体类型：每组具体类型注册紧跟它的接口别名，两处解析到同一实例
+                services.AddSingleton<AppNavigationService>();
+                services.AddSingleton<IAppNavigationService>(sp => sp.GetRequiredService<AppNavigationService>());
                 services.AddSingleton<DialogCatalog>();
-                services.AddSingleton<IAppDialogService, AppDialogService>();
+                services.AddSingleton<AppDialogService>();
+                services.AddSingleton<IAppDialogService>(sp => sp.GetRequiredService<AppDialogService>());
                 services.AddTransient<AddLabelDialogContent>();
                 services.AddTransient<ClassificationAutoInferenceDialogContent>();
                 services.AddTransient<InferenceDebugDialogContent>();
@@ -85,8 +81,7 @@ public static class ShellHost
                 services.AddTransient<GallerySamplePickerDialogContent>();
                 services.AddTransient<GallerySplitPlannerDialogContent>();
                 services.AddTransient<SettingsDebugAccessDialogContent>();
-                services.AddSingleton<IThemeService, ThemeService>();
-                services.AddSingleton<IAppThemeService, WpfAppThemeService>();
+                services.AddSingleton<IAppThemeService, AppThemeService>();
                 services.AddSingleton<IUiDispatcher, WpfUiDispatcher>();
                 services.AddSingleton<IClipboardService, WpfClipboardService>();
                 services.AddSingleton<IImageSourceFactory, WpfImageSourceFactory>();

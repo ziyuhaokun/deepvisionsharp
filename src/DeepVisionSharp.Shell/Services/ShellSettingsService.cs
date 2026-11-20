@@ -15,7 +15,7 @@ public enum ShellThemePreference
 public sealed class ShellSettings
 {
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public ShellThemePreference Theme { get; set; } = ShellThemePreference.System;
+    public ShellThemePreference Theme { get; set; } = ShellThemePreference.Light;
 
     public bool ShowNotifications { get; set; } = true;
 }

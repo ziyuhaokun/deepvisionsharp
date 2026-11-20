@@ -9,7 +9,6 @@
       各视图根元素另各 merge 一次，作用域仍是各自页面，不影响未迁移的页面。
     -->
     <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="pack://application:,,,/yu-ui;component/YuUiTheme.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
     <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />

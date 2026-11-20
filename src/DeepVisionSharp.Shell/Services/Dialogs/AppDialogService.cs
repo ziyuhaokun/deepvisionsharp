@@ -1,29 +1,36 @@
 using System.Windows;
-using System.Windows.Media;
+using System.Windows.Automation;
+using System.Windows.Controls;
+using DeepVisionSharp.Shell.Automation;
+using DeepVisionSharp.Shell.Services.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using YuUI.Controls;
 using WpfBinding = System.Windows.Data.Binding;
 using WpfBindingMode = System.Windows.Data.BindingMode;
-using Microsoft.Extensions.DependencyInjection;
-using DeepVisionSharp.Shell.Automation;
-using Wpf.Ui;
-using Wpf.Ui.Controls;
 using WpfButton = System.Windows.Controls.Button;
 
 namespace DeepVisionSharp.Shell.Services.Dialogs;
 
 public sealed class AppDialogService : IAppDialogService
 {
-    private readonly IContentDialogService _contentDialogService;
     private readonly DialogCatalog _catalog;
     private readonly IServiceProvider _services;
+    private IDialogHost? _dialogHost;
 
-    public AppDialogService(
-        IContentDialogService contentDialogService,
-        DialogCatalog catalog,
-        IServiceProvider services)
+    public AppDialogService(DialogCatalog catalog, IServiceProvider services)
     {
-        _contentDialogService = contentDialogService;
         _catalog = catalog;
         _services = services;
+    }
+
+    /// <summary>
+    /// 由 <c>MainWindow</c> 在 <c>InitializeComponent()</c> 之后调用。
+    /// 宿主不进构造函数：MainWindow 本身就在 DI 图里，构造期互相持有会撞循环依赖。
+    /// </summary>
+    public void Attach(IDialogHost dialogHost)
+    {
+        ArgumentNullException.ThrowIfNull(dialogHost);
+        _dialogHost = dialogHost;
     }
 
     public async Task<AppDialogResult> ShowAsync(
@@ -32,6 +39,9 @@ public sealed class AppDialogService : IAppDialogService
         DialogOptions? options = null,
         CancellationToken cancellationToken = default)
     {
+        var dialogHost = _dialogHost
+            ?? throw new InvalidOperationException("对话框宿主未挂载");
+
         var descriptor = _catalog.Get(kind);
         var content = (FrameworkElement)_services.GetRequiredService(descriptor.ContentViewType);
         content.DataContext = dataContext;
@@ -44,24 +54,69 @@ public sealed class AppDialogService : IAppDialogService
         }
 
         var secondaryButtonText = options?.SecondaryButtonText ?? descriptor.SecondaryButtonText;
-        var dialog = new ContentDialog
+
+        var dialog = new Dialog
         {
             Title = options?.Title ?? descriptor.Title,
             Content = content,
-            PrimaryButtonText = options?.PrimaryButtonText ?? descriptor.PrimaryButtonText,
-            CloseButtonText = closeButtonText,
-            DefaultButton = MapDefaultButton(options?.DefaultButton ?? AppDialogDefaultButton.Primary),
         };
-        System.Windows.Automation.AutomationProperties.SetAutomationId(dialog, UiAutomationIds.Dialog.Host);
+        AutomationProperties.SetAutomationId(dialog, UiAutomationIds.Dialog.Host);
+
+        WpfButton? secondaryButton = null;
+        WpfButton? closeButton = null;
+        var footer = new StackPanel { Orientation = Orientation.Horizontal };
+        var gap = dialog.TryFindResource("IvSpace2") is double space ? space : 8d;
+
+        void Append(WpfButton button)
+        {
+            button.Margin = footer.Children.Count == 0 ? new Thickness(0) : new Thickness(gap, 0, 0, 0);
+            footer.Children.Add(button);
+        }
+
+        var primaryButton = CreateDialogButton(
+            dialog,
+            options?.PrimaryButtonText ?? descriptor.PrimaryButtonText,
+            primary: true,
+            AppDialogResult.Primary,
+            UiAutomationIds.Dialog.Primary);
+        Append(primaryButton);
+
         if (!string.IsNullOrWhiteSpace(secondaryButtonText))
         {
-            dialog.SecondaryButtonText = secondaryButtonText;
+            secondaryButton = CreateDialogButton(
+                dialog,
+                secondaryButtonText,
+                primary: false,
+                AppDialogResult.Secondary,
+                UiAutomationIds.Dialog.Secondary);
+            Append(secondaryButton);
         }
+
+        if (!string.IsNullOrWhiteSpace(closeButtonText))
+        {
+            closeButton = CreateDialogButton(
+                dialog,
+                closeButtonText,
+                primary: false,
+                AppDialogResult.None,
+                UiAutomationIds.Dialog.Close);
+            Append(closeButton);
+        }
+
+        dialog.Footer = footer;
+
+        // 原 ContentDialog.DefaultButton 的语义：回车落到默认按钮上。
+        (MapDefaultButton(options?.DefaultButton ?? AppDialogDefaultButton.Primary) switch
+        {
+            AppDialogResult.Secondary => secondaryButton,
+            AppDialogResult.None => closeButton,
+            _ => primaryButton
+        } ?? primaryButton).IsDefault = true;
 
         if (!string.IsNullOrWhiteSpace(options?.PrimaryButtonIsEnabledBindingPath))
         {
-            dialog.SetBinding(
-                ContentDialog.IsPrimaryButtonEnabledProperty,
+            primaryButton.SetBinding(
+                UIElement.IsEnabledProperty,
                 new WpfBinding(options.PrimaryButtonIsEnabledBindingPath)
                 {
                     Source = dataContext,
@@ -69,106 +124,46 @@ public sealed class AppDialogService : IAppDialogService
                 });
         }
 
-        // Template buttons exist only after load; also handle already-loaded recycled dialogs.
-        if (dialog.IsLoaded)
-        {
-            ApplyFooterButtonAutomationIds(dialog);
-        }
-        else
-        {
-            dialog.Loaded += OnDialogLoaded;
-        }
-
-        var result = await _contentDialogService.ShowAsync(dialog, cancellationToken);
-        return MapResult(result);
+        return await dialogHost.ShowAsync(dialog, cancellationToken);
     }
 
-    private static void OnDialogLoaded(object sender, RoutedEventArgs e)
+    private WpfButton CreateDialogButton(
+        Dialog dialog,
+        string text,
+        bool primary,
+        AppDialogResult result,
+        string automationId)
     {
-        if (sender is not ContentDialog dialog)
+        var button = new WpfButton { Content = text };
+        if (primary)
         {
-            return;
+            button.SetResourceReference(FrameworkElement.StyleProperty, "IvPrimaryButtonStyle");
         }
 
-        dialog.Loaded -= OnDialogLoaded;
-        ApplyFooterButtonAutomationIds(dialog);
-    }
-
-    private static void ApplyFooterButtonAutomationIds(ContentDialog dialog)
-    {
-        foreach (var button in EnumerateButtons(dialog))
+        AutomationProperties.SetAutomationId(button, automationId);
+        button.Click += (_, _) =>
         {
-            var label = ReadButtonLabel(button);
-            if (string.IsNullOrWhiteSpace(label))
-            {
-                continue;
-            }
-
-            if (string.Equals(label, dialog.PrimaryButtonText, StringComparison.Ordinal))
-            {
-                System.Windows.Automation.AutomationProperties.SetAutomationId(
-                    button,
-                    UiAutomationIds.Dialog.Primary);
-            }
-            else if (!string.IsNullOrWhiteSpace(dialog.SecondaryButtonText)
-                     && string.Equals(label, dialog.SecondaryButtonText, StringComparison.Ordinal))
-            {
-                System.Windows.Automation.AutomationProperties.SetAutomationId(
-                    button,
-                    UiAutomationIds.Dialog.Secondary);
-            }
-            else if (string.Equals(label, dialog.CloseButtonText, StringComparison.Ordinal))
-            {
-                System.Windows.Automation.AutomationProperties.SetAutomationId(
-                    button,
-                    UiAutomationIds.Dialog.Close);
-            }
-        }
-    }
-
-    private static IEnumerable<WpfButton> EnumerateButtons(DependencyObject root)
-    {
-        var count = VisualTreeHelper.GetChildrenCount(root);
-        for (var i = 0; i < count; i++)
-        {
-            var child = VisualTreeHelper.GetChild(root, i);
-            if (child is WpfButton button)
-            {
-                yield return button;
-            }
-
-            foreach (var nested in EnumerateButtons(child))
-            {
-                yield return nested;
-            }
-        }
-    }
-
-    private static string? ReadButtonLabel(WpfButton button)
-    {
-        return button.Content switch
-        {
-            string text => text,
-            System.Windows.Controls.TextBlock textBlock => textBlock.Text,
-            _ => button.Content?.ToString()
+            // 宿主负责回传结果并关闭对话框；这里再 Hide 一次兜底，
+            // 保证「点按钮 → 遮罩消失」不依赖宿主实现细节（Dialog.Hide 已关闭时是无害的 no-op）。
+            _dialogHost?.Close(result);
+            dialog.Hide(MapDialogChoice(result));
         };
+        return button;
     }
 
-    private static ContentDialogButton MapDefaultButton(AppDialogDefaultButton button)
+    private static AppDialogResult MapDefaultButton(AppDialogDefaultButton button)
         => button switch
         {
-            AppDialogDefaultButton.Primary => ContentDialogButton.Primary,
-            AppDialogDefaultButton.Secondary => ContentDialogButton.Secondary,
-            AppDialogDefaultButton.Close => ContentDialogButton.Close,
-            _ => ContentDialogButton.Primary
+            AppDialogDefaultButton.Secondary => AppDialogResult.Secondary,
+            AppDialogDefaultButton.Close => AppDialogResult.None,
+            _ => AppDialogResult.Primary
         };
 
-    private static AppDialogResult MapResult(ContentDialogResult result)
+    private static DialogChoice MapDialogChoice(AppDialogResult result)
         => result switch
         {
-            ContentDialogResult.Primary => AppDialogResult.Primary,
-            ContentDialogResult.Secondary => AppDialogResult.Secondary,
-            ContentDialogResult.None => AppDialogResult.None,
-            _ => AppDialogResult.None
+            AppDialogResult.Primary => DialogChoice.Primary,
+            AppDialogResult.Secondary => DialogChoice.Secondary,
+            _ => DialogChoice.None
         };
 }

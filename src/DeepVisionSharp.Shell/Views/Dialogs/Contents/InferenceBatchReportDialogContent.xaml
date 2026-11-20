@@ -13,7 +13,6 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/yu-ui;component/YuUiTheme.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <Style x:Key="MetricCardStyle" TargetType="{x:Type Border}">

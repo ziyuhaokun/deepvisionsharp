@@ -8,7 +8,6 @@
     <!-- 本字典里的 BasedOn="{StaticResource IvCardStyle}" / {x:Type yu:NumericBox} 是静态引用，必须在同一字典作用域内可解析，
          所以这里自己也 merge 一次主题（各视图根部另有同样的 merge，WPF 允许重复合并）。 -->
     <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="pack://application:,,,/yu-ui;component/YuUiTheme.xaml" />
         <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Resources/StatusPalette.xaml" />
     </ResourceDictionary.MergedDictionaries>
 

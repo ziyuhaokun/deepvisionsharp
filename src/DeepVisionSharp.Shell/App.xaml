@@ -1,18 +1,17 @@
 <Application
     x:Class="DeepVisionSharp.Shell.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ui:ThemesDictionary Theme="Dark" />
-                <ui:ControlsDictionary />
+                <!-- yu-ui 全量入口（令牌 + 隐式样式），而不是只含令牌的 YuUiTokens.xaml：
+                     WPF-UI 的 ThemesDictionary / ControlsDictionary 已删除，按钮、输入框、列表、
+                     滚动条、ComboBox、ProgressBar 这些原生控件的全局基线只能由这里提供。
+                     IvTheme.Apply 会深度找到这里嵌套的 Tokens/Palette.xaml 并原地换入，位置不变。 -->
+                <ResourceDictionary Source="pack://application:,,,/yu-ui;component/YuUiTheme.xaml" />
+                <!-- Shell 级状态色（训练任务状态、数据集角色、任务中心、模型状态）：与 yu-ui 键名不重叠。 -->
                 <ResourceDictionary Source="pack://application:,,,/DeepVisionSharp;component/Resources/StatusPalette.xaml" />
-                <!-- yu-ui 令牌（只含 Iv* 令牌，不含隐式样式）：不改变现有任何控件外观，
-                     新/已迁移页面可直接用 {DynamicResource Iv*Brush} 等键。
-                     等价于 deepvision 的 App.axaml 里的 Tokens 四件套 merge。 -->
-                <ResourceDictionary Source="pack://application:,,,/yu-ui;component/YuUiTokens.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
