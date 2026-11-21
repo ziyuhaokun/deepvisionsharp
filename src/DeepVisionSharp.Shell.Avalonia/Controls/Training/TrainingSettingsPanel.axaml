@@ -2,234 +2,342 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:iv="clr-namespace:DeepVisionSharp.UI.Avalonia.Controls;assembly=DeepVisionSharp.UI.Avalonia"
              xmlns:ui="clr-namespace:DeepVisionSharp.UI.Avalonia;assembly=DeepVisionSharp.UI.Avalonia"
-             xmlns:dv="clr-namespace:DeepVisionSharp.Shell.Avalonia.Controls.Training"
              xmlns:local="clr-namespace:DeepVisionSharp.Shell.Avalonia.Converters.Training"
              x:Class="DeepVisionSharp.Shell.Avalonia.Controls.Training.TrainingSettingsPanel"
              Foreground="{DynamicResource IvText1Brush}">
+
+    <!--
+        训练任务配置面板（设置模式）。四个分区共用一套「分组卡片 + 参数行」：
+        参数行左侧是名称与说明（取代原来的「?」弹层），右侧是固定宽度的输入控件，
+        避免数值框被拉满整行。颜色全部走 Iv* 令牌，深浅主题一致。
+    -->
 
     <UserControl.Resources>
         <local:GalleryRoleEqualsConverter x:Key="GalleryRoleEqualsConverter" />
     </UserControl.Resources>
 
     <UserControl.Styles>
-        <Style Selector="TextBlock.sectionTitle">
-            <Setter Property="Margin" Value="0,0,0,10" />
+        <!-- ===== 版面 ===== -->
+        <Style Selector="Grid.sectionHost">
+            <Setter Property="Margin" Value="20,16,20,20" />
+        </Style>
+        <Style Selector="StackPanel.sectionStack">
+            <Setter Property="Spacing" Value="20" />
+        </Style>
+        <Style Selector="TextBlock.groupTitle">
+            <Setter Property="Margin" Value="2,0,0,8" />
             <Setter Property="FontSize" Value="13" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
         </Style>
-        <Style Selector="TextBlock.fieldLabel">
-            <Setter Property="Margin" Value="0,0,0,4" />
+        <Style Selector="Border.paramRow">
+            <Setter Property="Padding" Value="16,12" />
+            <Setter Property="MinHeight" Value="60" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+        </Style>
+        <Style Selector="Border.paramRow:nth-last-child(1)">
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+        <Style Selector="Border.paramRow > Grid">
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="TextBlock.paramLabel">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        </Style>
+        <Style Selector="TextBlock.paramHint">
+            <Setter Property="Margin" Value="0,3,0,0" />
             <Setter Property="FontSize" Value="12" />
+            <Setter Property="TextWrapping" Value="Wrap" />
             <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
         </Style>
-        <Style Selector="TextBlock.fieldHint">
-            <Setter Property="Margin" Value="0,4,0,0" />
-            <Setter Property="FontSize" Value="11" />
+        <Style Selector="TextBlock.paramKey">
+            <Setter Property="Margin" Value="6,0,0,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="FontSize" Value="12" />
             <Setter Property="Foreground" Value="{DynamicResource IvText3Brush}" />
         </Style>
-        <Style Selector="Border.formSection">
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="Margin" Value="0" />
+        <Style Selector=":is(Control).fieldWide">
+            <Setter Property="Width" Value="300" />
+        </Style>
+        <Style Selector=":is(Control).fieldNarrow">
+            <Setter Property="Width" Value="180" />
+        </Style>
+
+        <!-- ===== 数值框：限高；步进按钮与内部 TextBox 不继承全局 30px 最小高度 ===== -->
+        <Style Selector="iv|NumericBox">
+            <Setter Property="Height" Value="32" />
+        </Style>
+        <Style Selector="iv|NumericBox /template/ Button">
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="MinWidth" Value="0" />
+        </Style>
+        <Style Selector="iv|NumericBox /template/ TextBox#PART_TextBox">
+            <Setter Property="MinHeight" Value="0" />
+        </Style>
+        <Style Selector="iv|NumericBox /template/ TextBox#PART_TextBox:disabled">
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="CornerRadius" Value="0" />
         </Style>
-        <Style Selector="Border.jobLockCard">
-            <Setter Property="Margin" Value="0,0,0,8" />
-            <Setter Property="Padding" Value="10,8" />
-        </Style>
-        <Style Selector="Border.autoSplitCard">
-            <Setter Property="Padding" Value="12,10" />
-            <Setter Property="Margin" Value="0,0,0,8" />
-        </Style>
-        <Style Selector="Border.galleryRow">
-            <Setter Property="Padding" Value="10,7" />
-            <Setter Property="Margin" Value="0,0,0,6" />
-            <Setter Property="Background" Value="Transparent" />
+        <Style Selector="iv|NumericBox:disabled">
+            <Setter Property="Background" Value="{DynamicResource IvSurfaceDisabledBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource IvTextDisabledBrush}" />
+        </Style>
+        <Style Selector="TextBox.fieldWide, ComboBox">
+            <Setter Property="Height" Value="32" />
+        </Style>
+
+        <!-- ===== 锁定提示 ===== -->
+        <Style Selector="Border.lockBanner">
+            <Setter Property="Margin" Value="20,16,20,0" />
+            <Setter Property="MaxWidth" Value="880" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="Padding" Value="12,9" />
+            <Setter Property="Background" Value="{DynamicResource IvWarningSubtleBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvWarningBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="CornerRadius" Value="6" />
         </Style>
-        <Style Selector="Border.galleryRow.autoSplitRow">
-            <Setter Property="Padding" Value="10,6" />
-            <Setter Property="Margin" Value="0,0,0,4" />
-        </Style>
-        <Style Selector="Border.galleryRow.selected">
-            <Setter Property="BorderBrush" Value="{DynamicResource IvAccentBorderBrush}" />
-            <Setter Property="Background" Value="{DynamicResource IvSurfaceSelectedBrush}" />
-        </Style>
-        <Style Selector="Border.segmentHost">
+
+        <!-- ===== 分段控件（划分方式 / 图库用途） ===== -->
+        <Style Selector="Border.segment">
             <Setter Property="Padding" Value="2" />
-            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Background" Value="{DynamicResource IvSurface3Brush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
-        <Style Selector="Button.roleChip">
-            <Setter Property="MinWidth" Value="46" />
-            <Setter Property="MinHeight" Value="24" />
-            <Setter Property="Padding" Value="8,3" />
-            <Setter Property="Margin" Value="0" />
-            <Setter Property="FontSize" Value="11.5" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="BorderThickness" Value="1" />
+        <Style Selector="Border.segment > StackPanel">
+            <Setter Property="Orientation" Value="Horizontal" />
+            <Setter Property="Spacing" Value="2" />
+        </Style>
+        <Style Selector="Button.segItem">
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="MinWidth" Value="44" />
+            <Setter Property="Height" Value="26" />
+            <Setter Property="Padding" Value="10,0" />
+            <Setter Property="FontSize" Value="12" />
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
         </Style>
-        <Style Selector="Button.roleChip.roleTraining">
-            <Setter Property="Background" Value="#2422C55E" />
-            <Setter Property="BorderBrush" Value="#22C55E" />
+        <Style Selector="Button.segItem.active">
+            <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style Selector="Button.segItem.roleTraining">
+            <Setter Property="Background" Value="{DynamicResource IvSuccessSubtleBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvSuccessBrush}" />
             <Setter Property="Foreground" Value="{DynamicResource IvSuccessTextBrush}" />
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
-        <Style Selector="Button.roleChip.roleValidation">
-            <Setter Property="Background" Value="#243B82F6" />
-            <Setter Property="BorderBrush" Value="#3B82F6" />
+        <Style Selector="Button.segItem.roleValidation">
+            <Setter Property="Background" Value="{DynamicResource IvInfoSubtleBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvAccentBorderBrush}" />
             <Setter Property="Foreground" Value="{DynamicResource IvAccentTextBrush}" />
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
-        <Style Selector="Button.roleChip.roleDual">
-            <Setter Property="Background" Value="#24F59E0B" />
-            <Setter Property="BorderBrush" Value="#F59E0B" />
+        <Style Selector="Button.segItem.roleDual">
+            <Setter Property="Background" Value="{DynamicResource IvWarningSubtleBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvWarningBorderBrush}" />
             <Setter Property="Foreground" Value="{DynamicResource IvWarningTextBrush}" />
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
-        <Style Selector="Button.roleChip.roleNone">
-            <Setter Property="Background" Value="#2464748B" />
-            <Setter Property="BorderBrush" Value="#64748B" />
-            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+        <Style Selector="Button.segItem.roleNone">
+            <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
-        <Style Selector="Button.roleChip.modeChip">
-            <Setter Property="MinWidth" Value="0" />
-            <Setter Property="Padding" Value="10,4" />
-            <Setter Property="FontSize" Value="11" />
+
+        <!-- ===== 数据集：比例条与图库列表 ===== -->
+        <Style Selector="Slider.splitSlider /template/ RepeatButton">
+            <Setter Property="Background" Value="{DynamicResource IvAccentBrush}" />
+        </Style>
+        <Style Selector="Slider.splitSlider /template/ RepeatButton#Fill">
+            <Setter Property="Background" Value="{DynamicResource IvSuccessBrush}" />
+        </Style>
+        <Style Selector="Border.legendSwatch">
+            <Setter Property="Width" Value="8" />
+            <Setter Property="Height" Value="8" />
+            <Setter Property="CornerRadius" Value="2" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="TextBlock.ratioValue">
+            <Setter Property="FontFamily" Value="{DynamicResource IvMonoFontFamily}" />
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="TextBlock.ratioCaption">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+        </Style>
+        <Style Selector="Border.galleryHeader">
+            <Setter Property="Padding" Value="16,10" />
+            <Setter Property="Background" Value="{DynamicResource IvBandBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="CornerRadius" Value="8,8,0,0" />
+        </Style>
+        <Style Selector="Border.galleryRow">
+            <Setter Property="MinHeight" Value="44" />
+            <Setter Property="Padding" Value="16,7" />
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderBrush" Value="Transparent" />
-            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
         </Style>
-        <Style Selector="Button.roleChip.modeChip.active">
-            <Setter Property="Background" Value="{DynamicResource IvAccentSubtleBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource IvAccentBrush}" />
-            <Setter Property="Foreground" Value="{DynamicResource IvAccentTextBrush}" />
-            <Setter Property="FontWeight" Value="SemiBold" />
+        <Style Selector="Border.galleryRow:pointerover">
+            <Setter Property="Background" Value="{DynamicResource IvSurfaceSubtleHoverBrush}" />
+        </Style>
+        <Style Selector="Border.summaryBar">
+            <Setter Property="Margin" Value="0,12,0,0" />
+            <Setter Property="Padding" Value="14,10" />
+            <Setter Property="Background" Value="{DynamicResource IvSurface3Brush}" />
+            <Setter Property="CornerRadius" Value="6" />
         </Style>
     </UserControl.Styles>
 
     <Grid x:Name="SettingsContentHost"
-          Margin="16,6,16,0"
           MinHeight="0"
           VerticalAlignment="Stretch"
           RowDefinitions="Auto,*"
           IsVisible="{Binding Monitor.IsSettingsMode}">
 
-        <Border Grid.Row="0"
-                Classes="card inset jobLockCard"
-                IsVisible="{Binding Config.IsJobLocked}">
-            <TextBlock FontSize="12"
-                       Foreground="{DynamicResource IvText2Brush}"
-                       Text="任务已开始，参数已锁定。如需调整请新建任务。" />
+        <!-- 锁定提示：任务已开始（非草稿）时整张表单只读 -->
+        <Border Grid.Row="0" Classes="lockBanner" IsVisible="{Binding Config.IsJobLocked}">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                <iv:Icon VerticalAlignment="Center"
+                         FontSize="15"
+                         Foreground="{DynamicResource IvWarningTextBrush}"
+                         Data="{x:Static ui:IvIcons.Info}" />
+                <TextBlock Grid.Column="1"
+                           VerticalAlignment="Center"
+                           FontSize="12"
+                           TextWrapping="Wrap"
+                           Foreground="{DynamicResource IvWarningTextBrush}"
+                           Text="任务已开始，参数已锁定。如需调整，请新建任务。" />
+            </Grid>
         </Border>
 
         <Grid Grid.Row="1" MinHeight="0" IsEnabled="{Binding Config.IsFormEditable}">
 
-            <ScrollViewer Margin="0,4,0,12"
-                          HorizontalScrollBarVisibility="Disabled"
+            <!-- ================= 基本配置 ================= -->
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled"
                           VerticalScrollBarVisibility="Auto"
                           IsVisible="{Binding Monitor.IsBasicSectionActive}">
-                <Border Classes="formSection" Margin="0">
-                    <StackPanel MaxWidth="900" HorizontalAlignment="Stretch">
-                        <TextBlock Classes="sectionTitle" Text="基本信息" />
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                <TextBlock VerticalAlignment="Center"
-                                           Classes="fieldLabel"
-                                           Margin="0"
-                                           Text="实验名称" />
-                                <dv:ParamHelpButton Title="实验名称" HelpText="用于输出目录命名，不可与其他任务重复" />
+                <Grid Classes="sectionHost">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" MaxWidth="920" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Classes="sectionStack">
+                    <StackPanel>
+                        <TextBlock Classes="groupTitle" Text="基本信息" />
+                        <Border Classes="card">
+                            <StackPanel>
+                                <Border Classes="paramRow">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="24">
+                                        <StackPanel>
+                                            <TextBlock Classes="paramLabel" Text="实验名称" />
+                                            <TextBlock Classes="paramHint" Text="用于输出目录命名，不可与其他任务重复" />
+                                        </StackPanel>
+                                        <TextBox Grid.Column="1"
+                                                 Classes="fieldWide"
+                                                 AutomationProperties.Name="实验名称"
+                                                 Text="{Binding Config.ModelName, Mode=TwoWay}" />
+                                    </Grid>
+                                </Border>
+                                <Border Classes="paramRow">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="24">
+                                        <StackPanel>
+                                            <TextBlock Classes="paramLabel" Text="模型架构" />
+                                            <TextBlock Classes="paramHint" Text="按项目类型选择：分类支持 ResNet 与 YOLO26-cls，检测支持 YOLO26-det" />
+                                        </StackPanel>
+                                        <ComboBox Grid.Column="1"
+                                                  Classes="fieldWide"
+                                                  AutomationProperties.Name="模型架构"
+                                                  ItemsSource="{Binding Config.AvailableModelTypes}"
+                                                  SelectedValue="{Binding Config.SelectedModelType, Mode=TwoWay}"
+                                                  SelectedValueBinding="{Binding Value}"
+                                                  IsEnabled="{Binding Config.IsFormEditable}">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Label}" />
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                    </Grid>
+                                </Border>
                             </StackPanel>
-                            <TextBox Text="{Binding Config.ModelName, Mode=TwoWay}" />
-                        </StackPanel>
-
-                        <StackPanel Margin="0,12,0,0">
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                <TextBlock VerticalAlignment="Center"
-                                           Classes="fieldLabel"
-                                           Margin="0"
-                                           Text="模型架构" />
-                                <dv:ParamHelpButton Title="模型架构"
-                                                    HelpText="按项目类型选择架构：分类支持 ResNet 与 YOLO26-cls，检测支持 YOLO26-det" />
-                            </StackPanel>
-                            <ComboBox ItemsSource="{Binding Config.AvailableModelTypes}"
-                                      SelectedValue="{Binding Config.SelectedModelType, Mode=TwoWay}"
-                                      SelectedValueBinding="{Binding Value}"
-                                      IsEnabled="{Binding Config.IsFormEditable}">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Label}" />
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
-                        </StackPanel>
-
+                        </Border>
                     </StackPanel>
-                </Border>
+                </StackPanel>
+                </Grid>
             </ScrollViewer>
 
-            <Border Margin="0,4,0,12"
-                    Classes="formSection"
-                    VerticalAlignment="Stretch"
-                    IsVisible="{Binding Monitor.IsDatasetSectionActive}">
-                <Grid MinHeight="0">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" MinHeight="120" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
+            <!-- ================= 数据集 ================= -->
+            <Grid Margin="20,16,20,16"
+                  RowDefinitions="Auto,*,Auto"
+                  IsVisible="{Binding Monitor.IsDatasetSectionActive}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" MaxWidth="920" />
+                </Grid.ColumnDefinitions>
 
-                    <Border Grid.Row="0"
-                            Classes="card inset autoSplitCard"
-                            IsVisible="{Binding Config.Dataset.IsAutoSplitMode}">
-                        <StackPanel>
-                            <Grid>
-                                <TextBlock VerticalAlignment="Center"
-                                           Classes="fieldLabel"
-                                           Margin="0"
-                                           Text="验证集比例" />
-                                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-                                    <TextBlock FontSize="18"
-                                               FontWeight="SemiBold"
-                                               FontFamily="{DynamicResource IvMonoFontFamily}"
-                                               Text="{Binding Config.Dataset.ValidationRatioPercent, StringFormat={}{0:0}}" />
-                                    <TextBlock Margin="2,0,0,1"
-                                               VerticalAlignment="Bottom"
-                                               FontSize="11"
-                                               Foreground="{DynamicResource IvText2Brush}"
-                                               Text="%" />
+                <!-- 划分方式 + 自动分割比例 -->
+                <Border Grid.Row="0" Margin="0,0,0,16" Classes="card">
+                    <StackPanel>
+                        <Border Classes="paramRow">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="24">
+                                <StackPanel>
+                                    <TextBlock Classes="paramLabel" Text="划分方式" />
+                                    <TextBlock Classes="paramHint"
+                                               Text="按用途分配：逐个指定图库用作训练或验证"
+                                               IsVisible="{Binding Config.Dataset.IsPurposeAssignmentMode}" />
+                                    <TextBlock Classes="paramHint"
+                                               Text="自动分割：从勾选的图库中按比例划出验证集"
+                                               IsVisible="{Binding Config.Dataset.IsAutoSplitMode}" />
                                 </StackPanel>
-                            </Grid>
-                            <Grid Height="22" Margin="0,8,0,0">
-                                <Border Height="8"
-                                        VerticalAlignment="Center"
-                                        Background="#3B82F6"
-                                        BorderBrush="{DynamicResource IvStrokeBrush}"
-                                        BorderThickness="1"
-                                        CornerRadius="4"
-                                        IsHitTestVisible="False"
-                                        ClipToBounds="True">
-                                    <ProgressBar Height="6"
-                                                 Minimum="0"
-                                                 Maximum="100"
-                                                 Background="Transparent"
-                                                 Foreground="#22C55E"
-                                                 BorderThickness="0"
-                                                 Value="{Binding Config.Dataset.TrainRatioPercent, Mode=OneWay}" />
+                                <Border Grid.Column="1"
+                                        Classes="segment"
+                                        IsVisible="{Binding Config.ShowDatasetSplitControls}">
+                                    <StackPanel>
+                                        <Button Classes="segItem"
+                                                Classes.active="{Binding Config.Dataset.IsPurposeAssignmentMode}"
+                                                Command="{Binding Config.Dataset.SwitchToPurposeAssignmentModeCommand}"
+                                                Content="按用途分配" />
+                                        <Button Classes="segItem"
+                                                Classes.active="{Binding Config.Dataset.IsAutoSplitMode}"
+                                                Command="{Binding Config.Dataset.SwitchToAutoSplitModeCommand}"
+                                                Content="自动分割" />
+                                    </StackPanel>
                                 </Border>
-                                <Slider Height="22"
-                                        VerticalAlignment="Center"
+                            </Grid>
+                        </Border>
+
+                        <Border Classes="paramRow" IsVisible="{Binding Config.Dataset.IsAutoSplitMode}">
+                            <StackPanel Spacing="8">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock VerticalAlignment="Center" Classes="paramLabel" Text="训练 / 验证比例" />
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                                        <Border Classes="legendSwatch" Background="{DynamicResource IvSuccessBrush}" />
+                                        <TextBlock Classes="ratioCaption" Text="训练" />
+                                        <TextBlock Classes="ratioValue"
+                                                   Text="{Binding Config.Dataset.TrainRatioPercent, StringFormat={}{0:0}%}" />
+                                        <Border Width="16" />
+                                        <Border Classes="legendSwatch" Background="{DynamicResource IvAccentBrush}" />
+                                        <TextBlock Classes="ratioCaption" Text="验证" />
+                                        <TextBlock Classes="ratioValue"
+                                                   Text="{Binding Config.Dataset.ValidationRatioPercent, StringFormat={}{0:0}%}" />
+                                    </StackPanel>
+                                </Grid>
+                                <Slider Classes="splitSlider"
                                         Minimum="0"
                                         Maximum="100"
                                         TickFrequency="1"
@@ -237,335 +345,416 @@
                                         AutomationProperties.AutomationId="dv.training.validation-ratio"
                                         AutomationProperties.Name="验证集比例"
                                         Value="{Binding Config.Dataset.TrainRatioPercent, Mode=TwoWay}" />
-                            </Grid>
-                            <StackPanel Margin="0,6,0,0" Orientation="Horizontal">
-                                <Border Width="7"
-                                        Height="7"
-                                        Background="#22C55E"
-                                        CornerRadius="2"
-                                        VerticalAlignment="Center"
-                                        Margin="0,0,5,0" />
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock FontSize="11" Foreground="{DynamicResource IvText2Brush}" Text="训练 " />
-                                    <TextBlock FontSize="11"
-                                               Foreground="{DynamicResource IvText2Brush}"
-                                               Text="{Binding Config.Dataset.TrainRatioPercent, StringFormat={}{0:0}}" />
-                                    <TextBlock FontSize="11" Foreground="{DynamicResource IvText2Brush}" Text="%" />
-                                </StackPanel>
-                                <Border Margin="12,0,5,0"
-                                        Width="7"
-                                        Height="7"
-                                        Background="#3B82F6"
-                                        CornerRadius="2"
-                                        VerticalAlignment="Center" />
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock FontSize="11" Foreground="{DynamicResource IvText2Brush}" Text="验证 " />
-                                    <TextBlock FontSize="11"
-                                               Foreground="{DynamicResource IvText2Brush}"
-                                               Text="{Binding Config.Dataset.ValidationRatioPercent, StringFormat={}{0:0}}" />
-                                    <TextBlock FontSize="11" Foreground="{DynamicResource IvText2Brush}" Text="%" />
-                                </StackPanel>
                             </StackPanel>
-                        </StackPanel>
-                    </Border>
+                        </Border>
+                    </StackPanel>
+                </Border>
 
-                    <TextBlock Grid.Row="1"
-                               Margin="0,4,0,8"
-                               Classes="sectionTitle"
-                               Text="训练图库" />
+                <!-- 训练图库 -->
+                <Border Grid.Row="1"
+                        MinHeight="160"
+                        Classes="card"
+                        IsVisible="{Binding Config.Dataset.ShowsInteractiveGalleryPicker}">
+                    <Grid RowDefinitions="Auto,*">
+                        <Border Classes="galleryHeader">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock VerticalAlignment="Center" Classes="paramLabel" Text="训练图库" />
+                                    <TextBlock VerticalAlignment="Center"
+                                               FontSize="12"
+                                               Foreground="{DynamicResource IvText3Brush}"
+                                               Text="名称（已标注 / 总数）" />
+                                </StackPanel>
+                                <TextBlock Grid.Column="1"
+                                           VerticalAlignment="Center"
+                                           FontSize="12"
+                                           Foreground="{DynamicResource IvText2Brush}"
+                                           Text="为每个图库选择用途"
+                                           IsVisible="{Binding Config.Dataset.IsPurposeAssignmentMode}" />
+                                <TextBlock Grid.Column="1"
+                                           VerticalAlignment="Center"
+                                           FontSize="12"
+                                           Foreground="{DynamicResource IvText2Brush}"
+                                           Text="勾选参与训练的图库"
+                                           IsVisible="{Binding Config.Dataset.IsAutoSplitMode}" />
+                            </Grid>
+                        </Border>
 
-                    <Border Classes="card" Grid.Row="2"
-                            MinHeight="0"
-                            Margin="0,0,0,6"
-                            Padding="8"
-                            IsVisible="{Binding Config.Dataset.ShowsInteractiveGalleryPicker}">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ScrollViewer Grid.Row="1"
+                                      HorizontalScrollBarVisibility="Disabled"
+                                      VerticalScrollBarVisibility="Auto">
                             <ItemsControl AutomationProperties.AutomationId="dv.training.galleries"
                                           ItemsSource="{Binding JobList.Galleries}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <StackPanel AutomationProperties.AutomationId="{Binding SelectAutomationId}"
-                                                    AutomationProperties.Name="{Binding Name}">
-                                            <Border Classes="galleryRow autoSplitRow"
-                                                    Classes.selected="{Binding IsSelected}"
+                                        <Panel AutomationProperties.AutomationId="{Binding SelectAutomationId}"
+                                               AutomationProperties.Name="{Binding Name}">
+                                            <!-- 自动分割：勾选 -->
+                                            <Border Classes="galleryRow"
                                                     IsVisible="{Binding $parent[UserControl].DataContext.Config.Dataset.IsAutoSplitMode}">
                                                 <CheckBox VerticalAlignment="Center"
                                                           AutomationProperties.AutomationId="{Binding SelectAutomationId}"
                                                           AutomationProperties.Name="{Binding Name}"
                                                           Content="{Binding DisplayText}"
-                                                          FontWeight="SemiBold"
                                                           IsChecked="{Binding IsSelected, Mode=TwoWay}" />
                                             </Border>
+                                            <!-- 按用途分配：训练 / 验证 / 训&验 / 不使用 -->
                                             <Border Classes="galleryRow"
                                                     IsVisible="{Binding $parent[UserControl].DataContext.Config.Dataset.IsPurposeAssignmentMode}">
-                                                <Grid ColumnDefinitions="*,Auto">
+                                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
                                                     <TextBlock VerticalAlignment="Center"
-                                                               FontWeight="SemiBold"
-                                                               Text="{Binding DisplayText}" />
-                                                    <Border Grid.Column="1" Classes="segmentHost">
-                                                        <StackPanel Orientation="Horizontal"
-                                                                    IsVisible="{Binding $parent[UserControl].DataContext.Config.Dataset.ShowsStandardGalleryRoles}">
-                                                            <Button Classes="roleChip"
+                                                               FontSize="13"
+                                                               Text="{Binding DisplayText}"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               ToolTip.Tip="{Binding DisplayText}" />
+                                                    <Border Grid.Column="1"
+                                                            Classes="segment"
+                                                            IsVisible="{Binding $parent[UserControl].DataContext.Config.Dataset.ShowsStandardGalleryRoles}">
+                                                        <StackPanel>
+                                                            <Button Classes="segItem"
                                                                     Classes.roleTraining="{Binding Role, Converter={StaticResource GalleryRoleEqualsConverter}, ConverterParameter=Training}"
                                                                     Command="{Binding $parent[UserControl].DataContext.Config.Dataset.SetGalleryTrainingCommand}"
                                                                     CommandParameter="{Binding}"
                                                                     Content="训练" />
-                                                            <Button Classes="roleChip"
+                                                            <Button Classes="segItem"
                                                                     Classes.roleValidation="{Binding Role, Converter={StaticResource GalleryRoleEqualsConverter}, ConverterParameter=Validation}"
-                                                                    Margin="4,0,0,0"
                                                                     Command="{Binding $parent[UserControl].DataContext.Config.Dataset.SetGalleryValidationCommand}"
                                                                     CommandParameter="{Binding}"
                                                                     Content="验证" />
-                                                            <Button Classes="roleChip"
+                                                            <Button Classes="segItem"
                                                                     Classes.roleDual="{Binding Role, Converter={StaticResource GalleryRoleEqualsConverter}, ConverterParameter=TrainingAndValidation}"
-                                                                    Margin="4,0,0,0"
                                                                     Command="{Binding $parent[UserControl].DataContext.Config.Dataset.SetGalleryTrainingAndValidationCommand}"
                                                                     CommandParameter="{Binding}"
                                                                     Content="训&amp;验"
                                                                     ToolTip.Tip="训&amp;验会让同一批样本同时进入训练集和验证集，验证指标存在数据重合，仅建议用于小样本训练。" />
-                                                            <Button Classes="roleChip"
+                                                            <Button Classes="segItem"
                                                                     Classes.roleNone="{Binding Role, Converter={StaticResource GalleryRoleEqualsConverter}, ConverterParameter=None}"
-                                                                    Margin="4,0,0,0"
                                                                     Command="{Binding $parent[UserControl].DataContext.Config.Dataset.SetGalleryNoneCommand}"
                                                                     CommandParameter="{Binding}"
-                                                                    Content="无" />
+                                                                    Content="不使用" />
                                                         </StackPanel>
                                                     </Border>
                                                 </Grid>
                                             </Border>
-                                        </StackPanel>
+                                        </Panel>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
                         </ScrollViewer>
-                    </Border>
+                    </Grid>
+                </Border>
 
-                    <Grid Grid.Row="3" VerticalAlignment="Bottom" ColumnDefinitions="*,12,Auto">
-
-                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                            <TextBlock FontSize="12"
+                <!-- 汇总 + 校验 -->
+                <Border Grid.Row="2" Classes="summaryBar">
+                    <StackPanel Spacing="4">
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                            <iv:Icon VerticalAlignment="Center"
+                                     FontSize="14"
+                                     Foreground="{DynamicResource IvText2Brush}"
+                                     Data="{x:Static ui:IvIcons.Images}" />
+                            <TextBlock Grid.Column="1"
+                                       VerticalAlignment="Center"
+                                       FontSize="12"
                                        Text="{Binding Config.Dataset.DatasetSummaryText}"
                                        TextTrimming="CharacterEllipsis"
-                                       TextWrapping="NoWrap" />
-                            <TextBlock Margin="0,2,0,0"
-                                       FontSize="11"
+                                       TextWrapping="NoWrap"
+                                       ToolTip.Tip="{Binding Config.Dataset.DatasetSummaryText}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="Auto,*"
+                              ColumnSpacing="8"
+                              IsVisible="{Binding Config.Dataset.HasDatasetValidationMessage}">
+                            <iv:Icon VerticalAlignment="Top"
+                                     Margin="0,1,0,0"
+                                     FontSize="14"
+                                     Foreground="{DynamicResource IvDangerTextBrush}"
+                                     Data="{x:Static ui:IvIcons.Error}" />
+                            <TextBlock Grid.Column="1"
+                                       FontSize="12"
                                        Foreground="{DynamicResource IvDangerTextBrush}"
                                        Text="{Binding Config.Dataset.DatasetValidationMessage}"
-                                       TextWrapping="Wrap"
-                                       IsVisible="{Binding Config.Dataset.HasDatasetValidationMessage}" />
-                            <TextBlock Margin="0,3,0,0"
-                                       FontSize="11"
-                                       Foreground="{DynamicResource IvWarningTextBrush}"
+                                       TextWrapping="Wrap" />
+                        </Grid>
+                        <Grid ColumnDefinitions="Auto,*"
+                              ColumnSpacing="8"
+                              IsVisible="{Binding Config.Dataset.ShowsStandardGalleryRoles}">
+                            <iv:Icon VerticalAlignment="Top"
+                                     Margin="0,1,0,0"
+                                     FontSize="14"
+                                     Foreground="{DynamicResource IvWarningTextBrush}"
+                                     Data="{x:Static ui:IvIcons.Warning}" />
+                            <TextBlock Grid.Column="1"
+                                       FontSize="12"
+                                       Foreground="{DynamicResource IvText2Brush}"
                                        Text="训&amp;验会让同一批样本同时进入训练集和验证集，验证指标存在数据重合，仅建议用于小样本训练。"
-                                       TextWrapping="Wrap"
-                                       IsVisible="{Binding Config.Dataset.ShowsStandardGalleryRoles}" />
-                        </StackPanel>
+                                       TextWrapping="Wrap" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </Grid>
 
-                        <Border Grid.Column="2"
-                                VerticalAlignment="Center"
-                                Classes="segmentHost"
-                                IsVisible="{Binding Config.ShowDatasetSplitControls}">
-                            <StackPanel Orientation="Horizontal">
-                                <Button Classes="roleChip modeChip"
-                                        Classes.active="{Binding Config.Dataset.IsPurposeAssignmentMode}"
-                                        Command="{Binding Config.Dataset.SwitchToPurposeAssignmentModeCommand}"
-                                        Content="按用途分配" />
-                                <Button Classes="roleChip modeChip"
-                                        Classes.active="{Binding Config.Dataset.IsAutoSplitMode}"
-                                        Margin="3,0,0,0"
-                                        Command="{Binding Config.Dataset.SwitchToAutoSplitModeCommand}"
-                                        Content="自动分割" />
-                            </StackPanel>
-                        </Border>
-                    </Grid>
-                </Grid>
-            </Border>
-
-            <ScrollViewer Margin="0,4,0,12"
-                          HorizontalScrollBarVisibility="Disabled"
+            <!-- ================= 超参数 ================= -->
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled"
                           VerticalScrollBarVisibility="Auto"
                           IsVisible="{Binding Monitor.IsHyperparametersSectionActive}">
-                <Border Margin="0" Classes="formSection">
-                    <StackPanel MaxWidth="900" HorizontalAlignment="Stretch">
-                        <Grid ColumnDefinitions="*,16,*,16,*" IsVisible="{Binding Config.UsesNetworkInputSize}">
-                            <StackPanel Grid.Column="0">
-                                <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
-                                    <TextBlock Margin="0" VerticalAlignment="Center" Classes="fieldLabel" Text="Epochs" />
-                                    <dv:ParamHelpButton Title="Epochs" HelpText="范围 1–100000" />
-                                </StackPanel>
-                                <iv:NumericBox Minimum="1" Maximum="100000" DecimalPlaces="0"
-                                              Tag="Epochs"
-                                              Value="{Binding Config.Epochs, Mode=TwoWay}" />
+                <Grid Classes="sectionHost">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" MaxWidth="920" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Classes="sectionStack">
+                    <StackPanel IsVisible="{Binding Config.UsesNetworkInputSize}">
+                        <TextBlock Classes="groupTitle" Text="训练节奏" />
+                        <Border Classes="card">
+                            <StackPanel>
+                                <Border Classes="paramRow">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="24">
+                                        <StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Classes="paramLabel" Text="训练轮数" />
+                                                <TextBlock Classes="paramKey" Text="Epochs" />
+                                            </StackPanel>
+                                            <TextBlock Classes="paramHint" Text="完整遍历一次训练集记为一轮，范围 1–100000" />
+                                        </StackPanel>
+                                        <iv:NumericBox Grid.Column="1"
+                                                       Classes="fieldNarrow"
+                                                       Minimum="1" Maximum="100000" DecimalPlaces="0"
+                                                       Unit="轮"
+                                                       Tag="Epochs"
+                                                       AutomationProperties.Name="Epochs"
+                                                       Value="{Binding Config.Epochs, Mode=TwoWay}" />
+                                    </Grid>
+                                </Border>
+                                <Border Classes="paramRow">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="24">
+                                        <StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Classes="paramLabel" Text="批大小" />
+                                                <TextBlock Classes="paramKey" Text="Batch Size" />
+                                            </StackPanel>
+                                            <TextBlock Classes="paramHint" Text="每一步送入网络的样本数，范围 1–32；显存不足时调小" />
+                                        </StackPanel>
+                                        <iv:NumericBox Grid.Column="1"
+                                                       Classes="fieldNarrow"
+                                                       Minimum="1" DecimalPlaces="0"
+                                                       Tag="BatchSize"
+                                                       AutomationProperties.Name="Batch Size"
+                                                       Value="{Binding Config.BatchSize, Mode=TwoWay}" />
+                                    </Grid>
+                                </Border>
+                                <Border Classes="paramRow">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="24">
+                                        <StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Classes="paramLabel" Text="学习率" />
+                                                <TextBlock Classes="paramKey" Text="Learning Rate" />
+                                            </StackPanel>
+                                            <TextBlock Classes="paramHint" Text="范围 0.00005–0.005" />
+                                        </StackPanel>
+                                        <iv:NumericBox Grid.Column="1"
+                                                       Classes="fieldNarrow"
+                                                       Maximum="0.005" Minimum="0.00005" Step="0.0001" DecimalPlaces="4"
+                                                       Tag="LearningRate"
+                                                       AutomationProperties.Name="学习率"
+                                                       Value="{Binding Config.LearningRate, Mode=TwoWay}" />
+                                    </Grid>
+                                </Border>
                             </StackPanel>
-
-                            <StackPanel Grid.Column="2">
-                                <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
-                                    <TextBlock Margin="0" VerticalAlignment="Center" Classes="fieldLabel" Text="Batch Size" />
-                                    <dv:ParamHelpButton Title="Batch Size" HelpText="范围 1–32" />
-                                </StackPanel>
-                                <iv:NumericBox Minimum="1" DecimalPlaces="0"
-                                              Tag="BatchSize"
-                                              Value="{Binding Config.BatchSize, Mode=TwoWay}" />
-                            </StackPanel>
-
-                            <StackPanel Grid.Column="4">
-                                <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
-                                    <TextBlock Margin="0" VerticalAlignment="Center" Classes="fieldLabel" Text="学习率" />
-                                    <dv:ParamHelpButton Title="学习率" HelpText="范围 0.00005–0.005" />
-                                </StackPanel>
-                                <iv:NumericBox Maximum="0.005" Minimum="0.00005" Step="0.0001" DecimalPlaces="4"
-                                              Tag="LearningRate"
-                                              Value="{Binding Config.LearningRate, Mode=TwoWay}" />
-                            </StackPanel>
-                        </Grid>
-
-                        <Grid Margin="0,12,0,0" ColumnDefinitions="*">
-                            <StackPanel Grid.Column="0">
-                                <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
-                                    <TextBlock Margin="0" VerticalAlignment="Center" Classes="fieldLabel" Text="早停耐心" />
-                                    <dv:ParamHelpButton Title="早停耐心" HelpText="连续多少轮验证集无提升就停止；0 表示关闭（跑满 Epochs）" />
-                                </StackPanel>
-                                <iv:NumericBox Minimum="0" Maximum="100" DecimalPlaces="0"
-                                              Tag="EarlyStoppingPatience"
-                                              Value="{Binding Config.EarlyStoppingPatience, Mode=TwoWay}" />
-                            </StackPanel>
-                        </Grid>
+                        </Border>
                     </StackPanel>
-                </Border>
+
+                    <StackPanel>
+                        <TextBlock Classes="groupTitle" Text="早停" />
+                        <Border Classes="card">
+                            <StackPanel>
+                                <Border Classes="paramRow">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="24">
+                                        <StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Classes="paramLabel" Text="早停耐心" />
+                                                <TextBlock Classes="paramKey" Text="Patience" />
+                                            </StackPanel>
+                                            <TextBlock Classes="paramHint" Text="连续多少轮验证集无提升就停止；0 表示关闭（跑满训练轮数）" />
+                                        </StackPanel>
+                                        <iv:NumericBox Grid.Column="1"
+                                                       Classes="fieldNarrow"
+                                                       Minimum="0" Maximum="100" DecimalPlaces="0"
+                                                       Unit="轮"
+                                                       Tag="EarlyStoppingPatience"
+                                                       AutomationProperties.Name="早停耐心"
+                                                       Value="{Binding Config.EarlyStoppingPatience, Mode=TwoWay}" />
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </StackPanel>
+                </Grid>
             </ScrollViewer>
 
-            <ScrollViewer Margin="0,4,0,12"
-                          HorizontalScrollBarVisibility="Disabled"
+            <!-- ================= 高级参数 ================= -->
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled"
                           VerticalScrollBarVisibility="Auto"
                           IsVisible="{Binding Monitor.IsAdvancedSectionActive}">
-                <Border Margin="0" Classes="formSection">
-                    <StackPanel MaxWidth="900" HorizontalAlignment="Stretch">
-                        <TextBlock Classes="sectionTitle" Text="训练策略" />
-                        <Grid ColumnDefinitions="*">
-
-                            <StackPanel Grid.Column="0">
-                                <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
-                                    <TextBlock Margin="0" VerticalAlignment="Center" Classes="fieldLabel" Text="优化器" />
-                                </StackPanel>
-                                <ComboBox ItemsSource="{Binding Config.OptimizerOptions}"
-                                          SelectedItem="{Binding Config.Optimizer, Mode=TwoWay}" />
+                <Grid Classes="sectionHost">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" MaxWidth="920" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Classes="sectionStack">
+                    <StackPanel>
+                        <TextBlock Classes="groupTitle" Text="训练策略" />
+                        <Border Classes="card">
+                            <StackPanel>
+                                <Border Classes="paramRow">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="24">
+                                        <StackPanel>
+                                            <TextBlock Classes="paramLabel" Text="优化器" />
+                                            <TextBlock Classes="paramHint" Text="更新网络权重所用的算法" />
+                                        </StackPanel>
+                                        <ComboBox Grid.Column="1"
+                                                  Classes="fieldNarrow"
+                                                  AutomationProperties.Name="优化器"
+                                                  ItemsSource="{Binding Config.OptimizerOptions}"
+                                                  SelectedItem="{Binding Config.Optimizer, Mode=TwoWay}" />
+                                    </Grid>
+                                </Border>
+                                <Border Classes="paramRow" IsVisible="{Binding Config.UsesNetworkInputSize}">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="24">
+                                        <StackPanel>
+                                            <TextBlock Classes="paramLabel" Text="网络输入尺寸" />
+                                            <TextBlock Classes="paramHint" Text="{Binding Config.Spatial.NetworkInputSizeHint}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                            <iv:NumericBox Width="130"
+                                                           DecimalPlaces="0"
+                                                           Unit="宽"
+                                                           Tag="NetworkInputWidth"
+                                                           AutomationProperties.Name="网络输入宽"
+                                                           Minimum="{Binding Config.Spatial.NetworkInputSizeMin}"
+                                                           Maximum="{Binding Config.Spatial.NetworkInputSizeMax}"
+                                                           Step="{Binding Config.Spatial.NetworkInputSizeStep}"
+                                                           IsEnabled="{Binding Config.IsFormEditable}"
+                                                           Value="{Binding Config.Spatial.NetworkInputWidth, Mode=TwoWay}" />
+                                            <TextBlock VerticalAlignment="Center"
+                                                       FontSize="13"
+                                                       Foreground="{DynamicResource IvText3Brush}"
+                                                       Text="×" />
+                                            <iv:NumericBox Width="130"
+                                                           DecimalPlaces="0"
+                                                           Unit="高"
+                                                           Tag="NetworkInputHeight"
+                                                           AutomationProperties.Name="网络输入高"
+                                                           Minimum="{Binding Config.Spatial.NetworkInputSizeMin}"
+                                                           Maximum="{Binding Config.Spatial.NetworkInputSizeMax}"
+                                                           Step="{Binding Config.Spatial.NetworkInputSizeStep}"
+                                                           IsEnabled="{Binding Config.IsFormEditable}"
+                                                           Value="{Binding Config.Spatial.NetworkInputHeight, Mode=TwoWay}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
                             </StackPanel>
-                        </Grid>
-
-                        <StackPanel Margin="0,12,0,0" IsVisible="{Binding Config.UsesNetworkInputSize}">
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                <TextBlock VerticalAlignment="Center"
-                                           Classes="fieldLabel"
-                                           Margin="0"
-                                           Text="网络输入宽×高" />
-                                <dv:ParamHelpButton Title="网络输入宽×高"
-                                                    HelpText="{Binding Config.Spatial.NetworkInputSizeHint}" />
-                            </StackPanel>
-                            <Grid ColumnDefinitions="*,Auto,*">
-                                <iv:NumericBox Grid.Column="0"
-                                              MinWidth="180"
-                                              DecimalPlaces="0"
-                                              Tag="NetworkInputWidth"
-                                              Minimum="{Binding Config.Spatial.NetworkInputSizeMin}"
-                                              Maximum="{Binding Config.Spatial.NetworkInputSizeMax}"
-                                              Step="{Binding Config.Spatial.NetworkInputSizeStep}"
-                                              IsEnabled="{Binding Config.IsFormEditable}"
-                                              Value="{Binding Config.Spatial.NetworkInputWidth, Mode=TwoWay}" />
-                                <TextBlock Grid.Column="1"
-                                           Margin="12,0"
-                                           VerticalAlignment="Center"
-                                           FontSize="16"
-                                           Text="×" />
-                                <iv:NumericBox Grid.Column="2"
-                                              MinWidth="180"
-                                              DecimalPlaces="0"
-                                              Tag="NetworkInputHeight"
-                                              Minimum="{Binding Config.Spatial.NetworkInputSizeMin}"
-                                              Maximum="{Binding Config.Spatial.NetworkInputSizeMax}"
-                                              Step="{Binding Config.Spatial.NetworkInputSizeStep}"
-                                              IsEnabled="{Binding Config.IsFormEditable}"
-                                              Value="{Binding Config.Spatial.NetworkInputHeight, Mode=TwoWay}" />
-                            </Grid>
-                        </StackPanel>
-
-                        <StackPanel Margin="0,18,0,0" IsVisible="{Binding Config.IsClassificationModelSelected}">
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                <TextBlock VerticalAlignment="Center"
-                                           Classes="sectionTitle"
-                                           Margin="0"
-                                           Text="数据增强（Classification）" />
-                                <dv:ParamHelpButton Title="数据增强（Classification）"
-                                                    HelpText="0–1，默认关闭。当前仅支持左右翻转和上下翻转。" />
-                            </StackPanel>
-
-                            <Grid Margin="0,10,0,0" ColumnDefinitions="*,12,*">
-                                <StackPanel Grid.Column="0">
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                        <TextBlock VerticalAlignment="Center" Classes="fieldLabel" Margin="0" Text="水平翻转概率" />
-                                        <dv:ParamHelpButton Title="水平翻转概率" HelpText="0–1，默认 0" />
-                                    </StackPanel>
-                                    <iv:NumericBox Maximum="1" Minimum="0" Step="0.05" Value="{Binding Config.Cls.FlipLeftRight, Mode=TwoWay}" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="2">
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                        <TextBlock VerticalAlignment="Center" Classes="fieldLabel" Margin="0" Text="垂直翻转概率" />
-                                        <dv:ParamHelpButton Title="垂直翻转概率" HelpText="0–1，默认 0" />
-                                    </StackPanel>
-                                    <iv:NumericBox Maximum="1" Minimum="0" Step="0.05" Value="{Binding Config.Cls.FlipUpDown, Mode=TwoWay}" />
-                                </StackPanel>
-                            </Grid>
-                        </StackPanel>
-
-                        <StackPanel Margin="0,18,0,0" IsVisible="{Binding Config.ShowsDetectionOptions}">
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                <TextBlock VerticalAlignment="Center"
-                                           Classes="sectionTitle"
-                                           Margin="0"
-                                           Text="检测参数" />
-                                <dv:ParamHelpButton Title="检测参数"
-                                                    HelpText="NMS IoU 与评估置信度决定验证集上的框匹配与 mAP；最大框数限制单图输出。" />
-                            </StackPanel>
-
-                            <Grid Margin="0,10,0,0" ColumnDefinitions="*,12,*">
-                                <StackPanel Grid.Column="0">
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                        <TextBlock VerticalAlignment="Center" Classes="fieldLabel" Margin="0" Text="NMS IoU" />
-                                        <dv:ParamHelpButton Title="NMS IoU" HelpText="0.05–0.95，默认 0.45" />
-                                    </StackPanel>
-                                    <iv:NumericBox Maximum="0.95" Minimum="0.05" Step="0.05"
-                                                  IsEnabled="{Binding Config.IsFormEditable}"
-                                                  Value="{Binding Config.DetectionNmsIou, Mode=TwoWay}" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="2">
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                        <TextBlock VerticalAlignment="Center" Classes="fieldLabel" Margin="0" Text="评估置信度" />
-                                        <dv:ParamHelpButton Title="评估置信度" HelpText="0.01–0.99，默认 0.25" />
-                                    </StackPanel>
-                                    <iv:NumericBox Maximum="0.99" Minimum="0.01" Step="0.05"
-                                                  IsEnabled="{Binding Config.IsFormEditable}"
-                                                  Value="{Binding Config.DetectionConfidence, Mode=TwoWay}" />
-                                </StackPanel>
-                            </Grid>
-
-                            <Grid Margin="0,10,0,0" ColumnDefinitions="*,12,*">
-                                <StackPanel Grid.Column="0">
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                        <TextBlock VerticalAlignment="Center" Classes="fieldLabel" Margin="0" Text="最大框数" />
-                                        <dv:ParamHelpButton Title="最大框数" HelpText="1–1000，默认 100" />
-                                    </StackPanel>
-                                    <iv:NumericBox Maximum="1000" Minimum="1" Step="10" DecimalPlaces="0"
-                                                  IsEnabled="{Binding Config.IsFormEditable}"
-                                                  Value="{Binding Config.DetectionMaxDetections, Mode=TwoWay}" />
-                                </StackPanel>
-                                <CheckBox Grid.Column="2"
-                                          VerticalAlignment="Bottom"
-                                          Content="水平翻转（框随图镜像）"
-                                          IsEnabled="{Binding Config.IsFormEditable}"
-                                          IsChecked="{Binding Config.DetectionHorizontalFlip, Mode=TwoWay}" />
-                            </Grid>
-                        </StackPanel>
+                        </Border>
                     </StackPanel>
-                </Border>
+
+                    <!-- 分类：数据增强 -->
+                    <StackPanel IsVisible="{Binding Config.IsClassificationModelSelected}">
+                        <TextBlock Classes="groupTitle" Text="数据增强" />
+                        <Border Classes="card">
+                            <StackPanel>
+                                <Border Classes="paramRow">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="24">
+                                        <StackPanel>
+                                            <TextBlock Classes="paramLabel" Text="水平翻转概率" />
+                                            <TextBlock Classes="paramHint" Text="训练时随机左右翻转图像的概率，0–1，默认 0（关闭）" />
+                                        </StackPanel>
+                                        <iv:NumericBox Grid.Column="1"
+                                                       Classes="fieldNarrow"
+                                                       Maximum="1" Minimum="0" Step="0.05"
+                                                       AutomationProperties.Name="水平翻转概率"
+                                                       Value="{Binding Config.Cls.FlipLeftRight, Mode=TwoWay}" />
+                                    </Grid>
+                                </Border>
+                                <Border Classes="paramRow">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="24">
+                                        <StackPanel>
+                                            <TextBlock Classes="paramLabel" Text="垂直翻转概率" />
+                                            <TextBlock Classes="paramHint" Text="训练时随机上下翻转图像的概率，0–1，默认 0（关闭）" />
+                                        </StackPanel>
+                                        <iv:NumericBox Grid.Column="1"
+                                                       Classes="fieldNarrow"
+                                                       Maximum="1" Minimum="0" Step="0.05"
+                                                       AutomationProperties.Name="垂直翻转概率"
+                                                       Value="{Binding Config.Cls.FlipUpDown, Mode=TwoWay}" />
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- 检测：评估与增强 -->
+                    <StackPanel IsVisible="{Binding Config.ShowsDetectionOptions}">
+                        <TextBlock Classes="groupTitle" Text="检测参数" />
+                        <Border Classes="card">
+                            <StackPanel>
+                                <Border Classes="paramRow">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="24">
+                                        <StackPanel>
+                                            <TextBlock Classes="paramLabel" Text="NMS IoU" />
+                                            <TextBlock Classes="paramHint" Text="重叠框去重阈值，影响验证集上的框匹配与 mAP；0.05–0.95，默认 0.45" />
+                                        </StackPanel>
+                                        <iv:NumericBox Grid.Column="1"
+                                                       Classes="fieldNarrow"
+                                                       Maximum="0.95" Minimum="0.05" Step="0.05"
+                                                       AutomationProperties.Name="NMS IoU"
+                                                       IsEnabled="{Binding Config.IsFormEditable}"
+                                                       Value="{Binding Config.DetectionNmsIou, Mode=TwoWay}" />
+                                    </Grid>
+                                </Border>
+                                <Border Classes="paramRow">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="24">
+                                        <StackPanel>
+                                            <TextBlock Classes="paramLabel" Text="评估置信度" />
+                                            <TextBlock Classes="paramHint" Text="低于该置信度的框不参与评估；0.01–0.99，默认 0.25" />
+                                        </StackPanel>
+                                        <iv:NumericBox Grid.Column="1"
+                                                       Classes="fieldNarrow"
+                                                       Maximum="0.99" Minimum="0.01" Step="0.05"
+                                                       AutomationProperties.Name="评估置信度"
+                                                       IsEnabled="{Binding Config.IsFormEditable}"
+                                                       Value="{Binding Config.DetectionConfidence, Mode=TwoWay}" />
+                                    </Grid>
+                                </Border>
+                                <Border Classes="paramRow">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="24">
+                                        <StackPanel>
+                                            <TextBlock Classes="paramLabel" Text="最大框数" />
+                                            <TextBlock Classes="paramHint" Text="单张图最多输出的检测框数量；1–1000，默认 100" />
+                                        </StackPanel>
+                                        <iv:NumericBox Grid.Column="1"
+                                                       Classes="fieldNarrow"
+                                                       Maximum="1000" Minimum="1" Step="10" DecimalPlaces="0"
+                                                       AutomationProperties.Name="最大框数"
+                                                       IsEnabled="{Binding Config.IsFormEditable}"
+                                                       Value="{Binding Config.DetectionMaxDetections, Mode=TwoWay}" />
+                                    </Grid>
+                                </Border>
+                                <Border Classes="paramRow">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="24">
+                                        <StackPanel>
+                                            <TextBlock Classes="paramLabel" Text="水平翻转增强" />
+                                            <TextBlock Classes="paramHint" Text="训练时随机左右翻转图像，标注框随图镜像" />
+                                        </StackPanel>
+                                        <ToggleButton Grid.Column="1"
+                                                      VerticalAlignment="Center"
+                                                      AutomationProperties.Name="水平翻转增强"
+                                                      Theme="{StaticResource IvSwitchStyle}"
+                                                      IsEnabled="{Binding Config.IsFormEditable}"
+                                                      IsChecked="{Binding Config.DetectionHorizontalFlip, Mode=TwoWay}" />
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </StackPanel>
+                </Grid>
             </ScrollViewer>
         </Grid>
     </Grid>
