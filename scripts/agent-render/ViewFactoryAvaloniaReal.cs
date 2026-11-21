@@ -51,6 +51,11 @@ internal static class ViewFactory
         "avares://DeepVisionSharp.UI.Avalonia/Styles/List.axaml",
         "avares://DeepVisionSharp.UI.Avalonia/Styles/ComboBox.axaml",
         "avares://DeepVisionSharp.UI.Avalonia/Styles/TreeView.axaml",
+    ];
+
+    private static readonly string[] StyleSources =
+    [
+        "avares://DeepVisionSharp.UI.Avalonia/Themes/AppStyles.axaml",
         "avares://DeepVisionSharp.UI.Avalonia/Styles/Menu.axaml",
     ];
 
@@ -371,6 +376,12 @@ internal static class ViewFactory
         {
             var uri = new Uri(source);
             app.Resources.MergedDictionaries.Add(new ResourceInclude(uri) { Source = uri });
+        }
+
+        foreach (var source in StyleSources)
+        {
+            var uri = new Uri(source);
+            app.Styles.Add(new StyleInclude(uri) { Source = uri });
         }
     }
 

@@ -61,12 +61,6 @@
             <Setter Property="Foreground" Value="{DynamicResource IvAccentTextBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource IvAccentBrush}" />
         </Style>
-        <Style Selector="Border.panelSurface">
-            <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="6" />
-        </Style>
         <Style Selector="Border.emptyState">
             <Setter Property="Padding" Value="24" />
         </Style>
@@ -148,7 +142,7 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Classes="panelSurface">
+                <Border Grid.Column="0" Classes="card">
                     <Grid RowDefinitions="Auto,*">
                         <Border Padding="14,12"
                                 BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
@@ -217,7 +211,7 @@
 
                 <GridSplitter Grid.Column="1" Width="6" Background="Transparent" ResizeDirection="Columns" />
 
-                <Border Grid.Column="2" Classes="panelSurface" IsVisible="{Binding JobList.ShowSelectJobPrompt}">
+                <Border Grid.Column="2" Classes="card" IsVisible="{Binding JobList.ShowSelectJobPrompt}">
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                         <iv:Icon HorizontalAlignment="Center" FontSize="30" Foreground="{DynamicResource IvText3Brush}" Data="{x:Static ui:IvIcons.ArrowRight}" />
                         <TextBlock Margin="0,10,0,0" HorizontalAlignment="Center" FontSize="15" FontWeight="SemiBold" Text="请选择任务" />
@@ -225,14 +219,14 @@
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="2" Classes="panelSurface" IsVisible="{Binding JobList.ShowDetailPreparing}">
+                <Border Grid.Column="2" Classes="card" IsVisible="{Binding JobList.ShowDetailPreparing}">
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                         <dv:BusyRing Width="36" Height="36" HorizontalAlignment="Center" />
                         <TextBlock Margin="0,10,0,0" HorizontalAlignment="Center" FontSize="14" FontWeight="SemiBold" Text="正在加载任务配置…" />
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="2" Classes="panelSurface" IsVisible="{Binding JobList.ShowYoloJobDetail}">
+                <Border Grid.Column="2" Classes="card" IsVisible="{Binding JobList.ShowYoloJobDetail}">
                     <Grid RowDefinitions="Auto,Auto,*,Auto">
                         <Border Grid.Row="0"
                                 Padding="16,14,16,10"

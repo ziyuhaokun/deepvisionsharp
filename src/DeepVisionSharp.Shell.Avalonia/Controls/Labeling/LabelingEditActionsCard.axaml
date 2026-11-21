@@ -94,7 +94,7 @@
             </WrapPanel>
 
             <Panel IsVisible="{Binding $parent[UserControl].ShowYoloInfer}">
-                <Button Height="32"
+                <Button x:Name="RunInferenceButton" Height="32"
                         Margin="0,6,0,0"
                         HorizontalAlignment="Stretch"
                         Command="{Binding Inference.RunAutoInferenceCommand}"
@@ -113,10 +113,18 @@
                     </StackPanel>
                     <Button.ContextMenu>
                         <ContextMenu>
-                            <MenuItem Command="{Binding Inference.ShowAutoInferenceDialogCommand}"
-                                      Header="配置推理参数..." />
-                            <MenuItem Command="{Binding Inference.RunInferenceDebugCommand}"
-                                      Header="调试推理报告..." />
+                            <MenuItem Command="{Binding #RunInferenceButton.DataContext.Inference.ShowAutoInferenceDialogCommand}"
+                                      Header="配置推理参数...">
+                                <MenuItem.Icon>
+                                    <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Settings}" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Command="{Binding #RunInferenceButton.DataContext.Inference.RunInferenceDebugCommand}"
+                                      Header="调试推理报告...">
+                                <MenuItem.Icon>
+                                    <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Document}" />
+                                </MenuItem.Icon>
+                            </MenuItem>
                         </ContextMenu>
                     </Button.ContextMenu>
                 </Button>

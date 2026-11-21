@@ -25,7 +25,6 @@
         <ResourceInclude Source="avares://DeepVisionSharp.UI.Avalonia/Styles/List.axaml" />
         <ResourceInclude Source="avares://DeepVisionSharp.UI.Avalonia/Styles/ComboBox.axaml" />
         <ResourceInclude Source="avares://DeepVisionSharp.UI.Avalonia/Styles/TreeView.axaml" />
-        <ResourceInclude Source="avares://DeepVisionSharp.UI.Avalonia/Styles/Menu.axaml" />
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Application.Resources>
@@ -33,6 +32,7 @@
   <Application.Styles>
     <FluentTheme />
     <StyleInclude Source="avares://DeepVisionSharp.UI.Avalonia/Themes/AppStyles.axaml" />
+    <StyleInclude Source="avares://DeepVisionSharp.UI.Avalonia/Styles/Menu.axaml" />
   </Application.Styles>
 
 </Application>

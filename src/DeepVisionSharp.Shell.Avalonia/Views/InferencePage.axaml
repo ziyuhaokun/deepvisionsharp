@@ -437,12 +437,8 @@
         </Border>
 
         <!-- ===== 三栏工作台 ===== -->
-        <Border Grid.Row="1"
-                Background="{DynamicResource IvSurface2Brush}"
-                BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
-                BorderThickness="1"
-                ClipToBounds="True"
-                CornerRadius="6">
+        <Border Classes="card" Grid.Row="1"
+                ClipToBounds="True">
             <Grid x:Name="WorkbenchGrid"
                   MinHeight="0"
                   MinWidth="0"
@@ -507,18 +503,31 @@
                                      SelectedItem="{Binding SelectedImage, Mode=TwoWay}">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
-                                        <Grid ColumnDefinitions="40,*">
+                                        <Grid x:Name="InferenceImageRow" ColumnDefinitions="40,*" Background="Transparent"
+                                              Tag="{Binding $parent[UserControl].DataContext}">
                                             <Grid.ContextMenu>
                                                 <ContextMenu>
                                                     <MenuItem Header="预计：OK"
-                                                              Command="{Binding $parent[UserControl].DataContext.SetExpectedOkCommand}"
-                                                              CommandParameter="{Binding}" />
+                                                              Command="{Binding #InferenceImageRow.Tag.SetExpectedOkCommand}"
+                                                              CommandParameter="{Binding #InferenceImageRow.DataContext}">
+                                                        <MenuItem.Icon>
+                                                            <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Check}" />
+                                                        </MenuItem.Icon>
+                                                    </MenuItem>
                                                     <MenuItem Header="预计：NG"
-                                                              Command="{Binding $parent[UserControl].DataContext.SetExpectedNgCommand}"
-                                                              CommandParameter="{Binding}" />
+                                                              Command="{Binding #InferenceImageRow.Tag.SetExpectedNgCommand}"
+                                                              CommandParameter="{Binding #InferenceImageRow.DataContext}">
+                                                        <MenuItem.Icon>
+                                                            <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Flag}" />
+                                                        </MenuItem.Icon>
+                                                    </MenuItem>
                                                     <MenuItem Header="清除预计标记"
-                                                              Command="{Binding $parent[UserControl].DataContext.ClearExpectedCommand}"
-                                                              CommandParameter="{Binding}" />
+                                                              Command="{Binding #InferenceImageRow.Tag.ClearExpectedCommand}"
+                                                              CommandParameter="{Binding #InferenceImageRow.DataContext}">
+                                                        <MenuItem.Icon>
+                                                            <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Close}" />
+                                                        </MenuItem.Icon>
+                                                    </MenuItem>
                                                 </ContextMenu>
                                             </Grid.ContextMenu>
                                             <Border Width="40"
@@ -907,11 +916,7 @@
                                     <Border Classes="inspectorSection" IsVisible="{Binding HasResult}">
                                         <StackPanel>
                                             <TextBlock Classes="sectionTitle" Text="结果" />
-                                            <Border Padding="10"
-                                                    Background="{DynamicResource IvSurface2Brush}"
-                                                    BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
-                                                    BorderThickness="1"
-                                                    CornerRadius="5">
+                                            <Border Classes="card" Padding="10">
                                                 <Grid ColumnDefinitions="2,*">
                                                     <Border Background="{DynamicResource IvAccentBrush}" CornerRadius="1" />
                                                     <StackPanel Grid.Column="1" Margin="10,0,0,0">
@@ -1041,13 +1046,9 @@
                         ZIndex="40"
                         Background="{DynamicResource IvOverlayBrush}"
                         IsVisible="{Binding IsLoading}">
-                    <Border Padding="22,18"
+                    <Border Classes="card" Padding="22,18"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
-                            Background="{DynamicResource IvSurface2Brush}"
-                            BorderBrush="{DynamicResource IvStrokeBrush}"
-                            BorderThickness="1"
-                            CornerRadius="7"
                             BoxShadow="0 3 18 0 #38000000">
                         <StackPanel Orientation="Horizontal">
                             <dv:BusyRing Width="30" Height="30" VerticalAlignment="Center" />

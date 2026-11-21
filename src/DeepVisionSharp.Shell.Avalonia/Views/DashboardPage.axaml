@@ -22,24 +22,6 @@
             </Style>
         </ControlTheme>
 
-        <ControlTheme x:Key="ProjectActionsMenuItemTheme" TargetType="MenuItem"
-                      BasedOn="{StaticResource {x:Type MenuItem}}">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Template">
-                <ControlTemplate>
-                    <ContentPresenter Background="{TemplateBinding Background}"
-                                      CornerRadius="{DynamicResource IvRadiusSmall}"
-                                      Padding="{TemplateBinding Padding}"
-                                      VerticalContentAlignment="Center"
-                                      Content="{TemplateBinding Header}"
-                                      ContentTemplate="{TemplateBinding HeaderTemplate}"
-                                      RecognizesAccessKey="True" />
-                </ControlTemplate>
-            </Setter>
-            <Style Selector="^:selected:not(:disabled)">
-                <Setter Property="Background" Value="{DynamicResource IvSurfaceSubtleHoverBrush}" />
-            </Style>
-        </ControlTheme>
     </UserControl.Resources>
 
     <UserControl.Styles>
@@ -48,13 +30,6 @@
             <Setter Property="Margin" Value="0,0,12,12" />
             <Setter Property="Height" Value="212" />
             <Setter Property="ClipToBounds" Value="True" />
-            <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="6" />
-        </Style>
-        <Style Selector="Border.projectCard:pointerover">
-            <Setter Property="BorderBrush" Value="{DynamicResource IvAccentBorderBrush}" />
         </Style>
         <Style Selector="Border.typeChip">
             <Setter Property="Height" Value="20" />
@@ -62,20 +37,11 @@
             <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="CornerRadius" Value="3" />
         </Style>
-        <Style Selector="TextBlock.projectTitle">
-            <Setter Property="FontSize" Value="15" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
-        </Style>
         <Style Selector="TextBlock.projectDescription">
             <Setter Property="FontSize" Value="12.5" />
             <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
             <Setter Property="TextWrapping" Value="Wrap" />
             <Setter Property="TextTrimming" Value="CharacterEllipsis" />
-        </Style>
-        <Style Selector="TextBlock.projectMeta">
-            <Setter Property="FontSize" Value="12" />
-            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
         </Style>
         <Style Selector="TextBlock.typeChipText">
             <Setter Property="FontSize" Value="11" />
@@ -85,10 +51,6 @@
             <Setter Property="Padding" Value="28" />
             <Setter Property="MinWidth" Value="480" />
             <Setter Property="MaxWidth" Value="520" />
-            <Setter Property="CornerRadius" Value="8" />
-            <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
         </Style>
     </UserControl.Styles>
 
@@ -172,12 +134,8 @@
                       HorizontalScrollBarVisibility="Disabled"
                       VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="0,16,0,8">
-                <Border MinHeight="300"
+                <Border Classes="card" MinHeight="300"
                         Padding="28"
-                        Background="{DynamicResource IvSurface2Brush}"
-                        BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
-                        BorderThickness="1"
-                        CornerRadius="6"
                         IsVisible="{Binding List.HasEmptyState}">
                     <StackPanel MaxWidth="420" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <Border Width="56"
@@ -244,7 +202,7 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Classes="projectCard">
+                            <Border Classes="card interactive projectCard">
                                 <Grid ColumnDefinitions="40*,60*">
                                     <Border Grid.Column="0"
                                             ClipToBounds="True"
@@ -305,7 +263,7 @@
 
                                         <TextBlock Grid.Row="1"
                                                    Margin="0,5,32,0"
-                                                   Classes="projectTitle"
+                                                   Classes="cardTitle"
                                                    Text="{Binding Name}"
                                                    TextTrimming="CharacterEllipsis" />
 
@@ -323,7 +281,7 @@
                                                          Data="{x:Static ui:IvIcons.Image}" />
                                                 <TextBlock Margin="5,0,0,0"
                                                            VerticalAlignment="Center"
-                                                           Classes="projectMeta"
+                                                           Classes="cardMeta"
                                                            Text="{Binding SampleCountText}" />
                                             </StackPanel>
                                             <StackPanel Orientation="Horizontal">
@@ -333,7 +291,7 @@
                                                          Data="{x:Static ui:IvIcons.Flag}" />
                                                 <TextBlock Margin="5,0,0,0"
                                                            VerticalAlignment="Center"
-                                                           Classes="projectMeta"
+                                                           Classes="cardMeta"
                                                            Text="{Binding LabelCountText}" />
                                             </StackPanel>
                                         </StackPanel>
@@ -380,18 +338,27 @@
                                             <Button.Flyout>
                                                 <MenuFlyout Placement="BottomEdgeAlignedRight">
                                                     <MenuItem Header="编辑项目"
-                                                              Theme="{StaticResource ProjectActionsMenuItemTheme}"
                                                               Command="{Binding #ProjectActionsButton.Tag.Editor.ShowEditProjectDialogCommand}"
-                                                              CommandParameter="{Binding #ProjectActionsButton.DataContext.Id}" />
+                                                              CommandParameter="{Binding #ProjectActionsButton.DataContext.Id}">
+                                                        <MenuItem.Icon>
+                                                            <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Edit}" />
+                                                        </MenuItem.Icon>
+                                                    </MenuItem>
                                                     <MenuItem Header="导出项目"
-                                                              Theme="{StaticResource ProjectActionsMenuItemTheme}"
                                                               Command="{Binding #ProjectActionsButton.Tag.Transfer.ExportProjectCommand}"
-                                                              CommandParameter="{Binding #ProjectActionsButton.DataContext.Id}" />
+                                                              CommandParameter="{Binding #ProjectActionsButton.DataContext.Id}">
+                                                        <MenuItem.Icon>
+                                                            <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.ArrowUp}" />
+                                                        </MenuItem.Icon>
+                                                    </MenuItem>
                                                     <Separator />
-                                                    <MenuItem Header="删除项目"
-                                                              Theme="{StaticResource ProjectActionsMenuItemTheme}"
+                                                    <MenuItem Header="删除项目" Classes="danger"
                                                               Command="{Binding #ProjectActionsButton.Tag.List.ConfirmDeleteProjectCommand}"
-                                                              CommandParameter="{Binding #ProjectActionsButton.DataContext.Id}" />
+                                                              CommandParameter="{Binding #ProjectActionsButton.DataContext.Id}">
+                                                        <MenuItem.Icon>
+                                                            <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Delete}" />
+                                                        </MenuItem.Icon>
+                                                    </MenuItem>
                                                 </MenuFlyout>
                                             </Button.Flyout>
                                         </Button>
@@ -415,13 +382,9 @@
                     <Binding Path="Editor.IsSavingProject" />
                 </MultiBinding>
             </Border.IsVisible>
-            <Border Padding="20,16"
+            <Border Classes="card" Padding="20,16"
                     HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    Background="{DynamicResource IvSurface2Brush}"
-                    BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
-                    BorderThickness="1"
-                    CornerRadius="6">
+                    VerticalAlignment="Center">
                 <StackPanel Orientation="Horizontal">
                     <ProgressBar Width="30" Height="30" IsIndeterminate="True" />
                     <TextBlock Margin="14,0,0,0"
@@ -439,7 +402,7 @@
                 ZIndex="95"
                 Background="{DynamicResource IvOverlayBrush}"
                 IsVisible="{Binding List.IsDeletingProject}">
-            <Border Classes="overlayCard" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Border Classes="card overlayCard" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel>
                     <Grid ColumnDefinitions="Auto,*,Auto">
                         <ProgressBar Width="40" Height="40" VerticalAlignment="Top" IsIndeterminate="True" />
@@ -483,7 +446,7 @@
                 ZIndex="100"
                 Background="{DynamicResource IvOverlayBrush}"
                 IsVisible="{Binding Transfer.IsTransferring}">
-            <Border Classes="overlayCard" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Border Classes="card overlayCard" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel>
                     <Grid ColumnDefinitions="Auto,*,Auto">
                         <ProgressBar Width="40" Height="40" VerticalAlignment="Top" IsIndeterminate="True" />

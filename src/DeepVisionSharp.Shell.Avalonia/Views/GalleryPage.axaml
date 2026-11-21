@@ -25,21 +25,6 @@
             <Setter Property="Margin" Value="0,0,12,12" />
             <Setter Property="Height" Value="212" />
             <Setter Property="ClipToBounds" Value="True" />
-            <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="6" />
-        </Style>
-        <Style Selector="Border.galleryCard:pointerover">
-            <Setter Property="BorderBrush" Value="{DynamicResource IvAccentBorderBrush}" />
-        </Style>
-        <Style Selector="Border.galleryCard.selected">
-            <Setter Property="BorderBrush" Value="{DynamicResource IvAccentBorderBrush}" />
-        </Style>
-        <Style Selector="TextBlock.galleryTitle">
-            <Setter Property="FontSize" Value="15" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
         </Style>
         <Style Selector="TextBlock.galleryText">
             <Setter Property="FontSize" Value="12.5" />
@@ -47,17 +32,9 @@
             <Setter Property="TextWrapping" Value="Wrap" />
             <Setter Property="TextTrimming" Value="CharacterEllipsis" />
         </Style>
-        <Style Selector="TextBlock.galleryMeta">
-            <Setter Property="FontSize" Value="12" />
-            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
-        </Style>
         <Style Selector="Border.overlayCard">
             <Setter Property="Padding" Value="24" />
             <Setter Property="Width" Value="420" />
-            <Setter Property="CornerRadius" Value="8" />
-            <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
         </Style>
     </UserControl.Styles>
 
@@ -176,12 +153,8 @@
         </Border>
 
         <Grid Grid.Row="3" Margin="0,16,0,0">
-            <Border Margin="0,4,0,0"
+            <Border Classes="card" Margin="0,4,0,0"
                     Padding="28"
-                    Background="{DynamicResource IvSurface2Brush}"
-                    BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
-                    BorderThickness="1"
-                    CornerRadius="6"
                     IsVisible="{Binding List.HasEmptyState}">
                 <StackPanel MaxWidth="420" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <Border Width="56"
@@ -246,7 +219,7 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Classes="galleryCard" Classes.selected="{Binding IsSelected}">
+                            <Border Classes="card interactive galleryCard" Classes.selected="{Binding IsSelected}">
                                 <Grid ColumnDefinitions="40*,60*">
                                     <Border Grid.Column="0"
                                             ClipToBounds="True"
@@ -312,7 +285,7 @@
 
                                     <Grid Grid.Column="1" Margin="16,12,14,12" RowDefinitions="Auto,Auto,Auto,*,Auto,Auto">
                                         <TextBlock Margin="0,0,32,0"
-                                                   Classes="galleryTitle"
+                                                   Classes="cardTitle"
                                                    Text="{Binding Name}"
                                                    TextTrimming="CharacterEllipsis" />
 
@@ -347,7 +320,7 @@
                                                          Data="{x:Static ui:IvIcons.Image}" />
                                                 <TextBlock Margin="5,0,0,0"
                                                            VerticalAlignment="Center"
-                                                           Classes="galleryMeta"
+                                                           Classes="cardMeta"
                                                            Text="{Binding SampleCountText}" />
                                             </StackPanel>
                                             <StackPanel Orientation="Horizontal">
@@ -357,7 +330,7 @@
                                                          Data="{x:Static ui:IvIcons.Success}" />
                                                 <TextBlock Margin="5,0,0,0"
                                                            VerticalAlignment="Center"
-                                                           Classes="galleryMeta"
+                                                           Classes="cardMeta"
                                                            Text="{Binding AnnotatedCountText}" />
                                             </StackPanel>
                                         </StackPanel>
@@ -402,56 +375,115 @@
                                                     <MenuItem Header="编辑图库"
                                                               Command="{Binding #GalleryActionsButton.Tag.Editor.ShowEditGalleryDialogCommand}"
                                                               CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}"
-                                                              IsVisible="{Binding #GalleryActionsButton.Tag.List.ShowsGalleryEdit}" />
+                                                              IsVisible="{Binding #GalleryActionsButton.Tag.List.ShowsGalleryEdit}">
+                                                        <MenuItem.Icon>
+                                                            <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Edit}" />
+                                                        </MenuItem.Icon>
+                                                    </MenuItem>
                                                     <MenuItem Header="打开图库目录"
                                                               Command="{Binding #GalleryActionsButton.Tag.List.OpenGalleryFolderCommand}"
-                                                              CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}" />
+                                                              CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}">
+                                                        <MenuItem.Icon>
+                                                            <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.FolderOpen}" />
+                                                        </MenuItem.Icon>
+                                                    </MenuItem>
                                                     <Separator />
                                                     <MenuItem Header="导入图像"
                                                               Command="{Binding #GalleryActionsButton.Tag.Transfer.ImportImagesCommand}"
-                                                              CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}" />
+                                                              CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}">
+                                                        <MenuItem.Icon>
+                                                            <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Images}" />
+                                                        </MenuItem.Icon>
+                                                    </MenuItem>
                                                     <MenuItem Header="导入目录"
                                                               Command="{Binding #GalleryActionsButton.Tag.Transfer.ImportFolderCommand}"
-                                                              CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}" />
+                                                              CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}">
+                                                        <MenuItem.Icon>
+                                                            <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.FolderAdd}" />
+                                                        </MenuItem.Icon>
+                                                    </MenuItem>
                                                     <MenuItem Header="导出图库"
                                                               Command="{Binding #GalleryActionsButton.Tag.Transfer.ExportGalleryCommand}"
-                                                              CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}" />
+                                                              CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}">
+                                                        <MenuItem.Icon>
+                                                            <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.ArrowUp}" />
+                                                        </MenuItem.Icon>
+                                                    </MenuItem>
                                                     <MenuItem Header="导入 PPOCRLabel"
                                                               IsVisible="{Binding #GalleryActionsButton.Tag.List.IsTextRecognitionProject}">
+                                                        <MenuItem.Icon>
+                                                            <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.ArrowDown}" />
+                                                        </MenuItem.Icon>
                                                         <MenuItem Header="跳过已有标注"
                                                                   Command="{Binding #GalleryActionsButton.Tag.Transfer.ImportPpOcrSkipCommand}"
-                                                                  CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}" />
+                                                                  CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}">
+                                                            <MenuItem.Icon>
+                                                                <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.ArrowRight}" />
+                                                            </MenuItem.Icon>
+                                                        </MenuItem>
                                                         <MenuItem Header="追加到已有标注"
                                                                   Command="{Binding #GalleryActionsButton.Tag.Transfer.ImportPpOcrAppendCommand}"
-                                                                  CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}" />
-                                                        <MenuItem Header="替换已有标注…"
+                                                                  CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}">
+                                                            <MenuItem.Icon>
+                                                                <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Add}" />
+                                                            </MenuItem.Icon>
+                                                        </MenuItem>
+                                                        <MenuItem Header="替换已有标注…" Classes="danger"
                                                                   Command="{Binding #GalleryActionsButton.Tag.Transfer.ImportPpOcrReplaceCommand}"
-                                                                  CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}" />
+                                                                  CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}">
+                                                            <MenuItem.Icon>
+                                                                <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Refresh}" />
+                                                            </MenuItem.Icon>
+                                                        </MenuItem>
                                                     </MenuItem>
                                                     <MenuItem Header="导出 PPOCRLabel"
                                                               Command="{Binding #GalleryActionsButton.Tag.Transfer.ExportPpOcrLabelsCommand}"
                                                               CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}"
-                                                              IsVisible="{Binding #GalleryActionsButton.Tag.List.IsTextRecognitionProject}" />
+                                                              IsVisible="{Binding #GalleryActionsButton.Tag.List.IsTextRecognitionProject}">
+                                                        <MenuItem.Icon>
+                                                            <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.ArrowUp}" />
+                                                        </MenuItem.Icon>
+                                                    </MenuItem>
                                                     <MenuItem Header="图库推理…"
                                                               Command="{Binding #GalleryActionsButton.Tag.BatchInference.ShowDialogCommand}"
                                                               CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}"
-                                                              IsVisible="{Binding #GalleryActionsButton.Tag.List.ShowsGalleryBatchInference}" />
+                                                              IsVisible="{Binding #GalleryActionsButton.Tag.List.ShowsGalleryBatchInference}">
+                                                        <MenuItem.Icon>
+                                                            <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Play}" />
+                                                        </MenuItem.Icon>
+                                                    </MenuItem>
                                                     <MenuItem Header="标签统计"
                                                               Command="{Binding #GalleryActionsButton.Tag.List.ShowGalleryLabelStatisticsDialogCommand}"
                                                               CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}"
-                                                              IsVisible="{Binding #GalleryActionsButton.Tag.List.ShowsGalleryLabelStatistics}" />
-                                                    <MenuItem Header="清空标注"
+                                                              IsVisible="{Binding #GalleryActionsButton.Tag.List.ShowsGalleryLabelStatistics}">
+                                                        <MenuItem.Icon>
+                                                            <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.List}" />
+                                                        </MenuItem.Icon>
+                                                    </MenuItem>
+                                                    <MenuItem Header="清空标注" Classes="danger"
                                                               Command="{Binding #GalleryActionsButton.Tag.Editor.ConfirmClearAnnotationsCommand}"
                                                               CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}"
-                                                              IsVisible="{Binding #GalleryActionsButton.Tag.List.ShowsGalleryLabelStatistics}" />
+                                                              IsVisible="{Binding #GalleryActionsButton.Tag.List.ShowsGalleryLabelStatistics}">
+                                                        <MenuItem.Icon>
+                                                            <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Delete}" />
+                                                        </MenuItem.Icon>
+                                                    </MenuItem>
                                                     <MenuItem Header="拆分图库"
                                                               Command="{Binding #GalleryActionsButton.Tag.Reorganize.ShowSplitGalleryDialogCommand}"
                                                               CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}"
-                                                              IsVisible="{Binding #GalleryActionsButton.Tag.List.ShowsGallerySplit}" />
-                                                    <MenuItem Header="删除图库"
+                                                              IsVisible="{Binding #GalleryActionsButton.Tag.List.ShowsGallerySplit}">
+                                                        <MenuItem.Icon>
+                                                            <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Layer}" />
+                                                        </MenuItem.Icon>
+                                                    </MenuItem>
+                                                    <MenuItem Header="删除图库" Classes="danger"
                                                               Command="{Binding #GalleryActionsButton.Tag.Editor.ConfirmDeleteGalleryCommand}"
                                                               CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}"
-                                                              IsVisible="{Binding #GalleryActionsButton.DataContext.CanDelete}" />
+                                                              IsVisible="{Binding #GalleryActionsButton.DataContext.CanDelete}">
+                                                        <MenuItem.Icon>
+                                                            <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Delete}" />
+                                                        </MenuItem.Icon>
+                                                    </MenuItem>
                                                 </MenuFlyout>
                                             </Button.Flyout>
                                         </Button>
@@ -469,13 +501,9 @@
                 ZIndex="90"
                 Background="{DynamicResource IvOverlayBrush}"
                 IsVisible="{Binding Editor.IsSavingGallery}">
-            <Border Padding="20,16"
+            <Border Classes="card" Padding="20,16"
                     HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    Background="{DynamicResource IvSurface2Brush}"
-                    BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
-                    BorderThickness="1"
-                    CornerRadius="6">
+                    VerticalAlignment="Center">
                 <StackPanel Orientation="Horizontal">
                     <ProgressBar Width="30" Height="30" IsIndeterminate="True" />
                     <TextBlock Margin="14,0,0,0"
@@ -493,7 +521,7 @@
                 ZIndex="100"
                 Background="{DynamicResource IvOverlayBrush}"
                 IsVisible="{Binding Transfer.IsImporting}">
-            <Border Classes="overlayCard" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Border Classes="card overlayCard" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel>
                     <Grid ColumnDefinitions="Auto,*">
                         <ProgressBar Width="40" Height="40" VerticalAlignment="Top" IsIndeterminate="True" />

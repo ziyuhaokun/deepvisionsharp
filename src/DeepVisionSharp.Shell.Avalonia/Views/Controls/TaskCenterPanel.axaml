@@ -33,13 +33,9 @@
           HorizontalAlignment="Right"
           VerticalAlignment="Bottom"
           IsVisible="{Binding HasVisibleTasks}">
-        <Border MinWidth="300"
+        <Border Classes="card" MinWidth="300"
                 MaxWidth="380"
-                Background="{DynamicResource IvSurface2Brush}"
-                BorderBrush="{DynamicResource IvStrokeBrush}"
-                BorderThickness="1"
-                CornerRadius="12"
-                BoxShadow="0 6 20 0 #59000000">
+                BoxShadow="{DynamicResource IvPopupShadow}">
             <Grid RowDefinitions="Auto,*">
                 <Border Grid.Row="0"
                         Padding="12,10"
@@ -182,12 +178,8 @@
                                                 </StackPanel>
                                             </Grid>
 
-                                            <Border Margin="16,8,0,0"
+                                            <Border Classes="card inset" Margin="16,8,0,0"
                                                     Padding="10,8"
-                                                    Background="{DynamicResource IvControlFillBrush}"
-                                                    BorderBrush="{DynamicResource IvStrokeBrush}"
-                                                    BorderThickness="1"
-                                                    CornerRadius="8"
                                                     IsVisible="{Binding IsExpanded}">
                                                 <ScrollViewer MaxHeight="160"
                                                               HorizontalScrollBarVisibility="Disabled"

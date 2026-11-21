@@ -45,17 +45,9 @@
         <Style Selector="Border.resultCard">
             <Setter Property="Padding" Value="16" />
             <Setter Property="Margin" Value="0,0,0,14" />
-            <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="6" />
         </Style>
         <Style Selector="Border.metricCard">
             <Setter Property="Padding" Value="14" />
-            <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="6" />
         </Style>
         <Style Selector="StackPanel.emptyState">
             <Setter Property="HorizontalAlignment" Value="Center" />
@@ -116,7 +108,7 @@
                       VerticalScrollBarVisibility="Auto"
                       IsVisible="{Binding Monitor.IsConfigPreviewSectionActive}">
             <StackPanel Margin="0,4,0,12">
-                <Border Classes="resultCard">
+                <Border Classes="card resultCard">
                     <StackPanel>
                         <TextBlock Classes="sectionTitle" Text="任务信息" />
                         <Grid>
@@ -219,7 +211,7 @@
                     </StackPanel>
                 </Border>
 
-                <Border Classes="resultCard">
+                <Border Classes="card resultCard">
                     <StackPanel>
                         <TextBlock Classes="sectionTitle" Text="训练参数" />
                         <Grid>
@@ -333,7 +325,7 @@
                 </Border>
 
                 <StackPanel VerticalAlignment="Top" IsVisible="{Binding Monitor.ShowResultsContent}">
-                    <Border Classes="resultCard">
+                    <Border Classes="card resultCard">
                         <StackPanel>
                             <StackPanel IsVisible="{Binding Monitor.ShowDualCheckpointResults}">
                                 <TextBlock Margin="0,0,0,10"
@@ -349,12 +341,8 @@
                                                  IsChecked="{Binding Monitor.IsLastCheckpointSelected, Mode=TwoWay}" />
                                 </StackPanel>
                                 <Grid ColumnDefinitions="*,12,*">
-                                    <Border Grid.Column="0"
-                                            Padding="14"
-                                            Background="{DynamicResource IvSurface2Brush}"
-                                            BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
-                                            BorderThickness="1"
-                                            CornerRadius="6">
+                                    <Border Classes="card" Grid.Column="0"
+                                            Padding="14">
                                         <StackPanel DataContext="{Binding Monitor.BestCheckpointCard}">
                                             <TextBlock FontSize="12.5" FontWeight="SemiBold" Text="{Binding Title}" />
                                             <TextBlock Margin="0,6,0,0"
@@ -379,12 +367,8 @@
                                                        IsVisible="{Binding HasFootnote}" />
                                         </StackPanel>
                                     </Border>
-                                    <Border Grid.Column="2"
-                                            Padding="14"
-                                            Background="{DynamicResource IvSurface2Brush}"
-                                            BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
-                                            BorderThickness="1"
-                                            CornerRadius="6">
+                                    <Border Classes="card" Grid.Column="2"
+                                            Padding="14">
                                         <StackPanel DataContext="{Binding Monitor.LastCheckpointCard}">
                                             <TextBlock FontSize="12.5" FontWeight="SemiBold" Text="{Binding Title}" />
                                             <TextBlock Margin="0,6,0,0"
@@ -449,7 +433,7 @@
                         </StackPanel>
                     </Border>
 
-                    <Border Classes="resultCard"
+                    <Border Classes="card resultCard"
                             IsVisible="{Binding Monitor.Preview.ShowClassificationTrainingPlots}">
                         <StackPanel>
                             <TextBlock Classes="sectionTitle" Text="训练图表" />
@@ -466,7 +450,7 @@
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Button Width="360"
+                                        <Button x:Name="TrainingPlotButton" Width="360"
                                                 Height="280"
                                                 Margin="0,0,12,12"
                                                 Padding="0"
@@ -477,15 +461,20 @@
                                                 Cursor="Hand"
                                                 Command="{Binding $parent[UserControl].DataContext.Monitor.Preview.OpenPreviewLightboxCommand}"
                                                 CommandParameter="{Binding}"
+                                                Tag="{Binding $parent[UserControl].DataContext.Monitor.Preview}"
                                                 Theme="{StaticResource IvButtonBaseStyle}"
                                                 ToolTip.Tip="左键放大 · 右键复制到剪贴板">
-                                            <Button.ContextMenu>
-                                                <ContextMenu>
+                                            <Button.ContextFlyout>
+                                                <MenuFlyout Placement="Pointer">
                                                     <MenuItem Header="复制到剪贴板"
-                                                              Command="{Binding $parent[UserControl].DataContext.Monitor.Preview.CopyPreviewImageCommand}"
-                                                              CommandParameter="{Binding}" />
-                                                </ContextMenu>
-                                            </Button.ContextMenu>
+                                                              Command="{Binding #TrainingPlotButton.Tag.CopyPreviewImageCommand}"
+                                                              CommandParameter="{Binding #TrainingPlotButton.DataContext}">
+                                                        <MenuItem.Icon>
+                                                            <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Copy}" />
+                                                        </MenuItem.Icon>
+                                                    </MenuItem>
+                                                </MenuFlyout>
+                                            </Button.ContextFlyout>
                                             <Image Source="{Binding Converter={StaticResource FilePathToImageConverter}}" Stretch="Uniform" />
                                         </Button>
                                     </DataTemplate>
@@ -494,7 +483,7 @@
                         </StackPanel>
                     </Border>
 
-                    <Border Classes="resultCard">
+                    <Border Classes="card resultCard">
                         <StackPanel>
                             <TextBlock Classes="sectionTitle" Text="训练配置" />
                             <Grid Margin="0,10,0,0">
@@ -531,7 +520,7 @@
                         </StackPanel>
                     </Border>
 
-                    <Border Classes="resultCard">
+                    <Border Classes="card resultCard">
                         <StackPanel>
                             <TextBlock Classes="sectionTitle" Text="训练耗时" />
                             <Grid Margin="0,10,0,0">
@@ -623,10 +612,8 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Width="248" Margin="0,0,12,12"
-                                        Background="{DynamicResource IvSurface2Brush}"
-                                        BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
-                                        BorderThickness="1" CornerRadius="6" ClipToBounds="True">
+                                <Border Classes="card interactive" Width="248" Margin="0,0,12,12"
+ ClipToBounds="True">
                                     <Grid RowDefinitions="168,Auto,Auto">
                                         <Button Name="PreviewImageButton" Margin="4" Padding="0"
                                                 MinWidth="0" MinHeight="0"
@@ -641,12 +628,15 @@
                                                 Theme="{StaticResource IvButtonBaseStyle}"
                                                 ToolTip.Tip="点击放大预览">
                                             <Button.ContextFlyout>
-                                                <Flyout Placement="Pointer">
-                                                    <Button Content="复制图片"
-                                                            Command="{Binding #PreviewImageButton.Tag.CopyPreviewImageCommand}"
-                                                            CommandParameter="{Binding #PreviewImageButton.DataContext.ImagePath}"
-                                                            Theme="{StaticResource IvSubtleButtonStyle}" />
-                                                </Flyout>
+                                                <MenuFlyout Placement="Pointer">
+                                                    <MenuItem Header="复制图片"
+                                                              Command="{Binding #PreviewImageButton.Tag.CopyPreviewImageCommand}"
+                                                              CommandParameter="{Binding #PreviewImageButton.DataContext.ImagePath}">
+                                                        <MenuItem.Icon>
+                                                            <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Copy}" />
+                                                        </MenuItem.Icon>
+                                                    </MenuItem>
+                                                </MenuFlyout>
                                             </Button.ContextFlyout>
                                             <Image Source="{Binding ImagePath, Converter={StaticResource FilePathToImageConverter}}"
                                                    Stretch="Uniform" />
@@ -742,7 +732,7 @@
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Margin="0,0,8,0" Classes="metricCard">
+                                    <Border Margin="0,0,8,0" Classes="card metricCard">
                                         <StackPanel>
                                             <TextBlock Classes="fieldLabel" Text="{Binding Title}" />
                                             <TextBlock Margin="0,2,0,0"
@@ -772,7 +762,7 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
 
-                        <Border Margin="0,0,0,12" Classes="metricCard">
+                        <Border Margin="0,0,0,12" Classes="card metricCard">
                             <Grid ColumnDefinitions="*,16,*">
                                 <StackPanel Grid.Column="0"
                                             IsVisible="{Binding Monitor.Metrics.ShowSecondaryTrainLossRow}">
@@ -815,7 +805,7 @@
                         <Grid Margin="0,0,0,16"
                               ColumnDefinitions="*,*"
                               IsVisible="{Binding Monitor.Metrics.ShowDetectionMetricsCards}">
-                            <Border Grid.Column="0" Margin="0,0,6,0" Classes="metricCard">
+                            <Border Grid.Column="0" Margin="0,0,6,0" Classes="card metricCard">
                                 <StackPanel>
                                     <TextBlock Classes="sectionTitle" Text="{Binding Monitor.Metrics.QualityChartTitle}" />
                                     <Border Height="280"
@@ -827,7 +817,7 @@
                                     </Border>
                                 </StackPanel>
                             </Border>
-                            <Border Grid.Column="1" Margin="6,0,0,0" Classes="metricCard">
+                            <Border Grid.Column="1" Margin="6,0,0,0" Classes="card metricCard">
                                 <StackPanel>
                                     <TextBlock Classes="sectionTitle" Text="损失变化" />
                                     <Border Height="280"
@@ -844,7 +834,7 @@
                         <Grid Margin="0,0,0,16"
                               ColumnDefinitions="*,*,*"
                               IsVisible="{Binding Monitor.Metrics.ShowClassificationMetricsCards}">
-                            <Border Grid.Column="0" Margin="0,0,6,0" Classes="metricCard">
+                            <Border Grid.Column="0" Margin="0,0,6,0" Classes="card metricCard">
                                 <StackPanel>
                                     <TextBlock Classes="sectionTitle" Text="{Binding Monitor.Metrics.QualityChartTitle}" />
                                     <Border Height="280"
@@ -856,7 +846,7 @@
                                     </Border>
                                 </StackPanel>
                             </Border>
-                            <Border Grid.Column="1" Margin="6,0,6,0" Classes="metricCard">
+                            <Border Grid.Column="1" Margin="6,0,6,0" Classes="card metricCard">
                                 <StackPanel>
                                     <TextBlock Classes="sectionTitle" Text="损失变化" />
                                     <Border Height="280"
@@ -868,7 +858,7 @@
                                     </Border>
                                 </StackPanel>
                             </Border>
-                            <Border Grid.Column="2" Margin="6,0,0,0" Classes="metricCard">
+                            <Border Grid.Column="2" Margin="6,0,0,0" Classes="card metricCard">
                                 <StackPanel>
                                     <TextBlock Classes="sectionTitle" Text="学习率" />
                                     <Border Height="280"
@@ -1059,7 +1049,7 @@
                     <UniformGrid VerticalAlignment="Top"
                                  Columns="3"
                                  Rows="1">
-                        <Border Margin="0,0,8,0" Classes="metricCard">
+                        <Border Margin="0,0,8,0" Classes="card metricCard">
                             <StackPanel>
                                 <TextBlock Classes="fieldLabel" Text="CPU 使用率" />
                                 <StackPanel Margin="0,2,0,0" Orientation="Horizontal">
@@ -1078,7 +1068,7 @@
                                            Text="本机占用率" />
                             </StackPanel>
                         </Border>
-                        <Border Margin="0,0,8,0" Classes="metricCard">
+                        <Border Margin="0,0,8,0" Classes="card metricCard">
                             <StackPanel>
                                 <TextBlock Classes="fieldLabel" Text="内存使用" />
                                 <StackPanel Margin="0,2,0,0" Orientation="Horizontal">
@@ -1097,7 +1087,7 @@
                                            Text="本机占用率" />
                             </StackPanel>
                         </Border>
-                        <Border Classes="metricCard"
+                        <Border Classes="card metricCard"
                                 IsVisible="{Binding Monitor.Resources.HasGpuResourceData}">
                             <StackPanel>
                                 <TextBlock Classes="fieldLabel" Text="GPU 使用率" />

@@ -1,47 +1,83 @@
-<ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <!--
-        菜单：先对齐尺度与配色。WPF 版把顶级菜单项、子菜单项、弹出层外壳、
-        分隔符与 ToolTip 全部重写过；Avalonia 的 MenuItem 模板结构不同（Popup 挂在
-        MenuItem 自身），逐像素复刻需独立一轮验证，此处不草率替换。
-    -->
-    <ControlTheme x:Key="{x:Type Menu}" TargetType="Menu">
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
-        <Setter Property="FontFamily" Value="{DynamicResource IvFontFamily}" />
-        <Setter Property="FontSize" Value="{DynamicResource IvFontSizeBody}" />
-        <Setter Property="Padding" Value="0" />
-    </ControlTheme>
+    <Styles.Resources>
+        <Thickness x:Key="MenuFlyoutScrollerMargin">0</Thickness>
+        <Thickness x:Key="MenuFlyoutPresenterThemePadding">5</Thickness>
+        <Thickness x:Key="MenuIconPresenterMargin">0,0,8,0</Thickness>
+    </Styles.Resources>
 
-    <ControlTheme x:Key="{x:Type MenuItem}" TargetType="MenuItem">
-        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
-        <Setter Property="FontFamily" Value="{DynamicResource IvFontFamily}" />
-        <Setter Property="FontSize" Value="{DynamicResource IvFontSizeBody}" />
-        <Setter Property="MinHeight" Value="28" />
-        <Setter Property="Padding" Value="10,0" />
-        <Style Selector="^:disabled">
-            <Setter Property="Foreground" Value="{DynamicResource IvTextDisabledBrush}" />
-        </Style>
-    </ControlTheme>
-
-    <ControlTheme x:Key="{x:Type ContextMenu}" TargetType="ContextMenu">
+    <Style Selector="ToolTip">
         <Setter Property="Background" Value="{DynamicResource IvPopupBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{DynamicResource IvRadiusControl}" />
-        <Setter Property="Padding" Value="4" />
-    </ControlTheme>
-
-    <ControlTheme x:Key="{x:Type ToolTip}" TargetType="ToolTip">
-        <Setter Property="Background" Value="{DynamicResource IvPopupBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{DynamicResource IvRadiusControl}" />
+        <Setter Property="BorderThickness" Value="{DynamicResource IvStrokeThickness}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource IvRadiusOverlay}" />
         <Setter Property="Padding" Value="8,4" />
         <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
         <Setter Property="FontFamily" Value="{DynamicResource IvFontFamily}" />
         <Setter Property="FontSize" Value="{DynamicResource IvFontSizeCaption}" />
-    </ControlTheme>
+    </Style>
 
-</ResourceDictionary>
+    <!-- Keep Fluent's menu templates, including submenu and keyboard navigation. -->
+    <Style Selector="ContextMenu, MenuFlyoutPresenter">
+        <Setter Property="Background" Value="{DynamicResource IvPopupBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeBrush}" />
+        <Setter Property="BorderThickness" Value="{DynamicResource IvStrokeThickness}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource IvRadiusMenu}" />
+        <Setter Property="Padding" Value="5" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="MinWidth" Value="148" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource IvFontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource IvFontSizeBody}" />
+    </Style>
+
+    <Style Selector="MenuFlyoutPresenter MenuItem:not(:separator)">
+        <Setter Property="Margin" Value="4,2" />
+    </Style>
+
+    <Style Selector="MenuItem:not(:separator)">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource IvFontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource IvFontSizeBody}" />
+        <Setter Property="MinHeight" Value="{DynamicResource IvControlHeightLarge}" />
+        <Setter Property="Padding" Value="10,5" />
+        <Setter Property="CornerRadius" Value="{DynamicResource IvRadiusOverlay}" />
+    </Style>
+
+    <Style Selector="MenuItem /template/ TextBlock#PART_InputGestureText">
+        <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+    </Style>
+    <Style Selector="MenuItem /template/ Path#PART_ChevronPath">
+        <Setter Property="Fill" Value="{DynamicResource IvText2Brush}" />
+    </Style>
+    <Style Selector="MenuItem:selected:not(:disabled) /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="{DynamicResource IvStateHoverBrush}" />
+    </Style>
+    <Style Selector="MenuItem:pressed:not(:disabled) /template/ Border#PART_LayoutRoot:pointerover">
+        <Setter Property="Background" Value="{DynamicResource IvStatePressedBrush}" />
+    </Style>
+    <Style Selector="MenuItem:selected:not(:disabled) /template/ ContentPresenter#PART_HeaderPresenter">
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+    </Style>
+    <Style Selector="MenuItem:disabled /template/ ContentPresenter#PART_HeaderPresenter">
+        <Setter Property="Foreground" Value="{DynamicResource IvTextDisabledBrush}" />
+    </Style>
+    <Style Selector="MenuItem.danger:not(:disabled)">
+        <Setter Property="Foreground" Value="{DynamicResource IvDangerTextBrush}" />
+    </Style>
+    <Style Selector="MenuItem.danger:not(:disabled) /template/ ContentPresenter#PART_HeaderPresenter">
+        <Setter Property="Foreground" Value="{DynamicResource IvDangerTextBrush}" />
+    </Style>
+    <Style Selector="MenuItem.danger:selected:not(:disabled) /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="{DynamicResource IvDangerSubtleBrush}" />
+    </Style>
+
+    <Style Selector="ContextMenu Separator, MenuFlyoutPresenter Separator, MenuItem Separator">
+        <Setter Property="Background" Value="{DynamicResource IvStrokeSubtleBrush}" />
+        <Setter Property="Height" Value="1" />
+        <Setter Property="Margin" Value="5,4" />
+    </Style>
+
+</Styles>

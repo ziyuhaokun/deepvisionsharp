@@ -13,6 +13,10 @@
     <CornerRadius x:Key="IvRadiusFocusRing">3</CornerRadius>
     <CornerRadius x:Key="IvRadiusFocusRingPill">3</CornerRadius>
     <CornerRadius x:Key="IvRadiusOverlay">4</CornerRadius>
+    <CornerRadius x:Key="IvRadiusCard">8</CornerRadius>
+    <CornerRadius x:Key="IvRadiusMenu">6</CornerRadius>
+    <!-- Fluent submenus resolve this resource inside their popup. -->
+    <StaticResource x:Key="OverlayCornerRadius" ResourceKey="IvRadiusMenu" />
 
     <Thickness x:Key="IvControlPadding">12,0,12,0</Thickness>
     <Thickness x:Key="IvInputPadding">8,0,8,0</Thickness>

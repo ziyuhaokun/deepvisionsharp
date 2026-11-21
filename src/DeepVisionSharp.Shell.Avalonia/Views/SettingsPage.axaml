@@ -106,10 +106,6 @@
         <Style Selector="Border.settingsCard">
             <Setter Property="Margin" Value="0,8,0,0" />
             <Setter Property="Padding" Value="18,16" />
-            <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="6" />
         </Style>
         <Style Selector="Border.settingsRow">
             <Setter Property="Margin" Value="18,0" />
@@ -152,10 +148,6 @@
         </Style>
         <Style Selector="Border.storageTile">
             <Setter Property="Padding" Value="16" />
-            <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="6" />
         </Style>
     </UserControl.Styles>
 
@@ -209,7 +201,7 @@
                     <!-- ===== 外观 ===== -->
                     <StackPanel IsVisible="{Binding IsAppearanceSelected}">
                         <TextBlock Classes="sectionTitle" Text="外观" />
-                        <Border Classes="settingsCard">
+                        <Border Classes="card settingsCard">
                             <StackPanel>
                                 <Border Classes="settingsRow">
                                     <Grid ColumnDefinitions="Auto,*">
@@ -248,7 +240,7 @@
                         </Border>
 
                         <TextBlock Classes="sectionTitle" Text="通知" />
-                        <Border Classes="settingsCard">
+                        <Border Classes="card settingsCard">
                             <Border Classes="settingsRow">
                                 <Grid ColumnDefinitions="Auto,*,Auto">
                                     <Border Classes="iconTile">
@@ -273,7 +265,7 @@
                     <StackPanel IsVisible="{Binding IsStorageSelected}">
                         <TextBlock Classes="sectionTitle" Text="本地占用" />
                         <UniformGrid Margin="0,10,0,14" Columns="2" Rows="2">
-                            <Border Classes="storageTile" Margin="0,0,10,10">
+                            <Border Classes="card storageTile" Margin="0,0,10,10">
                                 <StackPanel>
                                     <StackPanel Orientation="Horizontal">
                                         <Border Classes="iconTile">
@@ -294,7 +286,7 @@
                                 </StackPanel>
                             </Border>
 
-                            <Border Classes="storageTile" Margin="0,0,0,10">
+                            <Border Classes="card storageTile" Margin="0,0,0,10">
                                 <StackPanel>
                                     <StackPanel Orientation="Horizontal">
                                         <Border Classes="iconTile">
@@ -315,7 +307,7 @@
                                 </StackPanel>
                             </Border>
 
-                            <Border Classes="storageTile" Margin="0,0,10,0">
+                            <Border Classes="card storageTile" Margin="0,0,10,0">
                                 <StackPanel>
                                     <StackPanel Orientation="Horizontal">
                                         <Border Classes="iconTile">
@@ -336,7 +328,7 @@
                                 </StackPanel>
                             </Border>
 
-                            <Border Classes="storageTile">
+                            <Border Classes="card storageTile">
                                 <StackPanel>
                                     <StackPanel Orientation="Horizontal">
                                         <Border Classes="iconTile">
@@ -359,7 +351,7 @@
                         </UniformGrid>
 
                         <TextBlock Classes="sectionTitle" Text="缓存维护" />
-                        <Border Classes="settingsCard">
+                        <Border Classes="card settingsCard">
                             <Grid ColumnDefinitions="*,Auto">
                                 <StackPanel>
                                     <TextBlock Classes="rowTitle" Text="缓存与未引用训练数据" />
@@ -393,7 +385,7 @@
                     <!-- ===== 关于 ===== -->
                     <StackPanel IsVisible="{Binding IsAboutSelected}">
                         <TextBlock Classes="sectionTitle" Text="应用" />
-                        <Border Classes="settingsCard">
+                        <Border Classes="card settingsCard">
                             <Grid ColumnDefinitions="Auto,*">
                                 <Border Classes="iconTile" Width="56" Height="56" CornerRadius="10">
                                     <iv:Icon HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="26" Data="{x:Static ui:IvIcons.Cube}" />
@@ -409,7 +401,7 @@
                         </Border>
 
                         <TextBlock Classes="sectionTitle" Text="本版更新" />
-                        <Border Classes="settingsCard">
+                        <Border Classes="card settingsCard">
                             <StackPanel>
                                 <TextBlock Classes="rowSubtitle"
                                            Text="{Binding ChangeLogEmptyHint}"
@@ -444,7 +436,7 @@
                         </Border>
 
                         <TextBlock Classes="sectionTitle" Text="运行环境" />
-                        <Border Classes="settingsCard">
+                        <Border Classes="card settingsCard">
                             <StackPanel>
                                 <Border Classes="settingsRow">
                                     <Grid ColumnDefinitions="120,*">
@@ -537,7 +529,7 @@
                     <!-- ===== 高级 ===== -->
                     <StackPanel IsVisible="{Binding IsAdvancedSelected}">
                         <TextBlock Classes="sectionTitle" Text="数据完整性" />
-                        <Border Classes="settingsCard">
+                        <Border Classes="card settingsCard">
                             <Grid ColumnDefinitions="*,Auto">
                                 <StackPanel>
                                     <TextBlock Classes="rowTitle" Text="数据检查与修复" />
@@ -559,7 +551,7 @@
                         </Border>
 
                         <TextBlock Classes="sectionTitle" Text="最近结果" />
-                        <Border Classes="settingsCard">
+                        <Border Classes="card settingsCard">
                             <TextBlock Foreground="{DynamicResource IvText2Brush}"
                                        Text="{Binding DataRepairSummary}"
                                        TextWrapping="Wrap" />

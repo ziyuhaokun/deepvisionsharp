@@ -1,7 +1,7 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <!-- 卡片：表面色 + 1px 细描边 + 2 圆角 + IvCardPadding -->
+    <!-- 卡片使用与 Border.card 相同的表面色、描边和圆角。 -->
     <ControlTheme x:Key="IvCardStyle" TargetType="ContentControl">
         <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
@@ -13,7 +13,7 @@
                 <Border Background="{TemplateBinding Background}"
                         BorderBrush="{TemplateBinding BorderBrush}"
                         BorderThickness="{TemplateBinding BorderThickness}"
-                        CornerRadius="{DynamicResource IvRadiusSmall}"
+                        CornerRadius="{DynamicResource IvRadiusCard}"
                         Padding="{TemplateBinding Padding}">
                     <ContentPresenter Content="{TemplateBinding Content}"
                                       ContentTemplate="{TemplateBinding ContentTemplate}" />

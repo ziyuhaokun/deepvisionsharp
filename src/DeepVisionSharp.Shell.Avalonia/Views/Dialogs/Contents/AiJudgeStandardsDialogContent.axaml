@@ -10,10 +10,8 @@
             </ResourceDictionary.MergedDictionaries>
 
             <DataTemplate x:Key="StandardTileTemplate">
-                <Border Width="150" Margin="0,0,8,8" Padding="6"
-                        Background="{DynamicResource IvSurface3Brush}"
-                        BorderBrush="{DynamicResource IvStrokeBrush}"
-                        BorderThickness="1" CornerRadius="6">
+                <Border Classes="card inset" Width="150" Margin="0,0,8,8" Padding="6"
+>
                     <StackPanel>
                         <Border Height="96" Background="{DynamicResource IvControlFillBrush}"
                                 ClipToBounds="True" CornerRadius="4">

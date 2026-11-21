@@ -14,7 +14,7 @@
                 <ResourceInclude Source="avares://DeepVisionSharp/Views/Dialogs/DialogStyles.axaml" />
             </ResourceDictionary.MergedDictionaries>
 
-            <!-- 拆分方式卡片：圆点 + 两行文字，选中时强调色描边 2px（对应 WPF SplitModeCardStyle） -->
+            <!-- 拆分方式卡片沿用共享描边，选中时启用强调色和圆点。 -->
             <ControlTheme x:Key="SplitModeCardTheme" TargetType="RadioButton">
                 <Setter Property="Margin" Value="0,0,0,5" />
                 <Setter Property="Padding" Value="9,7" />
@@ -24,12 +24,9 @@
                 <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
                 <Setter Property="Template">
                     <ControlTemplate>
-                        <Border Name="CardBorder"
+                        <Border Classes="card" Name="CardBorder"
                                 Padding="{TemplateBinding Padding}"
-                                Background="{DynamicResource IvControlFillBrush}"
-                                BorderBrush="{DynamicResource IvStrokeBrush}"
-                                BorderThickness="1"
-                                CornerRadius="7">
+>
                             <Grid ColumnDefinitions="Auto,*">
                                 <Grid Width="16" Height="16" Margin="0,2,9,0" VerticalAlignment="Top">
                                     <Ellipse Fill="Transparent" Stroke="{DynamicResource IvText2Brush}" StrokeThickness="1.5" />
@@ -53,7 +50,6 @@
                 <Style Selector="^:checked /template/ Border#CardBorder">
                     <Setter Property="Background" Value="{DynamicResource IvAccentSubtleBrush}" />
                     <Setter Property="BorderBrush" Value="{DynamicResource IvAccentBrush}" />
-                    <Setter Property="BorderThickness" Value="2" />
                 </Style>
                 <Style Selector="^:checked /template/ Ellipse#CheckedDot">
                     <Setter Property="IsVisible" Value="True" />
@@ -82,20 +78,13 @@
         </Style>
         <Style Selector="Border.optionPanel">
             <Setter Property="Padding" Value="14" />
-            <Setter Property="Background" Value="{DynamicResource IvSurface3Brush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="8" />
         </Style>
     </UserControl.Styles>
 
     <Grid RowDefinitions="Auto,*">
         <!-- 顶部：源图库 + 步骤 -->
-        <Border Padding="14,12"
-                Background="{DynamicResource IvSurface3Brush}"
-                BorderBrush="{DynamicResource IvStrokeBrush}"
-                BorderThickness="1"
-                CornerRadius="8">
+        <Border Classes="card inset" Padding="14,12"
+>
             <Grid ColumnDefinitions="Auto,*,Auto">
                 <Border Width="36" Height="36" Background="{DynamicResource IvAccentSubtleBrush}" CornerRadius="8">
                     <ivc:Icon HorizontalAlignment="Center" VerticalAlignment="Center"
@@ -189,7 +178,7 @@
                     <TextBlock Margin="0,4,0,12" Classes="muted"
                                Text="{Binding SelectedModeDescription}" TextWrapping="Wrap" />
 
-                    <Border Classes="optionPanel" IsVisible="{Binding ShowRatioOptions}">
+                    <Border Classes="card inset optionPanel" IsVisible="{Binding ShowRatioOptions}">
                         <StackPanel>
                             <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="移动比例" />
                             <Grid Margin="0,8,0,0" ColumnDefinitions="*,Auto">
@@ -219,7 +208,7 @@
                         </StackPanel>
                     </Border>
 
-                    <Border Classes="optionPanel" IsVisible="{Binding ShowCountOptions}">
+                    <Border Classes="card inset optionPanel" IsVisible="{Binding ShowCountOptions}">
                         <StackPanel>
                             <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="移动数量" />
                             <Grid Margin="0,8,0,0" ColumnDefinitions="*,Auto">
@@ -249,7 +238,7 @@
                         </StackPanel>
                     </Border>
 
-                    <Border Classes="optionPanel" IsVisible="{Binding ShowFileNamePrefixOptions}">
+                    <Border Classes="card inset optionPanel" IsVisible="{Binding ShowFileNamePrefixOptions}">
                         <StackPanel>
                             <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="文件名前缀" />
                             <TextBox Margin="0,8,0,0" PlaceholderText="例如 batch_a_"
@@ -259,7 +248,7 @@
                         </StackPanel>
                     </Border>
 
-                    <Border Classes="optionPanel" IsVisible="{Binding ShowLabelOptions}">
+                    <Border Classes="card inset optionPanel" IsVisible="{Binding ShowLabelOptions}">
                         <StackPanel>
                             <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="缺陷类别" />
                             <ComboBox Margin="0,8,0,0" HorizontalAlignment="Stretch"
@@ -275,7 +264,7 @@
                         </StackPanel>
                     </Border>
 
-                    <Border Classes="optionPanel" IsVisible="{Binding ShowManualOptions}">
+                    <Border Classes="card inset optionPanel" IsVisible="{Binding ShowManualOptions}">
                         <StackPanel Orientation="Horizontal">
                             <ivc:Icon Margin="0,0,10,0" Foreground="{DynamicResource IvAccentBrush}"
                                       Data="{x:Static ui:IvIcons.Checkbox}" />

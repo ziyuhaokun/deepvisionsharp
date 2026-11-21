@@ -17,10 +17,8 @@
         <StackPanel>
             <TextBlock Theme="{StaticResource DialogHintStyle}" Text="{Binding Subtitle}" />
 
-            <Border Margin="0,14,0,0" Padding="16,16,16,6"
-                    Background="{DynamicResource IvSurface3Brush}"
-                    BorderBrush="{DynamicResource IvStrokeBrush}"
-                    BorderThickness="1" CornerRadius="8">
+            <Border Classes="card inset" Margin="0,14,0,0" Padding="16,16,16,6"
+>
                 <ItemsControl ItemsSource="{Binding Rows}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>

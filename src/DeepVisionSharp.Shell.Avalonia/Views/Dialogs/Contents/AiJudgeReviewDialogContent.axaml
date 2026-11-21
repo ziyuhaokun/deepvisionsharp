@@ -41,12 +41,9 @@
             </ResourceDictionary.MergedDictionaries>
 
             <DataTemplate x:Key="ReviewRowTemplate">
-                <Border Margin="0,0,0,6"
+                <Border Classes="card inset" Margin="0,0,0,6"
                         Padding="8"
-                        Background="{DynamicResource IvSurface3Brush}"
-                        BorderBrush="{DynamicResource IvStrokeBrush}"
-                        BorderThickness="1"
-                        CornerRadius="6">
+>
                     <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto">
                         <CheckBox MinWidth="0" VerticalAlignment="Center"
                                   IsChecked="{Binding IsChecked, Mode=TwoWay}" />

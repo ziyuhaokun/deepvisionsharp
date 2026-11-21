@@ -79,9 +79,7 @@
                     </ComboBox>
                 </Grid>
 
-                <Border Grid.Row="1" Name="ChartHost" MinHeight="340" Padding="8"
-                        Background="{DynamicResource IvSurface3Brush}"
-                        CornerRadius="10">
+                <Border Classes="card inset" Grid.Row="1" Name="ChartHost" MinHeight="340" Padding="8">
                     <Grid>
                         <Image Name="ChartImage" HorizontalAlignment="Center" VerticalAlignment="Center"
                                Stretch="Uniform" />

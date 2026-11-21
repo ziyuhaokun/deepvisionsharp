@@ -38,18 +38,10 @@
         <Style Selector="Border.jobLockCard">
             <Setter Property="Margin" Value="0,0,0,8" />
             <Setter Property="Padding" Value="10,8" />
-            <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="6" />
         </Style>
         <Style Selector="Border.autoSplitCard">
             <Setter Property="Padding" Value="12,10" />
             <Setter Property="Margin" Value="0,0,0,8" />
-            <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="6" />
         </Style>
         <Style Selector="Border.galleryRow">
             <Setter Property="Padding" Value="10,7" />
@@ -134,7 +126,7 @@
           IsVisible="{Binding Monitor.IsSettingsMode}">
 
         <Border Grid.Row="0"
-                Classes="jobLockCard"
+                Classes="card inset jobLockCard"
                 IsVisible="{Binding Config.IsJobLocked}">
             <TextBlock FontSize="12"
                        Foreground="{DynamicResource IvText2Brush}"
@@ -199,7 +191,7 @@
                     </Grid.RowDefinitions>
 
                     <Border Grid.Row="0"
-                            Classes="autoSplitCard"
+                            Classes="card inset autoSplitCard"
                             IsVisible="{Binding Config.Dataset.IsAutoSplitMode}">
                         <StackPanel>
                             <Grid>
@@ -282,14 +274,10 @@
                                Classes="sectionTitle"
                                Text="训练图库" />
 
-                    <Border Grid.Row="2"
+                    <Border Classes="card" Grid.Row="2"
                             MinHeight="0"
                             Margin="0,0,0,6"
                             Padding="8"
-                            Background="{DynamicResource IvSurface2Brush}"
-                            BorderBrush="{DynamicResource IvStrokeBrush}"
-                            BorderThickness="1"
-                            CornerRadius="6"
                             IsVisible="{Binding Config.Dataset.ShowsInteractiveGalleryPicker}">
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
                             <ItemsControl AutomationProperties.AutomationId="dv.training.galleries"

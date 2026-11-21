@@ -18,11 +18,8 @@
             <TextBlock Margin="0,4,0,0" Theme="{StaticResource DialogHintStyle}" Text="{Binding SelectionSummary}" />
         </StackPanel>
 
-        <Border Grid.Row="1" Padding="10"
-                Background="{DynamicResource IvSurface3Brush}"
-                BorderBrush="{DynamicResource IvStrokeBrush}"
-                BorderThickness="1"
-                CornerRadius="8">
+        <Border Classes="card inset" Grid.Row="1" Padding="10"
+>
             <Grid>
                 <ScrollViewer MaxHeight="300"
                               HorizontalScrollBarVisibility="Disabled"

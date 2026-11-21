@@ -32,31 +32,31 @@
         <Setter Property="Fill" Value="{DynamicResource IvSuccessBrush}" />
     </Style>
 
-    <!-- 模型卡：420×280，悬停描边变强调色并上浮 2px -->
-    <Style Selector="Border.modelCard">
-        <Setter Property="Padding" Value="16" />
-        <Setter Property="Margin" Value="0,0,12,12" />
-        <Setter Property="Width" Value="420" />
-        <Setter Property="MinHeight" Value="280" />
+    <Style Selector="Border.card">
         <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="6" />
-        <Setter Property="RenderTransform" Value="translateY(0px)" />
-        <Setter Property="Transitions">
-            <Transitions>
-                <TransformOperationsTransition Property="RenderTransform"
-                                              Duration="0:0:0.150"
-                                              Easing="{DynamicResource IvMotionEase}" />
-            </Transitions>
-        </Setter>
+        <Setter Property="BorderThickness" Value="{DynamicResource IvStrokeThickness}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource IvRadiusCard}" />
     </Style>
-
-    <Style Selector="Border.modelCard:pointerover">
+    <Style Selector="Border.card.inset">
+        <Setter Property="Background" Value="{DynamicResource IvSurface3Brush}" />
+    </Style>
+    <Style Selector="Border.card.interactive:pointerover:not(:disabled), Border.card.interactive:focus-within:not(:disabled)">
         <Setter Property="BorderBrush" Value="{DynamicResource IvAccentBorderBrush}" />
-        <Setter Property="RenderTransform" Value="translateY(-2px)" />
+    </Style>
+    <Style Selector="Border.card.selected">
+        <Setter Property="BorderBrush" Value="{DynamicResource IvAccentBrush}" />
     </Style>
 
+    <Style Selector="TextBlock.cardTitle">
+        <Setter Property="FontSize" Value="15" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
+    </Style>
+    <Style Selector="TextBlock.cardMeta">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+    </Style>
 
     <!-- 列表行选中态：WPF 的 DataTrigger 绑 IsSelected 改为此模式 -->
     <Style Selector="Border.selectableRow">

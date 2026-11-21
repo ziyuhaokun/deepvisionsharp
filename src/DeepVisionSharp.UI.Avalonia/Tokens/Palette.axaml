@@ -17,9 +17,11 @@
             <SolidColorBrush x:Key="IvInputBrush" Color="#FFFFFF" />
             <SolidColorBrush x:Key="IvTextSelectionBrush" Color="#B9D3F4" />
             <SolidColorBrush x:Key="IvPopupBrush" Color="#FFFFFF" />
+            <StaticResource x:Key="MenuFlyoutPresenterBackground" ResourceKey="IvPopupBrush" />
             <SolidColorBrush x:Key="IvOverlayBrush" Color="#59000000" />
             <SolidColorBrush x:Key="IvStrokeSubtleBrush" Color="#E2E3E5" />
             <SolidColorBrush x:Key="IvStrokeBrush" Color="#D5D7DA" />
+            <StaticResource x:Key="MenuFlyoutPresenterBorderBrush" ResourceKey="IvStrokeBrush" />
             <SolidColorBrush x:Key="IvStrokeStrongBrush" Color="#C3C6CA" />
             <SolidColorBrush x:Key="IvControlBorderBrush" Color="#C3C6CA" />
             <SolidColorBrush x:Key="IvControlBorderHoverBrush" Color="#979BA2" />
@@ -109,9 +111,11 @@
             <SolidColorBrush x:Key="IvInputBrush" Color="#141516" />
             <SolidColorBrush x:Key="IvTextSelectionBrush" Color="#395D85" />
             <SolidColorBrush x:Key="IvPopupBrush" Color="#26272A" />
+            <StaticResource x:Key="MenuFlyoutPresenterBackground" ResourceKey="IvPopupBrush" />
             <SolidColorBrush x:Key="IvOverlayBrush" Color="#99000000" />
             <SolidColorBrush x:Key="IvStrokeSubtleBrush" Color="#2D2E31" />
             <SolidColorBrush x:Key="IvStrokeBrush" Color="#38393D" />
+            <StaticResource x:Key="MenuFlyoutPresenterBorderBrush" ResourceKey="IvStrokeBrush" />
             <SolidColorBrush x:Key="IvStrokeStrongBrush" Color="#4A4C50" />
             <SolidColorBrush x:Key="IvControlBorderBrush" Color="#46484C" />
             <SolidColorBrush x:Key="IvControlBorderHoverBrush" Color="#62656A" />

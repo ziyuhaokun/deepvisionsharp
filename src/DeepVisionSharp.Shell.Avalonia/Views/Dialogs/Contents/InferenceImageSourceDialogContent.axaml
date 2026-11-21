@@ -59,10 +59,8 @@
                 Theme="{StaticResource IvButtonBaseStyle}"
                 Content="清空全部列表" />
 
-        <Border Margin="0,18,0,0"
-                Padding="12,10"
-                Background="{DynamicResource IvSurface3Brush}"
-                CornerRadius="8">
+        <Border Classes="card inset" Margin="0,18,0,0"
+                Padding="12,10">
             <StackPanel>
                 <TextBlock FontSize="12" Foreground="{DynamicResource IvText2Brush}" Text="当前列表" />
                 <TextBlock Margin="0,4,0,0" FontWeight="SemiBold"

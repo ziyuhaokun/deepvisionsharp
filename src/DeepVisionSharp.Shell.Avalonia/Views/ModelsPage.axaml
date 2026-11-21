@@ -26,10 +26,13 @@
             <Setter Property="Margin" Value="0,4,12,8" />
             <Setter Property="Width" Value="420" />
             <Setter Property="MinHeight" Value="280" />
-            <Setter Property="Background" Value="{DynamicResource IvSurface2Brush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="RenderTransform" Value="translateY(0px)" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.150"
+                                                   Easing="{DynamicResource IvMotionEase}" />
+                </Transitions>
+            </Setter>
         </Style>
         <Style Selector="Border.modelCard:pointerover">
             <Setter Property="BorderBrush" Value="{DynamicResource IvAccentBorderBrush}" />
@@ -52,16 +55,7 @@
             <Setter Property="Padding" Value="10,0" />
             <Setter Property="FontSize" Value="12" />
         </Style>
-        <Style Selector="TextBlock.cardTitle">
-            <Setter Property="FontSize" Value="15" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
-        </Style>
         <Style Selector="TextBlock.cardText">
-            <Setter Property="FontSize" Value="12" />
-            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
-        </Style>
-        <Style Selector="TextBlock.cardMeta">
             <Setter Property="FontSize" Value="12" />
             <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
         </Style>
@@ -171,13 +165,9 @@
                     </Button>
                 </StackPanel>
 
-                <Border MinHeight="300"
+                <Border Classes="card" MinHeight="300"
                         Margin="0,16,0,0"
                         Padding="28"
-                        Background="{DynamicResource IvSurface2Brush}"
-                        BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
-                        BorderThickness="1"
-                        CornerRadius="6"
                         IsVisible="{Binding List.HasEmptyState}">
                     <StackPanel MaxWidth="420"
                                 HorizontalAlignment="Center"
@@ -249,7 +239,7 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Classes="modelCard">
+                            <Border Classes="card interactive modelCard">
                                 <Grid RowDefinitions="Auto,*,Auto,Auto">
                                     <Grid ColumnDefinitions="*,Auto">
                                         <Border Classes="statusBadge">
@@ -380,33 +370,65 @@
                                                         <MenuItem Header="重新生成 Paddle 检测模型"
                                                                   Command="{Binding #ModelActionsButton.Tag.List.RetryPpOcrDetectionExportCommand}"
                                                                   CommandParameter="{Binding #ModelActionsButton.DataContext.Id}"
-                                                                  IsVisible="{Binding #ModelActionsButton.DataContext.CanExportPpOcrDetection}" />
+                                                                  IsVisible="{Binding #ModelActionsButton.DataContext.CanExportPpOcrDetection}">
+                                                            <MenuItem.Icon>
+                                                                <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Refresh}" />
+                                                            </MenuItem.Icon>
+                                                        </MenuItem>
                                                         <MenuItem Header="导出 Paddle 检测 bundle"
                                                                   Command="{Binding #ModelActionsButton.Tag.List.ExportPpOcrDetectionBundleCommand}"
                                                                   CommandParameter="{Binding #ModelActionsButton.DataContext.Id}"
-                                                                  IsVisible="{Binding #ModelActionsButton.DataContext.CanExportPpOcrDetection}" />
+                                                                  IsVisible="{Binding #ModelActionsButton.DataContext.CanExportPpOcrDetection}">
+                                                            <MenuItem.Icon>
+                                                                <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.ArrowUp}" />
+                                                            </MenuItem.Icon>
+                                                        </MenuItem>
                                                         <MenuItem Header="转化 IR 模型"
                                                                   Command="{Binding #ModelActionsButton.Tag.List.ConvertOpenVinoCommand}"
                                                                   CommandParameter="{Binding #ModelActionsButton.DataContext.Id}"
-                                                                  IsVisible="{Binding #ModelActionsButton.DataContext.CanConvertOpenVino}" />
+                                                                  IsVisible="{Binding #ModelActionsButton.DataContext.CanConvertOpenVino}">
+                                                            <MenuItem.Icon>
+                                                                <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Cube}" />
+                                                            </MenuItem.Icon>
+                                                        </MenuItem>
                                                         <MenuItem Header="量化 IR 模型 (INT8)"
                                                                   Command="{Binding #ModelActionsButton.Tag.List.QuantizeOpenVinoInt8Command}"
                                                                   CommandParameter="{Binding #ModelActionsButton.DataContext.Id}"
-                                                                  IsVisible="{Binding #ModelActionsButton.DataContext.CanQuantizeOpenVinoInt8}" />
+                                                                  IsVisible="{Binding #ModelActionsButton.DataContext.CanQuantizeOpenVinoInt8}">
+                                                            <MenuItem.Icon>
+                                                                <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Sliders}" />
+                                                            </MenuItem.Icon>
+                                                        </MenuItem>
                                                         <MenuItem Header="导出 IR 模型"
                                                                   Command="{Binding #ModelActionsButton.Tag.List.ExportOpenVinoCommand}"
                                                                   CommandParameter="{Binding #ModelActionsButton.DataContext.Id}"
-                                                                  IsVisible="{Binding #ModelActionsButton.DataContext.CanExportOpenVino}" />
+                                                                  IsVisible="{Binding #ModelActionsButton.DataContext.CanExportOpenVino}">
+                                                            <MenuItem.Icon>
+                                                                <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.ArrowUp}" />
+                                                            </MenuItem.Icon>
+                                                        </MenuItem>
                                                         <MenuItem Header="打开目录"
                                                                   Command="{Binding #ModelActionsButton.Tag.List.OpenModelFolderCommand}"
-                                                                  CommandParameter="{Binding #ModelActionsButton.DataContext.Id}" />
+                                                                  CommandParameter="{Binding #ModelActionsButton.DataContext.Id}">
+                                                            <MenuItem.Icon>
+                                                                <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.FolderOpen}" />
+                                                            </MenuItem.Icon>
+                                                        </MenuItem>
                                                         <MenuItem Header="编辑"
                                                                   Command="{Binding #ModelActionsButton.Tag.Editor.ShowEditModelDialogCommand}"
-                                                                  CommandParameter="{Binding #ModelActionsButton.DataContext}" />
+                                                                  CommandParameter="{Binding #ModelActionsButton.DataContext}">
+                                                            <MenuItem.Icon>
+                                                                <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Edit}" />
+                                                            </MenuItem.Icon>
+                                                        </MenuItem>
                                                         <Separator />
-                                                        <MenuItem Header="删除"
+                                                        <MenuItem Header="删除" Classes="danger"
                                                                   Command="{Binding #ModelActionsButton.Tag.List.ConfirmDeleteModelCommand}"
-                                                                  CommandParameter="{Binding #ModelActionsButton.DataContext.Id}" />
+                                                                  CommandParameter="{Binding #ModelActionsButton.DataContext.Id}">
+                                                            <MenuItem.Icon>
+                                                                <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Delete}" />
+                                                            </MenuItem.Icon>
+                                                        </MenuItem>
                                                     </MenuFlyout>
                                                 </Button.Flyout>
                                             </Button>

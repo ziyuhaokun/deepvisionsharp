@@ -31,16 +31,15 @@
         <StackPanel Margin="0,18,0,0" IsVisible="{Binding IsEditingModel}">
             <Grid ColumnDefinitions="*,Auto">
                 <TextBlock VerticalAlignment="Center" Theme="{StaticResource DialogFieldLabelStyle}" Text="类别" />
-                <Border Grid.Column="1" Padding="8,3"
-                        Background="{DynamicResource IvSurface3Brush}" CornerRadius="6">
+                <Border Classes="card inset" Grid.Column="1" Padding="8,3">
                     <TextBlock FontSize="11" FontWeight="SemiBold"
                                Foreground="{DynamicResource IvText2Brush}"
                                Text="{Binding EditingClassesCountText}" />
                 </Border>
             </Grid>
 
-            <Border Margin="0,8,0,0" Padding="12,12,4,4"
-                    Background="{DynamicResource IvSurface3Brush}" CornerRadius="10"
+            <Border Classes="card inset" Margin="0,8,0,0" Padding="12,12,4,4"
+
                     IsVisible="{Binding HasEditingClasses}">
                 <ItemsControl ItemsSource="{Binding EditingClasses}">
                     <ItemsControl.ItemsPanel>

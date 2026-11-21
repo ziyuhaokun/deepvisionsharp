@@ -13,8 +13,7 @@
     <ScrollViewer MaxHeight="620" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
         <StackPanel>
             <UniformGrid Columns="4">
-                <Border Margin="0,0,8,0" Padding="12"
-                        Background="{DynamicResource IvSurface3Brush}" CornerRadius="8">
+                <Border Classes="card inset" Margin="0,0,8,0" Padding="12">
                     <StackPanel>
                         <TextBlock Theme="{StaticResource MetricLabelStyle}" Text="成功率" />
                         <TextBlock Theme="{StaticResource MetricValueSecondaryStyle}" Text="{Binding SuccessRateText}" />
@@ -22,8 +21,7 @@
                                    Text="{Binding SuccessCount, StringFormat={}{0} 成功}" />
                     </StackPanel>
                 </Border>
-                <Border Margin="0,0,8,0" Padding="12"
-                        Background="{DynamicResource IvSurface3Brush}" CornerRadius="8">
+                <Border Classes="card inset" Margin="0,0,8,0" Padding="12">
                     <StackPanel>
                         <TextBlock Theme="{StaticResource MetricLabelStyle}" Text="总耗时" />
                         <TextBlock Theme="{StaticResource MetricValueSecondaryStyle}" Text="{Binding TotalWallText}" />
@@ -31,16 +29,14 @@
                                    Text="{Binding TotalCount, StringFormat=共 {0} 张}" />
                     </StackPanel>
                 </Border>
-                <Border Margin="0,0,8,0" Padding="12"
-                        Background="{DynamicResource IvSurface3Brush}" CornerRadius="8">
+                <Border Classes="card inset" Margin="0,0,8,0" Padding="12">
                     <StackPanel>
                         <TextBlock Theme="{StaticResource MetricLabelStyle}" Text="成功均耗时" />
                         <TextBlock Theme="{StaticResource MetricValueSecondaryStyle}" Text="{Binding AverageSuccessText}" />
                         <TextBlock Theme="{StaticResource MetricNoteStyle}" Text="{Binding MinMaxSuccessText}" />
                     </StackPanel>
                 </Border>
-                <Border Padding="12"
-                        Background="{DynamicResource IvSurface3Brush}" CornerRadius="8">
+                <Border Classes="card inset" Padding="12">
                     <StackPanel>
                         <TextBlock Theme="{StaticResource MetricLabelStyle}" Text="失败" />
                         <TextBlock Theme="{StaticResource MetricValueSecondaryStyle}" Text="{Binding FailedCount}" />
@@ -63,8 +59,7 @@
                 </Border>
             </Grid>
 
-            <Border Margin="0,16,0,0" Padding="12"
-                    Background="{DynamicResource IvSurface3Brush}" CornerRadius="8">
+            <Border Classes="card inset" Margin="0,16,0,0" Padding="12">
                 <StackPanel>
                     <TextBlock FontWeight="SemiBold" Text="OK / NG 评估（NG 为正类）" />
                     <TextBlock Margin="0,8,0,0" Theme="{StaticResource DialogHintStyle}"
@@ -95,10 +90,8 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border Width="150" Margin="0,0,8,8" Padding="6"
-                                Background="{DynamicResource IvSurface3Brush}"
-                                BorderBrush="{DynamicResource IvStrokeBrush}"
-                                BorderThickness="1" CornerRadius="6">
+                        <Border Classes="card inset" Width="150" Margin="0,0,8,8" Padding="6"
+>
                             <StackPanel>
                                 <Border Height="96" Background="{DynamicResource IvControlFillBrush}"
                                         ClipToBounds="True" CornerRadius="4">

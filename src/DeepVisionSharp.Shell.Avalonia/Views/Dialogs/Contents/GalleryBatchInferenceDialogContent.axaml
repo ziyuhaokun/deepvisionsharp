@@ -17,8 +17,7 @@
         <StackPanel>
             <TextBlock Theme="{StaticResource DialogHintStyle}" Text="{Binding Subtitle}" TextWrapping="Wrap" />
 
-            <Border Margin="0,14,0,0" Padding="12"
-                    Background="{DynamicResource IvSurface3Brush}" CornerRadius="8">
+            <Border Classes="card inset" Margin="0,14,0,0" Padding="12">
                 <Grid ColumnDefinitions="*,Auto">
                     <StackPanel>
                         <TextBlock FontWeight="SemiBold" Text="{Binding GalleryName}" />
@@ -47,8 +46,8 @@
                            Text="{Binding SelectedModel.SpatialPolicySummary}"
                            TextWrapping="Wrap"
                            IsVisible="{Binding ShowsSelectedModelSpatialSummary}" />
-                <Border Margin="0,8,0,0" Padding="10"
-                        Background="{DynamicResource IvSurface3Brush}" CornerRadius="8"
+                <Border Classes="card inset" Margin="0,8,0,0" Padding="10"
+
                         IsVisible="{Binding HasNoModels}">
                     <TextBlock Theme="{StaticResource DialogHintStyle}" Text="{Binding NoModelsHint}" TextWrapping="Wrap" />
                 </Border>
@@ -106,8 +105,7 @@
                         <DataTemplate><TextBlock Text="{Binding Label}" /></DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
-                <Border Margin="0,10,0,0" Padding="10"
-                        Background="{DynamicResource IvSurface3Brush}" CornerRadius="8">
+                <Border Classes="card inset" Margin="0,10,0,0" Padding="10">
                     <TextBlock Theme="{StaticResource DialogHintStyle}" Text="{Binding WriteBackHint}" TextWrapping="Wrap" />
                 </Border>
 
@@ -146,29 +144,25 @@
                 </Grid>
                 <ProgressBar Margin="0,8,0,0" Height="8" Maximum="1" Value="{Binding ProgressValue}" />
                 <UniformGrid Margin="0,14,0,0" Columns="4">
-                    <Border Margin="0,0,6,0" Padding="10"
-                            Background="{DynamicResource IvSurface3Brush}" CornerRadius="8">
+                    <Border Classes="card inset" Margin="0,0,6,0" Padding="10">
                         <StackPanel>
                             <TextBlock Theme="{StaticResource MetricValueSecondaryStyle}" Text="{Binding ResultTotal}" />
                             <TextBlock Theme="{StaticResource MetricLabelStyle}" Text="处理" />
                         </StackPanel>
                     </Border>
-                    <Border Margin="0,0,6,0" Padding="10"
-                            Background="{DynamicResource IvSurface3Brush}" CornerRadius="8">
+                    <Border Classes="card inset" Margin="0,0,6,0" Padding="10">
                         <StackPanel>
                             <TextBlock Theme="{StaticResource MetricValueSecondaryStyle}" Text="{Binding ResultWritten}" />
                             <TextBlock Theme="{StaticResource MetricLabelStyle}" Text="写回" />
                         </StackPanel>
                     </Border>
-                    <Border Margin="0,0,6,0" Padding="10"
-                            Background="{DynamicResource IvSurface3Brush}" CornerRadius="8">
+                    <Border Classes="card inset" Margin="0,0,6,0" Padding="10">
                         <StackPanel>
                             <TextBlock Theme="{StaticResource MetricValueSecondaryStyle}" Text="{Binding ResultSkipped}" />
                             <TextBlock Theme="{StaticResource MetricLabelStyle}" Text="跳过" />
                         </StackPanel>
                     </Border>
-                    <Border Padding="10"
-                            Background="{DynamicResource IvSurface3Brush}" CornerRadius="8">
+                    <Border Classes="card inset" Padding="10">
                         <StackPanel>
                             <TextBlock Theme="{StaticResource MetricValueSecondaryStyle}" Text="{Binding ResultFailed}" />
                             <TextBlock Theme="{StaticResource MetricLabelStyle}" Text="失败" />
