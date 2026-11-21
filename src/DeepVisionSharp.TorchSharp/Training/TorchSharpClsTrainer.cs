@@ -9,6 +9,7 @@ using DeepVisionSharp.TorchSharp.Classification;
 using DeepVisionSharp.TorchSharp.Device;
 using DeepVisionSharp.TorchSharp.IO;
 using DeepVisionSharp.TorchSharp.Classification.Pretrained;
+using DeepVisionSharp.TorchSharp.Classification.Yolo26;
 using DeepVisionSharp.TorchSharp.Models;
 using DeepVisionSharp.TorchSharp.Tensors;
 using DeepVisionSharp.Domain.ValueObjects;
@@ -91,39 +92,43 @@ public static class TorchSharpClsTrainer
         TryApplyPretrainedWeights(model, options, archName);
         model.to(device);
 
-        using optim.Optimizer optimizer = options.Optimizer switch
-        {
-            "adam" => optim.Adam(model.parameters(), options.LearningRate),
-            "adamw" => optim.AdamW(model.parameters(), options.LearningRate),
-            "sgd" => optim.SGD(model.parameters(), options.LearningRate),
-            _ => throw new ArgumentException("不支持的优化器。", nameof(options))
-        };
-
-        var scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            optimizer,
-            T_max: options.Epochs,
-            eta_min: options.LearningRate * 0.01);
+        var iterationsPerEpoch =
+            Math.Max(1, (int)Math.Ceiling(dataset.TrainSamples.Count / (double)options.BatchSize));
+        var totalIterations = iterationsPerEpoch * options.Epochs;
+        var warmupIterations = TrainingOptimization.WarmupIterations(iterationsPerEpoch, options.Epochs);
+        var parameterGroups = TrainingOptimization.GroupParameters(model);
+        using var trainingOptimizer = TrainingOptimizer.Create(
+            options.Optimizer, parameterGroups, options.LearningRate);
+        var optimizer = trainingOptimizer.Optimizer;
+        options.Log?.Invoke(
+            $"训练调度：optimizer={options.Optimizer}, total_iterations={totalIterations}, " +
+            $"warmup_iterations={warmupIterations}, weight_decay={TrainingOptimization.WeightDecay}, " +
+            $"groups(decay/norm/bias)={parameterGroups.DecayWeights.Count}/" +
+            $"{parameterGroups.NormWeights.Count}/{parameterGroups.Biases.Count}");
 
         var earlyStopping = new EarlyStoppingTracker(options.EarlyStoppingPatience);
+        // Epochs the warmup owns are not evidence of a plateau, so they cannot trigger early stop.
+        var warmupEpochs = warmupIterations / iterationsPerEpoch;
         float bestValAcc = -1f;
         float finalTrainLoss = float.NaN;
         Evaluation? bestEvaluation = null;
         // Early stopping means the configured epoch count is not what actually ran; the sidecar
         // records the real number so the UI does not claim a 12-epoch run trained for 50.
         var completedEpochs = 0;
+        var iteration = 0;
 
         for (var epoch = 1; epoch <= options.Epochs; epoch++)
         {
             cancellationToken.ThrowIfCancellationRequested();
             model.train();
 
-            var currentLr = (float)scheduler.get_last_lr().FirstOrDefault(options.LearningRate);
             var trainLossSum = 0.0;
             var trainBatches = 0;
             foreach (var (images, labels) in EnumerateBatches(
                          dataset.TrainSamples, options.BatchSize, channels, inputWidth, inputHeight, device, shuffle: true, augment: true, seed: 1000 + epoch, augmentation: options.ClassificationAugmentation, preprocessing: options.Preprocessing))
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                trainingOptimizer.ApplySchedule(iteration, warmupIterations, totalIterations);
                 using (images)
                 using (labels)
                 using (var scope = NewDisposeScope())
@@ -135,9 +140,13 @@ public static class TorchSharpClsTrainer
                     optimizer.step();
                     trainLossSum += loss.item<float>();
                     trainBatches++;
+                    iteration++;
                 }
             }
 
+            // Report the rate actually used by the last optimizer step of this epoch, not the
+            // scheduler's nominal value for the epoch.
+            var currentLr = (float)trainingOptimizer.LastLearningRate;
             finalTrainLoss = (float)(trainLossSum / Math.Max(1, trainBatches));
             // Evaluating on the training set would make val_acc meaningless and select the best
             // checkpoint by memorisation. An empty validation split is a dataset problem, so say so
@@ -194,7 +203,7 @@ public static class TorchSharpClsTrainer
 
             if (earlyStopping.IsEnabled)
             {
-                earlyStopping.Report(evaluation.Top1);
+                earlyStopping.Report(evaluation.Top1, withinWarmup: epoch <= warmupEpochs);
             }
 
             // Limit preview inference and JPEG encoding to the first, last and every fifth epoch.
@@ -265,7 +274,6 @@ public static class TorchSharpClsTrainer
                 break;
             }
 
-            scheduler.step();
             completedEpochs = epoch;
         }
 
@@ -694,16 +702,26 @@ public static class TorchSharpClsTrainer
             return;
         }
 
-        var widths = TorchSharpClassifierFactory.ResolveStageWidths(archName);
-        if (widths is null)
-        {
-            options.Log?.Invoke($"pretrained: 架构 {archName} 不支持预训练权重，使用随机初始化");
-            return;
-        }
-
         try
         {
             using var bundle = PretrainedWeightsBundle.Load(options.PretrainedDirectory);
+            if (model is Yolo26ClsClassifier yolo26)
+            {
+                var applied = Yolo26PretrainedInitializer.ApplyToClassifier(yolo26, bundle);
+                options.Log?.Invoke(
+                    $"pretrained: arch={archName} loaded={applied.Loaded} missing={applied.Missing} " +
+                    $"unexpected={applied.Unexpected} preprocessing={options.Preprocessing.ToWireValue()}");
+                return;
+            }
+
+            // ResNet-Tiny is sliced from the ResNet-18 bundle; other widths map 1:1.
+            var widths = TorchSharpClassifierFactory.ResolveStageWidths(archName);
+            if (widths is null)
+            {
+                options.Log?.Invoke($"pretrained: 架构 {archName} 不支持预训练权重，使用随机初始化");
+                return;
+            }
+
             var result = PretrainedInitializer.Apply(model, bundle, widths);
             options.Log?.Invoke(
                 $"pretrained: arch={archName} loaded={result.Loaded} sliced={result.Sliced} missing={result.Missing} unexpected={result.Unexpected} preprocessing={options.Preprocessing.ToWireValue()}");

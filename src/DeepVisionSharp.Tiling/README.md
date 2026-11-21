@@ -2,7 +2,7 @@
 
 切图与尺寸几何。输入图像尺寸和请求，输出源图窗口或画布映射；不读文件、不依赖 OpenCV / TorchSharp。
 
-分类 1.0 的训练和推理**不调用**本模块：整张图在 `TorchSharpImageTensor.ToClassificationTensor` 里线性拉伸到网络输入。产品要切图时，在 Application / TorchSharp 引用本 project，传入 `TileRequest` / `ImageFitKind`，不要把窗口公式写进推理后端。
+分类训练和推理不调用本模块，整张图在 `TorchSharpImageTensor.ToClassificationTensor` 里线性拉伸。检测训练和推理用 `ImageFits` / `CoordinateMaps` 做 letterbox。`ITilingService` 已注册网格、滑窗和裁切，没有产品调用方。不要把窗口公式写进推理后端。
 
 ```text
 PixelSize + TileRequest                 -> TilePlanner.Plan            -> TilePlan
@@ -50,6 +50,6 @@ PixelSize + stride                      -> PixelSizes.AlignUp          -> canvas
 
 YOLO 常见的「边长对齐到 32」用 `PixelSizes.AlignUp(canvas, 32)`，再把对齐后的尺寸传给 `Letterbox`。
 
-`CoordinateMaps.TryToSource` / `ToSource` 把画布上的点 / 框映回原图。留白和裁掉的区域不能映回；点用 `TryToSource`，框与内容区无交集时返回 null。分类 1.0 不需要。
+`CoordinateMaps.TryToSource` / `ToSource` 把画布上的点 / 框映回原图。留白和裁掉的区域不能映回；点用 `TryToSource`，框与内容区无交集时返回 null。分类不需要。
 
 填充色、tensor、NMS、结果聚合都不在这里。

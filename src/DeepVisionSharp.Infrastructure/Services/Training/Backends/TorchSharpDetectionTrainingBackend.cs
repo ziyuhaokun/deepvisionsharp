@@ -10,7 +10,9 @@ using DeepVisionSharp.Domain.Entities;
 using DeepVisionSharp.Domain.Repositories;
 using DeepVisionSharp.Domain.ValueObjects;
 using DeepVisionSharp.TorchSharp.Detection.Training;
+using DeepVisionSharp.TorchSharp.Detection.Yolo26;
 using DeepVisionSharp.TorchSharp.Device;
+using DeepVisionSharp.TorchSharp.Models;
 
 namespace DeepVisionSharp.Infrastructure.Services;
 
@@ -221,6 +223,13 @@ internal sealed class TorchSharpDetectionTrainingBackend : ITrainingBackend, IDi
             var inputHeight = Math.Max(32, request.Form.NetworkInputHeight);
             var detectionOptions = request.Form.ToDetectionOptions() ?? DetectionTrainingOptions.Default;
 
+            // Pretrained weights are optional: a missing bundle means the run starts from scratch.
+            var detectionArch = Yolo26DetectFactory.ResolveArch(modelType);
+            var pretrainedDirectory = PretrainedWeightsLocator.Resolve(detectionArch);
+            Log(pretrainedDirectory is null
+                ? $"预训练权重：未找到 {detectionArch} 的权重，使用随机初始化"
+                : $"预训练权重：{detectionArch} ← {pretrainedDirectory}");
+
             TorchSharpDetTrainer.Result trainResult;
             heartbeat.SetStage(TrainingRunMarkerStore.StageTraining);
             try
@@ -242,6 +251,7 @@ internal sealed class TorchSharpDetectionTrainingBackend : ITrainingBackend, IDi
                             InputChannels: 3,
                             DeviceName: "AUTO",
                             HorizontalFlip: detectionOptions.HorizontalFlip,
+                            PretrainedDirectory: pretrainedDirectory,
                             EarlyStoppingPatience: Math.Max(0, request.Form.EarlyStoppingPatience),
                             EvaluationConfidence: (float)detectionOptions.EvaluationConfidence,
                             NmsIou: (float)detectionOptions.NmsIouThreshold,

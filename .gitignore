@@ -377,6 +377,9 @@ samples/generated/
 # Local preview output, including generated datasets.
 /.outputs/
 
+# Local scratch: briefs, render shots, weight dumps, one-off runners.
+/temp/
+
 # AI workspace artifacts (build logs, reviews, plans)
 .workspace/
 .impeccable/

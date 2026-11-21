@@ -29,10 +29,16 @@ public sealed class EarlyStoppingTracker
 
     public bool ShouldStop => IsEnabled && _badEpochs >= _patience;
 
-    /// <summary>Records an epoch's metric; returns true when it improved enough to reset patience.</summary>
-    public bool Report(double metric)
+    /// <summary>
+    /// Records an epoch's metric; returns true when it improved enough to reset patience.
+    /// </summary>
+    /// <param name="withinWarmup">
+    /// True while the learning-rate warmup owns the schedule. Those epochs are skipped entirely: a
+    /// deliberately tiny learning rate says nothing about whether training has plateaued.
+    /// </param>
+    public bool Report(double metric, bool withinWarmup = false)
     {
-        if (!IsEnabled)
+        if (!IsEnabled || withinWarmup)
         {
             return true;
         }

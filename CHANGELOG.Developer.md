@@ -1,5 +1,8 @@
 # DeepVisionSharp 开发者变更
 
+> 迁移日记。和代码冲突时以代码和根 README.md 为准。
+> 文中提到的 docs/ 下计划与 ADR 已不在仓库里，不要按路径去找。
+
 实现细节、类名、路径与内部开关。使用者请看 [CHANGELOG.md](CHANGELOG.md)。
 
 版本节格式与用户版相同：`### vX.Y.Z (发布日期)`，可选 `tags:`，后接 `-` 条目。本文件不复制到安装包。
@@ -10,12 +13,12 @@ tags: detection / classification / refactor / ui
 
 - 产品入口、设计系统和 SetupHost 统一到 Avalonia。发布仍使用 `DeepVisionSharp.exe` 和现有 `.vrp` 包格式，标签统计及推理报告改用 Avalonia 矢量绘制。
 
-- UI 库改名：`yu-ui` → `DeepVisionSharp.UI`（WPF，`AssemblyName` / `RootNamespace` / 目录一致），`yu-ui.avalonia` → `DeepVisionSharp.UI.Avalonia`；XAML 命名空间 URI 改为 `http://schemas.deepvisionsharp.ui/xaml`（前缀由 `yu:` 改为 `dvsui:`，`Iv*` 资源键与 `IvIcons` / `IvTheme` 不变）；入口字典 `YuUi{Tokens,Styles,Theme}.xaml` → `DeepVisionSharpUI{Tokens,Styles,Theme}.xaml`，`YuUiStyleProbeWindow` → `DeepVisionSharpUIStyleProbeWindow`，`docs/yu-ui-migration.md` → `docs/DeepVisionSharp.UI-migration.md`。下方及更早条目里的旧名为历史记录，不回改。新根命名空间会遮蔽 `Avalonia`，`NumericBox.cs` 内两处限定名改为 `global::Avalonia.*`。
+- UI 库改名：`yu-ui` → `DeepVisionSharp.UI`（WPF，`AssemblyName` / `RootNamespace` / 目录一致），`yu-ui.avalonia` → `DeepVisionSharp.UI.Avalonia`；XAML 命名空间 URI 改为 `http://schemas.deepvisionsharp.ui/xaml`（前缀由 `yu:` 改为 `dvsui:`，`Iv*` 资源键与 `IvIcons` / `IvTheme` 不变）；入口字典 `YuUi{Tokens,Styles,Theme}.xaml` → `DeepVisionSharpUI{Tokens,Styles,Theme}.xaml`，`YuUiStyleProbeWindow` → `DeepVisionSharpUIStyleProbeWindow`。下方及更早条目里的旧名为历史记录，不回改。新根命名空间会遮蔽 `Avalonia`，`NumericBox.cs` 内两处限定名改为 `global::Avalonia.*`。
 
 - 新增 WPF 设计系统 `src/yu-ui`（项目 `yu-ui`，`AssemblyName=yu-ui`，`RootNamespace=YuUI`，XAML 命名空间 `http://schemas.yu-ui/xaml`，前缀 `yu:`）：`Tokens/`（Palette Light/Dark 各 88 键、Metrics 21、Typography 23、Motion 4）、`Icons/IvIcons`（77 个 24 画布描边图标，path 与源逐字符一致）、`Styles/`（14 个文件，隐式样式 + `Iv*` 显式样式键）、`Controls/`（`Icon` / `NumericBox` / `FormRow` / `FormSection` / `Dialog` / `ThemedWindow` / `IvPlaceholder`）、`Themes/`（`Generic.xaml` 默认样式总线、`AppStyles.xaml` 8 个键型样式）。三级入口：`YuUiTokens.xaml`（仅令牌）/ `YuUiStyles.xaml`（含隐式样式）/ `YuUiTheme.xaml`（全量）。移植规则见 `src/yu-ui/PORTING-CONTRACT.md`。
 - 移植期的 WPF 取舍：Avalonia `ThemeDictionaries` → `IvTheme.Apply` 运行时原地换入（合并字典按倒序解析，插顶层 index 0 会被嵌套字典盖掉）；`Transitions` → `Trigger.EnterActions/ExitActions` + `StopStoryboard`，静态终态一律用 Setter 定死（否则离屏/首帧停在初始样）；`Selector` 伪类 → `IsMouseOver` / `IsPressed` / `IsKeyboardFocused` / `IsEnabled`，且 hover 一律包 `IsEnabled=True`（WPF 禁用元素仍报 `IsMouseOver`）；`PlaceholderText` → 附加属性 `yu:IvPlaceholder.Text`；进度条补 `MinHeight=6`（源自带默认高度，WPF 自定义模板会塌成 0）；全库禁止 implicit `TextBlock` 样式（会压掉控件级字号与主按钮白字）。
-- Shell：`App.xaml` 只 merge `YuUiTokens.xaml`（不改任何现有控件外观）；新增 DEBUG 验收页 `Views/YuUiStyleProbeWindow`；`docs/yu-ui-migration.md` 记录 14 个 WPF-UI 控件的等价物与 64 个 `SymbolIcon` 全量映射，作为分批迁移依据。
-- Shell 收口（方案 B，壳层去 WPF-UI）：`ui:FluentWindow` + `ui:TitleBar` → `yu:ThemedWindow`（52px 自绘标题栏，原项目名/主题切换挪到标题栏下方工具条行）；`ui:NavigationView` + 7×`NavigationViewItem` → 固定展开 168 宽的 `ListBox`（`NavList`，每项 `Tag` 为 `AppRoute`，样式 `IvSidebarItemStyle`，导航项顺序/文案/AutomationId 不变）；`ui:SnackbarPresenter` → `SnackbarLayer` 浮层，`ui:ContentDialogHost` → `yu:Dialog`（`ShellDialog` + `DialogLayer`）。服务层四个契约替代 WPF-UI：`IPageHost`（`CurrentPage` / `Show`）、`ISnackbarHost`（`SnackbarKind` + `TimeSpan`）、`IDialogHost`（`ShowAsync` / `Close`，返回 `AppDialogResult`）、`IAppThemeService`（`Current` / `Changed` / `Apply`），分别替换 `INavigationService` / `ISnackbarService` / `IContentDialogService` / `ApplicationThemeManager`；挂载方式从服务的 `SetPresenter(...)` 改为 `MainWindow` 构造函数在 `InitializeComponent()` 之后依次 `Attach(this)`（导航 → 提示条 → 对话框），未挂载时导航与对话框抛 `InvalidOperationException`，提示条静默丢弃。`App.xaml` 删掉 `ui:ThemesDictionary` / `ui:ControlsDictionary` 与 `xmlns:ui`，`MergedDictionaries` 只剩 `YuUiTheme.xaml`（全量：令牌 + 隐式样式，作为 `Button`/`TextBox`/`ListBox`/`ScrollBar`/`ComboBox`/`ProgressBar` 的全局基线）+ `Resources/StatusPalette.xaml`（Shell 自有状态色，颜色值未动）；主题切换落到 `IvTheme.Apply`。`ThemedWindow` 标题栏合并、Mica 毛玻璃与 `NavigationView` 折叠能力列为已知丢失项（`docs/yu-ui-migration.md` §8.5）。
+- Shell：`App.xaml` 只 merge `YuUiTokens.xaml`（不改任何现有控件外观）；新增 DEBUG 验收页 `Views/YuUiStyleProbeWindow`；迁移说明记录 14 个 WPF-UI 控件的等价物与 64 个 `SymbolIcon` 全量映射，作为分批迁移依据。
+- Shell 收口（方案 B，壳层去 WPF-UI）：`ui:FluentWindow` + `ui:TitleBar` → `yu:ThemedWindow`（52px 自绘标题栏，原项目名/主题切换挪到标题栏下方工具条行）；`ui:NavigationView` + 7×`NavigationViewItem` → 固定展开 168 宽的 `ListBox`（`NavList`，每项 `Tag` 为 `AppRoute`，样式 `IvSidebarItemStyle`，导航项顺序/文案/AutomationId 不变）；`ui:SnackbarPresenter` → `SnackbarLayer` 浮层，`ui:ContentDialogHost` → `yu:Dialog`（`ShellDialog` + `DialogLayer`）。服务层四个契约替代 WPF-UI：`IPageHost`（`CurrentPage` / `Show`）、`ISnackbarHost`（`SnackbarKind` + `TimeSpan`）、`IDialogHost`（`ShowAsync` / `Close`，返回 `AppDialogResult`）、`IAppThemeService`（`Current` / `Changed` / `Apply`），分别替换 `INavigationService` / `ISnackbarService` / `IContentDialogService` / `ApplicationThemeManager`；挂载方式从服务的 `SetPresenter(...)` 改为 `MainWindow` 构造函数在 `InitializeComponent()` 之后依次 `Attach(this)`（导航 → 提示条 → 对话框），未挂载时导航与对话框抛 `InvalidOperationException`，提示条静默丢弃。`App.xaml` 删掉 `ui:ThemesDictionary` / `ui:ControlsDictionary` 与 `xmlns:ui`，`MergedDictionaries` 只剩 `YuUiTheme.xaml`（全量：令牌 + 隐式样式，作为 `Button`/`TextBox`/`ListBox`/`ScrollBar`/`ComboBox`/`ProgressBar` 的全局基线）+ `Resources/StatusPalette.xaml`（Shell 自有状态色，颜色值未动）；主题切换落到 `IvTheme.Apply`。`ThemedWindow` 标题栏合并、Mica 毛玻璃与 `NavigationView` 折叠能力列为已知丢失项。
 
 - 新增 Detection 项目类型与 ModelFamily：`ProjectTypes` / `ProjectWorkflowKind` / `ProjectCapabilityCatalog` 双类型；`TaskCompatibilityCatalog` 按 workflow × family 配对；`ResolvedTaskProfile` 的 overlay 增加 `ExportKind.DetectionYoloFolders`、`InferenceKind.DetectionServe`、`InferenceWriteBackKind.BoundingBoxes`、`MetricProfileKind.DetectionMap`。`ModelTypeNames` 增加 `yolo26n-det` … `yolo26x-det`，拆出 `IsKnownModelType` / `IsDetectionModelType`，并审计全部 `IsClassificationModelType` 调用点。
 - 标注契约支持检测：`AnnotationDocument` / `AnnotationSaveItem` / `IAnnotationWorkflowService` 增加 `AnnotationShape` 与 `IsReviewed`；sidecar 写 Labelme `shapes` 与 `flags.dvReviewed`，旧分类 sidecar 无 shapes 仍可读；标签索引、按标签选样本与统计从 shape labels 派生；删除标签并清理时同时移除对应框。数据库 `Annotations.DocumentJson` 原样承载，不升 schema。
@@ -65,12 +68,11 @@ tags: detection / classification / refactor / ui
 - 验证预览图改为第 1、末轮与每 5 轮生成，并响应取消；不再每轮做 9 次前向。
 - 新增 torchvision 兼容的 ResNet v2（resnet_tiny_v2/resnet18_v2/resnet34_v2）与预训练权重加载：离线转换脚本（只需 numpy，不装 torch）+ C# 读取器 + nano 的通道切片迁移；训练启动时自动查找权重，找到则用 ImageNet 归一化并在 `.info` 记录 `preprocessing`。
 - 分类训练默认改用 v2 架构（nano 为宽度缩减的 ResNet18）；权重缺失时回退随机初始化 + `[0,1]` 归一化，旧模型按 `.info.preprocessing` 自述版本加载，不需要重训。
-- 增强面板按后端能力禁用 HSV/Scale/Translate/Erasing/AutoAugment，并标注"仅翻转可用"；新增分类训练基线文档 docs/plans/classification-baseline.md。
+- 增强面板按后端能力禁用 HSV/Scale/Translate/Erasing/AutoAugment，并标注"仅翻转可用"。
 - 训练支持早停：超参数页新增"早停耐心"（0 = 关闭），连续 N 轮验证集无提升即停止并保留最佳权重。
 - 指标页新增"分类指标（最新一轮）"表格，展示每类 precision/recall/F1/样本数，直接暴露"全判 OK"这类退化。
 - 自动划分改为按样本哈希排序（`hash-rank-v1`）：排序键只取图库 ID 与文件名（不区分大小写），与类别遍历顺序、样本输入顺序无关；增删一张图最多让一个已有样本在 train/val 间换边，多轮训练的验证指标可比。每类验证数量口径不变；升级后首次训练会按新规则重新划分一次；`dataset-manifest.json` 新增 `split_method`。
 - 训练权重 `best.torchsharp`、其 `.info` 与模型库 `.info` 改为同目录临时文件写入、刷盘后替换；进程在保存中途崩溃时目标文件保持旧版本完整，不再出现半截权重被崩溃恢复当作可用模型。
-- 决定与后续阶段见 docs/adr/0002-classification-only-1.0.md、docs/adr/0003-inprocess-training-hardening.md、docs/plans/p0-import-metadata-inference.md、docs/plans/training-background-execution.md、docs/plans/flow-consistency-hardening.md、docs/plans/headless-gui-channel.md、docs/plans/end-to-end-test-channels.md、docs/plans/classification-first-batch.md。
 
 ### v0.0.1 (2026-10-16)
 

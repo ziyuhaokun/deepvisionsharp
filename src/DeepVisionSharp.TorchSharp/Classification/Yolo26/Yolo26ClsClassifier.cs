@@ -250,13 +250,14 @@ internal sealed class C3k2 : Module<Tensor, Tensor>
         _hidden = (long)(outputChannels * expansion);
         _cv1 = new YoloConv(inputChannels, 2 * _hidden, kernel: 1);
         // C3k2 replaces C2f's blocks with Bottleneck(self.c, self.c, shortcut, g), whose default expansion is 0.5.
-        // The attention flag adds a PSA block after the bottleneck, which only the detection P5 layer uses.
+        // yolo26.yaml's last head C3k2 sets c3k=True *and* attn=True; attention wins there, and its
+        // block is a Bottleneck followed by a PSABlock (the detection P5 layer only).
         var heads = Math.Max((int)(_hidden / 64), 1);
         _blocks = Enumerable.Range(0, repeats)
-            .Select(_ => c3k
-                ? (Module<Tensor, Tensor>)new C3k(_hidden, _hidden)
-                : attention
-                    ? new BottleneckPsa(_hidden, heads)
+            .Select(_ => attention
+                ? (Module<Tensor, Tensor>)new BottleneckPsa(_hidden, heads)
+                : c3k
+                    ? new C3k(_hidden, _hidden)
                     : new YoloBottleneck(_hidden, _hidden, shortcut: true, expansion: 0.5))
             .ToArray();
         _cv2 = new YoloConv((2 + repeats) * _hidden, outputChannels, kernel: 1);

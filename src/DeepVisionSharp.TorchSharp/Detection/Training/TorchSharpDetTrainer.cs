@@ -7,6 +7,7 @@ using TorchSharp;
 using static TorchSharp.torch;
 
 using DeepVisionSharp.Domain.Datasets;
+using DeepVisionSharp.TorchSharp.Classification.Pretrained;
 using DeepVisionSharp.TorchSharp.Detection.Yolo26;
 using DeepVisionSharp.TorchSharp.Device;
 using DeepVisionSharp.TorchSharp.IO;
@@ -42,6 +43,7 @@ public static class TorchSharpDetTrainer
         int InputChannels = 3,
         string? DeviceName = "AUTO",
         bool HorizontalFlip = true,
+        string? PretrainedDirectory = null,
         int EarlyStoppingPatience = 0,
         float EvaluationConfidence = 0.25f,
         float NmsIou = 0.45f,
@@ -89,42 +91,52 @@ public static class TorchSharpDetTrainer
 
         var watch = Stopwatch.StartNew();
         using var model = Yolo26DetectFactory.Create(archName, channels, dataset.Classes.Count);
+        var pretrainedName = ApplyPretrainedWeights(model, options, archName);
         model.to(device);
 
-        using optim.Optimizer optimizer = options.Optimizer switch
-        {
-            "adam" => optim.Adam(model.parameters(), options.LearningRate),
-            "adamw" => optim.AdamW(model.parameters(), options.LearningRate),
-            "sgd" => optim.SGD(model.parameters(), options.LearningRate),
-            _ => throw new ArgumentException("不支持的优化器。", nameof(options))
-        };
+        var iterationsPerEpoch =
+            Math.Max(1, (int)Math.Ceiling(dataset.Train.Count / (double)options.BatchSize));
+        var totalIterations = iterationsPerEpoch * options.Epochs;
+        var warmupIterations = TrainingOptimization.WarmupIterations(iterationsPerEpoch, options.Epochs);
+        var parameterGroups = TrainingOptimization.GroupParameters(model);
+        using var trainingOptimizer = TrainingOptimizer.Create(
+            options.Optimizer, parameterGroups, options.LearningRate);
+        var optimizer = trainingOptimizer.Optimizer;
+        options.Log?.Invoke(
+            $"训练调度：optimizer={options.Optimizer}, total_iterations={totalIterations}, " +
+            $"warmup_iterations={warmupIterations}, weight_decay={TrainingOptimization.WeightDecay}, " +
+            $"groups(decay/norm/bias)={parameterGroups.DecayWeights.Count}/" +
+            $"{parameterGroups.NormWeights.Count}/{parameterGroups.Biases.Count}");
 
-        var scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            optimizer,
-            T_max: options.Epochs,
-            eta_min: options.LearningRate * 0.01);
         var earlyStopping = new EarlyStoppingTracker(options.EarlyStoppingPatience);
+        // Epochs the warmup owns are not evidence of a plateau, so they cannot trigger early stop.
+        var warmupEpochs = warmupIterations / iterationsPerEpoch;
+        var bestEpochTracker = new DetectionBestEpochTracker();
 
         var bestMap50 = -1d;
         var bestMap5095 = 0d;
         var bestEvaluation = (DetectionEvaluation?)null;
         var finalTrainLoss = float.NaN;
         var completedEpochs = 0;
+        var iteration = 0;
 
         for (var epoch = 1; epoch <= options.Epochs; epoch++)
         {
             cancellationToken.ThrowIfCancellationRequested();
             model.train();
-            var currentLr = (float)scheduler.get_last_lr().FirstOrDefault(options.LearningRate);
+            // One RNG per epoch drives both the shuffle and the flips, so a batch's flip pattern is
+            // no longer a copy of every other batch's (the previous per-batch seed did that).
+            var epochRandom = new Random(1000 + epoch);
             var lossSum = 0d;
             var batches = 0;
 
-            foreach (var batch in Shuffle(dataset.Train, options.BatchSize, epoch))
+            foreach (var batch in Shuffle(dataset.Train, options.BatchSize, epochRandom))
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                trainingOptimizer.ApplySchedule(iteration, warmupIterations, totalIterations);
                 var (images, truth) = BuildBatch(
                     batch, dataset.Classes.Count, channels, inputWidth, inputHeight,
-                    device, options.HorizontalFlip, epoch, cancellationToken);
+                    device, options.HorizontalFlip, epochRandom, cancellationToken);
                 using (images)
                 using (var scope = NewDisposeScope())
                 {
@@ -137,6 +149,7 @@ public static class TorchSharpDetTrainer
                         optimizer.step();
                         lossSum += loss.item<float>();
                         batches++;
+                        iteration++;
                     }
                     finally
                     {
@@ -152,7 +165,8 @@ public static class TorchSharpDetTrainer
             var evaluation = Evaluate(
                 model, dataset, channels, inputWidth, inputHeight, device, options, cancellationToken);
             completedEpochs = epoch;
-            var improved = evaluation.Map50 > bestMap50;
+            var currentLr = (float)trainingOptimizer.LastLearningRate;
+            var improved = bestEpochTracker.Report(epoch, evaluation.Map50, evaluation.Map5095);
 
             if (improved)
             {
@@ -161,14 +175,17 @@ public static class TorchSharpDetTrainer
                 bestEvaluation = evaluation;
                 AtomicFileWriter.Write(bestPath, temporary => model.save(temporary));
                 WriteSidecar(bestMetadataPath, options, archName, dataset, inputWidth, inputHeight,
-                    channels, bestMap50, bestMap5095, finalTrainLoss, evaluation, completedEpochs);
+                    channels, bestMap50, bestMap5095, finalTrainLoss, evaluation, completedEpochs,
+                    pretrainedName);
                 options.Log?.Invoke(
-                    $"TorchSharp DET best epoch {epoch}: mAP50={bestMap50:F4}, mAP50-95={bestMap5095:F4}");
+                    $"TorchSharp DET best epoch {epoch}: mAP50={bestMap50:F4}, " +
+                    $"mAP50-95={bestMap5095:F4}, fitness={bestEpochTracker.BestFitness:F4}");
             }
 
             AtomicFileWriter.Write(lastPath, temporary => model.save(temporary));
             WriteSidecar(lastMetadataPath, options, archName, dataset, inputWidth, inputHeight,
-                channels, bestMap50, bestMap5095, finalTrainLoss, bestEvaluation, completedEpochs);
+                channels, bestMap50, bestMap5095, finalTrainLoss, bestEvaluation, completedEpochs,
+                pretrainedName);
 
             options.Log?.Invoke(
                 "DV_METRICS " + JsonSerializer.Serialize(new Dictionary<string, object?>
@@ -196,8 +213,8 @@ public static class TorchSharpDetTrainer
                 options.Epochs,
                 $"TorchSharp DET epoch {epoch}/{options.Epochs} mAP50={evaluation.Map50:F4}");
 
-            scheduler.step();
-            var shouldStopEarly = !earlyStopping.Report(evaluation.Map50);
+            earlyStopping.Report(bestEpochTracker.BestFitness, withinWarmup: epoch <= warmupEpochs);
+            var shouldStopEarly = earlyStopping.ShouldStop;
             if (epoch == 1 || epoch == options.Epochs || epoch % 5 == 0 || shouldStopEarly)
             {
                 TryWritePreview(model, dataset, channels, inputWidth, inputHeight, device, options, epoch,
@@ -219,12 +236,13 @@ public static class TorchSharpDetTrainer
             // Every epoch writes `last`; an interrupted run still leaves a usable checkpoint.
             AtomicFileWriter.Write(bestPath, temporary => model.save(temporary));
             WriteSidecar(bestMetadataPath, options, archName, dataset, inputWidth, inputHeight,
-                channels, bestMap50, bestMap5095, finalTrainLoss, bestEvaluation, completedEpochs);
+                channels, bestMap50, bestMap5095, finalTrainLoss, bestEvaluation, completedEpochs,
+                pretrainedName);
         }
 
         options.Log?.Invoke(
             $"TorchSharp DET done: best_mAP50={bestMap50:F4}, best_mAP50-95={bestMap5095:F4}, " +
-            $"elapsed={watch.Elapsed.TotalSeconds:F1}s");
+            $"best_epoch={bestEpochTracker.BestEpoch}, elapsed={watch.Elapsed.TotalSeconds:F1}s");
         return new Result(
             bestPath,
             bestMetadataPath,
@@ -236,6 +254,42 @@ public static class TorchSharpDetTrainer
             watch.Elapsed.TotalMilliseconds);
     }
 
+    /// <summary>
+    /// Copies an Ultralytics YOLO26 bundle into the freshly built model.
+    /// </summary>
+    /// <returns>The bundle directory name for the sidecar, or null when the run starts from scratch.</returns>
+    /// <remarks>
+    /// Weights are an optimisation, not a requirement: a bundle that cannot be read or applied must
+    /// not abort a job, so every failure is logged and training continues from random init.
+    /// </remarks>
+    private static string? ApplyPretrainedWeights(
+        Yolo26DetectModel model,
+        Options options,
+        string archName)
+    {
+        var directory = options.PretrainedDirectory;
+        if (string.IsNullOrWhiteSpace(directory) || !Directory.Exists(directory))
+        {
+            options.Log?.Invoke($"pretrained: 未找到预训练权重（{archName}），使用随机初始化");
+            return null;
+        }
+
+        try
+        {
+            using var bundle = PretrainedWeightsBundle.Load(directory);
+            var result = Yolo26PretrainedInitializer.ApplyToDetection(model, bundle);
+            options.Log?.Invoke(
+                $"pretrained: arch={archName} dir={Path.GetFileName(directory)} " +
+                $"loaded={result.Loaded} missing={result.Missing} unexpected={result.Unexpected}");
+            return Path.GetFileName(directory);
+        }
+        catch (Exception ex)
+        {
+            options.Log?.Invoke($"pretrained: 加载失败，回退随机初始化：{ex.Message}");
+            return null;
+        }
+    }
+
     private static (Tensor Images, List<IReadOnlyList<GroundTruthBox>> Truth) BuildBatch(
         IReadOnlyList<DetectionSample> samples,
         int classCount,
@@ -244,14 +298,13 @@ public static class TorchSharpDetTrainer
         int height,
         torch.Device device,
         bool horizontalFlip,
-        int epoch,
+        Random random,
         CancellationToken cancellationToken)
     {
         var tensors = new List<Tensor>(samples.Count);
         var truth = new List<IReadOnlyList<GroundTruthBox>>(samples.Count);
         try
         {
-            var random = new Random(1000 + epoch);
             foreach (var sample in samples)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -305,6 +358,8 @@ public static class TorchSharpDetTrainer
         CancellationToken cancellationToken)
     {
         model.eval();
+        // Validation reads no gradients: without this every epoch keeps the whole graph alive.
+        using var noGrad = torch.no_grad();
         var images = new List<DetectionImage>(dataset.Val.Count);
         foreach (var sample in dataset.Val)
         {
@@ -370,10 +425,9 @@ public static class TorchSharpDetTrainer
     private static IReadOnlyList<IReadOnlyList<DetectionSample>> Shuffle(
         IReadOnlyList<DetectionSample> samples,
         int batchSize,
-        int epoch)
+        Random random)
     {
         var indices = Enumerable.Range(0, samples.Count).ToArray();
-        var random = new Random(1000 + epoch);
         for (var index = indices.Length - 1; index > 0; index--)
         {
             var swap = random.Next(index + 1);
@@ -510,7 +564,8 @@ public static class TorchSharpDetTrainer
         double bestMap5095,
         float finalTrainLoss,
         DetectionEvaluation? evaluation,
-        int completedEpochs)
+        int completedEpochs,
+        string? pretrainedName)
     {
         var payload = new Dictionary<string, object?>
         {
@@ -541,6 +596,10 @@ public static class TorchSharpDetTrainer
             ["box_map_50_95"] = bestMap5095,
             ["best_map"] = bestMap50,
             ["best_map50"] = bestMap50,
+            // The checkpoint is chosen by this value; readers that rank runs should use it too.
+            ["fitness"] = TrainingOptimization.DetectionFitness(bestMap50, bestMap5095),
+            // Omitted (rendered as null) when the run started from random weights.
+            ["pretrained"] = pretrainedName,
             ["torchsharp"] = new Dictionary<string, object?>
             {
                 ["arch"] = archName,

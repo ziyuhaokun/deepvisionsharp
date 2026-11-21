@@ -43,6 +43,11 @@ public sealed class Yolo26DetectModel : Module<Tensor, Tensor[]>
         var channels = BuildChannels(scale);
         var repeats = Math.Max((int)Math.Round(2 * scale.Depth), 1);
 
+        // yolo26.yaml reduces P3 from the backbone tap (512*w) to 256*w in the head. Using the tap
+        // width here would make stage 16 and the Detect head two times too wide for the official
+        // checkpoint; channels[2] is exactly 256*w for every scale.
+        var headP3 = channels[2];
+
         // Indices match yolo26.yaml: 0..8 are the shared backbone, 4 and 6 are the P3 and P4 taps.
         _backbone =
         [
@@ -62,15 +67,19 @@ public sealed class Yolo26DetectModel : Module<Tensor, Tensor[]>
         _up1 = Upsample(scale_factor: [2.0, 2.0], mode: UpsampleMode.Nearest);
         _mergeP4 = new C3k2(channels[8] + channels[6], channels[6], repeats, c3k: true);
         _up2 = Upsample(scale_factor: [2.0, 2.0], mode: UpsampleMode.Nearest);
-        _mergeP3 = new C3k2(channels[6] + channels[4], channels[4], repeats, c3k: true);
-        _downToP4 = new YoloConv(channels[4], channels[4], kernel: 3, stride: 2);
-        _outP4 = new C3k2(channels[4] + channels[6], channels[6], repeats, c3k: true);
+        // Stage 16 takes the P4 feature and the backbone's P3 tap (512*w, not the head's 256*w),
+        // then narrows them to the head P3 width.
+        _mergeP3 = new C3k2(channels[6] + channels[4], headP3, repeats, c3k: true);
+        _downToP4 = new YoloConv(headP3, headP3, kernel: 3, stride: 2);
+        _outP4 = new C3k2(headP3 + channels[6], channels[6], repeats, c3k: true);
         _downToP5 = new YoloConv(channels[6], channels[6], kernel: 3, stride: 2);
-        _outP5 = new C3k2(channels[6] + channels[8], channels[8], repeats, c3k: true, expansion: 0.5, attention: true);
+        // yolo26.yaml declares n=1 for the last C3k2; parse_model only scales repeats when n>1.
+        _outP5 = new C3k2(channels[6] + channels[8], channels[8], repeats: 1, c3k: true, expansion: 0.5, attention: true);
 
-        _p3 = new DetectHead(channels[4], numClasses);
-        _p4 = new DetectHead(channels[6], numClasses);
-        _p5 = new DetectHead(channels[8], numClasses);
+        // Ultralytics Detect sizes every branch from the head's P3 width (layer 16 output).
+        _p3 = new DetectHead(headP3, headP3, numClasses, BaseStride);
+        _p4 = new DetectHead(channels[6], headP3, numClasses, BaseStride * 2);
+        _p5 = new DetectHead(channels[8], headP3, numClasses, BaseStride * 4);
 
         Register("backbone", _backbone);
         register_module("sppf", _sppf);
@@ -182,26 +191,42 @@ internal sealed class Sppf : Module<Tensor, Tensor>
 }
 
 /// <summary>One scale of the detect head: a box branch and a class branch, both ending in a bare 1x1.</summary>
+/// <remarks>
+/// Branch widths follow Ultralytics <c>Detect</c>: <c>c2 = max(16, P3 / 4)</c> and
+/// <c>c3 = max(P3, min(classes, 100))</c>, computed from the P3 channels for every scale. The final
+/// biases use the Ultralytics prior (box 1.0, class <c>log(5 / nc / (640 / stride)^2)</c>) so a fresh
+/// head starts out predicting almost no objects instead of a 50% score on every cell.
+/// </remarks>
 internal sealed class DetectHead : Module<Tensor, Tensor>
 {
+    private const double PriorImageSize = 640;
+
     private readonly Sequential _box;
     private readonly Sequential _cls;
 
-    public DetectHead(long channels, int numClasses)
+    public DetectHead(long channels, long p3Channels, int numClasses, int stride)
         : base(nameof(DetectHead))
     {
-        var boxChannels = Math.Max(16, channels / 4);
-        var classChannels = Math.Max(channels, Math.Min(numClasses, 100));
+        var boxChannels = Math.Max(16, p3Channels / 4);
+        var classChannels = Math.Max(p3Channels, Math.Min(numClasses, 100));
+        var boxOut = Conv2d(boxChannels, 4, 1);
+        var classOut = Conv2d(classChannels, numClasses, 1);
+        using (no_grad())
+        {
+            boxOut.bias!.fill_(1.0);
+            classOut.bias!.fill_(Math.Log(5.0 / numClasses / Math.Pow(PriorImageSize / stride, 2)));
+        }
+
         _box = Sequential(
             ("0", (Module<Tensor, Tensor>)new YoloConv(channels, boxChannels, kernel: 3)),
             ("1", new YoloConv(boxChannels, boxChannels, kernel: 3)),
-            ("2", Conv2d(boxChannels, 4, 1)));
+            ("2", boxOut));
         _cls = Sequential(
             ("0", (Module<Tensor, Tensor>)new YoloConv(channels, channels, kernel: 3, groups: channels)),
             ("1", new YoloConv(channels, classChannels, kernel: 1)),
             ("2", new YoloConv(classChannels, classChannels, kernel: 3, groups: classChannels)),
             ("3", new YoloConv(classChannels, classChannels, kernel: 1)),
-            ("4", Conv2d(classChannels, numClasses, 1)));
+            ("4", classOut));
         register_module("box", _box);
         register_module("cls", _cls);
     }

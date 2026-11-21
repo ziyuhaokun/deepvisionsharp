@@ -216,7 +216,19 @@ public sealed class TorchSharpDetectEngine : IDisposable
             Math.Max(1, bundle.Classes.Count));
         try
         {
-            module.load(bundle.ModelFilePath);
+            try
+            {
+                module.load(bundle.ModelFilePath);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                // The detect head was realigned with Ultralytics (P4/P5 branches sized from P3), so
+                // checkpoints trained before that change no longer match the module shapes.
+                throw new InvalidDataException(
+                    "检测模型结构与当前版本不一致（检测头已与官方 YOLO26 对齐），请用当前版本重新训练该模型。",
+                    ex);
+            }
+
             module.to(device);
             module.eval();
             var baseStride = bundle.Strides.Count > 0 ? bundle.Strides[0] : Yolo26DetectModel.BaseStride;

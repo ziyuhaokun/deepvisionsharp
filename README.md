@@ -80,22 +80,19 @@ dotnet run --project src/DeepVisionSharp.Shell.Avalonia/DeepVisionSharp.Shell.Av
 
 ```mermaid
 flowchart LR
-  subgraph exe [DeepVisionSharp.exe]
-    Shell[Shell.Avalonia]
-    UI[UI.Avalonia]
-    Presentation[Presentation]
-    App[Application]
-    Infra[Infrastructure]
-    Torch[TorchSharp]
-    Domain[Domain]
-    Shell --> UI
-    Shell --> Presentation
-    Presentation --> App
-    App --> Domain
-    Infra --> App
-    Infra --> Torch
-    Torch --> Domain
-  end
+  Shell[Shell.Avalonia] --> UI[UI.Avalonia]
+  Shell --> Presentation
+  Shell --> Bootstrap
+  Bootstrap --> App[Application]
+  Bootstrap --> Infra[Infrastructure]
+  Presentation --> App
+  Presentation --> Domain
+  App --> Domain
+  App --> Tiling
+  Infra --> App
+  Infra --> Torch[TorchSharp]
+  Torch --> Domain
+  Torch --> Tiling
   Torch --> LibTorch[LibTorch 2.10]
 ```
 
