@@ -6,7 +6,7 @@ namespace DeepVisionSharp.Infrastructure.Services;
 /// Excludes deletion from in-flight long operations (training start, gallery/project import)
 /// without serializing independent runs.
 /// </summary>
-internal sealed class ProjectOperationGate
+internal sealed class ProjectOperationGate : DeepVisionSharp.Application.Ports.IProjectOperationLease
 {
     private readonly object _sync = new();
     private readonly Dictionary<Guid, State> _states = new();
@@ -50,7 +50,7 @@ internal sealed class ProjectOperationGate
         {
             if (!_states.TryGetValue(id, out var state)) _states[id] = state = new();
             if (state.Deleting || state.Starts > 0 || state.GalleryDeletes > 0)
-                throw new ProjectBusyException("项目正在执行训练或导入，请等待操作结束后重试。");
+                throw new ProjectBusyException("项目正在执行训练、导入或推理，请等待操作结束后重试。");
             state.Deleting = true;
             return CreateLease(id, state, static s => s.Deleting = false);
         }
@@ -64,7 +64,7 @@ internal sealed class ProjectOperationGate
             if (state.Deleting)
                 throw new ProjectBusyException("项目正在删除，请等待操作结束后重试。");
             if (state.Starts > 0)
-                throw new ProjectBusyException("项目正在执行训练或导入，请等待操作结束后重试。");
+                throw new ProjectBusyException("项目正在执行训练、导入或推理，请等待操作结束后重试。");
             state.GalleryDeletes++;
             return CreateLease(id, state, static s => s.GalleryDeletes--);
         }
@@ -87,4 +87,7 @@ internal sealed class ProjectOperationGate
         private Action? _release = release;
         public void Dispose() => Interlocked.Exchange(ref _release, null)?.Invoke();
     }
+    IDisposable DeepVisionSharp.Application.Ports.IProjectOperationLease.Enter(Guid projectId)
+        => EnterStart(projectId);
+
 }

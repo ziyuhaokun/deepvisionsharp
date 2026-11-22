@@ -72,6 +72,7 @@ public sealed class RunGalleryBatchInferenceCommandHandler
     private readonly IAnnotationWorkflowService _annotations;
     private readonly IInferenceRunner _inferenceRunner;
     private readonly IInferenceInputFileProbe _fileProbe;
+    private readonly IProjectOperationLease _operationLease;
     private readonly ILogger<RunGalleryBatchInferenceCommandHandler> _logger;
 
     public RunGalleryBatchInferenceCommandHandler(
@@ -82,6 +83,7 @@ public sealed class RunGalleryBatchInferenceCommandHandler
         IAnnotationWorkflowService annotations,
         IInferenceRunner inferenceRunner,
         IInferenceInputFileProbe fileProbe,
+        IProjectOperationLease operationLease,
         ILogger<RunGalleryBatchInferenceCommandHandler> logger)
     {
         _mediator = mediator;
@@ -91,6 +93,7 @@ public sealed class RunGalleryBatchInferenceCommandHandler
         _annotations = annotations;
         _inferenceRunner = inferenceRunner;
         _fileProbe = fileProbe;
+        _operationLease = operationLease;
         _logger = logger;
     }
 
@@ -109,6 +112,9 @@ public sealed class RunGalleryBatchInferenceCommandHandler
         {
             return Result<GalleryBatchInferenceResult>.Failure("图库不属于当前项目。");
         }
+
+        // 推理写回期间占用项目，删除会得到「项目正在使用」而不是写进已删除的图库。
+        using var operation = _operationLease.Enter(project.Id);
 
         var deviceResult = InferenceMaxDetectionsLimits.NormalizeDevice(request.Device);
         if (deviceResult.IsFailure || string.IsNullOrWhiteSpace(deviceResult.Value))

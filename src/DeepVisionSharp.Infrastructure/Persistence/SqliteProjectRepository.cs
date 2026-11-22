@@ -274,7 +274,10 @@ internal sealed class SqliteProjectRepository : IProjectRepository
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Failed to delete project directory {ProjectDirectory}", projectDirectory);
+                    _logger.LogError(ex, "Failed to delete project directory {ProjectDirectory}", projectDirectory);
+                    // 数据库行已经提交删除，目录却留着。不能只记日志：调用方（导入回滚）
+                    // 会据此误报「已清理」，用户看不到这批残留文件。把失败抛出去。
+                    throw;
                 }
             }
         }

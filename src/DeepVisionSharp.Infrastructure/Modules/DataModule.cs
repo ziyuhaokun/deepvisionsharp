@@ -18,6 +18,7 @@ internal static class DataModule
         }
         services.AddSingleton<SqliteDb>();
         services.AddSingleton<ProjectOperationGate>();
+        services.AddSingleton<IProjectOperationLease>(sp => sp.GetRequiredService<ProjectOperationGate>());
         services.AddSingleton<IProjectFileStore, ProjectFileStore>();
         services.AddSingleton<IProjectSqliteTransferService, ProjectSqliteTransferService>();
         services.AddSingleton<IClassificationDatasetExportService, ClassificationDatasetExportService>();
