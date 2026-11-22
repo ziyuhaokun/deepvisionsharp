@@ -35,7 +35,9 @@ public sealed record ModelRow(
 
     public string MetricsText =>
         HasMetadata && BestMap50 > 0
-        ? $"mAP50 {BestMap50:F3}" + (BestMap > 0 ? $" · mAP {BestMap:F3}" : string.Empty)
+        ? IsClassificationModel
+            ? $"Top-1 {BestMap50:F3}"
+            : $"mAP50 {BestMap50:F3}" + (BestMap > 0 ? $" · mAP {BestMap:F3}" : string.Empty)
         : "暂无训练指标";
 
     public string SummaryText =>

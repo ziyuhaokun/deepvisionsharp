@@ -117,6 +117,8 @@ public static class TorchSharpDetTrainer
         var bestMap5095 = 0d;
         var bestEvaluation = (DetectionEvaluation?)null;
         var finalTrainLoss = float.NaN;
+        var finalBoxLoss = float.NaN;
+        var finalClsLoss = float.NaN;
         var completedEpochs = 0;
         var iteration = 0;
 
@@ -128,6 +130,8 @@ public static class TorchSharpDetTrainer
             // no longer a copy of every other batch's (the previous per-batch seed did that).
             var epochRandom = new Random(1000 + epoch);
             var lossSum = 0d;
+            var boxLossSum = 0d;
+            var clsLossSum = 0d;
             var batches = 0;
 
             foreach (var batch in Shuffle(dataset.Train, options.BatchSize, epochRandom))
@@ -144,10 +148,13 @@ public static class TorchSharpDetTrainer
                     var predictions = model.forward(images);
                     try
                     {
-                        using var loss = DetectionLoss.Compute(predictions, truth, Yolo26DetectModel.BaseStride);
+                        var parts = DetectionLoss.ComputeDetailed(predictions, truth, Yolo26DetectModel.BaseStride);
+                        using var loss = parts.Total;
                         loss.backward();
                         optimizer.step();
                         lossSum += loss.item<float>();
+                        boxLossSum += parts.Box;
+                        clsLossSum += parts.Cls;
                         batches++;
                         iteration++;
                     }
@@ -161,7 +168,10 @@ public static class TorchSharpDetTrainer
                 }
             }
 
-            finalTrainLoss = (float)(lossSum / Math.Max(1, batches));
+            var batchCount = Math.Max(1, batches);
+            finalTrainLoss = (float)(lossSum / batchCount);
+            finalBoxLoss = (float)(boxLossSum / batchCount);
+            finalClsLoss = (float)(clsLossSum / batchCount);
             var evaluation = Evaluate(
                 model, dataset, channels, inputWidth, inputHeight, device, options, cancellationToken);
             completedEpochs = epoch;
@@ -194,7 +204,8 @@ public static class TorchSharpDetTrainer
                     ["phase"] = "val",
                     ["lr"] = currentLr,
                     ["train_loss"] = finalTrainLoss,
-                    ["box_loss"] = finalTrainLoss,
+                    ["box_loss"] = finalBoxLoss,
+                    ["cls_loss"] = finalClsLoss,
                     ["box_map_50"] = evaluation.Map50,
                     ["box_map_50_95"] = evaluation.Map5095,
                     ["per_class"] = evaluation.PerClass
