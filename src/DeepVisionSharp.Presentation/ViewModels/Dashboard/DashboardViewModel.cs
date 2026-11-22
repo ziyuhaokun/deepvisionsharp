@@ -14,6 +14,9 @@ namespace DeepVisionSharp.Presentation.ViewModels.Dashboard;
 
 public sealed partial class DashboardViewModel : ObservableObject, ICardColumnsHost
 {
+    private readonly ShellSnackbarNotifier _snackbar;
+    private readonly ILogger<DashboardViewModel> _logger;
+
     public DashboardViewModel(
         IMediator mediator,
         ILocalFileDialogService fileDialog,
@@ -25,8 +28,11 @@ public sealed partial class DashboardViewModel : ObservableObject, ICardColumnsH
         IImageSourceFactory imageSources,
         ILogger<DashboardProjectListViewModel> listLogger,
         ILogger<DashboardProjectEditorViewModel> editorLogger,
-        ILogger<DashboardProjectTransferViewModel> transferLogger)
+        ILogger<DashboardProjectTransferViewModel> transferLogger,
+        ILogger<DashboardViewModel> logger)
     {
+        _snackbar = snackbar;
+        _logger = logger;
         List = new DashboardProjectListViewModel(
             mediator,
             workspaceSession,
@@ -68,4 +74,32 @@ public sealed partial class DashboardViewModel : ObservableObject, ICardColumnsH
 
     [RelayCommand]
     private Task LoadAsync() => List.LoadCommand.ExecuteAsync(null);
+
+    /// <summary>
+    /// 页面首次进入时调用：已有数据静默刷新，否则走完整加载。
+    /// 异常在此收敛为 snackbar，避免页面的 async void 事件处理器把异常漏到 UI 线程。
+    /// </summary>
+    public async Task LoadForNavigationAsync()
+    {
+        try
+        {
+            if (List.HasProjects)
+            {
+                await List.RefreshProjectsAsync();
+            }
+            else
+            {
+                await LoadCommand.ExecuteAsync(null);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // 导航走了，下一次进入会重新加载。
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to load dashboard projects on navigation");
+            _snackbar.ShowError("加载项目列表失败，详细信息已写入日志。", "项目");
+        }
+    }
 }

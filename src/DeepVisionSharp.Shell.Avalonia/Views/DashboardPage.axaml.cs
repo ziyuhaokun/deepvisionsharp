@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using DeepVisionSharp.Presentation.ViewModels;
@@ -44,7 +43,8 @@ public partial class DashboardPage : UserControl
     }
 
     /// <summary>
-    /// 与 WPF 页一致：已有数据时静默刷新（不再显示加载遮罩），首次进入才走 <c>LoadCommand</c>。
+    /// 与 WPF 页一致：已有数据时静默刷新（不再显示加载遮罩），首次进入才走完整加载。
+    /// 异常与用户提示收敛在 ViewModel 的 <see cref="DashboardViewModel.LoadForNavigationAsync"/>。
     /// </summary>
     private async void OnLoaded(object? sender, RoutedEventArgs e)
     {
@@ -53,25 +53,6 @@ public partial class DashboardPage : UserControl
             return;
         }
 
-        try
-        {
-            if (_viewModel.List.HasProjects)
-            {
-                await _viewModel.List.RefreshProjectsAsync();
-            }
-            else
-            {
-                await _viewModel.LoadCommand.ExecuteAsync(null);
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            // 导航走了，下一次进入会重新加载。
-        }
-        catch (Exception ex)
-        {
-            // async void：逃出去的异常会打断整个 UI 线程，这里就地记下。
-            Trace.WriteLine($"DashboardPage load failed: {ex}");
-        }
+        await _viewModel.LoadForNavigationAsync();
     }
 }
