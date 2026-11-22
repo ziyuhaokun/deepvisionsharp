@@ -1,0 +1,19 @@
+name: Windows verification
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  fast:
+    runs-on: windows-2022
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build and run fast tests
+        shell: pwsh
+        run: ./scripts/verify.ps1

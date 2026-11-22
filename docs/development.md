@@ -1,0 +1,36 @@
+# 开发与验证
+
+在仓库根目录使用 Windows x64、.NET 10 SDK 和 PowerShell 7。真实权重验证还需要 Python 3 和 NumPy 来转换权重。普通推理与训练使用应用自带的 TorchSharp 运行时，GPU 训练需要 NVIDIA 驱动。
+
+## 验证命令
+
+| 要验证的内容 | 命令 |
+| --- | --- |
+| 构建主解决方案并运行快速回归，Windows CI 使用同一入口 | `.\scripts\verify.ps1` |
+| 修改损失、训练器或 checkpoint 后运行生成数据训练 | `.\scripts\verify.ps1 -Mode Slow` |
+| 修改权重转换、模型结构或预处理后运行官方权重验证 | `.\scripts\verify.ps1 -Mode Pretrained` |
+| 项目包服务的 SQLite 往返、取消和失败保留测试 | `dotnet test tests/DeepVisionSharp.Infrastructure.Tests --filter FullyQualifiedName~ProjectPackageRoundTripTests` |
+
+快速回归与真实权重测试走 CPU，不要求安装 GPU 驱动。直接运行 `dotnet test` 时，真实权重用例默认显示为跳过。使用 `-Mode Pretrained` 时，缺少权重或样图会明确报错。
+
+如果受限工作区里的 VSTest 报 `Win32Exception (5): Access is denied`，请在能正常启动 VSTest testhost 的工作环境重新执行上述命令。可在 Windows CI 查看同一入口的结果。
+
+## 准备真实权重测试
+
+转换脚本下载 Ultralytics v8.4.0 的权重。下面的样图也固定到 v8.4.0。
+
+```powershell
+.\scripts\fetch_pretrained.ps1 -Arch yolo26n
+.\scripts\fetch_pretrained.ps1 -Arch yolo26n-cls
+New-Item -ItemType Directory -Force temp/weights | Out-Null
+Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/ultralytics/ultralytics/v8.4.0/ultralytics/assets/bus.jpg' -OutFile temp/weights/bus.jpg
+.\scripts\verify.ps1 -Mode Pretrained
+```
+
+验证覆盖检测和分类的张量映射、分类骨干迁移，以及真实图片的分类和检测输出。已有转换产物也可用 `DV_PRETRAINED_ROOT` 指定根目录。单个权重的目录和脚本参数保持一致，例如 `<root>/yolo26n/index.json`。
+
+## 本地产物
+
+- `temp/` 存放一次性探针、日志、测试样图和其他调试数据。
+- `.outputs/agent-render/` 存放需要保留的离屏渲染结果。参见 [离屏渲染说明](../scripts/agent-render/README.md)。
+- `scripts/Output/` 存放安装包。参见 [打包说明](../packaging/README.md)。

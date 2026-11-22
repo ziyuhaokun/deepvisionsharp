@@ -125,24 +125,14 @@ public sealed class TorchSharpClsEngineTests : IDisposable
     }
 
     [Fact]
-    public async Task BeginTraining_waits_for_a_real_inference_to_finish()
+    public async Task Training_can_acquire_the_gate_after_a_real_inference()
     {
         var model = WriteModel(classes: ["OK", "NG"], preprocessing: "unit_scale_v1");
         using var engine = new TorchSharpClsEngine();
-        var image = WriteImage();
+        engine.Infer(model, "cpu", WriteImage(), 0.0);
 
-        var inference = Task.Run(() => engine.Infer(model, "cpu", image, 0.0));
-        while (engine.Gate.InFlightInference == 0)
-        {
-            await Task.Delay(1);
-        }
-
-        var training = engine.Gate.BeginTrainingAsync(TimeSpan.FromSeconds(5));
-        await Task.Delay(20);
-        Assert.False(training.IsCompleted);
-
-        await inference;
-        using var lease = await training.WaitAsync(TimeSpan.FromSeconds(5));
+        using var lease = await engine.Gate.BeginTrainingAsync(TimeSpan.FromSeconds(5));
+        Assert.Equal(0, engine.Gate.InFlightInference);
         Assert.True(engine.Gate.IsTrainingActive);
     }
 

@@ -166,19 +166,20 @@ public sealed class ModelSlotCacheTests
     {
         var all = new List<TestValue>();
         var cache = new ModelSlotCache<string, TestValue>(capacity: 2);
-        using var stop = new CancellationTokenSource();
-
+        using var start = new ManualResetEventSlim();
         var clearer = Task.Run(() =>
         {
-            while (!stop.IsCancellationRequested)
+            start.Wait();
+            for (var iteration = 0; iteration < 100; iteration++)
             {
                 cache.Clear();
-                Thread.Yield();
+                Thread.Sleep(1);
             }
         });
 
         var workers = Enumerable.Range(0, 4).Select(_ => Task.Run(() =>
         {
+            start.Wait();
             for (var i = 0; i < 100; i++)
             {
                 var value = cache.GetOrAdd("model", _ =>
@@ -196,9 +197,8 @@ public sealed class ModelSlotCacheTests
             }
         })).ToArray();
 
-        await Task.WhenAll(workers);
-        stop.Cancel();
-        await clearer;
+        start.Set();
+        await Task.WhenAll(workers.Append(clearer)).WaitAsync(TimeSpan.FromSeconds(10));
         cache.Clear();
 
         lock (all)

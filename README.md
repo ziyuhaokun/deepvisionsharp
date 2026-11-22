@@ -60,10 +60,12 @@ cd deepvisionsharp
 dotnet run --project src/DeepVisionSharp.Shell.Avalonia/DeepVisionSharp.Shell.Avalonia.csproj
 ```
 
-可选，拉 torchvision 预训练权重（仅转换脚本需要 Python 3 + numpy）：
+可选，准备 ResNet 或 YOLO26 预训练权重。转换脚本需要 Python 3 和 NumPy。
 
 ```powershell
 .\scripts\fetch_pretrained.ps1 -Arch resnet18
+.\scripts\fetch_pretrained.ps1 -Arch yolo26n
+.\scripts\fetch_pretrained.ps1 -Arch yolo26n-cls
 ```
 
 权重写到 `%LOCALAPPDATA%\\DeepVisionSharp\\Models\\pretrained`，也可用 `DV_PRETRAINED_ROOT` 指定目录。
@@ -75,6 +77,8 @@ dotnet run --project src/DeepVisionSharp.Shell.Avalonia/DeepVisionSharp.Shell.Av
 ```
 
 产物 `scripts/Output/DeepVisionSharp-{version}-x64.exe`，默认装到 `%LocalAppData%\\DeepVisionSharp`。细节见 [packaging/README.md](packaging/README.md)。
+
+项目开发与回归测试命令见 [开发与验证](docs/development.md)。
 
 ## 架构
 
