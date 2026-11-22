@@ -572,6 +572,7 @@ public static class TorchSharpDetTrainer
             ["schema_version"] = 2,
             ["artifact_kind"] = "trained_model",
             ["task"] = "detect",
+            ["sppf_shortcut"] = true,
             ["model_type"] = options.ModelType,
             ["arch"] = archName,
             ["classes"] = dataset.Classes.ToList(),

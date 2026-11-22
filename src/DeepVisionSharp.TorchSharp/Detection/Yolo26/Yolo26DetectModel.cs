@@ -97,6 +97,12 @@ public sealed class Yolo26DetectModel : Module<Tensor, Tensor[]>
 
     public int NumClasses { get; }
 
+    internal bool UseSppfShortcut
+    {
+        get => _sppf.UseShortcut;
+        set => _sppf.UseShortcut = value;
+    }
+
     /// <summary>Stride of the finest head (P3); P4/P5 are 2x/4x this.</summary>
     public const int BaseStride = 8;
 
@@ -167,6 +173,7 @@ internal sealed class Sppf : Module<Tensor, Tensor>
     private readonly YoloConv _cv1;
     private readonly YoloConv _cv2;
     private readonly MaxPool2d _pool;
+    internal bool UseShortcut { get; set; } = true;
 
     public Sppf(long inputChannels, long outputChannels)
         : base(nameof(Sppf))
@@ -186,7 +193,8 @@ internal sealed class Sppf : Module<Tensor, Tensor>
         var second = _pool.forward(first);
         var third = _pool.forward(second);
         var fourth = _pool.forward(third);
-        return _cv2.forward(cat([first, second, third, fourth], dim: 1)).MoveToOuterDisposeScope();
+        var pooled = _cv2.forward(cat([first, second, third, fourth], dim: 1));
+        return (UseShortcut ? pooled + input : pooled).MoveToOuterDisposeScope();
     }
 }
 

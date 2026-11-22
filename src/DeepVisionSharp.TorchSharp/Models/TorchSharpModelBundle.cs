@@ -31,6 +31,8 @@ public sealed class TorchSharpModelBundle
 
     public int NumClasses { get; init; }
 
+    internal bool UseSppfShortcut { get; init; }
+
     public int MaxDetections { get; init; } = 100;
 
     public double NmsIou { get; init; } = 0.45;
@@ -189,6 +191,7 @@ public sealed class TorchSharpModelBundle
             NumClasses = root["num_classes"]?.GetValue<int>() ?? classes.Count,
             MaxDetections = root["max_detections"]?.GetValue<int>() ?? 100,
             NmsIou = root["nms_iou"]?.GetValue<double>() ?? 0.45,
+            UseSppfShortcut = root["sppf_shortcut"]?.GetValue<bool>() ?? false,
             Strides = ReadStrides(root["strides"]),
             Preprocessing = PreprocessingVersions.Parse(root["preprocessing"]?.GetValue<string>())
         };
@@ -231,6 +234,7 @@ public sealed class TorchSharpModelBundle
             NumClasses = root["num_classes"]?.GetValue<int>() ?? classes.Count,
             MaxDetections = root["max_detections"]?.GetValue<int>() ?? 100,
             NmsIou = root["nms_iou"]?.GetValue<double>() ?? 0.45,
+            UseSppfShortcut = root["sppf_shortcut"]?.GetValue<bool>() ?? false,
             Strides = ReadStrides(root["strides"]),
             WeightsFormat = weightsFormat,
             Preprocessing = PreprocessingVersions.Parse(root["preprocessing"]?.GetValue<string>())

@@ -214,6 +214,7 @@ public sealed class TorchSharpDetectEngine : IDisposable
             bundle.Arch,
             bundle.InputChannels,
             Math.Max(1, bundle.Classes.Count));
+        module.UseSppfShortcut = bundle.UseSppfShortcut;
         try
         {
             try
@@ -225,7 +226,7 @@ public sealed class TorchSharpDetectEngine : IDisposable
                 // The detect head was realigned with Ultralytics (P4/P5 branches sized from P3), so
                 // checkpoints trained before that change no longer match the module shapes.
                 throw new InvalidDataException(
-                    "检测模型结构与当前版本不一致（检测头已与官方 YOLO26 对齐），请用当前版本重新训练该模型。",
+                    "无法加载检测模型权重，请检查权重文件和元数据是否配套。早期检测模型可能需要重新训练。",
                     ex);
             }
 
