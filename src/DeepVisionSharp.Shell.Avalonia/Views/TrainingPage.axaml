@@ -65,9 +65,22 @@
         <Style Selector="Border.emptyState">
             <Setter Property="Padding" Value="24" />
         </Style>
+        <Style Selector="Border.jobChip">
+            <Setter Property="Padding" Value="8,2" />
+            <Setter Property="CornerRadius" Value="999" />
+            <Setter Property="Background" Value="{DynamicResource IvSurface3Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style Selector="Border.jobChip TextBlock">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontFamily" Value="{DynamicResource IvMonoFontFamily}" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
         <Style Selector="Border.trainingJobStatus">
-            <Setter Property="Padding" Value="7,3" />
-            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="9,2.5" />
+            <Setter Property="CornerRadius" Value="999" />
             <Setter Property="Background" Value="{DynamicResource IvSurface3Brush}" />
             <Setter Property="TextElement.Foreground" Value="{DynamicResource IvText2Brush}" />
         </Style>
@@ -241,12 +254,20 @@
                                                        TextTrimming="CharacterEllipsis"
                                                        ToolTip.Tip="{Binding Name}" />
                                             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                                                <TextBlock VerticalAlignment="Center"
-                                                           FontSize="11.5"
-                                                           Foreground="{DynamicResource IvText2Brush}"
-                                                           Text="{Binding MetaText}"
-                                                           TextTrimming="CharacterEllipsis"
-                                                           ToolTip.Tip="{Binding MetaText}" />
+                                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center"
+                                                            ToolTip.Tip="{Binding MetaText}">
+                                                    <Border Classes="jobChip">
+                                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                                            <iv:Icon FontSize="11" VerticalAlignment="Center"
+                                                                     Foreground="{DynamicResource IvText3Brush}"
+                                                                     Data="{x:Static ui:IvIcons.Clock}" />
+                                                            <TextBlock Text="{Binding StartedText}" />
+                                                        </StackPanel>
+                                                    </Border>
+                                                    <Border Classes="jobChip" IsVisible="{Binding HasDuration}">
+                                                        <TextBlock Text="{Binding DurationText}" />
+                                                    </Border>
+                                                </StackPanel>
                                                 <Border Grid.Column="1" Classes="trainingJobStatus"
                                                         Classes.preparing="{Binding Status, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter={x:Static domain:TrainingJobStatus.Preparing}}"
                                                         Classes.running="{Binding Status, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter={x:Static domain:TrainingJobStatus.Running}}"

@@ -66,6 +66,17 @@ public sealed partial class TrainingJobListItem : ObservableObject
     [ObservableProperty]
     private string _metaText = string.Empty;
 
+    /// <summary>列表卡片里的「开始时间」胶囊文案；没开始时是「尚未开始」。</summary>
+    [ObservableProperty]
+    private string _startedText = string.Empty;
+
+    /// <summary>列表卡片里的「用时」胶囊文案；没开始时为空（胶囊隐藏）。</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasDuration))]
+    private string _durationText = string.Empty;
+
+    public bool HasDuration => !string.IsNullOrEmpty(DurationText);
+
     public DateTime? StartedAt { get; init; }
 
     public DateTime? FinishedAt { get; init; }
@@ -100,8 +111,19 @@ public sealed partial class TrainingJobListItem : ObservableObject
     public bool CanOpenLogFolder =>
         !string.IsNullOrWhiteSpace(LogFile) && File.Exists(LogFile);
 
-    public void RefreshMetaText() =>
+    public void RefreshMetaText()
+    {
         MetaText = TrainingJobTiming.FormatMetaText(StartedAt, FinishedAt);
+        if (StartedAt is null)
+        {
+            StartedText = "尚未开始";
+            DurationText = string.Empty;
+            return;
+        }
+
+        StartedText = TrainingJobTiming.FormatStartedAtLocal(StartedAt);
+        DurationText = TrainingJobTiming.FormatDuration(TrainingJobTiming.ComputeElapsed(StartedAt, FinishedAt));
+    }
 }
 
 

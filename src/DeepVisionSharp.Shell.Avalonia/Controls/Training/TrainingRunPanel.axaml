@@ -1008,72 +1008,55 @@
                           VerticalScrollBarVisibility="Auto"
                           IsVisible="{Binding Monitor.Resources.HasResourceData}">
                 <StackPanel Margin="0,10,0,12">
-                    <UniformGrid VerticalAlignment="Top"
-                                 Columns="3"
-                                 Rows="1">
-                        <Border Margin="0,0,8,0" Classes="card metricCard">
-                            <StackPanel>
-                                <TextBlock Classes="fieldLabel" Text="CPU 使用率" />
-                                <StackPanel Margin="0,2,0,0" Orientation="Horizontal">
-                                    <TextBlock FontFamily="{DynamicResource IvMonoFontFamily}"
-                                               FontSize="23"
-                                               FontWeight="SemiBold"
+                    <TextBlock FontSize="15"
+                               FontWeight="SemiBold"
+                               Text="系统资源" />
+                    <TextBlock Margin="0,4,0,0"
+                               FontSize="12.5"
+                               Foreground="{DynamicResource IvText2Brush}"
+                               Text="每 2 秒采样一次，保留最近 5 分钟 · 仅统计本机占用" />
+
+                    <Border Classes="card metricStrip">
+                        <UniformGrid Rows="1" Columns="{Binding Monitor.Resources.GaugeColumns}">
+                            <StackPanel Margin="14,12">
+                                <TextBlock Classes="fieldLabel" Text="CPU" />
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Classes="metricValue"
                                                Text="{Binding Monitor.Resources.ResourceCpuPercent, StringFormat={}{0:F1}}" />
-                                    <TextBlock FontSize="23" FontWeight="SemiBold" Text="%" />
+                                    <TextBlock Classes="metricValue" Foreground="{DynamicResource IvText3Brush}" Text="%" />
                                 </StackPanel>
-                                <ProgressBar Classes="resourceProgress"
-                                             Maximum="100"
-                                             Value="{Binding Monitor.Resources.ResourceCpuPercent, Mode=OneWay}" />
-                                <TextBlock Margin="0,6,0,0"
-                                           FontSize="10.5"
-                                           Foreground="{DynamicResource IvText3Brush}"
-                                           Text="本机占用率" />
                             </StackPanel>
-                        </Border>
-                        <Border Margin="0,0,8,0" Classes="card metricCard">
-                            <StackPanel>
-                                <TextBlock Classes="fieldLabel" Text="内存使用" />
-                                <StackPanel Margin="0,2,0,0" Orientation="Horizontal">
-                                    <TextBlock FontFamily="{DynamicResource IvMonoFontFamily}"
-                                               FontSize="23"
-                                               FontWeight="SemiBold"
+                            <StackPanel Margin="14,12">
+                                <TextBlock Classes="fieldLabel" Text="内存" />
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Classes="metricValue"
                                                Text="{Binding Monitor.Resources.ResourceMemoryPercent, StringFormat={}{0:F1}}" />
-                                    <TextBlock FontSize="23" FontWeight="SemiBold" Text="%" />
+                                    <TextBlock Classes="metricValue" Foreground="{DynamicResource IvText3Brush}" Text="%" />
                                 </StackPanel>
-                                <ProgressBar Classes="resourceProgress"
-                                             Maximum="100"
-                                             Value="{Binding Monitor.Resources.ResourceMemoryPercent, Mode=OneWay}" />
-                                <TextBlock Margin="0,6,0,0"
-                                           FontSize="10.5"
-                                           Foreground="{DynamicResource IvText3Brush}"
-                                           Text="本机占用率" />
                             </StackPanel>
-                        </Border>
-                        <Border Classes="card metricCard"
-                                IsVisible="{Binding Monitor.Resources.HasGpuResourceData}">
-                            <StackPanel>
-                                <TextBlock Classes="fieldLabel" Text="GPU 使用率" />
-                                <StackPanel Margin="0,2,0,0" Orientation="Horizontal">
-                                    <TextBlock FontFamily="{DynamicResource IvMonoFontFamily}"
-                                               FontSize="23"
-                                               FontWeight="SemiBold"
+                            <StackPanel Margin="14,12" IsVisible="{Binding Monitor.Resources.HasGpuResourceData}">
+                                <TextBlock Classes="fieldLabel" Text="GPU" />
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Classes="metricValue"
                                                Text="{Binding Monitor.Resources.ResourceGpuPercent, StringFormat={}{0:F1}}" />
-                                    <TextBlock FontSize="23" FontWeight="SemiBold" Text="%" />
+                                    <TextBlock Classes="metricValue" Foreground="{DynamicResource IvText3Brush}" Text="%" />
                                 </StackPanel>
-                                <ProgressBar Classes="resourceProgress"
-                                             Maximum="100"
-                                             Value="{Binding Monitor.Resources.ResourceGpuPercent, Mode=OneWay}" />
-                                <TextBlock Margin="0,6,0,0"
-                                           FontSize="10.5"
-                                           Foreground="{DynamicResource IvText3Brush}"
-                                           Text="本机占用率" />
                             </StackPanel>
-                        </Border>
-                    </UniformGrid>
-                    <TextBlock Margin="2,10,0,0"
-                               FontSize="11.5"
-                               Foreground="{DynamicResource IvText3Brush}"
-                               Text="每 2 秒采样一次 · 仅统计本机进程占用" />
+                        </UniformGrid>
+                    </Border>
+
+                    <Border Margin="0,16,0,0" Classes="card chartPanel">
+                        <StackPanel>
+                            <TextBlock Classes="sectionTitle" Text="占用率变化" />
+                            <dv:MetricLineChart Height="260"
+                                                EmptyText="等待采样"
+                                                MinimumY="0"
+                                                MaximumY="100"
+                                                ValueUnit="%"
+                                                XAxis="Time"
+                                                SeriesSource="{Binding Monitor.Resources.UsageSeries, Mode=OneWay}" />
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
             </ScrollViewer>
 

@@ -71,6 +71,8 @@ public sealed class SampleTrainingJobList : ObservableObject
             Status = TrainingJobStatus.Running,
             StatusDisplay = "训练中",
             MetaText = "第 12 / 50 轮 · 已训练 6 分 21 秒 · GPU",
+            StartedText = "11-23 10:43",
+            DurationText = "00:06:21",
             BestModelPath = "runs/detect/job-2/weights/best.pt",
             IsSelected = true,
         };
@@ -84,6 +86,8 @@ public sealed class SampleTrainingJobList : ObservableObject
                 Status = TrainingJobStatus.Succeeded,
                 StatusDisplay = "已完成",
                 MetaText = "best top1 0.962 · 用时 18 分 07 秒",
+                StartedText = "11-22 16:05",
+                DurationText = "00:18:07",
                 BestModelPath = "runs/classify/job-1/weights/best.pt",
             },
             _selectedJob,
@@ -94,6 +98,7 @@ public sealed class SampleTrainingJobList : ObservableObject
                 Status = TrainingJobStatus.Draft,
                 StatusDisplay = "草稿",
                 MetaText = "已选数据集：注塑件良品采样（980 张）",
+                StartedText = "尚未开始",
                 BestModelPath = string.Empty,
             },
         ];
@@ -158,6 +163,12 @@ public sealed class SampleTrainingJob : ObservableObject
     public required string StatusDisplay { get; init; }
 
     public required string MetaText { get; init; }
+
+    public string StartedText { get; init; } = string.Empty;
+
+    public string DurationText { get; init; } = string.Empty;
+
+    public bool HasDuration => !string.IsNullOrEmpty(DurationText);
 
     public required string BestModelPath { get; init; }
 
@@ -821,6 +832,34 @@ public sealed class SampleTrainingResourcesSummary
     public double ResourceMemoryPercent => 52.7;
 
     public double ResourceGpuPercent => 61.2;
+
+    public int GaugeColumns => 3;
+
+    /// <summary>样例曲线：最近 5 分钟、每 5 秒一个点（真实是每 2 秒）。</summary>
+    public IReadOnlyList<TrainingChartSeries> UsageSeries { get; } = BuildUsage();
+
+    private static IReadOnlyList<TrainingChartSeries> BuildUsage()
+    {
+        var end = (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var start = end - 300;
+        var cpu = new List<TrainingChartPoint>();
+        var mem = new List<TrainingChartPoint>();
+        var gpu = new List<TrainingChartPoint>();
+        for (var i = 0; i <= 60; i++)
+        {
+            var x = start + i * 5;
+            cpu.Add(new TrainingChartPoint(x, 36 + 12 * Math.Sin(i / 5.0) + 4 * Math.Sin(i * 1.7)));
+            mem.Add(new TrainingChartPoint(x, 50 + 0.07 * i + 2 * Math.Sin(i / 9.0)));
+            gpu.Add(new TrainingChartPoint(x, 62 + 18 * Math.Sin(i / 7.0 + 1) + 5 * Math.Sin(i * 2.3)));
+        }
+
+        return
+        [
+            new TrainingChartSeries("CPU", cpu),
+            new TrainingChartSeries("内存", mem),
+            new TrainingChartSeries("GPU", gpu),
+        ];
+    }
 }
 
 /// <summary>运行日志 stub（对应 TrainingLogViewModel）：20 行 Ultralytics 风格的训练日志。</summary>

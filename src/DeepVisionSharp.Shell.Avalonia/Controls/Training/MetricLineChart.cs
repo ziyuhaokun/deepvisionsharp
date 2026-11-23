@@ -21,6 +21,13 @@ public enum MetricChartYScale
     Logarithmic = 1
 }
 
+/// <summary>横轴含义：训练轮次，或 Unix 秒时间轴（资源监控）。</summary>
+public enum MetricChartXAxis
+{
+    Epoch = 0,
+    Time = 1
+}
+
 public sealed class MetricLineChart : Control
 {
     private const double LeftMargin = 62;
@@ -62,6 +69,13 @@ public sealed class MetricLineChart : Control
     public static readonly StyledProperty<MetricChartYScale> YScaleProperty =
         AvaloniaProperty.Register<MetricLineChart, MetricChartYScale>(nameof(YScale));
 
+    public static readonly StyledProperty<MetricChartXAxis> XAxisProperty =
+        AvaloniaProperty.Register<MetricLineChart, MetricChartXAxis>(nameof(XAxis));
+
+    /// <summary>非比例图（MaximumY &gt; 1）的数值单位，如 "%"；空则不带单位。</summary>
+    public static readonly StyledProperty<string> ValueUnitProperty =
+        AvaloniaProperty.Register<MetricLineChart, string>(nameof(ValueUnit), defaultValue: string.Empty);
+
     public static readonly StyledProperty<string> EmptyTextProperty =
         AvaloniaProperty.Register<MetricLineChart, string>(nameof(EmptyText), defaultValue: "暂无曲线数据");
 
@@ -72,6 +86,8 @@ public sealed class MetricLineChart : Control
             MinimumYProperty,
             MaximumYProperty,
             YScaleProperty,
+            XAxisProperty,
+            ValueUnitProperty,
             EmptyTextProperty);
     }
 
@@ -142,6 +158,18 @@ public sealed class MetricLineChart : Control
     {
         get => GetValue(YScaleProperty);
         set => SetValue(YScaleProperty, value);
+    }
+
+    public MetricChartXAxis XAxis
+    {
+        get => GetValue(XAxisProperty);
+        set => SetValue(XAxisProperty, value);
+    }
+
+    public string ValueUnit
+    {
+        get => GetValue(ValueUnitProperty) ?? string.Empty;
+        set => SetValue(ValueUnitProperty, value);
     }
 
     public string EmptyText
@@ -421,13 +449,13 @@ public sealed class MetricLineChart : Control
 
         DrawText(
             drawingContext,
-            $"第 {minimumEpoch} 轮",
+            FormatX(minimumEpoch, isFirst: true),
             11,
             labelBrush,
             new Point(plot.Left, plot.Bottom + 9));
         DrawText(
             drawingContext,
-            $"第 {maximumEpoch} 轮",
+            FormatX(maximumEpoch, isFirst: false),
             11,
             labelBrush,
             new Point(plot.Right, plot.Bottom + 9),
@@ -557,7 +585,7 @@ public sealed class MetricLineChart : Control
             return;
         }
 
-        var header = CreateText($"第 {epoch} 轮", 11.5, valueBrush, ChartTypeface);
+        var header = CreateText(FormatX(epoch, isFirst: true), 11.5, valueBrush, ChartTypeface);
         var nameWidth = rows.Max(row => row.Name.Width);
         var valueWidth = rows.Max(row => row.Value.Width);
         var width = Math.Max(header.Width, 14 + nameWidth + 16 + valueWidth) + 24;
@@ -686,11 +714,32 @@ public sealed class MetricLineChart : Control
         return defaultBrush;
     }
 
-    private static string FormatLatest(double value, bool isRatio)
+    /// <summary>横轴文案：轮次显示「第 N 轮」；时间轴显示本地时刻，末端显示「现在」。</summary>
+    private string FormatX(int x, bool isFirst)
+    {
+        if (XAxis != MetricChartXAxis.Time)
+        {
+            return $"第 {x} 轮";
+        }
+
+        if (!isFirst)
+        {
+            return "现在";
+        }
+
+        return DateTimeOffset.FromUnixTimeSeconds(x).ToLocalTime().ToString("HH:mm:ss", CultureInfo.InvariantCulture);
+    }
+
+    private string FormatLatest(double value, bool isRatio)
     {
         if (isRatio)
         {
             return (value * 100).ToString("0.#", CultureInfo.InvariantCulture) + "%";
+        }
+
+        if (ValueUnit.Length > 0)
+        {
+            return value.ToString("0.#", CultureInfo.InvariantCulture) + ValueUnit;
         }
 
         var abs = Math.Abs(value);
@@ -706,11 +755,16 @@ public sealed class MetricLineChart : Control
                 : value.ToString("0.0000", CultureInfo.InvariantCulture);
     }
 
-    private static string FormatAxisValue(double value, double maximumY, bool useLog, bool isRatio)
+    private string FormatAxisValue(double value, double maximumY, bool useLog, bool isRatio)
     {
         if (isRatio)
         {
             return (value * 100).ToString("0", CultureInfo.InvariantCulture) + "%";
+        }
+
+        if (ValueUnit.Length > 0)
+        {
+            return value.ToString("0", CultureInfo.InvariantCulture) + ValueUnit;
         }
 
         if (useLog)
