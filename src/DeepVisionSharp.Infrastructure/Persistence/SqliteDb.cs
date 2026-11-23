@@ -53,6 +53,10 @@ internal sealed class SqliteDb
         var dataDirectory = _dataRoot.DataDirectory;
         Directory.CreateDirectory(dataDirectory);
 
+        // Copy before opening: once the pool opens the file it may start a WAL, and a copy taken
+        // afterwards can be a torn snapshot.
+        BackupDatabaseBeforeMigration(dataDirectory);
+
         var dbPath = Path.Combine(dataDirectory, "deepvision.db");
         var connectionString = $"Data Source={dbPath};Pooling=true;Max Pool Size=5;BusyTimeout=5000";
 
@@ -64,6 +68,8 @@ internal sealed class SqliteDb
 
         EnsureSchema(db, dataDirectory);
         ConfigureSqlitePragmas(db);
+        // Only after the migration has committed: the backfill queries tables the migration creates,
+        // and running it earlier both fails and holds a connection across the schema change.
         ScheduleSampleLabelIndexBackfill(db);
 
         _logger.LogInformation("Connected to SQLite database at {DatabasePath}", dbPath);
@@ -74,10 +80,26 @@ internal sealed class SqliteDb
     private void EnsureSchema(IFreeSql db, string dataDirectory)
     {
         var versionFilePath = Path.Combine(dataDirectory, "schema.version");
-        var storedVersion = ReadStoredSchemaVersion(versionFilePath);
-        if (storedVersion == SqliteSchemaVersions.Current)
+        var fileVersion = ReadStoredSchemaVersion(versionFilePath);
+        // The version inside the database is authoritative: the sidecar file can be lost or left
+        // behind when the database file is copied on its own. A database that predates user_version
+        // reports 0 and falls back to the sidecar.
+        var userVersion = ReadUserVersion(db);
+        var storedVersion = Math.Max(userVersion, fileVersion);
+        if (storedVersion == SqliteSchemaVersions.Current && userVersion == fileVersion)
         {
             _logger.LogDebug("SQLite schema version {SchemaVersion} is up to date.", storedVersion);
+            return;
+        }
+
+        if (storedVersion == SqliteSchemaVersions.Current)
+        {
+            // Only the two version locations disagree; nothing structural changes.
+            WriteUserVersion(db, SqliteSchemaVersions.Current);
+            WriteStoredSchemaVersion(versionFilePath, SqliteSchemaVersions.Current);
+            _logger.LogInformation(
+                "Aligned SQLite schema version locations to {SchemaVersion}.",
+                SqliteSchemaVersions.Current);
             return;
         }
 
@@ -89,8 +111,11 @@ internal sealed class SqliteDb
         // Existing databases may hold duplicate (GalleryId, FileName) rows that block unique indexes.
         // Also run when the version file is missing (storedVersion == 0) on a database that already
         // has tables: a lost schema.version must not let duplicates reach SyncStructure, which would
-        // throw and poison the Lazy below for the rest of the process.
-        if (storedVersion < 8 && HasExistingTables(db))
+        // throw and poison the Lazy below for the rest of the process. Guard on the columns as well as
+        // the table: a partial legacy schema is missing them, and the dedupe reads the mapped entity.
+        if (storedVersion < 8
+            && TableHasColumns(db, "Samples", "GalleryId", "FileName", "IsAnnotated", "Id")
+            && TableHasColumns(db, "Annotations", "GalleryId", "FileName", "Id"))
         {
             DedupeSamplesAndAnnotationsByGalleryFileName(db);
             DropLegacyGalleryFileNameIndexes(db);
@@ -128,7 +153,83 @@ internal sealed class SqliteDb
             DropLegacyGallerySystemKindColumn(db);
         }
 
+        WriteUserVersion(db, SqliteSchemaVersions.Current);
         WriteStoredSchemaVersion(versionFilePath, SqliteSchemaVersions.Current);
+    }
+
+    /// <summary>
+    /// Copies <c>deepvision.db</c> to <c>deepvision.db.pre-v{target}.bak</c> before a schema upgrade.
+    /// Runs before the database is opened, so the copy cannot be torn by a WAL. A backup already
+    /// present for the same target version is kept: it is the original pre-upgrade state, and
+    /// overwriting it would destroy the only clean copy. A database already at the current version
+    /// (either version location says so) is not copied.
+    /// </summary>
+    private void BackupDatabaseBeforeMigration(string dataDirectory)
+    {
+        var dbPath = Path.Combine(dataDirectory, "deepvision.db");
+        if (!File.Exists(dbPath))
+        {
+            return;
+        }
+
+        var versionFilePath = Path.Combine(dataDirectory, "schema.version");
+        var fileVersion = ReadStoredSchemaVersion(versionFilePath);
+        var userVersion = ReadUserVersionFromFile(dbPath);
+        if (fileVersion == SqliteSchemaVersions.Current || userVersion == SqliteSchemaVersions.Current)
+        {
+            return;
+        }
+
+        var backupPath = Path.Combine(
+            dataDirectory, $"deepvision.db.pre-v{SqliteSchemaVersions.Current}.bak");
+        if (File.Exists(backupPath))
+        {
+            _logger.LogWarning(
+                "Schema backup {BackupPath} already exists; keeping it and migrating without a new copy.",
+                backupPath);
+            return;
+        }
+
+        File.Copy(dbPath, backupPath);
+        _logger.LogInformation(
+            "Backed up database to {BackupPath} before schema upgrade to {CurrentVersion}.",
+            backupPath,
+            SqliteSchemaVersions.Current);
+    }
+
+    /// <summary>Reads <c>PRAGMA user_version</c> without joining the shared connection pool.</summary>
+    private static int ReadUserVersionFromFile(string dbPath)
+    {
+        try
+        {
+            using var connection = new System.Data.SQLite.SQLiteConnection(
+                $"Data Source={dbPath};Pooling=false");
+            connection.Open();
+            using var command = connection.CreateCommand();
+            command.CommandText = "PRAGMA user_version;";
+            return Convert.ToInt32(command.ExecuteScalar());
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+    private static int ReadUserVersion(IFreeSql db)
+    {
+        try
+        {
+            return Convert.ToInt32(db.Ado.ExecuteScalar("PRAGMA user_version;"));
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+    private static void WriteUserVersion(IFreeSql db, int version)
+    {
+        db.Ado.ExecuteNonQuery($"PRAGMA user_version = {version};");
     }
 
     /// <summary>
@@ -218,6 +319,30 @@ internal sealed class SqliteDb
         }
     }
 
+    /// <summary>True when <paramref name="table"/> exists and contains every named column.</summary>
+    private static bool TableHasColumns(IFreeSql db, string table, params string[] columns)
+    {
+        try
+        {
+            var rows = db.Ado.ExecuteArray($"PRAGMA table_info(\"{table}\");");
+            var present = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var row in rows)
+            {
+                // PRAGMA table_info columns: cid, name, type, notnull, dflt_value, pk.
+                if (row.Length > 1 && row[1] is string name)
+                {
+                    present.Add(name);
+                }
+            }
+
+            return columns.All(present.Contains);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     /// <summary>
     /// True when the SQLite file already contains application tables, regardless of the version file.
     /// </summary>
@@ -240,9 +365,20 @@ internal sealed class SqliteDb
     /// </summary>
     private static bool IsMissingTableError(Exception exception)
     {
+        return ExceptionChainContains(exception, "no such table");
+    }
+
+    /// <summary>True when a background task touched a database its owner already disposed.</summary>
+    private static bool IsClosedDatabase(Exception exception)
+    {
+        return ExceptionChainContains(exception, "closed");
+    }
+
+    private static bool ExceptionChainContains(Exception exception, string fragment)
+    {
         for (var current = exception; current is not null; current = current.InnerException)
         {
-            if (current.Message.Contains("no such table", StringComparison.OrdinalIgnoreCase))
+            if (current.Message.Contains(fragment, StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }
@@ -349,8 +485,15 @@ internal sealed class SqliteDb
             {
                 await GallerySampleLabelIndexMaintainer.BackfillMissingAsync(db).ConfigureAwait(false);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
+                // A closed database (the owner disposed SqliteDb, or the process is shutting down)
+                // is expected here; only a failure against a live database is worth reporting.
+                if (IsClosedDatabase(ex))
+                {
+                    return;
+                }
+
                 _logger.LogWarning(ex, "Failed to backfill sample label index.");
             }
         });

@@ -51,6 +51,10 @@ YOLO26 检测训练在输出目录保存 `detection-run.json`。除了任务、�
 
 训练任务的状态变更（进入运行、成功、失败、取消）通过 `ITrainingJobRepository.SaveIfStatusAsync` 写入。仓储用一条 `UPDATE ... WHERE Status IN (...)` 同时检查当前状态并写入，允许的当前状态由 `TrainingJobTransitions` 推出。后端、Worker、停止命令和对账持有旧快照时，不能覆盖较新的状态，先到的终态保留。被拒绝的写入只记日志，不发状态事件。
 
+## 数据库 schema 迁移
+
+`SqliteDb` 打开 `deepvision.db` 时比对版本。版本以库内 `PRAGMA user_version` 为准，数据目录的 `schema.version` 只作旧库兜底，两者取较高值。低于 `SqliteSchemaVersions.Current` 时，先把库文件复制为 `deepvision.db.pre-v{目标版本}.bak`，再迁移，最后把两个位置都写成当前版本。复制发生在打开连接之前，避免 WAL 下拷到半截。同一目标版本的备份已存在时保留原件，不覆盖。已经是当前版本的库不复制、不改写。备份留在数据目录，覆盖安装不清理该目录，回滚时手动改回 `deepvision.db`。
+
 ## 本地产物
 
 - `temp/` 存放一次性探针、日志、测试样图和其他调试数据。

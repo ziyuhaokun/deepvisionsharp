@@ -158,6 +158,37 @@ internal static class GallerySampleLabelIndexMaintainer
 
     public static async Task BackfillMissingAsync(IFreeSql db, CancellationToken cancellationToken = default)
     {
+        // Startup schedules this the moment the database opens, which can be before a schema migration
+        // has committed the tables it reads. Retry until the schema is in place instead of failing once.
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                await BackfillMissingCoreAsync(db, cancellationToken).ConfigureAwait(false);
+                return;
+            }
+            catch (Exception ex) when (attempt < 5 && IsMissingSchema(ex))
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(200 * attempt), cancellationToken).ConfigureAwait(false);
+            }
+        }
+    }
+
+    private static bool IsMissingSchema(Exception exception)
+    {
+        for (var current = exception; current is not null; current = current.InnerException)
+        {
+            if (current.Message.Contains("no such", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static async Task BackfillMissingCoreAsync(IFreeSql db, CancellationToken cancellationToken)
+    {
         const string sql = """
             SELECT a.Id, a.GalleryId, a.FileName, a.Width, a.Height, a.ImageData, a.DocumentJson
             FROM Annotations a
