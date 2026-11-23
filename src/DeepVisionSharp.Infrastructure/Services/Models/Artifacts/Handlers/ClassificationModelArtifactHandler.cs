@@ -562,9 +562,9 @@ internal sealed class ClassificationModelArtifactHandler : IModelArtifactHandler
         // makes a resnet34 checkpoint fail to load and silently mispredicts for ImageNet-pretrained
         // models, so derive them the same way the training backend did at start.
         var archName = TorchSharpClassifierFactory.ResolveArch(context.ModelType);
-        var preprocessing = PretrainedWeightsLocator.Resolve(archName) is null
-            ? PreprocessingVersion.UnitScaleV1
-            : PreprocessingVersion.ImageNetV2;
+        var preprocessing = TorchSharpClassifierFactory.ResolvePreprocessing(
+            archName,
+            hasPretrainedWeights: PretrainedWeightsLocator.Resolve(archName) is not null);
         var weightsFormat = string.Equals(
             Path.GetExtension(context.SourceCheckpointPath),
             ".torchsharp",

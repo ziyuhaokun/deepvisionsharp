@@ -42,6 +42,7 @@ public sealed class Yolo26DetectModel : Module<Tensor, Tensor[]>
         NumClasses = numClasses;
         var channels = BuildChannels(scale);
         var repeats = Math.Max((int)Math.Round(2 * scale.Depth), 1);
+        var c3k = scale.C3kStages;
 
         // yolo26.yaml reduces P3 from the backbone tap (512*w) to 256*w in the head. Using the tap
         // width here would make stage 16 and the Detect head two times too wide for the official
@@ -53,13 +54,13 @@ public sealed class Yolo26DetectModel : Module<Tensor, Tensor[]>
         [
             new YoloConv(inputChannels, channels[0], kernel: 3, stride: 2),
             new YoloConv(channels[0], channels[1], kernel: 3, stride: 2),
-            new C3k2(channels[1], channels[2], repeats, c3k: false, expansion: 0.25),
+            new C3k2(channels[1], channels[2], repeats, c3k.Stage2, expansion: 0.25),
             new YoloConv(channels[2], channels[3], kernel: 3, stride: 2),
-            new C3k2(channels[3], channels[4], repeats, c3k: false, expansion: 0.25),
+            new C3k2(channels[3], channels[4], repeats, c3k.Stage4, expansion: 0.25),
             new YoloConv(channels[4], channels[5], kernel: 3, stride: 2),
-            new C3k2(channels[5], channels[6], repeats, c3k: true),
+            new C3k2(channels[5], channels[6], repeats, c3k.Stage6),
             new YoloConv(channels[6], channels[7], kernel: 3, stride: 2),
-            new C3k2(channels[7], channels[8], repeats, c3k: true)
+            new C3k2(channels[7], channels[8], repeats, c3k.Stage8)
         ];
         _sppf = new Sppf(channels[8], channels[8]);
         _psa = new C2Psa(channels[8], channels[8], repeats);

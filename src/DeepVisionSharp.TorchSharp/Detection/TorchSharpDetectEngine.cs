@@ -102,13 +102,15 @@ public sealed class TorchSharpDetectEngine : IDisposable
             var predictions = slot.Forward(input);
             try
             {
+                var effectiveIou = nmsIou <= 0 || double.IsNaN(nmsIou) ? slot.Bundle.NmsIou : nmsIou;
+                var effectiveMaxDet = maxDetections <= 0 ? slot.Bundle.MaxDetections : maxDetections;
                 decoded = DetectionTensorDecoder
                     .DecodeAll(
                         predictions,
                         slot.BaseStride,
                         (float)Math.Clamp(confidenceThreshold, 0.0, 1.0),
-                        (float)Math.Clamp(nmsIou, 0.05, 0.95),
-                        Math.Max(1, maxDetections))
+                        (float)Math.Clamp(effectiveIou, 0.05, 0.95),
+                        Math.Max(1, effectiveMaxDet))
                     .ToArray();
             }
             finally

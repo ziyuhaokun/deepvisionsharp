@@ -387,7 +387,10 @@ public sealed class SaveTrainedModelCommandHandler : ICommandHandler<SaveTrained
                 Classes: classes,
                 CheckpointPath: artifact.CheckpointPath,
                 Status: TrainedModelStatus.Ready,
-                Note: "训练更新"),
+                Note: "训练更新",
+                MaxDetections: ModelTypeNames.IsDetectionModelType(modelType)
+                    ? job.Configuration?.DetectionOptions?.MaxDetections ?? 100
+                    : null),
                 cancellationToken);
 
             if (updateResult.IsFailure)
@@ -405,7 +408,10 @@ public sealed class SaveTrainedModelCommandHandler : ICommandHandler<SaveTrained
             artifact.CheckpointPath,
             classes,
             Note: "训练保存",
-            Status: TrainedModelStatus.Ready), cancellationToken);
+            Status: TrainedModelStatus.Ready,
+            MaxDetections: ModelTypeNames.IsDetectionModelType(modelType)
+                ? job.Configuration?.DetectionOptions?.MaxDetections ?? 100
+                : 500), cancellationToken);
 
         if (createResult.IsFailure || createResult.Value == Guid.Empty)
         {

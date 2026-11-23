@@ -32,17 +32,13 @@ public static class DetectionNms
                 }
 
                 candidates.Add(candidate);
-                if (kept.Count + candidates.Count >= maxDetections)
+                if (candidates.Count >= maxDetections)
                 {
                     break;
                 }
             }
 
             kept.AddRange(candidates);
-            if (kept.Count >= maxDetections)
-            {
-                break;
-            }
         }
 
         return kept

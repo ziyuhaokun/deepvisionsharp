@@ -202,7 +202,7 @@ public static class TorchSharpDetTrainer
 
             AtomicFileWriter.Write(lastPath, temporary => model.save(temporary));
             WriteSidecar(lastMetadataPath, options, archName, dataset, inputWidth, inputHeight,
-                channels, bestMap50, bestMap5095, finalTrainLoss, bestEvaluation, completedEpochs,
+                channels, evaluation.Map50, evaluation.Map5095, finalTrainLoss, evaluation, completedEpochs,
                 pretrainedName);
 
             options.Log?.Invoke(
@@ -250,9 +250,11 @@ public static class TorchSharpDetTrainer
 
         cancellationToken.ThrowIfCancellationRequested();
         watch.Stop();
-        if (!File.Exists(bestPath))
+        if (!File.Exists(bestPath) || !File.Exists(bestMetadataPath))
         {
             // Every epoch writes `last`; an interrupted run still leaves a usable checkpoint.
+            bestMap50 = Math.Max(0d, bestMap50);
+            bestMap5095 = Math.Max(0d, bestMap5095);
             AtomicFileWriter.Write(bestPath, temporary => model.save(temporary));
             WriteSidecar(bestMetadataPath, options, archName, dataset, inputWidth, inputHeight,
                 channels, bestMap50, bestMap5095, finalTrainLoss, bestEvaluation, completedEpochs,

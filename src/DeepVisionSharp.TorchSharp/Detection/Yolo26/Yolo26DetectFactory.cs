@@ -21,11 +21,11 @@ public static class Yolo26DetectFactory
         var normalized = archName.Trim().ToLowerInvariant().Replace('_', '-');
         return normalized switch
         {
-            "yolo26n" or "yolo26-n" or "yolo26-n-det" => ArchN,
-            "yolo26s" or "yolo26-s" or "yolo26-s-det" => ArchS,
-            "yolo26m-det" => ArchM,
-            "yolo26l" or "yolo26-l" or "yolo26-l-det" => ArchL,
-            "yolo26x" or "yolo26-x" or "yolo26-x-det" => ArchX,
+            "yolo26n" or "yolo26-n" or "yolo26n-det" or "yolo26-n-det" => ArchN,
+            "yolo26s" or "yolo26-s" or "yolo26s-det" or "yolo26-s-det" => ArchS,
+            "yolo26m" or "yolo26-m" or "yolo26m-det" or "yolo26-m-det" => ArchM,
+            "yolo26l" or "yolo26-l" or "yolo26l-det" or "yolo26-l-det" => ArchL,
+            "yolo26x" or "yolo26-x" or "yolo26x-det" or "yolo26-x-det" => ArchX,
             _ => ArchN
         };
     }

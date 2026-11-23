@@ -275,19 +275,21 @@ internal sealed class TorchSharpDetectionTrainingBackend : ITrainingBackend, IDi
                 Log(CancelledMessage);
                 var latest = await _repository.GetByIdAsync(job.Id, CancellationToken.None).ConfigureAwait(false)
                     ?? job;
+                var bestOnDisk = Path.Combine(plan.OutputRoot, TorchSharpDetTrainer.BestFileName);
+                var lastOnDisk = Path.Combine(plan.OutputRoot, TorchSharpDetTrainer.LastFileName);
                 await _statusWriter
                     .CompleteAsync(
                         latest,
                         TrainingJobStatus.Cancelled,
-                        bestModelPath: File.Exists(Path.Combine(plan.OutputRoot, TorchSharpDetTrainer.BestFileName))
-                            ? Path.Combine(plan.OutputRoot, TorchSharpDetTrainer.BestFileName)
-                            : null,
+                        bestModelPath: File.Exists(bestOnDisk) ? bestOnDisk : null,
+                        lastModelPath: File.Exists(lastOnDisk) ? lastOnDisk : null,
                         cancellationToken: CancellationToken.None,
                         failureMessage: CancelledMessage)
                     .ConfigureAwait(false);
                 return Result<TrainingBackendStartResult>.Failure(CancelledMessage);
             }
 
+            var lastPathOnDisk = Path.Combine(plan.OutputRoot, TorchSharpDetTrainer.LastFileName);
             if (runToken.IsCancellationRequested)
             {
                 Log(CancelledMessage);
@@ -298,6 +300,7 @@ internal sealed class TorchSharpDetectionTrainingBackend : ITrainingBackend, IDi
                         cancelledJob,
                         TrainingJobStatus.Cancelled,
                         bestModelPath: File.Exists(trainResult.BestModelPath) ? trainResult.BestModelPath : null,
+                        lastModelPath: File.Exists(lastPathOnDisk) ? lastPathOnDisk : null,
                         cancellationToken: CancellationToken.None,
                         failureMessage: CancelledMessage)
                     .ConfigureAwait(false);
@@ -314,6 +317,7 @@ internal sealed class TorchSharpDetectionTrainingBackend : ITrainingBackend, IDi
                     latestForComplete,
                     TrainingJobStatus.Succeeded,
                     trainResult.BestModelPath,
+                    lastModelPath: File.Exists(lastPathOnDisk) ? lastPathOnDisk : null,
                     cancellationToken: CancellationToken.None)
                 .ConfigureAwait(false);
             if (completed.IsFailure || completed.Value is null)

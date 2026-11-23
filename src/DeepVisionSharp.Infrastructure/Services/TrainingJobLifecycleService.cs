@@ -208,9 +208,9 @@ internal sealed class TrainingJobLifecycleService : ITrainingJobLifecycleService
     public Task<Result<int>> ReconcileOrphanedJobsAsync(CancellationToken cancellationToken = default)
         => _recoveryCoordinator.ReconcileOrphanedJobsAsync(
             cancellationToken,
-            // A queued or executing run is Preparing/Running without a process yet; the reconciler
-            // must not mark it failed while the worker is still exporting the dataset.
-            isStartInFlight: _runQueue.IsTracked);
+            // A queued, executing, or mid-prepare run must not be marked failed by the background
+            // reconciler while start preparation or dataset export is still in flight.
+            isStartInFlight: jobId => _runQueue.IsTracked(jobId) || _startingJobs.ContainsKey(jobId));
 
     private async Task<Result<StartTrainingJobResult>> StartCoreAsync(
         StartTrainingJobCommand request,

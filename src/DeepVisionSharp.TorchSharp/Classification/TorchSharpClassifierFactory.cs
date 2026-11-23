@@ -1,6 +1,7 @@
 using TorchSharp;
 using DeepVisionSharp.TorchSharp.Classification.Yolo26;
 using DeepVisionSharp.TorchSharp.Classification.ResNet;
+using DeepVisionSharp.TorchSharp.Models;
 
 namespace DeepVisionSharp.TorchSharp.Classification;
 
@@ -16,6 +17,16 @@ public static class TorchSharpClassifierFactory
     public const string ArchYolo26MCls = "yolo26m-cls";
     public const string ArchYolo26LCls = "yolo26l-cls";
     public const string ArchYolo26XCls = "yolo26x-cls";
+
+    /// <summary>
+    /// Single source of truth for classification input normalisation. torchvision ResNet weights
+    /// expect ImageNet mean/std; Ultralytics YOLO26-cls weights and random init expect [0, 1].
+    /// Training and cancelled-artifact sidecar synthesis must both call this.
+    /// </summary>
+    public static PreprocessingVersion ResolvePreprocessing(string archName, bool hasPretrainedWeights) =>
+        hasPretrainedWeights && !archName.StartsWith("yolo26", StringComparison.OrdinalIgnoreCase)
+            ? PreprocessingVersion.ImageNetV2
+            : PreprocessingVersion.UnitScaleV1;
 
     public static string ResolveArch(string? modelType)
     {

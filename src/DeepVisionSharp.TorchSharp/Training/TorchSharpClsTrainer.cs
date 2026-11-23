@@ -200,6 +200,7 @@ public static class TorchSharpClsTrainer
                         .ToArray()
                 }));
             options.Progress?.Invoke(epoch, options.Epochs, $"TorchSharp CLS epoch {epoch}/{options.Epochs}");
+            completedEpochs = epoch;
 
             if (earlyStopping.IsEnabled)
             {
@@ -273,8 +274,6 @@ public static class TorchSharpClsTrainer
                     $"early stopping: 连续 {earlyStopping.BadEpochs} 轮无提升（best={earlyStopping.Best:F4}），在第 {epoch} 轮停止");
                 break;
             }
-
-            completedEpochs = epoch;
         }
 
         // The epoch loop only checks the token at its top, so a stop pressed during the last epoch's

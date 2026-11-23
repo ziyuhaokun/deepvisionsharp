@@ -78,12 +78,16 @@ internal sealed class TorchSharpDetectionInferenceBackend : IInferenceBackend
             }
 
             var watch = Stopwatch.StartNew();
+            // 0 asks the engine to use the model sidecar's nms_iou; only explicit values are clamped.
+            var nmsIou = context.Config.NmsIouThreshold > InferenceConfig.UseModelNmsIou
+                ? Math.Clamp(context.Config.NmsIouThreshold, 0.05, 0.95)
+                : InferenceConfig.UseModelNmsIou;
             var result = _engine.Infer(
                 context.ModelPath,
                 context.Config.Device,
                 context.ImagePath,
                 Math.Clamp(context.Config.ConfidenceThreshold, 0.0, 1.0),
-                Math.Clamp(context.Config.NmsIouThreshold, 0.05, 0.95),
+                nmsIou,
                 context.Config.MaxDetections);
             watch.Stop();
 

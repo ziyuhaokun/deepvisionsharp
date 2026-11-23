@@ -252,13 +252,13 @@ internal sealed class TorchSharpClassificationTrainingBackend : ITrainingBackend
             var inputHeight = Math.Max(32, request.Form.NetworkInputHeight);
             const string deviceName = "AUTO";
 
-            // Pretrained weights also decide the preprocessing: ImageNet normalisation only applies
-            // when the backbone was initialised from them, and the choice is written to the sidecar.
+            // Pretrained weights also decide the preprocessing: torchvision ResNet weights use
+            // ImageNet normalisation, while Ultralytics YOLO26-cls checkpoints expect [0, 1] scaling.
             var archName = TorchSharpClassifierFactory.ResolveArch(modelType);
             var pretrainedDirectory = PretrainedWeightsLocator.Resolve(archName);
-            var preprocessing = pretrainedDirectory is null
-                ? PreprocessingVersion.UnitScaleV1
-                : PreprocessingVersion.ImageNetV2;
+            var preprocessing = TorchSharpClassifierFactory.ResolvePreprocessing(
+                archName,
+                hasPretrainedWeights: pretrainedDirectory is not null);
             Log(pretrainedDirectory is null
                 ? $"预训练权重：未找到 {archName} 的权重，使用随机初始化（preprocessing={preprocessing.ToWireValue()}）"
                 : $"预训练权重：{archName} ← {pretrainedDirectory}（preprocessing={preprocessing.ToWireValue()}）");
@@ -306,13 +306,14 @@ internal sealed class TorchSharpClassificationTrainingBackend : ITrainingBackend
                 Log(CancelledMessage);
                 var latest = await _repository.GetByIdAsync(job.Id, CancellationToken.None).ConfigureAwait(false)
                     ?? job;
+                var bestOnDisk = Path.Combine(plan.OutputRoot, TorchSharpClsTrainer.BestFileName);
+                var lastOnDisk = Path.Combine(plan.OutputRoot, TorchSharpClsTrainer.LastFileName);
                 await _statusWriter
                     .CompleteAsync(
                         latest,
                         TrainingJobStatus.Cancelled,
-                        bestModelPath: File.Exists(Path.Combine(plan.OutputRoot, TorchSharpClsTrainer.BestFileName))
-                            ? Path.Combine(plan.OutputRoot, TorchSharpClsTrainer.BestFileName)
-                            : null,
+                        bestModelPath: File.Exists(bestOnDisk) ? bestOnDisk : null,
+                        lastModelPath: File.Exists(lastOnDisk) ? lastOnDisk : null,
                         cancellationToken: CancellationToken.None,
                         failureMessage: CancelledMessage)
                     .ConfigureAwait(false);
@@ -321,6 +322,7 @@ internal sealed class TorchSharpClassificationTrainingBackend : ITrainingBackend
 
             // The trainer returns normally once the last epoch is saved; a stop pressed while it was
             // finishing must still land as Cancelled rather than Succeeded.
+            var lastPathOnDisk = Path.Combine(plan.OutputRoot, TorchSharpClsTrainer.LastFileName);
             if (runToken.IsCancellationRequested)
             {
                 Log(CancelledMessage);
@@ -331,6 +333,7 @@ internal sealed class TorchSharpClassificationTrainingBackend : ITrainingBackend
                         cancelledJob,
                         TrainingJobStatus.Cancelled,
                         bestModelPath: File.Exists(trainResult.BestModelPath) ? trainResult.BestModelPath : null,
+                        lastModelPath: File.Exists(lastPathOnDisk) ? lastPathOnDisk : null,
                         cancellationToken: CancellationToken.None,
                         failureMessage: CancelledMessage)
                     .ConfigureAwait(false);
@@ -347,6 +350,7 @@ internal sealed class TorchSharpClassificationTrainingBackend : ITrainingBackend
                     latestForComplete,
                     TrainingJobStatus.Succeeded,
                     trainResult.BestModelPath,
+                    lastModelPath: File.Exists(lastPathOnDisk) ? lastPathOnDisk : null,
                     cancellationToken: CancellationToken.None)
                 .ConfigureAwait(false);
             if (completed.IsFailure || completed.Value is null)
