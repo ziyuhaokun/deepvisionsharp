@@ -132,6 +132,58 @@ internal sealed class SqliteTrainingJobRepository : ITrainingJobRepository
                 x.Status == a || x.Status == b || x.Status == c || x.Status == d || x.Status == e || x.Status == f);
     }
 
+    public async Task<bool> SaveIfStatusAsync(
+        TrainingJob job,
+        IReadOnlyCollection<TrainingJobStatus> allowedCurrent,
+        CancellationToken cancellationToken = default)
+    {
+        var names = allowedCurrent.Select(status => status.ToString()).Distinct(StringComparer.Ordinal).ToList();
+        if (names.Count == 0 || names.Count > 4)
+        {
+            throw new ArgumentOutOfRangeException(nameof(allowedCurrent), "需要 1 到 4 个允许的当前状态。");
+        }
+
+        if (job.ProjectId is Guid projectId)
+        {
+            await SqlProjectExecutionGuard.EnsureProjectAsync(_sqliteDb.Instance, projectId, cancellationToken).ConfigureAwait(false);
+        }
+
+        // FreeSql cannot translate local-array Contains; pad to four equality terms instead.
+        while (names.Count < 4)
+        {
+            names.Add(names[0]);
+        }
+
+        var (a, b, c, d) = (names[0], names[1], names[2], names[3]);
+        var id = job.Id;
+        var affected = await _sqliteDb.Instance
+            .Update<SqlTrainingJob>()
+            .SetSource(ToEntity(job))
+            .Where(e => e.Id == id && (e.Status == a || e.Status == b || e.Status == c || e.Status == d))
+            .ExecuteAffrowsAsync(cancellationToken);
+        return affected > 0;
+    }
+
+    private static SqlTrainingJob ToEntity(TrainingJob job) => new()
+    {
+        Id = job.Id,
+        ProjectId = job.ProjectId,
+        Name = job.Name,
+        Backend = job.Backend,
+        ModelType = job.ModelType,
+        DataRoot = job.DataRoot,
+        OutputRoot = job.OutputRoot,
+        Status = job.Status.ToString(),
+        StartedAt = job.StartedAt,
+        FinishedAt = job.FinishedAt,
+        BestModelPath = job.BestModelPath,
+        LastModelPath = job.LastModelPath,
+        LogFile = job.LogFile,
+        ProcessId = job.ProcessId,
+        FailureMessage = job.FailureMessage,
+        ConfigurationJson = JsonSerializer.Serialize(job.Configuration)
+    };
+
     public async Task SaveAsync(TrainingJob job, CancellationToken cancellationToken = default)
     {
         if (job.ProjectId is Guid projectId)

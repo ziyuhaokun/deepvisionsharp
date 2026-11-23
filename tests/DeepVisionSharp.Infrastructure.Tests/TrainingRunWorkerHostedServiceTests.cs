@@ -223,6 +223,25 @@ public sealed class TrainingRunWorkerHostedServiceTests
             return Task.CompletedTask;
         }
 
+        public Task<bool> SaveIfStatusAsync(
+            TrainingJob job,
+            IReadOnlyCollection<TrainingJobStatus> allowedCurrent,
+            CancellationToken cancellationToken = default)
+        {
+            lock (_sync)
+            {
+                if (!_jobs.TryGetValue(job.Id, out var stored) || !allowedCurrent.Contains(stored.Status))
+                {
+                    return Task.FromResult(false);
+                }
+
+                _jobs[job.Id] = job;
+            }
+
+            Interlocked.Increment(ref _saveCount);
+            return Task.FromResult(true);
+        }
+
         public Task<IReadOnlyList<TrainingJob>> GetAllAsync(CancellationToken cancellationToken = default)
             => throw new NotSupportedException();
 

@@ -47,6 +47,10 @@ YOLO26 检测训练在输出目录保存 `detection-run.json`。除了任务、�
 
 分类和检测后端在校验 `best`、`last` 和各自的 `.info` 后，先原子发布 `training-completed.json`，再把任务状态写入 SQLite。完成记录对应本次任务，保存 UTC 完成时间和产物相对路径。发布前收到取消时保留已写入的 checkpoint，任务记为取消。记录发布后若状态暂时写不进去，启动和定时对账会重试。没有完成记录的历史任务仍可用 `DV_COMPLETED` 日志恢复。
 
+## 训练状态写入
+
+训练任务的状态变更（进入运行、成功、失败、取消）通过 `ITrainingJobRepository.SaveIfStatusAsync` 写入。仓储用一条 `UPDATE ... WHERE Status IN (...)` 同时检查当前状态并写入，允许的当前状态由 `TrainingJobTransitions` 推出。后端、Worker、停止命令和对账持有旧快照时，不能覆盖较新的状态，先到的终态保留。被拒绝的写入只记日志，不发状态事件。
+
 ## 本地产物
 
 - `temp/` 存放一次性探针、日志、测试样图和其他调试数据。

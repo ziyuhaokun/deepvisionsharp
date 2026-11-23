@@ -75,7 +75,11 @@ internal sealed class TrainingJobStatusWriter
             return Result<TrainingJob>.Failure(result.Error ?? "无法进入运行状态");
         }
 
-        await _repository.SaveAsync(result.Value, cancellationToken).ConfigureAwait(false);
+        if (!await SaveTransitionAsync(result.Value, cancellationToken).ConfigureAwait(false))
+        {
+            return Result<TrainingJob>.Failure("任务状态已变更，无法进入运行状态");
+        }
+
         RaiseStatusChanged(result.Value.Id, TrainingJobStatus.Running, null);
         return Result<TrainingJob>.Success(result.Value);
     }
@@ -101,7 +105,11 @@ internal sealed class TrainingJobStatusWriter
             return Result<TrainingJob>.Failure(result.Error ?? "无法完成任务状态更新");
         }
 
-        await SaveWithRetryAsync(result.Value, cancellationToken: cancellationToken).ConfigureAwait(false);
+        if (!await SaveTransitionAsync(result.Value, cancellationToken).ConfigureAwait(false))
+        {
+            return Result<TrainingJob>.Failure("任务状态已变更，未写入完成状态");
+        }
+
         RaiseStatusChanged(result.Value.Id, status, result.Value.BestModelPath);
         return Result<TrainingJob>.Success(result.Value);
     }
@@ -133,7 +141,11 @@ internal sealed class TrainingJobStatusWriter
                 return completed;
             }
 
-            await SaveWithRetryAsync(completed.Value, cancellationToken: cancellationToken).ConfigureAwait(false);
+            if (!await SaveTransitionAsync(completed.Value, cancellationToken).ConfigureAwait(false))
+            {
+                return Result<TrainingJob>.Failure("任务状态已变更，未写入完成状态");
+            }
+
             RaiseStatusChanged(job.Id, TrainingJobStatus.Succeeded, bestModelPath);
             return completed;
         }
@@ -183,7 +195,11 @@ internal sealed class TrainingJobStatusWriter
             return;
         }
 
-        await SaveWithRetryAsync(result.Value, cancellationToken: cancellationToken).ConfigureAwait(false);
+        if (!await SaveTransitionAsync(result.Value, cancellationToken).ConfigureAwait(false))
+        {
+            return;
+        }
+
         if (notifyStatusChanged)
         {
             RaiseStatusChanged(result.Value.Id, TrainingJobStatus.Failed, result.Value.BestModelPath);
@@ -215,21 +231,40 @@ internal sealed class TrainingJobStatusWriter
             return;
         }
 
-        await SaveWithRetryAsync(result.Value, cancellationToken: cancellationToken).ConfigureAwait(false);
+        if (!await SaveTransitionAsync(result.Value, cancellationToken).ConfigureAwait(false))
+        {
+            return;
+        }
+
         RaiseStatusChanged(result.Value.Id, TrainingJobStatus.Cancelled, result.Value.BestModelPath);
     }
 
-    private async Task SaveWithRetryAsync(
+    /// <summary>
+    /// Persists a state change only if the stored status may legally move to <c>job.Status</c>. A stale
+    /// snapshot (for example Running read before a Stop landed) can therefore never overwrite a newer
+    /// or terminal state. Returns false, without raising any event, when the write was rejected.
+    /// </summary>
+    private async Task<bool> SaveTransitionAsync(
         TrainingJob job,
-        int attempts = 3,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken,
+        int attempts = 3)
     {
-        for (var attempt = 1; attempt <= attempts; attempt++)
+        var allowed = Enum.GetValues<TrainingJobStatus>()
+            .Where(current => TrainingJobTransitions.CanTransition(current, job.Status))
+            .ToArray();
+        for (var attempt = 1; ; attempt++)
         {
             try
             {
-                await _repository.SaveAsync(job, cancellationToken).ConfigureAwait(false);
-                return;
+                var saved = await _repository.SaveIfStatusAsync(job, allowed, cancellationToken).ConfigureAwait(false);
+                if (!saved)
+                {
+                    _logger.LogWarning(
+                        "Training job {JobId} was not moved to {Status}: its stored status changed first",
+                        job.Id, job.Status);
+                }
+
+                return saved;
             }
             catch (Exception ex) when (attempt < attempts)
             {
@@ -237,8 +272,6 @@ internal sealed class TrainingJobStatusWriter
                 await Task.Delay(TimeSpan.FromMilliseconds(100 * attempt), cancellationToken).ConfigureAwait(false);
             }
         }
-
-        await _repository.SaveAsync(job, cancellationToken).ConfigureAwait(false);
     }
 
     private void RaiseStatusChanged(Guid jobId, TrainingJobStatus status, string? bestModelPath)

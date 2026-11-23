@@ -297,6 +297,7 @@ public sealed class UpdateModelRollbackTests
         public Task<IReadOnlyList<TrainingJob>> GetRunningAsync(CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyList<TrainingJob>>([]);
         public Task<IReadOnlyList<TrainingJob>> GetByStatusesAsync(IReadOnlyList<TrainingJobStatus> statuses, CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyList<TrainingJob>>([_job]);
         public Task SaveAsync(TrainingJob job, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task<bool> SaveIfStatusAsync(TrainingJob job, IReadOnlyCollection<TrainingJobStatus> allowedCurrent, CancellationToken cancellationToken = default) => Task.FromResult(true);
         public Task DeleteAsync(Guid id, CancellationToken cancellationToken = default) => Task.CompletedTask;
     }
 
