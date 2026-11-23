@@ -63,8 +63,8 @@
             <Setter Property="ClipToBounds" Value="True" />
         </Style>
         <Style Selector="Border.sampleTile.active">
-            <Setter Property="BorderBrush" Value="{DynamicResource IvAccentBorderBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{DynamicResource IvAccentBrush}" />
+            <Setter Property="BorderThickness" Value="2" />
             <Setter Property="Background" Value="{DynamicResource IvAccentSubtleBrush}" />
         </Style>
         <Style Selector="Border.sampleIndexBadge">
@@ -89,22 +89,28 @@
         <Style Selector="TextBlock.sampleIndexText.active">
             <Setter Property="Foreground" Value="{DynamicResource IvTextOnAccentBrush}" />
         </Style>
-        <Style Selector="Ellipse.sampleDot">
-            <Setter Property="Width" Value="8" />
-            <Setter Property="Height" Value="8" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="Stroke" Value="#66000000" />
-            <Setter Property="StrokeThickness" Value="1" />
-            <Setter Property="Fill" Value="#94A3B8" />
+        <Style Selector="Border.sampleMark">
+            <Setter Property="MinWidth" Value="28" />
+            <Setter Property="Height" Value="16" />
+            <Setter Property="Padding" Value="4,0" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Background" Value="#E0111827" />
             <Setter Property="ToolTip.Tip" Value="未标注" />
         </Style>
-        <Style Selector="Ellipse.sampleDot.annotated">
-            <Setter Property="Fill" Value="#22C55E" />
+        <Style Selector="Border.sampleMark.annotated">
+            <Setter Property="Background" Value="#16A34A" />
             <Setter Property="ToolTip.Tip" Value="已标注" />
         </Style>
-        <Style Selector="Ellipse.sampleDot.error">
-            <Setter Property="Fill" Value="#EF4444" />
+        <Style Selector="Border.sampleMark.error">
+            <Setter Property="Background" Value="#DC2626" />
             <Setter Property="ToolTip.Tip" Value="异常" />
+        </Style>
+        <Style Selector="TextBlock.sampleMarkText">
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
         <Style Selector="Border.sampleProgressBadge">
             <Setter Property="Margin" Value="7,0,0,0" />
@@ -330,6 +336,24 @@
                                                    FontWeight="Medium"
                                                    Foreground="{DynamicResource IvText2Brush}"
                                                    Text="{Binding Workspace.ImageSizeText}" />
+                                    </Border>
+                                    <Border Classes="sizePill"
+                                            IsVisible="{Binding Editor.ShowsDetectionTools}"
+                                            ToolTip.Tip="当前图像的标注">
+                                        <TextBlock VerticalAlignment="Center"
+                                                   FontSize="10.5"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource IvText1Brush}"
+                                                   Text="{Binding Editor.DetectionStatusText}" />
+                                    </Border>
+                                    <Border Classes="sizePill"
+                                            IsVisible="{Binding Workspace.ProjectProfile.SupportsImageClass}"
+                                            ToolTip.Tip="当前图像的类别">
+                                        <TextBlock VerticalAlignment="Center"
+                                                   FontSize="10.5"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource IvText1Brush}"
+                                                   Text="{Binding Labels.CurrentImageClassDisplay}" />
                                     </Border>
                                 </StackPanel>
                             </dv:CanvasCornerFloat.Body>
@@ -567,9 +591,12 @@
                                                                      Data="{x:Static ui:IvIcons.Flag}"
                                                                      IsVisible="{Binding IsAnchor}"
                                                                      ToolTip.Tip="标注锚点" />
-                                                            <Ellipse Classes="sampleDot"
-                                                                     Classes.annotated="{Binding IsAnnotated}"
-                                                                     Classes.error="{Binding HasError}" />
+                                                            <Border Classes="sampleMark"
+                                                                    Classes.annotated="{Binding IsAnnotated}"
+                                                                    Classes.error="{Binding HasError}">
+                                                                <TextBlock Classes="sampleMarkText"
+                                                                           Text="{Binding AnnotationMarkText}" />
+                                                            </Border>
                                                         </StackPanel>
 
                                                     </Grid>

@@ -49,6 +49,10 @@ public sealed partial class LabelingSampleRow : ObservableObject
     [ObservableProperty]
     private bool _isAnnotated;
 
+    public string AnnotationMarkText => HasError ? "异常" : IsAnnotated ? "已标" : "未标";
+
+    partial void OnIsAnnotatedChanged(bool value) => OnPropertyChanged(nameof(AnnotationMarkText));
+
     [ObservableProperty]
     private bool _isThumbnailLoading;
 

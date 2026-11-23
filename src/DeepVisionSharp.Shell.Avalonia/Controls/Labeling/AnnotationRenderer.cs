@@ -43,10 +43,13 @@ internal static class AnnotationRenderer
     {
         var fillColor = transparentFill
             ? Color.FromArgb(0, color.R, color.G, color.B)
-            : Color.FromArgb(72, color.R, color.G, color.B);
+            : Color.FromArgb(96, color.R, color.G, color.B);
         var fill = new SolidColorBrush(fillColor);
-        var pen = new Pen(new SolidColorBrush(color), primary ? 2.4 : selected ? 2.0 : 1.6);
-        dc.DrawRectangle(fill, pen, screenRect);
+        var stroke = primary ? 2.6 : selected ? 2.2 : 2.0;
+        // Dark halo first, then the class color. A 2px line alone disappears on bright metal and dark boards.
+        var halo = new Pen(new SolidColorBrush(Color.FromArgb(210, 15, 23, 42)), stroke + 2.0);
+        dc.DrawRectangle(fill, halo, screenRect);
+        dc.DrawRectangle(null, new Pen(new SolidColorBrush(color), stroke), screenRect);
 
         if (showLabel)
         {
@@ -61,9 +64,10 @@ internal static class AnnotationRenderer
 
     public static void DrawOverviewAnnotation(DrawingContext dc, Rect screenRect, Color color)
     {
-        var fill = new SolidColorBrush(Color.FromArgb(38, color.R, color.G, color.B));
-        var pen = new Pen(new SolidColorBrush(color), 1);
-        dc.DrawRectangle(fill, pen, screenRect);
+        var fill = new SolidColorBrush(Color.FromArgb(90, color.R, color.G, color.B));
+        var halo = new Pen(new SolidColorBrush(Color.FromArgb(210, 15, 23, 42)), 3);
+        dc.DrawRectangle(fill, halo, screenRect);
+        dc.DrawRectangle(null, new Pen(new SolidColorBrush(color), 1.6), screenRect);
     }
 
     public static void DrawCanvasQuad(

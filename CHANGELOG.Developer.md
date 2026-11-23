@@ -17,6 +17,7 @@ tags: detection / classification / refactor / ui
 - mAP 评估与预览阈值解耦：验证解码用 `EvaluationScoreFloor = 0.001`（NMS / MaxDetections 仍限制候选数），预览和推理仍用 `evaluation_confidence`；检测 `.info` 新增 `evaluation_score_floor`，避免低分真阳性被提前丢弃导致 mAP 偏低、best checkpoint 选错。
 - 澄清取消链路：MediatR 11 的 `RequestHandlerDelegate` 没有 token 参数，`Mediator.Send` 直接把 token 闭包传给 handler，pipeline behavior 不会吞掉取消；补回归测试锁住该契约。
 - 慢测夹具改为进程间稳定：合成图不再用每次进程都变盐的 `HashCode.Combine`，目录按序读，三条 Slow 训练测试进入同一个不并行的 collection，并在建模型前 `torch.manual_seed(42)`。先前检出数在 0/40～25/40 间摆动，不能拿单次慢测当回归结论。
+- 标注画布框先画 2px 深色描边再画类别色，填充不透明度从 72 提到 96；鸟瞰图同样加粗。样本条的 8px 状态点改成「已标 / 未标 / 异常」底，当前样本边框加到 2px；画布左上角补上当前图的标注状态。
 
 - UI 库改名：`yu-ui` → `DeepVisionSharp.UI`（WPF，`AssemblyName` / `RootNamespace` / 目录一致），`yu-ui.avalonia` → `DeepVisionSharp.UI.Avalonia`；XAML 命名空间 URI 改为 `http://schemas.deepvisionsharp.ui/xaml`（前缀由 `yu:` 改为 `dvsui:`，`Iv*` 资源键与 `IvIcons` / `IvTheme` 不变）；入口字典 `YuUi{Tokens,Styles,Theme}.xaml` → `DeepVisionSharpUI{Tokens,Styles,Theme}.xaml`，`YuUiStyleProbeWindow` → `DeepVisionSharpUIStyleProbeWindow`。下方及更早条目里的旧名为历史记录，不回改。新根命名空间会遮蔽 `Avalonia`，`NumericBox.cs` 内两处限定名改为 `global::Avalonia.*`。
 
