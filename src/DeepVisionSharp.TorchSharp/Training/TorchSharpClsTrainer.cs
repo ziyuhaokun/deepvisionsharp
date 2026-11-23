@@ -50,7 +50,9 @@ public static class TorchSharpClsTrainer
         int EarlyStoppingPatience = 0,
         Action<string>? Log = null,
         Action<int, int, string>? Progress = null,
-        Action<string>? PreviewGenerated = null);
+        Action<string>? PreviewGenerated = null,
+        bool UseAutomaticPreprocessing = false,
+        Guid? TrainingJobId = null);
 
     public sealed record Result(
         string BestModelPath,
@@ -81,6 +83,11 @@ public static class TorchSharpClsTrainer
         var metadataPath = bestPath + ".info";
         var lastPath = Path.Combine(options.OutputRoot, LastFileName);
         var lastMetadataPath = lastPath + ".info";
+        if (options.TrainingJobId is not null
+            && (File.Exists(bestPath) || File.Exists(lastPath)))
+        {
+            throw new IOException("分类训练输出目录已有 checkpoint，请为新任务使用独立目录。");
+        }
 
         options.Log?.Invoke(
             $"TorchSharp CLS 训练开始：train={dataset.TrainSamples.Count}, val={dataset.ValSamples.Count}, " +
@@ -88,8 +95,25 @@ public static class TorchSharpClsTrainer
 
         var watch = Stopwatch.StartNew();
         var archName = TorchSharpClassifierFactory.ResolveArch(options.ModelType);
-        using var model = TorchSharpClassifierFactory.Create(archName, channels, dataset.Classes.Count, imageSize);
-        TryApplyPretrainedWeights(model, options, archName);
+        var initialization = InitializeModel(options, archName, channels, dataset.Classes.Count, imageSize);
+        using var model = initialization.Model;
+        cancellationToken.ThrowIfCancellationRequested();
+        if (options.UseAutomaticPreprocessing)
+        {
+            options = options with
+            {
+                Preprocessing = TorchSharpClassifierFactory.ResolvePreprocessing(
+                    archName, channels == 3 && initialization.LoadedTensors > 0)
+            };
+        }
+
+        var run = new ClassificationTrainingRun(
+            options.TrainingJobId, options.ModelType, archName, dataset.Classes.ToArray(), inputWidth, inputHeight,
+            channels, dataset.Fingerprint, options.Preprocessing.ToWireValue(), initialization.BundleName,
+            initialization.BundleArch, initialization.LoadedTensors, options.Epochs, options.BatchSize,
+            options.LearningRate, options.Optimizer);
+        run.Write(options.OutputRoot);
+        options.Log?.Invoke($"pretrained: preprocessing={run.Preprocessing}");
         model.to(device);
 
         var iterationsPerEpoch =
@@ -243,11 +267,7 @@ public static class TorchSharpClsTrainer
                 AtomicFileWriter.Write(bestPath, tempPath => model.save(tempPath));
                 WriteSidecar(
                     metadataPath,
-                    options,
-                    archName,
-                    dataset,
-                    imageSize,
-                    channels,
+                    run,
                     bestValAcc,
                     finalTrainLoss,
                     bestEvaluation,
@@ -258,11 +278,7 @@ public static class TorchSharpClsTrainer
             AtomicFileWriter.Write(lastPath, tempPath => model.save(tempPath));
             WriteSidecar(
                 lastMetadataPath,
-                options,
-                archName,
-                dataset,
-                imageSize,
-                channels,
+                run,
                 evaluation.Top1,
                 finalTrainLoss,
                 evaluation,
@@ -286,11 +302,7 @@ public static class TorchSharpClsTrainer
             AtomicFileWriter.Write(bestPath, tempPath => model.save(tempPath));
             WriteSidecar(
                 metadataPath,
-                options,
-                archName,
-                dataset,
-                imageSize,
-                channels,
+                run,
                 Math.Max(0f, bestValAcc),
                 finalTrainLoss,
                 bestEvaluation,
@@ -302,11 +314,7 @@ public static class TorchSharpClsTrainer
             AtomicFileWriter.Write(lastPath, tempPath => model.save(tempPath));
             WriteSidecar(
                 lastMetadataPath,
-                options,
-                archName,
-                dataset,
-                imageSize,
-                channels,
+                run,
                 Math.Max(0f, bestValAcc),
                 finalTrainLoss,
                 bestEvaluation,
@@ -689,113 +697,82 @@ public static class TorchSharpClsTrainer
         }
     }
 
-    private static void TryApplyPretrainedWeights(
-        Module<Tensor, Tensor> model,
-        Options options,
-        string archName)
+    private static (Module<Tensor, Tensor> Model, string? BundleName, string? BundleArch, int LoadedTensors) InitializeModel(
+        Options options, string archName, int channels, int classCount, int imageSize)
     {
-        if (string.IsNullOrWhiteSpace(options.PretrainedDirectory)
-            || !Directory.Exists(options.PretrainedDirectory))
+        var model = TorchSharpClassifierFactory.Create(archName, channels, classCount, imageSize);
+        var directory = options.PretrainedDirectory;
+        if (string.IsNullOrWhiteSpace(directory) || !Directory.Exists(directory))
         {
             options.Log?.Invoke($"pretrained: 未找到预训练权重（{archName}），使用随机初始化");
-            return;
+            return (model, null, null, 0);
         }
 
         try
         {
-            using var bundle = PretrainedWeightsBundle.Load(options.PretrainedDirectory);
-            if (model is Yolo26ClsClassifier yolo26)
+            using var bundle = PretrainedWeightsBundle.Load(directory);
+            if (string.IsNullOrWhiteSpace(bundle.Arch))
             {
-                var applied = Yolo26PretrainedInitializer.ApplyToClassifier(yolo26, bundle);
-                options.Log?.Invoke(
-                    $"pretrained: arch={archName} loaded={applied.Loaded} missing={applied.Missing} " +
-                    $"unexpected={applied.Unexpected} preprocessing={options.Preprocessing.ToWireValue()}");
-                return;
+                throw new InvalidDataException("权重包缺少架构标识");
             }
 
-            // ResNet-Tiny is sliced from the ResNet-18 bundle; other widths map 1:1.
-            var widths = TorchSharpClassifierFactory.ResolveStageWidths(archName);
-            if (widths is null)
+            var result = model is Yolo26ClsClassifier yolo26
+                ? Yolo26PretrainedInitializer.ApplyToClassifier(yolo26, bundle)
+                : PretrainedInitializer.Apply(model, bundle, TorchSharpClassifierFactory.ResolveStageWidths(archName)
+                    ?? throw new InvalidOperationException($"架构 {archName} 不支持预训练权重"));
+            if (result.Loaded == 0)
             {
-                options.Log?.Invoke($"pretrained: 架构 {archName} 不支持预训练权重，使用随机初始化");
-                return;
+                throw new InvalidDataException("权重包没有匹配的张量");
             }
 
-            var result = PretrainedInitializer.Apply(model, bundle, widths);
             options.Log?.Invoke(
-                $"pretrained: arch={archName} loaded={result.Loaded} sliced={result.Sliced} missing={result.Missing} unexpected={result.Unexpected} preprocessing={options.Preprocessing.ToWireValue()}");
+                $"pretrained: arch={archName} bundle={bundle.Arch} loaded={result.Loaded} " +
+                $"sliced={result.Sliced} missing={result.Missing} unexpected={result.Unexpected}");
+            return (model, Path.GetFileName(Path.TrimEndingDirectorySeparator(directory)), bundle.Arch, result.Loaded);
         }
         catch (Exception ex)
         {
-            // Weights are an optimisation: a broken bundle must not block training.
+            // A state-dict copy can fail after modifying an earlier parameter. Discard that model
+            // so fallback really trains from a fresh random initialization.
+            model.Dispose();
             options.Log?.Invoke($"pretrained: 加载失败，回退随机初始化：{ex.Message}");
+            return (TorchSharpClassifierFactory.Create(archName, channels, classCount, imageSize), null, null, 0);
         }
     }
+
     private static void WriteSidecar(
         string metadataPath,
-        Options options,
-        string archName,
-        ClassificationFolderDataset dataset,
-        int imageSize,
-        int channels,
+        ClassificationTrainingRun run,
         float bestValAcc,
         float finalTrainLoss,
         Evaluation? bestEvaluation,
         int completedEpochs)
     {
-        var payload = new Dictionary<string, object?>
-        {
-            ["schema_version"] = 2,
-            ["artifact_kind"] = "trained_model",
-            ["model_type"] = options.ModelType,
-            ["classes"] = dataset.Classes.ToList(),
-            ["num_classes"] = dataset.Classes.Count,
-            ["max_detections"] = 1,
-            ["dataset_fingerprint"] = dataset.Fingerprint,
-            ["epochs"] = completedEpochs,
-            ["configured_epochs"] = options.Epochs,
-            ["batch_size"] = options.BatchSize,
-            ["lr"] = options.LearningRate,
-            ["optimizer"] = options.Optimizer,
-            ["input_size"] = imageSize,
-            ["input_width"] = options.InputWidth > 0 ? options.InputWidth : imageSize,
-            ["input_height"] = options.InputHeight > 0 ? options.InputHeight : imageSize,
-            ["input_channels"] = channels,
-            ["best_map"] = bestValAcc,
-            ["best_map50"] = bestValAcc,
-            ["weights_format"] = WeightsFormat,
-            ["preprocessing"] = options.Preprocessing.ToWireValue(),
-            ["arch"] = archName,
-            ["torchsharp"] = new Dictionary<string, object?>
+        var payload = run.CreateCheckpointMetadata();
+        payload["epochs"] = completedEpochs;
+        payload["best_map"] = bestValAcc;
+        payload["best_map50"] = bestValAcc;
+        // Per-class metrics of the checkpoint epoch. Older readers ignore this block.
+        payload["metrics"] = bestEvaluation is null
+            ? null
+            : new Dictionary<string, object?>
             {
-                ["arch"] = archName,
-                ["image_size"] = imageSize,
-                ["num_classes"] = dataset.Classes.Count,
-                ["input_channels"] = channels
-            },
-            // Per-class metrics of the best epoch. Readers that only know schema 2 ignore this block.
-            ["metrics"] = bestEvaluation is null
-                ? null
-                : new Dictionary<string, object?>
-                {
-                    ["confusion"] = bestEvaluation.ConfusionMatrix(),
-                    ["per_class"] = bestEvaluation.PerClass(dataset.Classes)
-                        .Select(metric => new Dictionary<string, object?>
-                        {
-                            ["class"] = metric.ClassName,
-                            ["precision"] = metric.Precision,
-                            ["recall"] = metric.Recall,
-                            ["f1"] = metric.F1,
-                            ["support"] = metric.Support,
-                            ["false_positive"] = metric.FalsePositive,
-                            ["false_negative"] = metric.FalseNegative
-                        })
-                        .ToArray()
-                },
-            ["training_date"] = DateTime.UtcNow.ToString("O"),
-            ["notes"] =
-                $"TorchSharp {archName} val_acc={bestValAcc:F6}, train_loss={finalTrainLoss:F6}"
-        };
+                ["confusion"] = bestEvaluation.ConfusionMatrix(),
+                ["per_class"] = bestEvaluation.PerClass(run.Classes)
+                    .Select(metric => new Dictionary<string, object?>
+                    {
+                        ["class"] = metric.ClassName,
+                        ["precision"] = metric.Precision,
+                        ["recall"] = metric.Recall,
+                        ["f1"] = metric.F1,
+                        ["support"] = metric.Support,
+                        ["false_positive"] = metric.FalsePositive,
+                        ["false_negative"] = metric.FalseNegative
+                    })
+                    .ToArray()
+            };
+        payload["training_date"] = DateTime.UtcNow.ToString("O");
+        payload["notes"] = $"TorchSharp {run.Arch} val_acc={bestValAcc:F6}, train_loss={finalTrainLoss:F6}";
 
         var json = JsonSerializer.Serialize(
             payload,

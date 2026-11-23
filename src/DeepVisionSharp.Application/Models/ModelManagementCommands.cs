@@ -312,7 +312,8 @@ public sealed class SaveTrainedModelCommandHandler : ICommandHandler<SaveTrained
                 job.DataRoot,
                 job.OutputRoot,
                 sourceCheckpointPath,
-                CandidateClasses: null),
+                CandidateClasses: null,
+                TrainingJobId: request.JobId),
             cancellationToken);
 
         var project = await _projects.GetByIdAsync(request.ProjectId, cancellationToken);
@@ -327,7 +328,11 @@ public sealed class SaveTrainedModelCommandHandler : ICommandHandler<SaveTrained
         }
         else
         {
-            // Last resort for interrupted runs: project label list / fixed OK·NG for variation.
+            if (ModelTypeNames.IsClassificationModelType(modelType))
+            {
+                return Result<Guid>.Failure(classesResult.Error ?? "缺少可用的分类训练元数据，无法确定模型类别顺序。");
+            }
+
             classes = ResolveFallbackClasses(project);
             if (classes.Count == 0)
             {

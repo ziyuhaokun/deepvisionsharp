@@ -51,7 +51,8 @@ internal sealed class TrainedModelArtifactService : ITrainedModelArtifactService
             DataRoot: request.DataRoot,
             SourceCheckpointPath: request.CheckpointPath,
             CandidateClasses: request.CandidateClasses ?? Array.Empty<string>(),
-            Form: null);
+            Form: null,
+            TrainingJobId: request.TrainingJobId);
 
         var handler = _registry.Resolve(context);
         return handler.IsFailure || handler.Value is null

@@ -49,7 +49,7 @@ internal sealed class ModelMetadataService
         }
     }
 
-    public async Task WriteMetadataAsync(string checkpointPath, ModelMetadata metadata, CancellationToken cancellationToken = default)
+    public async Task WriteMetadataAsync<TMetadata>(string checkpointPath, TMetadata metadata, CancellationToken cancellationToken = default)
     {
         SqlProjectExecutionGuard.EnsurePathWritable(_sqliteDb.Instance, _fileStore, checkpointPath);
         var infoPath = checkpointPath + ".info";

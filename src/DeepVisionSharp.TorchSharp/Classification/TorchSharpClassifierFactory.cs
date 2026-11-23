@@ -21,7 +21,7 @@ public static class TorchSharpClassifierFactory
     /// <summary>
     /// Single source of truth for classification input normalisation. torchvision ResNet weights
     /// expect ImageNet mean/std; Ultralytics YOLO26-cls weights and random init expect [0, 1].
-    /// Training and cancelled-artifact sidecar synthesis must both call this.
+    /// Resolve it after the model has applied the weights.
     /// </summary>
     public static PreprocessingVersion ResolvePreprocessing(string archName, bool hasPretrainedWeights) =>
         hasPretrainedWeights && !archName.StartsWith("yolo26", StringComparison.OrdinalIgnoreCase)

@@ -33,7 +33,8 @@ public sealed record ModelArtifactClassRecoveryRequest(
     string? DataRoot,
     string? OutputRoot,
     string? CheckpointPath,
-    IReadOnlyList<string>? CandidateClasses);
+    IReadOnlyList<string>? CandidateClasses,
+    Guid? TrainingJobId = null);
 
 public sealed record ModelArtifactSaveRequest(
     Guid ProjectId,

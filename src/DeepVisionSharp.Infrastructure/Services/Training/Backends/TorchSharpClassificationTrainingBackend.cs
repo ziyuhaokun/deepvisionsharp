@@ -252,16 +252,8 @@ internal sealed class TorchSharpClassificationTrainingBackend : ITrainingBackend
             var inputHeight = Math.Max(32, request.Form.NetworkInputHeight);
             const string deviceName = "AUTO";
 
-            // Pretrained weights also decide the preprocessing: torchvision ResNet weights use
-            // ImageNet normalisation, while Ultralytics YOLO26-cls checkpoints expect [0, 1] scaling.
             var archName = TorchSharpClassifierFactory.ResolveArch(modelType);
             var pretrainedDirectory = PretrainedWeightsLocator.Resolve(archName);
-            var preprocessing = TorchSharpClassifierFactory.ResolvePreprocessing(
-                archName,
-                hasPretrainedWeights: pretrainedDirectory is not null);
-            Log(pretrainedDirectory is null
-                ? $"预训练权重：未找到 {archName} 的权重，使用随机初始化（preprocessing={preprocessing.ToWireValue()}）"
-                : $"预训练权重：{archName} ← {pretrainedDirectory}（preprocessing={preprocessing.ToWireValue()}）");
 
             TorchSharpClsTrainer.Result trainResult;
             heartbeat.SetStage(TrainingRunMarkerStore.StageTraining);
@@ -284,7 +276,6 @@ internal sealed class TorchSharpClassificationTrainingBackend : ITrainingBackend
                             InputChannels: 3,
                             DeviceName: deviceName,
                             ClassificationAugmentation: request.Form.ClassificationAugmentation,
-                            Preprocessing: preprocessing,
                             PretrainedDirectory: pretrainedDirectory,
                             EarlyStoppingPatience: Math.Max(0, request.Form.EarlyStoppingPatience),
                             Log: Log,
@@ -297,7 +288,9 @@ internal sealed class TorchSharpClassificationTrainingBackend : ITrainingBackend
                                 Log(
                                     $"DV_PROGRESS {{\"stage\":\"training\",\"current\":{current},\"total\":{total},\"percent\":{percent},\"message\":{System.Text.Json.JsonSerializer.Serialize(message)}}}");
                             },
-                            PreviewGenerated: path => _processHost.PublishPreviewUpdated(job.Id, path)),
+                            PreviewGenerated: path => _processHost.PublishPreviewUpdated(job.Id, path),
+                            UseAutomaticPreprocessing: true,
+                            TrainingJobId: job.Id),
                         runToken),
                     runToken).ConfigureAwait(false);
             }
