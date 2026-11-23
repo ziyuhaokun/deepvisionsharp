@@ -645,7 +645,7 @@ public sealed partial class TrainingConfigViewModel : ObservableObject,
 
     private void ResetFormToDefaults()
     {
-        ModelName = TrainingJobsViewModel.CreateDefaultJobName();
+        ModelName = TrainingJobNaming.Build(ModelTypeNames.Default, DateTime.Now, []);
         SelectedModelType = ModelTypeNames.Default;
         Epochs = 50;
         BatchSize = 8;

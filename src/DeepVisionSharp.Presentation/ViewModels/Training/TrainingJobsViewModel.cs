@@ -359,13 +359,13 @@ public sealed partial class TrainingJobsViewModel : ObservableObject, IDisposabl
 
         try
         {
-            var name = BuildUniqueJobName();
             var defaultModelType = string.Equals(
                 CurrentProjectType,
                 ProjectTypes.Detection,
                 StringComparison.OrdinalIgnoreCase)
                 ? ModelTypeNames.DefaultDetection
                 : ModelTypeNames.Default;
+            var name = TrainingJobNaming.Build(defaultModelType, DateTime.Now, Jobs.Select(job => job.Name));
             var result = await _mediator.Send(new CreateTrainingJobCommand(
                 name,
                 defaultModelType,
@@ -742,33 +742,6 @@ public sealed partial class TrainingJobsViewModel : ObservableObject, IDisposabl
                 : "训练任务已删除。";
         _snackbar.ShowSuccess(message, "训练");
         JobDeleted?.Invoke(jobId);
-    }
-
-    public static string CreateDefaultJobName()
-        => DateTime.Now.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss");
-
-    private string BuildUniqueJobName()
-    {
-        var defaultBase = CreateDefaultJobName();
-        var existingNames = new HashSet<string>(
-            Jobs.Select(job => job.Name),
-            StringComparer.OrdinalIgnoreCase);
-
-        if (!existingNames.Contains(defaultBase))
-        {
-            return defaultBase;
-        }
-
-        for (var index = 2; index < 10_000; index++)
-        {
-            var candidate = $"{defaultBase} ({index})";
-            if (!existingNames.Contains(candidate))
-            {
-                return candidate;
-            }
-        }
-
-        return CreateDefaultJobName();
     }
 
     private void RefreshJobMetrics()

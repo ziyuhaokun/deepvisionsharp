@@ -176,23 +176,13 @@ internal sealed class TrainingJobLifecycleService : ITrainingJobLifecycleService
         }
 
         var projectId = targetProjectId ?? source.ProjectId;
-        var baseName = source.Name.Trim();
-        var candidateName = baseName;
-        var peers = projectId is Guid pid
-            ? await _repository.GetByProjectIdAsync(pid, cancellationToken).ConfigureAwait(false)
-            : await _repository.GetAllAsync(cancellationToken).ConfigureAwait(false);
-
-        if (peers.Any(job => job.Name.Equals(candidateName, StringComparison.OrdinalIgnoreCase)))
-        {
-            for (var index = 2; index < 10_000; index++)
-            {
-                candidateName = $"{baseName} ({index})";
-                if (!peers.Any(job => job.Name.Equals(candidateName, StringComparison.OrdinalIgnoreCase)))
-                {
-                    break;
-                }
-            }
-        }
+        // 创建时的重名校验是对全部任务做的，这里也按全部任务取名；名字用「模型 · 时间」重新生成，
+        // 不沿用来源任务的名字，复制多少次都不会叠出 (2) (2)。
+        var allJobs = await _repository.GetAllAsync(cancellationToken).ConfigureAwait(false);
+        var candidateName = TrainingJobNaming.Build(
+            source.ModelType,
+            DateTime.Now,
+            allJobs.Select(job => job.Name));
 
         var draft = TrainingJob.CreateDraft(candidateName, projectId);
         var copyResult = draft.CopySettingsFrom(source);
