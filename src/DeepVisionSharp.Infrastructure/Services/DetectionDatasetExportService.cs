@@ -170,7 +170,10 @@ internal sealed class DetectionDatasetExportService : IDetectionDatasetExportSer
                 cancellationToken.ThrowIfCancellationRequested();
                 var sample = assignment.Sample;
                 var extension = Path.GetExtension(sample.FileName);
-                var stem = $"{sample.GalleryId:N}_{Path.GetFileNameWithoutExtension(sample.FileName)}";
+                // YOLO pairs image and label by stem. Hash the full sample identity, including
+                // the extension, to get a stable stem within the filesystem name limit.
+                var identity = $"{sample.GalleryId:N}/{sample.FileName}";
+                var stem = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(identity)));
                 var targetImage = Path.Combine(outputRoot, assignment.Split, "images", stem + extension);
                 var targetLabel = Path.Combine(outputRoot, assignment.Split, "labels", stem + ".txt");
                 FastFileLinker.TryLinkOrCopy(sample.SourcePath, targetImage, overwrite: true);
