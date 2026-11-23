@@ -223,12 +223,8 @@ internal sealed class TorchSharpDetectionTrainingBackend : ITrainingBackend, IDi
             var inputHeight = Math.Max(32, request.Form.NetworkInputHeight);
             var detectionOptions = request.Form.ToDetectionOptions() ?? DetectionTrainingOptions.Default;
 
-            // Pretrained weights are optional: a missing bundle means the run starts from scratch.
             var detectionArch = Yolo26DetectFactory.ResolveArch(modelType);
             var pretrainedDirectory = PretrainedWeightsLocator.Resolve(detectionArch);
-            Log(pretrainedDirectory is null
-                ? $"预训练权重：未找到 {detectionArch} 的权重，使用随机初始化"
-                : $"预训练权重：{detectionArch} ← {pretrainedDirectory}");
 
             TorchSharpDetTrainer.Result trainResult;
             heartbeat.SetStage(TrainingRunMarkerStore.StageTraining);
@@ -266,7 +262,8 @@ internal sealed class TorchSharpDetectionTrainingBackend : ITrainingBackend, IDi
                                 Log(
                                     $"DV_PROGRESS {{\"stage\":\"training\",\"current\":{current},\"total\":{total},\"percent\":{percent},\"message\":{System.Text.Json.JsonSerializer.Serialize(message)}}}");
                             },
-                            PreviewGenerated: path => _processHost.PublishPreviewUpdated(job.Id, path)),
+                            PreviewGenerated: path => _processHost.PublishPreviewUpdated(job.Id, path),
+                            TrainingJobId: job.Id),
                         runToken),
                     runToken).ConfigureAwait(false);
             }

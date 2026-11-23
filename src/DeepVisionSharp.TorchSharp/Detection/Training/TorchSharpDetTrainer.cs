@@ -56,7 +56,8 @@ public static class TorchSharpDetTrainer
         int MaxDetections = 100,
         Action<string>? Log = null,
         Action<int, int, string>? Progress = null,
-        Action<string>? PreviewGenerated = null);
+        Action<string>? PreviewGenerated = null,
+        Guid? TrainingJobId = null);
 
     public sealed record Result(
         string BestModelPath,
@@ -88,6 +89,10 @@ public static class TorchSharpDetTrainer
         var bestMetadataPath = bestPath + ".info";
         var lastPath = Path.Combine(options.OutputRoot, LastFileName);
         var lastMetadataPath = lastPath + ".info";
+        if (options.TrainingJobId is not null && (File.Exists(bestPath) || File.Exists(lastPath)))
+        {
+            throw new IOException("检测训练输出目录已有 checkpoint，请为新任务使用独立目录。");
+        }
 
         options.Log?.Invoke(
             $"--- TorchSharp DET training: arch={archName}, classes={dataset.Classes.Count}, " +
@@ -96,8 +101,17 @@ public static class TorchSharpDetTrainer
             $"optimizer={options.Optimizer}, epochs={options.Epochs} ---");
 
         var watch = Stopwatch.StartNew();
-        using var model = Yolo26DetectFactory.Create(archName, channels, dataset.Classes.Count);
-        var pretrainedName = ApplyPretrainedWeights(model, options, archName);
+        var initialization = InitializeModel(options, archName, channels, dataset.Classes.Count);
+        using var model = initialization.Model;
+        cancellationToken.ThrowIfCancellationRequested();
+        const int baseStride = Yolo26DetectModel.BaseStride;
+        var run = new DetectionTrainingRun(
+            options.TrainingJobId, options.ModelType, archName, dataset.Classes.ToArray(), inputWidth, inputHeight,
+            channels, dataset.Fingerprint, PreprocessingVersions.LetterboxWire, [baseStride, baseStride * 2, baseStride * 4],
+            model.UseSppfShortcut, options.NmsIou, options.MaxDetections, options.EvaluationConfidence, EvaluationScoreFloor,
+            initialization.BundleName, initialization.BundleArch, initialization.LoadedTensors, options.Epochs,
+            options.BatchSize, options.LearningRate, options.Optimizer);
+        run.Write(options.OutputRoot);
         model.to(device);
 
         var iterationsPerEpoch =
@@ -192,18 +206,14 @@ public static class TorchSharpDetTrainer
                 bestMap5095 = evaluation.Map5095;
                 bestEvaluation = evaluation;
                 AtomicFileWriter.Write(bestPath, temporary => model.save(temporary));
-                WriteSidecar(bestMetadataPath, options, archName, dataset, inputWidth, inputHeight,
-                    channels, bestMap50, bestMap5095, finalTrainLoss, evaluation, completedEpochs,
-                    pretrainedName);
+                WriteSidecar(bestMetadataPath, run, bestMap50, bestMap5095, finalTrainLoss, evaluation, completedEpochs);
                 options.Log?.Invoke(
                     $"TorchSharp DET best epoch {epoch}: mAP50={bestMap50:F4}, " +
                     $"mAP50-95={bestMap5095:F4}, fitness={bestEpochTracker.BestFitness:F4}");
             }
 
             AtomicFileWriter.Write(lastPath, temporary => model.save(temporary));
-            WriteSidecar(lastMetadataPath, options, archName, dataset, inputWidth, inputHeight,
-                channels, evaluation.Map50, evaluation.Map5095, finalTrainLoss, evaluation, completedEpochs,
-                pretrainedName);
+            WriteSidecar(lastMetadataPath, run, evaluation.Map50, evaluation.Map5095, finalTrainLoss, evaluation, completedEpochs);
 
             options.Log?.Invoke(
                 "DV_METRICS " + JsonSerializer.Serialize(new Dictionary<string, object?>
@@ -256,9 +266,7 @@ public static class TorchSharpDetTrainer
             bestMap50 = Math.Max(0d, bestMap50);
             bestMap5095 = Math.Max(0d, bestMap5095);
             AtomicFileWriter.Write(bestPath, temporary => model.save(temporary));
-            WriteSidecar(bestMetadataPath, options, archName, dataset, inputWidth, inputHeight,
-                channels, bestMap50, bestMap5095, finalTrainLoss, bestEvaluation, completedEpochs,
-                pretrainedName);
+            WriteSidecar(bestMetadataPath, run, bestMap50, bestMap5095, finalTrainLoss, bestEvaluation, completedEpochs);
         }
 
         options.Log?.Invoke(
@@ -275,39 +283,42 @@ public static class TorchSharpDetTrainer
             watch.Elapsed.TotalMilliseconds);
     }
 
-    /// <summary>
-    /// Copies an Ultralytics YOLO26 bundle into the freshly built model.
-    /// </summary>
-    /// <returns>The bundle directory name for the sidecar, or null when the run starts from scratch.</returns>
-    /// <remarks>
-    /// Weights are an optimisation, not a requirement: a bundle that cannot be read or applied must
-    /// not abort a job, so every failure is logged and training continues from random init.
-    /// </remarks>
-    private static string? ApplyPretrainedWeights(
-        Yolo26DetectModel model,
-        Options options,
-        string archName)
+    private static (Yolo26DetectModel Model, string? BundleName, string? BundleArch, int LoadedTensors) InitializeModel(
+        Options options, string archName, int channels, int classCount)
     {
+        var model = Yolo26DetectFactory.Create(archName, channels, classCount);
         var directory = options.PretrainedDirectory;
         if (string.IsNullOrWhiteSpace(directory) || !Directory.Exists(directory))
         {
             options.Log?.Invoke($"pretrained: 未找到预训练权重（{archName}），使用随机初始化");
-            return null;
+            return (model, null, null, 0);
         }
 
         try
         {
             using var bundle = PretrainedWeightsBundle.Load(directory);
+            if (string.IsNullOrWhiteSpace(bundle.Arch))
+            {
+                throw new InvalidDataException("权重包缺少架构标识");
+            }
+
             var result = Yolo26PretrainedInitializer.ApplyToDetection(model, bundle);
+            if (result.Loaded == 0)
+            {
+                throw new InvalidDataException("权重包没有匹配的张量");
+            }
+
             options.Log?.Invoke(
-                $"pretrained: arch={archName} dir={Path.GetFileName(directory)} " +
-                $"loaded={result.Loaded} missing={result.Missing} unexpected={result.Unexpected}");
-            return Path.GetFileName(directory);
+                $"pretrained: arch={archName} bundle={bundle.Arch} loaded={result.Loaded} " +
+                $"missing={result.Missing} unexpected={result.Unexpected}");
+            return (model, Path.GetFileName(Path.TrimEndingDirectorySeparator(directory)), bundle.Arch, result.Loaded);
         }
         catch (Exception ex)
         {
+            // Applying a bundle can fail after an earlier tensor has already been copied.
+            model.Dispose();
             options.Log?.Invoke($"pretrained: 加载失败，回退随机初始化：{ex.Message}");
-            return null;
+            return (Yolo26DetectFactory.Create(archName, channels, classCount), null, null, 0);
         }
     }
 
@@ -608,86 +619,41 @@ public static class TorchSharpDetTrainer
 
     private static void WriteSidecar(
         string metadataPath,
-        Options options,
-        string archName,
-        DetectionDataset dataset,
-        int inputWidth,
-        int inputHeight,
-        int channels,
+        DetectionTrainingRun run,
         double bestMap50,
         double bestMap5095,
         float finalTrainLoss,
         DetectionEvaluation? evaluation,
-        int completedEpochs,
-        string? pretrainedName)
+        int completedEpochs)
     {
-        var payload = new Dictionary<string, object?>
-        {
-            ["schema_version"] = 2,
-            ["artifact_kind"] = "trained_model",
-            ["task"] = "detect",
-            ["sppf_shortcut"] = true,
-            ["model_type"] = options.ModelType,
-            ["arch"] = archName,
-            ["classes"] = dataset.Classes.ToList(),
-            ["num_classes"] = dataset.Classes.Count,
-            ["max_detections"] = options.MaxDetections,
-            ["nms_iou"] = options.NmsIou,
-            ["evaluation_confidence"] = options.EvaluationConfidence,
-            ["evaluation_score_floor"] = EvaluationScoreFloor,
-            ["strides"] = new[] { Yolo26DetectModel.BaseStride, Yolo26DetectModel.BaseStride * 2, Yolo26DetectModel.BaseStride * 4 },
-            ["dataset_fingerprint"] = dataset.Fingerprint,
-            ["epochs"] = completedEpochs,
-            ["configured_epochs"] = options.Epochs,
-            ["batch_size"] = options.BatchSize,
-            ["lr"] = options.LearningRate,
-            ["optimizer"] = options.Optimizer,
-            ["input_size"] = Math.Max(inputWidth, inputHeight),
-            ["input_width"] = inputWidth,
-            ["input_height"] = inputHeight,
-            ["input_channels"] = channels,
-            ["preprocessing"] = PreprocessingVersion.LetterboxV1.ToWireValue(),
-            ["weights_format"] = WeightsFormat,
-            ["box_map_50"] = bestMap50,
-            ["box_map_50_95"] = bestMap5095,
-            ["best_map"] = bestMap50,
-            ["best_map50"] = bestMap50,
-            // The checkpoint is chosen by this value; readers that rank runs should use it too.
-            ["fitness"] = TrainingOptimization.DetectionFitness(bestMap50, bestMap5095),
-            // Omitted (rendered as null) when the run started from random weights.
-            ["pretrained"] = pretrainedName,
-            ["torchsharp"] = new Dictionary<string, object?>
+        var payload = run.CreateCheckpointMetadata();
+        payload["epochs"] = completedEpochs;
+        payload["box_map_50"] = bestMap50;
+        payload["box_map_50_95"] = bestMap5095;
+        payload["best_map"] = bestMap50;
+        payload["best_map50"] = bestMap50;
+        payload["fitness"] = TrainingOptimization.DetectionFitness(bestMap50, bestMap5095);
+        payload["metrics"] = evaluation is null
+            ? null
+            : new Dictionary<string, object?>
             {
-                ["arch"] = archName,
-                ["input_width"] = inputWidth,
-                ["input_height"] = inputHeight,
-                ["num_classes"] = dataset.Classes.Count,
-                ["input_channels"] = channels,
-                ["stride"] = Yolo26DetectModel.BaseStride
-            },
-            ["metrics"] = evaluation is null
-                ? null
-                : new Dictionary<string, object?>
-                {
-                    ["per_class"] = evaluation.PerClass
-                        .Select(metric => new Dictionary<string, object?>
-                        {
-                            ["class"] = metric.ClassName,
-                            ["ground_truths"] = metric.GroundTruths,
-                            ["predictions"] = metric.Predictions,
-                            ["precision"] = metric.Precision,
-                            ["recall"] = metric.Recall,
-                            ["f1"] = metric.F1,
-                            ["ap50"] = metric.Ap50,
-                            ["ap50_95"] = metric.Ap5095
-                        })
-                        .ToArray()
-                },
-            ["training_date"] = DateTime.UtcNow.ToString("O"),
-            ["notes"] =
-                $"TorchSharp {archName} mAP50={bestMap50:F6}, mAP50-95={bestMap5095:F6}, " +
-                $"train_loss={finalTrainLoss:F6}"
-        };
+                ["per_class"] = evaluation.PerClass
+                    .Select(metric => new Dictionary<string, object?>
+                    {
+                        ["class"] = metric.ClassName,
+                        ["ground_truths"] = metric.GroundTruths,
+                        ["predictions"] = metric.Predictions,
+                        ["precision"] = metric.Precision,
+                        ["recall"] = metric.Recall,
+                        ["f1"] = metric.F1,
+                        ["ap50"] = metric.Ap50,
+                        ["ap50_95"] = metric.Ap5095
+                    })
+                    .ToArray()
+            };
+        payload["training_date"] = DateTime.UtcNow.ToString("O");
+        payload["notes"] = $"TorchSharp {run.Arch} mAP50={bestMap50:F6}, mAP50-95={bestMap5095:F6}, " +
+            $"train_loss={finalTrainLoss:F6}";
 
         var json = JsonSerializer.Serialize(
             payload,

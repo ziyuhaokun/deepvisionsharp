@@ -328,18 +328,7 @@ public sealed class SaveTrainedModelCommandHandler : ICommandHandler<SaveTrained
         }
         else
         {
-            if (ModelTypeNames.IsClassificationModelType(modelType))
-            {
-                return Result<Guid>.Failure(classesResult.Error ?? "缺少可用的分类训练元数据，无法确定模型类别顺序。");
-            }
-
-            classes = ResolveFallbackClasses(project);
-            if (classes.Count == 0)
-            {
-                return Result<Guid>.Failure(
-                    classesResult.Error
-                    ?? "无法解析模型类别信息。训练中断时需保留输出目录中的数据集，或确保项目已配置类别。");
-            }
+            return Result<Guid>.Failure(classesResult.Error ?? "缺少可用的训练元数据，无法确定模型类别顺序。");
         }
 
         var formResult = MapTrainingForm(job, modelName);
@@ -394,7 +383,7 @@ public sealed class SaveTrainedModelCommandHandler : ICommandHandler<SaveTrained
                 Status: TrainedModelStatus.Ready,
                 Note: "训练更新",
                 MaxDetections: ModelTypeNames.IsDetectionModelType(modelType)
-                    ? job.Configuration?.DetectionOptions?.MaxDetections ?? 100
+                    ? artifact.MaxDetections ?? job.Configuration?.DetectionOptions?.MaxDetections ?? 100
                     : null),
                 cancellationToken);
 
@@ -415,7 +404,7 @@ public sealed class SaveTrainedModelCommandHandler : ICommandHandler<SaveTrained
             Note: "训练保存",
             Status: TrainedModelStatus.Ready,
             MaxDetections: ModelTypeNames.IsDetectionModelType(modelType)
-                ? job.Configuration?.DetectionOptions?.MaxDetections ?? 100
+                ? artifact.MaxDetections ?? job.Configuration?.DetectionOptions?.MaxDetections ?? 100
                 : 500), cancellationToken);
 
         if (createResult.IsFailure || createResult.Value == Guid.Empty)
@@ -424,24 +413,6 @@ public sealed class SaveTrainedModelCommandHandler : ICommandHandler<SaveTrained
         }
 
         return Result<Guid>.Success(createResult.Value);
-    }
-
-    /// <summary>
-    /// When sidecar and on-disk dataset class maps are missing (interrupted training),
-    /// fall back to project labels.
-    /// </summary>
-    private static IReadOnlyList<string> ResolveFallbackClasses(Project? project)
-    {
-        if (project?.Labels is { Count: > 0 })
-        {
-            return project.Labels
-                .Where(label => !string.IsNullOrWhiteSpace(label))
-                .Select(label => label.Trim())
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToArray();
-        }
-
-        return Array.Empty<string>();
     }
 
     private static Result<TrainingJobForm> MapTrainingForm(TrainingJob job, string modelName)

@@ -50,4 +50,7 @@ public sealed record ModelArtifactSaveRequest(
     TrainingCheckpointSelection CheckpointSelection = TrainingCheckpointSelection.Best,
     Guid? TrainingJobId = null);
 
-public sealed record SavedTrainedModelArtifact(string CheckpointPath, string? MetadataPath);
+public sealed record SavedTrainedModelArtifact(string CheckpointPath, string? MetadataPath)
+{
+    public int? MaxDetections { get; init; }
+}
