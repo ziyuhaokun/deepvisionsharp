@@ -30,6 +30,12 @@ public static class TorchSharpDetTrainer
     public const string LastFileName = "last.torchsharp";
     public const string WeightsFormat = "torchsharp";
 
+    /// <summary>
+    /// Validation decodes far below the operational confidence: COCO-style AP needs low-score true
+    /// positives in the recall curve. NMS and MaxDetections still bound the candidate list.
+    /// </summary>
+    private const float EvaluationScoreFloor = 0.001f;
+
     public sealed record Options(
         string DatasetRoot,
         string OutputRoot,
@@ -107,6 +113,8 @@ public static class TorchSharpDetTrainer
             $"warmup_iterations={warmupIterations}, weight_decay={TrainingOptimization.WeightDecay}, " +
             $"groups(decay/norm/bias)={parameterGroups.DecayWeights.Count}/" +
             $"{parameterGroups.NormWeights.Count}/{parameterGroups.Biases.Count}");
+        options.Log?.Invoke(
+            $"mAP 评估解码分数下限={EvaluationScoreFloor}，预览仍用 {options.EvaluationConfidence}");
 
         var earlyStopping = new EarlyStoppingTracker(options.EarlyStoppingPatience);
         // Epochs the warmup owns are not evidence of a plateau, so they cannot trigger early stop.
@@ -372,21 +380,56 @@ public static class TorchSharpDetTrainer
         // Validation reads no gradients: without this every epoch keeps the whole graph alive.
         using var noGrad = torch.no_grad();
         var images = new List<DetectionImage>(dataset.Val.Count);
-        foreach (var sample in dataset.Val)
+        var samples = new List<DetectionSample>(dataset.Val.Count);
+        var truth = new List<IReadOnlyList<GroundTruthBox>>(dataset.Val.Count);
+        var letterboxes = new List<DetectionLetterbox>(dataset.Val.Count);
+        var inputs = new List<Tensor>(dataset.Val.Count);
+        try
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            using var source = TorchSharpImageTensor.LoadMat(sample.ImagePath, channels);
-            var letterbox = DetectionLetterbox.For(source.Width, source.Height, width, height);
-            using var canvas = letterbox.Apply(source);
-            using var tensor = DetectionLetterbox.ToTensor(canvas, device, PreprocessingVersion.LetterboxV1);
-            var predictions = model.forward(tensor);
-            ScoredDetection[] decoded;
+            foreach (var sample in dataset.Val)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                using var source = TorchSharpImageTensor.LoadMat(sample.ImagePath, channels);
+                var letterbox = DetectionLetterbox.For(source.Width, source.Height, width, height);
+                using var canvas = letterbox.Apply(source);
+                inputs.Add(DetectionLetterbox.ToTensor(canvas, device, PreprocessingVersion.LetterboxV1));
+                samples.Add(sample);
+                letterboxes.Add(letterbox);
+                truth.Add(ReadGroundTruth(sample, dataset.Classes.Count, source.Width, source.Height));
+            }
+
+            if (inputs.Count == 0)
+            {
+                return DetectionMetrics.Evaluate(images, dataset.Classes);
+            }
+
+            // One forward for the whole validation set; decoding stays per image because each
+            // letterbox maps boxes back with its own scale.
+            using var batch = torch.cat(inputs, dim: 0);
+            var predictions = model.forward(batch);
             try
             {
-                decoded = DetectionTensorDecoder
-                    .DecodeAll(predictions, Yolo26DetectModel.BaseStride,
-                        options.EvaluationConfidence, options.NmsIou, options.MaxDetections)
-                    .ToArray();
+                for (var index = 0; index < samples.Count; index++)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    using var scope = NewDisposeScope();
+                    var perImage = predictions
+                        .Select(prediction => prediction[index].unsqueeze(0))
+                        .ToArray();
+                    var decoded = DetectionTensorDecoder.DecodeAll(
+                            perImage,
+                            Yolo26DetectModel.BaseStride,
+                            EvaluationScoreFloor,
+                            options.NmsIou,
+                            options.MaxDetections)
+                        .ToArray();
+                    var mapped = decoded
+                        .Select(letterboxes[index].ToSource)
+                        .Where(box => box is not null)
+                        .Select(box => box!.Value)
+                        .ToArray();
+                    images.Add(new DetectionImage(truth[index], mapped));
+                }
             }
             finally
             {
@@ -395,15 +438,13 @@ public static class TorchSharpDetTrainer
                     prediction.Dispose();
                 }
             }
-
-            var mapped = decoded
-                .Select(letterbox.ToSource)
-                .Where(box => box is not null)
-                .Select(box => box!.Value)
-                .ToArray();
-            images.Add(new DetectionImage(
-                ReadGroundTruth(sample, dataset.Classes.Count, source.Width, source.Height),
-                mapped));
+        }
+        finally
+        {
+            foreach (var input in inputs)
+            {
+                input.Dispose();
+            }
         }
 
         return DetectionMetrics.Evaluate(images, dataset.Classes);
@@ -591,6 +632,7 @@ public static class TorchSharpDetTrainer
             ["max_detections"] = options.MaxDetections,
             ["nms_iou"] = options.NmsIou,
             ["evaluation_confidence"] = options.EvaluationConfidence,
+            ["evaluation_score_floor"] = EvaluationScoreFloor,
             ["strides"] = new[] { Yolo26DetectModel.BaseStride, Yolo26DetectModel.BaseStride * 2, Yolo26DetectModel.BaseStride * 4 },
             ["dataset_fingerprint"] = dataset.Fingerprint,
             ["epochs"] = completedEpochs,

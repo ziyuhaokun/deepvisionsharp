@@ -203,10 +203,15 @@ public static class DetectionLoss
         // Keep each box's best anchors, then let a contested anchor go to the box it overlaps most.
         var candidatesPerBox = Math.Min(CandidatesPerBox, numAnchors);
         var (topkMetrics, topkIndices) = align.topk(candidatesPerBox, dim: 1);
-        var claimed = zeros([numBoxes, numAnchors], device: device).scatter_add_(
-            1,
-            topkIndices.masked_fill(topkMetrics.gt((float)AssignEps).logical_not(), 0),
-            ones([numBoxes, candidatesPerBox], device: device));
+        // Invalid top-k slots are redirected to anchor 0, so they must contribute zero.
+        // Otherwise a box whose best anchor really is 0 collects every invalid slot and loses
+        // its positive entirely (a tiny box near the origin hits exactly that case).
+        using var valid = topkMetrics.gt((float)AssignEps);
+        using var safeIndices = topkIndices.masked_fill(valid.logical_not(), 0);
+        using var contributions = ones([numBoxes, candidatesPerBox], device: device)
+            .mul(valid.to(ScalarType.Float32));
+        var claimed = zeros([numBoxes, numAnchors], device: device)
+            .scatter_add_(1, safeIndices, contributions);
         claimed.masked_fill_(claimed.gt(1f), 0f);
         claimed = claimed.mul(candidates);
 

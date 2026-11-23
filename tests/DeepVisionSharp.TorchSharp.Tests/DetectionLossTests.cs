@@ -96,6 +96,38 @@ public sealed class DetectionLossTests
     }
 
     [Fact]
+    public void Tiny_box_whose_nearest_anchor_is_zero_still_gets_a_positive()
+    {
+        (int Height, int Width)[] grids = [(12, 12)];
+        // The nearest cell centre is (0,0). Invalid top-k slots also point at anchor 0, so a
+        // regression here silently removes the only positive for this box.
+        var truth = new GroundTruthBox(0, X: 1f, Y: 1f, Width: 3f, Height: 3f);
+        using var fields = BuildExactFields(grids, baseStride: 8, numClasses: 1, truth);
+
+        var batch = new List<IReadOnlyList<GroundTruthBox>> { new[] { truth } };
+        using (var loss = DetectionLoss.Compute(fields.Predictions, batch, strides: 8))
+        {
+            loss.backward();
+        }
+
+        var gradient = fields.ClassFields[0].grad!;
+        var centres = new List<(int X, int Y)>();
+        for (var cellY = 0; cellY < grids[0].Height; cellY++)
+        {
+            for (var cellX = 0; cellX < grids[0].Width; cellX++)
+            {
+                if (gradient[0, 0, cellY, cellX].item<float>() < 0)
+                {
+                    centres.Add((cellX, cellY));
+                }
+            }
+        }
+
+        var centre = Assert.Single(centres);
+        Assert.Equal((0, 0), centre);
+    }
+
+    [Fact]
     public void Batch_without_ground_truth_has_no_box_loss_and_a_finite_class_loss()
     {
         using var boxField = full([1, 4, 8, 8], 1.0f);

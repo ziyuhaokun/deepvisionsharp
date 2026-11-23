@@ -13,6 +13,11 @@ tags: detection / classification / refactor / ui
 
 - 产品入口、设计系统和 SetupHost 统一到 Avalonia。发布仍使用 `DeepVisionSharp.exe` 和现有 `.vrp` 包格式，标签统计及推理报告改用 Avalonia 矢量绘制。
 
+- 检测训练修复：任务对齐分配中无效的 top-k 槽位不再把计数投给锚点 0（小目标靠近原点时原逻辑会清掉唯一正样本）；解码改为整块 CPU 拷贝，不再逐候选 `.item()` 触发 GPU 同步；验证改成一次 batch forward + 每样本独立 NMS/反 letterbox，并给解码和验证补上 `DisposeScope`。
+- mAP 评估与预览阈值解耦：验证解码用 `EvaluationScoreFloor = 0.001`（NMS / MaxDetections 仍限制候选数），预览和推理仍用 `evaluation_confidence`；检测 `.info` 新增 `evaluation_score_floor`，避免低分真阳性被提前丢弃导致 mAP 偏低、best checkpoint 选错。
+- 澄清取消链路：MediatR 11 的 `RequestHandlerDelegate` 没有 token 参数，`Mediator.Send` 直接把 token 闭包传给 handler，pipeline behavior 不会吞掉取消；补回归测试锁住该契约。
+- 已知不稳定：`GeneratedDetectionTrainingTests` 的模型初始化未固定随机种子，同样代码多次运行检出数在 0/40～25/40 间摆动（还原分配修复后同样会失败），`-Mode Slow` 可能间歇红；判断回归请看快测与多次趋势，不要凭单次慢测下结论。
+
 - UI 库改名：`yu-ui` → `DeepVisionSharp.UI`（WPF，`AssemblyName` / `RootNamespace` / 目录一致），`yu-ui.avalonia` → `DeepVisionSharp.UI.Avalonia`；XAML 命名空间 URI 改为 `http://schemas.deepvisionsharp.ui/xaml`（前缀由 `yu:` 改为 `dvsui:`，`Iv*` 资源键与 `IvIcons` / `IvTheme` 不变）；入口字典 `YuUi{Tokens,Styles,Theme}.xaml` → `DeepVisionSharpUI{Tokens,Styles,Theme}.xaml`，`YuUiStyleProbeWindow` → `DeepVisionSharpUIStyleProbeWindow`。下方及更早条目里的旧名为历史记录，不回改。新根命名空间会遮蔽 `Avalonia`，`NumericBox.cs` 内两处限定名改为 `global::Avalonia.*`。
 
 - 新增 WPF 设计系统 `src/yu-ui`（项目 `yu-ui`，`AssemblyName=yu-ui`，`RootNamespace=YuUI`，XAML 命名空间 `http://schemas.yu-ui/xaml`，前缀 `yu:`）：`Tokens/`（Palette Light/Dark 各 88 键、Metrics 21、Typography 23、Motion 4）、`Icons/IvIcons`（77 个 24 画布描边图标，path 与源逐字符一致）、`Styles/`（14 个文件，隐式样式 + `Iv*` 显式样式键）、`Controls/`（`Icon` / `NumericBox` / `FormRow` / `FormSection` / `Dialog` / `ThemedWindow` / `IvPlaceholder`）、`Themes/`（`Generic.xaml` 默认样式总线、`AppStyles.xaml` 8 个键型样式）。三级入口：`YuUiTokens.xaml`（仅令牌）/ `YuUiStyles.xaml`（含隐式样式）/ `YuUiTheme.xaml`（全量）。移植规则见 `src/yu-ui/PORTING-CONTRACT.md`。
