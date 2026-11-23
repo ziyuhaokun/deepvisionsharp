@@ -21,7 +21,9 @@ public sealed class ModelSlotCacheTests
             return new TestValue();
         }));
 
-        Assert.True(firstFactoryEntered.Wait(TimeSpan.FromSeconds(1)));
+        // A loaded CI runner can take well over a second to schedule the factory task; the wait only
+        // proves the factory started, so the bound is generous rather than tight.
+        Assert.True(firstFactoryEntered.Wait(TimeSpan.FromSeconds(15)));
         var warmupTask = Task.Run(() => cache.GetOrAdd("model", _ =>
         {
             Interlocked.Increment(ref created);
@@ -63,7 +65,7 @@ public sealed class ModelSlotCacheTests
             return value;
         }));
 
-        Assert.True(factoryEntered.Wait(TimeSpan.FromSeconds(1)));
+        Assert.True(factoryEntered.Wait(TimeSpan.FromSeconds(15)));
         cache.Clear();
         releaseFactory.Set();
 
@@ -133,7 +135,7 @@ public sealed class ModelSlotCacheTests
             return stale;
         }));
 
-        Assert.True(factoryEntered.Wait(TimeSpan.FromSeconds(1)));
+        Assert.True(factoryEntered.Wait(TimeSpan.FromSeconds(15)));
         cache.Clear();
         releaseFactory.Set();
 
