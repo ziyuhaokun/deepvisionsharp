@@ -54,7 +54,7 @@ internal sealed class SqliteDb
         Directory.CreateDirectory(dataDirectory);
 
         var dbPath = Path.Combine(dataDirectory, "deepvision.db");
-        var connectionString = $"Data Source={dbPath};Pooling=true;Max Pool Size=5";
+        var connectionString = $"Data Source={dbPath};Pooling=true;Max Pool Size=5;BusyTimeout=5000";
 
         var db = new FreeSqlBuilder()
             .UseConnectionString(DataType.Sqlite, connectionString)

@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using DeepVisionSharp.Application.Behaviors;
 using DeepVisionSharp.Application.Common;
 using DeepVisionSharp.Domain.Common;
+using DeepVisionSharp.Domain.ValueObjects;
 
 namespace DeepVisionSharp.Application.Tests.Behaviors;
 
@@ -58,6 +59,22 @@ public sealed class PipelineBehaviorTests
 
         Assert.True(result.IsFailure);
         Assert.Contains("文件操作失败", result.Error);
+    }
+
+    [Fact]
+    public async Task UnhandledExceptionBehavior_maps_ProjectBusyException_to_Failure()
+    {
+        var behavior = new UnhandledExceptionBehavior<DummyCommand, Result>(
+            NullLogger<UnhandledExceptionBehavior<DummyCommand, Result>>.Instance);
+
+        const string busyMessage = "项目正在训练中，无法删除。";
+        var result = await behavior.Handle(
+            new DummyCommand(),
+            () => throw new ProjectBusyException(busyMessage),
+            CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal(busyMessage, result.Error);
     }
 
     private sealed record TokenProbe : IRequest<MediatR.Unit>;

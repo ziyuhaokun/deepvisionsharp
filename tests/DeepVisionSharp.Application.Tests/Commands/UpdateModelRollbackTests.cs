@@ -1,6 +1,8 @@
 using Xunit;
+using MediatR;
 using Microsoft.Extensions.Logging.Abstractions;
 using DeepVisionSharp.Application.Galleries;
+using DeepVisionSharp.Application.Inference;
 using DeepVisionSharp.Application.Models;
 using DeepVisionSharp.Application.Ports;
 using DeepVisionSharp.Domain.Common;
@@ -62,6 +64,113 @@ public sealed class UpdateModelRollbackTests
 
         // Compensating rollback rename was called to restore original file name!
         Assert.Equal(1, fakeArtifacts.RollbackRenameCalls);
+    }
+
+    [Fact]
+    public void InferenceConfig_IsValid_accepts_UseModelNmsIou_sentinel_and_explicit_range()
+    {
+        var modelDefaultConfig = new InferenceConfig
+        {
+            ModelId = Guid.NewGuid(),
+            ConfidenceThreshold = 0.25,
+            NmsIouThreshold = InferenceConfig.UseModelNmsIou,
+            MaxDetections = 100,
+            BatchSize = 8,
+            Device = InferenceDevices.Cpu
+        };
+        Assert.True(modelDefaultConfig.IsValid);
+
+        var explicitConfig = new InferenceConfig
+        {
+            ModelId = Guid.NewGuid(),
+            ConfidenceThreshold = 0.25,
+            NmsIouThreshold = 0.65,
+            MaxDetections = 100,
+            BatchSize = 8,
+            Device = InferenceDevices.Cpu
+        };
+        Assert.True(explicitConfig.IsValid);
+
+        var invalidLowConfig = new InferenceConfig
+        {
+            ModelId = Guid.NewGuid(),
+            ConfidenceThreshold = 0.25,
+            NmsIouThreshold = 0.01,
+            MaxDetections = 100,
+            BatchSize = 8,
+            Device = InferenceDevices.Cpu
+        };
+        Assert.False(invalidLowConfig.IsValid);
+    }
+
+    [Fact]
+    public async Task SaveTrainedModel_passes_detection_MaxDetections_on_both_create_and_overwrite_branches()
+    {
+        var projectId = Guid.NewGuid();
+        var targetModelId = Guid.NewGuid();
+        var job = new TrainingJob(
+            id: Guid.NewGuid(),
+            projectId: projectId,
+            name: "det-job",
+            backend: BackendKeys.TorchSharpDetection,
+            modelType: ModelTypeNames.Yolo26SDet,
+            dataRoot: @"C:\data",
+            outputRoot: @"C:\models",
+            status: TrainingJobStatus.Succeeded,
+            startedAt: DateTime.UtcNow.AddMinutes(-5),
+            finishedAt: DateTime.UtcNow,
+            bestModelPath: @"C:\models\best.torchsharp",
+            lastModelPath: @"C:\models\last.torchsharp",
+            logFile: @"C:\models\train.log",
+            processId: null,
+            configuration: new TrainingConfiguration(
+                epochs: 20,
+                batchSize: 8,
+                learningRate: 0.001,
+                optimizer: "sgd",
+                validationRatio: 0.2,
+                galleryId: Guid.NewGuid(),
+                networkInputSize: 640,
+                networkInputWidth: 640,
+                networkInputHeight: 640,
+                earlyStoppingPatience: 5,
+                detectionOptions: new DetectionTrainingOptions(
+                    NmsIouThreshold: 0.55,
+                    EvaluationConfidence: 0.25,
+                    MaxDetections: 240,
+                    HorizontalFlip: true)),
+            failureMessage: null);
+
+        var existingTarget = TrainedModel.CreateNew(
+            projectId,
+            "old-det-model",
+            ModelTypeNames.Yolo26SDet,
+            TrainedModelStatus.Ready,
+            note: "",
+            classes: ["scratch"],
+            checkpointPath: @"C:\models\old.torchsharp",
+            maxDetections: 500);
+
+        var mediator = new CapturingMediator(existingTarget);
+        var handler = new SaveTrainedModelCommandHandler(
+            new FakeTrainingJobRepository(job),
+            new FakeArtifactService(@"C:\models\saved.torchsharp", @"C:\models\old.torchsharp"),
+            new FakeProjectRepository(new Project(projectId, "DetProj", DateTimeOffset.UtcNow, type: ProjectTypes.Detection, labels: ["scratch"])),
+            mediator);
+
+        var createResult = await handler.Handle(
+            new SaveTrainedModelCommand(projectId, job.Id, "new-det-model", TargetModelId: null),
+            CancellationToken.None);
+        Assert.True(createResult.IsSuccess, createResult.Error);
+        Assert.NotNull(mediator.LastCreateCommand);
+        Assert.Equal(240, mediator.LastCreateCommand!.MaxDetections);
+
+        var overwriteResult = await handler.Handle(
+            new SaveTrainedModelCommand(projectId, job.Id, "updated-det-model", TargetModelId: targetModelId),
+            CancellationToken.None);
+        Assert.True(overwriteResult.IsSuccess, overwriteResult.Error);
+        Assert.NotNull(mediator.LastUpdateCommand);
+        Assert.Equal(240, mediator.LastUpdateCommand!.MaxDetections);
     }
 
     private sealed class FakeModelRepository : IModelRepository
@@ -176,5 +285,58 @@ public sealed class UpdateModelRollbackTests
                 NetworkInputSizePolicy = NetworkInputSizePolicy.ClassificationProduct,
                 ShowsClassificationAugmentation = true
             });
+    }
+
+    private sealed class FakeTrainingJobRepository : ITrainingJobRepository
+    {
+        private readonly TrainingJob _job;
+        public FakeTrainingJobRepository(TrainingJob job) => _job = job;
+        public Task<TrainingJob?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) => Task.FromResult<TrainingJob?>(_job);
+        public Task<IReadOnlyList<TrainingJob>> GetAllAsync(CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyList<TrainingJob>>([_job]);
+        public Task<IReadOnlyList<TrainingJob>> GetByProjectIdAsync(Guid projectId, CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyList<TrainingJob>>([_job]);
+        public Task<IReadOnlyList<TrainingJob>> GetRunningAsync(CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyList<TrainingJob>>([]);
+        public Task<IReadOnlyList<TrainingJob>> GetByStatusesAsync(IReadOnlyList<TrainingJobStatus> statuses, CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyList<TrainingJob>>([_job]);
+        public Task SaveAsync(TrainingJob job, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task DeleteAsync(Guid id, CancellationToken cancellationToken = default) => Task.CompletedTask;
+    }
+
+    private sealed class CapturingMediator : IMediator
+    {
+        private readonly TrainedModel _existingModel;
+        public CreateModelCommand? LastCreateCommand { get; private set; }
+        public UpdateModelCommand? LastUpdateCommand { get; private set; }
+
+        public CapturingMediator(TrainedModel existingModel) => _existingModel = existingModel;
+
+        public Task<TResponse> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
+        {
+            object response = request switch
+            {
+                GetModelByIdQuery => Result<TrainedModel?>.Success(_existingModel),
+                CreateModelCommand create => RecordCreate(create),
+                UpdateModelCommand update => RecordUpdate(update),
+                _ => throw new NotSupportedException(request.GetType().Name)
+            };
+            return Task.FromResult((TResponse)response);
+        }
+
+        private Result<Guid> RecordCreate(CreateModelCommand command)
+        {
+            LastCreateCommand = command;
+            return Result<Guid>.Success(Guid.NewGuid());
+        }
+
+        private Result RecordUpdate(UpdateModelCommand command)
+        {
+            LastUpdateCommand = command;
+            return Result.Success();
+        }
+
+        public Task Send<TRequest>(TRequest request, CancellationToken cancellationToken = default) where TRequest : IRequest => Task.CompletedTask;
+        public Task<object?> Send(object request, CancellationToken cancellationToken = default) => Task.FromResult<object?>(null);
+        public IAsyncEnumerable<TResponse> CreateStream<TResponse>(IStreamRequest<TResponse> request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public IAsyncEnumerable<object?> CreateStream(object request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task Publish(object notification, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task Publish<TNotification>(TNotification notification, CancellationToken cancellationToken = default) where TNotification : INotification => Task.CompletedTask;
     }
 }

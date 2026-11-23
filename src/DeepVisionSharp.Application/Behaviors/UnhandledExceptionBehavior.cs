@@ -33,6 +33,11 @@ public sealed class UnhandledExceptionBehavior<TRequest, TResponse> : IPipelineB
             _logger.LogWarning("归档项目操作已拒绝：{RequestName}", typeof(TRequest).Name);
             return MapOrRethrow(ex.Message, ex);
         }
+        catch (DeepVisionSharp.Domain.ValueObjects.ProjectBusyException ex)
+        {
+            _logger.LogWarning("项目正忙操作已拒绝：{RequestName}", typeof(TRequest).Name);
+            return MapOrRethrow(ex.Message, ex);
+        }
         catch (IOException ex)
         {
             _logger.LogError(ex, "文件操作失败：{RequestName}", typeof(TRequest).Name);

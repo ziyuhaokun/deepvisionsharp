@@ -201,7 +201,8 @@ internal sealed class DataIntegrityDebugService : IDataIntegrityDebugService
     }
 
     private static bool HasMeaningfulAnnotation(string? documentJson) =>
-        !string.IsNullOrWhiteSpace(AnnotationDocumentLabelReader.ReadImageClass(documentJson));
+        AnnotationDocumentLabelReader.ReadLabels(documentJson).Count > 0
+        || AnnotationDocumentLabelReader.ReadReviewed(documentJson);
 
     private static (double Width, double Height) ReadDimensions(string? documentJson)
     {
