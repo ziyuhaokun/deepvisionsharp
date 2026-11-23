@@ -12,12 +12,12 @@ internal sealed class BoundingBoxesWriteBackStrategy : ILabelingInferenceWriteBa
 {
     public InferenceWriteBackKind Kind => InferenceWriteBackKind.BoundingBoxes;
 
-    public async Task WriteBackAsync(LabelingWriteBackContext context, CancellationToken cancellationToken = default)
+    public async Task<LabelingWriteBackResult> WriteBackAsync(LabelingWriteBackContext context, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         if (context.Inference.Boxes.Count == 0)
         {
-            context.Snackbar.ShowInfo("未检测到高于阈值的目标框，当前样本标注保持不变。", "推理");
-            return;
+            return new(LabelingWriteBackStatus.Skipped, "未检测到高于阈值的目标框，未写回标注。");
         }
 
         var imageWidth = context.Workspace.ImageWidth > 0
@@ -46,27 +46,28 @@ internal sealed class BoundingBoxesWriteBackStrategy : ILabelingInferenceWriteBa
             imageHeight);
         if (merged.IsFailure)
         {
-            context.Snackbar.ShowWarning(merged.Error ?? "无法合并预测框。", "推理");
-            return;
+            return new(LabelingWriteBackStatus.Failed, merged.Error ?? "无法合并预测框，未写回标注。");
         }
 
         if (merged.Value is null)
         {
-            context.Snackbar.ShowWarning("预测框未命中当前项目类别或尺寸无效，未写回。", "推理");
-            return;
+            return new(LabelingWriteBackStatus.Skipped, "预测框未命中当前项目类别或尺寸无效，未写回标注。");
         }
 
-        var addedCount = Math.Max(0, merged.Value.Boxes.Count - existing.Boxes.Count);
-        var saved = await context.Editor.ApplyDetectedBoxesAndSaveAsync(merged.Value.Boxes).ConfigureAwait(true);
-        if (saved)
+        var addedCount = merged.Value.Boxes.Count - existing.Boxes.Count;
+        if (addedCount == 0 && existing.IsReviewed)
         {
-            var summary = context.Inference.Performance?.GetSummary();
-            var suffix = string.IsNullOrWhiteSpace(summary) ? string.Empty : $" | {summary}";
-            context.Snackbar.ShowSuccess(
-                addedCount > 0
-                    ? $"推理完成：新增 {addedCount} 个检测框（共 {merged.Value.Boxes.Count} 个）{suffix}"
-                    : $"推理完成：预测框已与现有标注重合（共 {merged.Value.Boxes.Count} 个）{suffix}",
-                "推理");
+            return new(LabelingWriteBackStatus.Skipped, "预测框与现有标注重合，未新增标注。");
         }
+
+        var result = await context.Editor.ApplyInferenceAnnotationAsync(context.Target, merged.Value, cancellationToken);
+        if (result.Status != LabelingWriteBackStatus.Saved)
+        {
+            return result;
+        }
+
+        var summary = context.Inference.Performance?.GetSummary();
+        var suffix = string.IsNullOrWhiteSpace(summary) ? string.Empty : $" | {summary}";
+        return result with { Message = $"已保存「{context.Target.FileName}」，新增 {addedCount} 个检测框。{suffix}" };
     }
 }

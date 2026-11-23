@@ -9,6 +9,7 @@ using DeepVisionSharp.Domain.ValueObjects;
 using DeepVisionSharp.Presentation.Services;
 using DeepVisionSharp.Presentation.ViewModels.Labeling;
 using DeepVisionSharp.Presentation.Ports;
+using DeepVisionSharp.Presentation.Services.Labeling.WriteBack;
 
 namespace DeepVisionSharp.Presentation.Services.Labeling;
 
@@ -133,12 +134,13 @@ public sealed class LabelingSamplePersistence : IDisposable
 
     public async Task<bool> SaveCurrentSampleAsync(bool refreshGallery, bool notifyUser = false)
     {
+        var context = _host.Context;
+        var target = LabelingSampleIdentity.Capture(context);
         await _saveGate.WaitAsync();
         try
         {
-            var context = _host.Context;
-            var gallery = context.Gallery;
-            if (gallery is null || context.ActiveSampleId is null || string.IsNullOrWhiteSpace(context.ActiveFileName))
+            if (target.GalleryId is not Guid galleryId || target.SampleId is null
+                || string.IsNullOrWhiteSpace(target.FileName) || !target.Matches(context))
             {
                 if (notifyUser)
                 {
@@ -148,10 +150,7 @@ public sealed class LabelingSamplePersistence : IDisposable
                 return false;
             }
 
-            // Capture identity and payload under the gate so a concurrent open cannot retarget this write.
-            var galleryId = gallery.Id;
-            var sampleId = context.ActiveSampleId.Value;
-            var fileName = context.ActiveFileName;
+            var fileName = target.FileName;
             var imageWidth = context.ImageWidth;
             var imageHeight = context.ImageHeight;
             var imageClass = _host.ImageClass?.Trim();
@@ -159,16 +158,6 @@ public sealed class LabelingSamplePersistence : IDisposable
             var isReviewed = _host.IsReviewed;
 
             context.IsSaving = true;
-
-            // Abort if the editor switched samples after we entered the gate (should be rare after Flush).
-            if (context.ActiveSampleId != sampleId
-                || !string.Equals(context.ActiveFileName, fileName, StringComparison.OrdinalIgnoreCase))
-            {
-                _logger.LogWarning(
-                    "Skipping annotation save for {FileName}: active sample changed during save",
-                    fileName);
-                return false;
-            }
 
             await _annotations.SaveAsync(
                 galleryId,
@@ -179,9 +168,15 @@ public sealed class LabelingSamplePersistence : IDisposable
                 shapes,
                 isReviewed);
 
+            if (target.Matches(context))
+            {
+                context.AnnotationSaveError = null;
+            }
+
             if (refreshGallery)
             {
-                await _refreshGalleryAsync();
+                try { await _refreshGalleryAsync(); }
+                catch (Exception ex) { _logger.LogWarning(ex, "Saved annotation but could not refresh the gallery"); }
             }
 
             if (notifyUser)
@@ -200,13 +195,77 @@ public sealed class LabelingSamplePersistence : IDisposable
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to save annotations for {FileName}", _host.Context.ActiveFileName);
+            _logger.LogError(ex, "Failed to save annotations for {FileName}", target.FileName);
+            if (target.Matches(context))
+            {
+                context.AnnotationSaveError = ex.Message;
+            }
             _snackbar.ShowError($"保存失败：{ex.Message}", "保存");
             return false;
         }
         finally
         {
             _host.Context.IsSaving = false;
+            _saveGate.Release();
+        }
+    }
+
+    internal async Task<LabelingWriteBackResult> SaveInferenceResultAsync(
+        LabelingSampleIdentity target,
+        AnnotationDocument document,
+        Action applySavedAnnotation,
+        CancellationToken cancellationToken)
+    {
+        await _saveGate.WaitAsync(cancellationToken);
+        var context = _host.Context;
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (target.GalleryId is not Guid galleryId || target.SampleId is null || !target.Matches(context))
+            {
+                return new(LabelingWriteBackStatus.Skipped, "当前样本已切换，推理结果未写回。");
+            }
+
+            context.IsSaving = true;
+            try
+            {
+                await _annotations.SaveAsync(galleryId, target.FileName, document.ImageWidth,
+                    document.ImageHeight, document.ImageClass, document.Boxes, document.IsReviewed, cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Inference write-back failed for {SampleId} in {GalleryId}", target.SampleId, galleryId);
+                return new(LabelingWriteBackStatus.Failed, $"保存推理结果失败：{ex.Message}");
+            }
+
+            // The save has committed. A later cancellation or navigation must not undo it or
+            // apply the saved state to a different editor sample.
+            try
+            {
+                await _uiDispatcher.InvokeAsync(() =>
+                {
+                    if (target.Matches(context))
+                    {
+                        CancelPendingSave();
+                        context.AnnotationSaveError = null;
+                        applySavedAnnotation();
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Saved inference annotation but could not refresh the editor for {SampleId}", target.SampleId);
+            }
+
+            return new(LabelingWriteBackStatus.Saved, $"推理结果已写回「{target.FileName}」。");
+        }
+        finally
+        {
+            context.IsSaving = false;
             _saveGate.Release();
         }
     }
@@ -239,8 +298,10 @@ public sealed class LabelingSamplePersistence : IDisposable
                 return;
             }
 
-            await SaveCurrentSampleAsync(refreshGallery: false);
-            _host.RaiseDebouncedSaveCompleted();
+            if (await SaveCurrentSampleAsync(refreshGallery: false))
+            {
+                _host.RaiseDebouncedSaveCompleted();
+            }
         }
         catch (OperationCanceledException)
         {

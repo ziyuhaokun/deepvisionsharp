@@ -17,5 +17,6 @@ public enum BackgroundTaskStatus
     Running,
     Succeeded,
     Failed,
-    Cancelled
+    Cancelled,
+    Skipped
 }

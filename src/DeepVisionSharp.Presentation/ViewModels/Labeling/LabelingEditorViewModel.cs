@@ -11,6 +11,7 @@ using DeepVisionSharp.Application.Galleries;
 using DeepVisionSharp.Domain.ValueObjects;
 using DeepVisionSharp.Presentation.Services;
 using DeepVisionSharp.Presentation.Services.Labeling;
+using DeepVisionSharp.Presentation.Services.Labeling.WriteBack;
 using DeepVisionSharp.Presentation.Ports;
 
 namespace DeepVisionSharp.Presentation.ViewModels.Labeling;
@@ -70,6 +71,7 @@ public sealed partial class LabelingEditorViewModel : ObservableObject,
         bool isReviewed)
     {
         // One synchronous commit: identity, class and boxes always describe the same sample.
+        _context.AnnotationSaveError = null;
         _context.ActiveSampleId = sampleId;
         _context.ActiveFileName = fileName;
         _context.ActiveImagePath = imagePath;
@@ -197,6 +199,7 @@ public sealed partial class LabelingEditorViewModel : ObservableObject,
     {
         _persistence.CancelPendingOpen();
         _persistence.CancelPendingSave();
+        _context.AnnotationSaveError = null;
         _context.ActiveSampleId = null;
         _context.ActiveFileName = "未选择样本";
         _context.ActiveImagePath = string.Empty;
@@ -240,9 +243,7 @@ public sealed partial class LabelingEditorViewModel : ObservableObject,
 
     public Task RequestSaveAsync() => _persistence.RequestSaveAsync();
 
-    /// <summary>
-    /// Immediately apply image class and flush save (no debounce/snackbar). Used by label selection and inference write-back.
-    /// </summary>
+    /// <summary>Applies a manual classification and saves it immediately.</summary>
     public async Task<bool> ApplyImageClassAndSaveAsync(string imageClass)
     {
         if (_context.ActiveSampleId is null || string.IsNullOrWhiteSpace(_context.ActiveFileName))
@@ -255,32 +256,28 @@ public sealed partial class LabelingEditorViewModel : ObservableObject,
         return await _persistence.SaveCurrentSampleAsync(refreshGallery: false, notifyUser: false);
     }
 
-    /// <summary>
-    /// Detection: replaces current boxes with auto-inference merged boxes, records undo history, and flushes save.
-    /// </summary>
-    public async Task<bool> ApplyDetectedBoxesAndSaveAsync(IReadOnlyList<AnnotationShape> mergedBoxes)
+    internal Task<LabelingWriteBackResult> ApplyInferenceAnnotationAsync(
+        LabelingSampleIdentity target,
+        AnnotationDocument document,
+        CancellationToken cancellationToken) =>
+        _persistence.SaveInferenceResultAsync(target, document, () => ApplySavedAnnotation(document), cancellationToken);
+
+    private void ApplySavedAnnotation(AnnotationDocument document)
     {
-        if (_context.ActiveSampleId is null || string.IsNullOrWhiteSpace(_context.ActiveFileName))
+        ImageClass = document.ImageClass;
+        if (!IsDetection)
         {
-            return false;
+            return;
         }
 
-        var currentBoxes = Boxes.Select(box => box.ToShape()).ToArray();
-        var boxesUnchanged = currentBoxes.Length == mergedBoxes.Count
-            && currentBoxes.SequenceEqual(mergedBoxes);
-        if (boxesUnchanged && IsReviewed)
-        {
-            return true;
-        }
-
-        if (!boxesUnchanged)
+        if (!SnapshotBoxes().SequenceEqual(document.Boxes))
         {
             BeginBoxEdit();
             _restoringHistory = true;
             try
             {
                 Boxes.Clear();
-                foreach (var shape in mergedBoxes)
+                foreach (var shape in document.Boxes)
                 {
                     Boxes.Add(BoxShapeViewModel.FromShape(shape));
                 }
@@ -292,16 +289,9 @@ public sealed partial class LabelingEditorViewModel : ObservableObject,
         }
 
         SelectedBox = null;
-        IsReviewed = true;
+        IsReviewed = document.IsReviewed;
         NotifyBoxState();
-        _persistence.CancelPendingSave();
-        var saved = await _persistence.SaveCurrentSampleAsync(refreshGallery: false, notifyUser: false);
-        if (saved)
-        {
-            DebouncedSaveCompleted?.Invoke(this, EventArgs.Empty);
-        }
-
-        return saved;
+        DebouncedSaveCompleted?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>Detection: label click chooses the class for new boxes and relabels the selected box.</summary>

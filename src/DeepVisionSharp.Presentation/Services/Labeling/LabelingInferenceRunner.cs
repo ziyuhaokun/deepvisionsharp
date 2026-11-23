@@ -62,7 +62,9 @@ public sealed class LabelingInferenceRunner
         var context = _host.Context;
         var model = _host.SelectedInferenceModel;
         if (context.Gallery is null
+            || context.ActiveSampleId is null
             || model is null
+            || string.IsNullOrWhiteSpace(context.ActiveFileName)
             || string.IsNullOrWhiteSpace(context.ActiveImagePath)
             || !File.Exists(context.ActiveImagePath))
         {
@@ -101,7 +103,7 @@ public sealed class LabelingInferenceRunner
         context.IsInferring = true;
         _host.NotifyInferenceCommandsCanExecute();
 
-        var success = false;
+        var status = BackgroundTaskStatus.Failed;
         string? error = null;
         try
         {
@@ -109,12 +111,7 @@ public sealed class LabelingInferenceRunner
                 new RunSingleInferenceCommand(checkpointPath, target.ImagePath, config, model.ModelType),
                 cts.Token);
 
-            if (cts.IsCancellationRequested)
-            {
-                error = "推理已取消，结果未写回。";
-                _taskCenter.AppendLog(taskId, error);
-                return;
-            }
+            cts.Token.ThrowIfCancellationRequested();
 
             if (result.IsFailure || result.Value is null || !result.Value.Success)
             {
@@ -151,9 +148,10 @@ public sealed class LabelingInferenceRunner
 
             if (!target.Matches(_host.Context))
             {
-                error = "推理期间已切换样本，结果未写回，以免写到其他图片上。";
-                _taskCenter.AppendLog(taskId, error);
-                _snackbar.ShowWarning(error, "推理");
+                status = BackgroundTaskStatus.Skipped;
+                const string message = "推理期间已切换样本，结果未写回。";
+                _taskCenter.AppendLog(taskId, message);
+                _snackbar.ShowWarning(message, "推理");
                 return;
             }
 
@@ -173,25 +171,37 @@ public sealed class LabelingInferenceRunner
             }
 
             _taskCenter.AppendLog(taskId, $"写回策略：{profileResult.Value.WriteBackKind}");
-            await writeBack.WriteBackAsync(new LabelingWriteBackContext
+            var outcome = await writeBack.WriteBackAsync(new LabelingWriteBackContext
             {
                 Inference = inference,
-                Profile = profileResult.Value,
+                Target = target,
                 Workspace = context,
                 Editor = _host.Editor,
-                Labels = _host.Labels,
-                Model = model,
-                Logger = _logger,
-                Snackbar = _snackbar
-            });
+                Labels = _host.Labels
+            }, cts.Token);
 
-            success = true;
-            _taskCenter.AppendLog(taskId, "推理完成，结果已写回当前样本。");
+            switch (outcome.Status)
+            {
+                case LabelingWriteBackStatus.Saved:
+                    status = BackgroundTaskStatus.Succeeded;
+                    _taskCenter.AppendLog(taskId, outcome.Message);
+                    _snackbar.ShowSuccess(outcome.Message, "推理");
+                    break;
+                case LabelingWriteBackStatus.Skipped:
+                    status = BackgroundTaskStatus.Skipped;
+                    _taskCenter.AppendLog(taskId, outcome.Message);
+                    _snackbar.ShowInfo(outcome.Message, "推理");
+                    break;
+                case LabelingWriteBackStatus.Failed:
+                    error = outcome.Message;
+                    _snackbar.ShowError(error, "推理");
+                    break;
+            }
         }
         catch (OperationCanceledException) when (cts.IsCancellationRequested)
         {
-            error = "推理已取消，结果未写回。";
-            _taskCenter.AppendLog(taskId, error);
+            status = BackgroundTaskStatus.Cancelled;
+            _taskCenter.AppendLog(taskId, "推理已取消，结果未写回。");
         }
         catch (Exception ex)
         {
@@ -203,7 +213,7 @@ public sealed class LabelingInferenceRunner
         {
             Interlocked.CompareExchange(ref _activeRunCts, null, cts);
             cts.Dispose();
-            _taskCenter.CompleteTask(taskId, success, error);
+            _taskCenter.CompleteTask(taskId, status, error);
             context.IsInferring = false;
             _host.NotifyInferenceCommandsCanExecute();
         }

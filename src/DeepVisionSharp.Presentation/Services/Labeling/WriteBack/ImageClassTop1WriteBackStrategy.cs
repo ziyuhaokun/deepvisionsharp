@@ -1,4 +1,5 @@
 using DeepVisionSharp.Application.Models;
+using DeepVisionSharp.Domain.ValueObjects;
 
 namespace DeepVisionSharp.Presentation.Services.Labeling.WriteBack;
 
@@ -9,15 +10,15 @@ internal sealed class ImageClassTop1WriteBackStrategy : ILabelingInferenceWriteB
 {
     public InferenceWriteBackKind Kind => InferenceWriteBackKind.ImageClassTop1;
 
-    public async Task WriteBackAsync(LabelingWriteBackContext context, CancellationToken cancellationToken = default)
+    public async Task<LabelingWriteBackResult> WriteBackAsync(LabelingWriteBackContext context, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var prediction = context.Inference.Detections
             .OrderByDescending(item => item.Confidence)
             .FirstOrDefault();
         if (prediction is null)
         {
-            context.Snackbar.ShowInfo("分类置信度未达到阈值，当前样本分类保持不变。", "推理");
-            return;
+            return new(LabelingWriteBackStatus.Skipped, "分类置信度未达到阈值，未写回分类。");
         }
 
         var predictedName = string.IsNullOrWhiteSpace(prediction.ClassName)
@@ -27,19 +28,21 @@ internal sealed class ImageClassTop1WriteBackStrategy : ILabelingInferenceWriteB
             string.Equals(item.Name, predictedName, StringComparison.OrdinalIgnoreCase));
         if (projectLabel is null)
         {
-            // Hard fail: never invent a project class from unknown model output.
-            context.Snackbar.ShowError(
-                $"模型返回的类别「{predictedName}」不在当前项目类别中，未写回结果。",
-                "推理");
-            return;
+            return new(LabelingWriteBackStatus.Failed, $"模型返回的类别「{predictedName}」不在当前项目类别中，未写回分类。");
         }
 
-        var saved = await context.Editor.ApplyImageClassAndSaveAsync(projectLabel.Name).ConfigureAwait(true);
-        if (saved)
+        var width = context.Workspace.ImageWidth > 0 ? context.Workspace.ImageWidth : context.Inference.ImageWidth;
+        var height = context.Workspace.ImageHeight > 0 ? context.Workspace.ImageHeight : context.Inference.ImageHeight;
+        if (width <= 0 || height <= 0)
         {
-            context.Snackbar.ShowSuccess(
-                $"推理完成：图像分类为 {projectLabel.Name}（置信度 {prediction.Confidence:F2}） | {context.Inference.Performance?.GetSummary()}",
-                "推理");
+            return new(LabelingWriteBackStatus.Failed, "推理结果缺少图像尺寸，未写回分类。");
         }
+
+        var document = new AnnotationDocument(width, height, projectLabel.Name,
+            context.Editor.Boxes.Select(box => box.ToShape()).ToArray(), context.Editor.IsReviewed);
+        var result = await context.Editor.ApplyInferenceAnnotationAsync(context.Target, document, cancellationToken);
+        return result.Status == LabelingWriteBackStatus.Saved
+            ? result with { Message = $"已保存「{context.Target.FileName}」的分类 {projectLabel.Name}（置信度 {prediction.Confidence:F2}）。" }
+            : result;
     }
 }

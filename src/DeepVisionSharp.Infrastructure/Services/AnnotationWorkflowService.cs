@@ -632,7 +632,9 @@ internal sealed class AnnotationWorkflowService : IAnnotationWorkflowService
                 else
                     File.Move(tempAnnotationPath, annotationPath, overwrite: false);
                 promoted = true;
-                await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+                // Promotion starts the commit boundary. Finish the database transaction even if
+                // the caller cancels now, so the file and database agree on the outcome.
+                await transaction.CommitAsync(CancellationToken.None).ConfigureAwait(false);
             }
             catch (Exception failure)
             {

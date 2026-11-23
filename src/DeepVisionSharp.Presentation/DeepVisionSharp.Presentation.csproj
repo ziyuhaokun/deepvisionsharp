@@ -11,6 +11,10 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="DeepVisionSharp.Presentation.Tests" />
+  </ItemGroup>
+
   <!-- 表现层提供框架无关的 ViewModel、应用服务和 UI 端口。 -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>

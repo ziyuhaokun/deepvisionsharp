@@ -58,6 +58,12 @@ public sealed partial class LabelingWorkspaceContext : ObservableObject
     private bool _isSaving;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasAnnotationSaveError))]
+    private string? _annotationSaveError;
+
+    public bool HasAnnotationSaveError => !string.IsNullOrEmpty(AnnotationSaveError);
+
+    [ObservableProperty]
     private bool _isImporting;
 
     [ObservableProperty]

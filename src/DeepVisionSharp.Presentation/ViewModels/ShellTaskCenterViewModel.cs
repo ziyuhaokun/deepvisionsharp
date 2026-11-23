@@ -73,7 +73,10 @@ public sealed partial class ShellTaskCenterViewModel : ObservableObject
         });
     }
 
-    public void CompleteTask(Guid taskId, bool success, string? error = null)
+    public void CompleteTask(Guid taskId, bool success, string? error = null) =>
+        CompleteTask(taskId, success ? BackgroundTaskStatus.Succeeded : BackgroundTaskStatus.Failed, error);
+
+    public void CompleteTask(Guid taskId, BackgroundTaskStatus status, string? error = null)
     {
         _uiDispatcher.Post(() =>
         {
@@ -83,7 +86,7 @@ public sealed partial class ShellTaskCenterViewModel : ObservableObject
                 return;
             }
 
-            task.MarkCompleted(success, error);
+            task.MarkCompleted(status, error);
             if (!string.IsNullOrWhiteSpace(error))
             {
                 task.LogLines.Add($"[ERR] {error.Trim()}");

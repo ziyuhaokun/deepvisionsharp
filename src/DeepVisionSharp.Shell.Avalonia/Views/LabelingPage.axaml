@@ -355,6 +355,12 @@
                                                    Foreground="{DynamicResource IvText1Brush}"
                                                    Text="{Binding Labels.CurrentImageClassDisplay}" />
                                     </Border>
+                                    <Button Margin="6,0,0,0"
+                                            Content="保存失败 · 重试"
+                                            Command="{Binding Editor.SaveCommand}"
+                                            Foreground="{DynamicResource IvDangerTextBrush}"
+                                            IsVisible="{Binding Workspace.HasAnnotationSaveError}"
+                                            ToolTip.Tip="{Binding Workspace.AnnotationSaveError}" />
                                 </StackPanel>
                             </dv:CanvasCornerFloat.Body>
                         </dv:CanvasCornerFloat>

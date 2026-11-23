@@ -64,6 +64,7 @@ public sealed partial class BackgroundTaskRowViewModel : ObservableObject
         BackgroundTaskStatus.Succeeded => "已完成",
         BackgroundTaskStatus.Failed => "失败",
         BackgroundTaskStatus.Cancelled => "已取消",
+        BackgroundTaskStatus.Skipped => "已跳过",
         _ => Status.ToString()
     };
 
@@ -72,10 +73,10 @@ public sealed partial class BackgroundTaskRowViewModel : ObservableObject
         Status = BackgroundTaskStatus.Running;
     }
 
-    public void MarkCompleted(bool success, string? error)
+    public void MarkCompleted(BackgroundTaskStatus status, string? error)
     {
         FinishedAt = DateTimeOffset.Now;
         Error = error;
-        Status = success ? BackgroundTaskStatus.Succeeded : BackgroundTaskStatus.Failed;
+        Status = status;
     }
 }

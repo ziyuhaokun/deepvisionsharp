@@ -81,6 +81,10 @@ public sealed class SampleLabelingWorkspace
 
     public string GalleryProgressText => "已标注 86 / 120";
 
+    public bool HasAnnotationSaveError => false;
+
+    public string? AnnotationSaveError => null;
+
     public SampleLabelingProjectProfile ProjectProfile { get; } = new();
 
     public SampleLabelingUiPolicy UiPolicy { get; } = new();
@@ -109,6 +113,8 @@ public sealed class SampleLabelingUiPolicy
 /// <summary>标注编辑器 stub（对应 LabelingEditorViewModel）：画布与框列表的框都从这里出。</summary>
 public sealed class SampleLabelingEditor : ObservableObject
 {
+    public IRelayCommand SaveCommand { get; } = new RelayCommand(() => { });
+
     private bool _showLabelNames = true;
     private bool _isReviewed;
     private double _zoomScale = 1;
