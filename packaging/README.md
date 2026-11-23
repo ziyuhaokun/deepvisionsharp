@@ -53,13 +53,3 @@ The installer tool source lives in this repository. The existing `.vrp` format a
 - Root `CHANGELOG.md` and `packaging/assets/license.txt`: copied into the application publish directory. `CHANGELOG.Developer.md` stays in the source checkout.
 
 The self-contained payload includes .NET and native TorchSharp/LibTorch and OpenCV dependencies. NVIDIA drivers remain a machine prerequisite for GPU execution, not installer content.
-
-## Optional external weight verification
-
-`scripts/verify_model_weights.ps1` is retained as a standalone compatibility utility for an external Ultralytics weight collection. It is not part of this application's build or packaging flow. Supply a directory containing `manifest.json` and its declared weight files:
-
-```powershell
-.\scripts\verify_model_weights.ps1 -WeightsDir C:\model-weights -Preset core
-```
-
-`-Preset full` checks all manifest entries. Family subdirectories and legacy flat filenames remain supported. Missing files produce exit code `2`; a complete collection produces `0`. An omitted directory or missing manifest is an error. The utility does not download files.
