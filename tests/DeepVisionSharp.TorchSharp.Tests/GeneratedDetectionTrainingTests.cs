@@ -14,6 +14,7 @@ namespace DeepVisionSharp.TorchSharp.Tests;
 /// excludes the "Slow" trait by default; run it with <c>dotnet test --filter "Category=Slow"</c>.
 /// </remarks>
 [Trait("Category", "Slow")]
+[Collection(TorchSharpSlowCollection.Name)]
 public sealed class GeneratedDetectionTrainingTests : IDisposable
 {
     private const int ImageSize = 128;
@@ -46,6 +47,9 @@ public sealed class GeneratedDetectionTrainingTests : IDisposable
         DatasetGenerator.Generate(new Options(dataset, Seed: 42, Size: ImageSize, TrainPerClass: 16, ValPerClass: 4));
         var samples = LoadSplit(dataset, "train").Concat(LoadSplit(dataset, "val")).ToList();
 
+        // Weight init reads the process-global RNG. Seed immediately before Create, and keep this
+        // test in TorchSharpSlowCollection so another Slow test cannot consume numbers in between.
+        torch.manual_seed(42);
         using var model = Yolo26DetectModel.Create(inputChannels: 1, numClasses: 2);
         using var optimizer = torch.optim.Adam(model.parameters(), lr: 1e-3);
 
@@ -57,12 +61,23 @@ public sealed class GeneratedDetectionTrainingTests : IDisposable
             foreach (var batch in samples.Chunk(4))
             {
                 using var images = Stack(batch);
-                using var loss = DetectionLoss.Compute(model.forward(images), batch.Select(sample => sample.Boxes).ToList(), strides: 8);
-                epochLoss += loss.item<float>();
-                batches++;
-                optimizer.zero_grad();
-                loss.backward();
-                optimizer.step();
+                var predictions = model.forward(images);
+                try
+                {
+                    using var loss = DetectionLoss.Compute(predictions, batch.Select(sample => sample.Boxes).ToList(), strides: 8);
+                    epochLoss += loss.item<float>();
+                    batches++;
+                    optimizer.zero_grad();
+                    loss.backward();
+                    optimizer.step();
+                }
+                finally
+                {
+                    foreach (var prediction in predictions)
+                    {
+                        prediction.Dispose();
+                    }
+                }
             }
 
         }
@@ -74,9 +89,21 @@ public sealed class GeneratedDetectionTrainingTests : IDisposable
         {
             expected++;
             using var image = Stack([sample]);
-            var found = model.forward(image)
-                .SelectMany((prediction, scale) => DetectionDecoder.Decode(prediction, stride: 8 << scale, scoreThreshold: 0.5f))
-                .ToList();
+            var predictions = model.forward(image);
+            List<DetectionDecoder.Detection> found;
+            try
+            {
+                found = predictions
+                    .SelectMany((prediction, scale) => DetectionDecoder.Decode(prediction, stride: 8 << scale, scoreThreshold: 0.5f))
+                    .ToList();
+            }
+            finally
+            {
+                foreach (var prediction in predictions)
+                {
+                    prediction.Dispose();
+                }
+            }
             var truth = sample.Boxes[0];
             if (found.Any(detection => detection.ClassIndex == truth.ClassIndex && Overlaps(detection, truth)))
             {
@@ -118,9 +145,9 @@ public sealed class GeneratedDetectionTrainingTests : IDisposable
     private static List<Sample> LoadSplit(string root, string split)
     {
         var samples = new List<Sample>();
-        foreach (var directory in Directory.GetDirectories(Path.Combine(root, split)))
+        foreach (var directory in Directory.GetDirectories(Path.Combine(root, split)).OrderBy(path => path, StringComparer.Ordinal))
         {
-            foreach (var image in Directory.GetFiles(directory, "*.png"))
+            foreach (var image in Directory.GetFiles(directory, "*.png").OrderBy(path => path, StringComparer.Ordinal))
             {
                 var boxes = File.ReadAllLines(Path.ChangeExtension(image, ".txt"))
                     .Where(line => !string.IsNullOrWhiteSpace(line))

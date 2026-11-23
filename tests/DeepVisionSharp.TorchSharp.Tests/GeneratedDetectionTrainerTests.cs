@@ -1,4 +1,5 @@
 using System.Text.Json;
+using TorchSharp;
 using Xunit;
 using DvsDatasetGen;
 using DeepVisionSharp.TorchSharp.Detection;
@@ -11,6 +12,7 @@ namespace DeepVisionSharp.TorchSharp.Tests;
 /// run with <c>dotnet test --filter "Category=Slow"</c>.
 /// </summary>
 [Trait("Category", "Slow")]
+[Collection(TorchSharpSlowCollection.Name)]
 public sealed class GeneratedDetectionTrainerTests : IDisposable
 {
     private readonly string _root;
@@ -44,6 +46,7 @@ public sealed class GeneratedDetectionTrainerTests : IDisposable
         BuildDetectionLayout(generated, dataset, DatasetGenerator.Classes);
 
         var output = Path.Combine(_root, "run");
+        torch.manual_seed(42);
         var result = TorchSharpDetTrainer.Run(new TorchSharpDetTrainer.Options(
             DatasetRoot: dataset,
             OutputRoot: output,
@@ -74,7 +77,9 @@ public sealed class GeneratedDetectionTrainerTests : IDisposable
 
         // The saved sidecar is what the inference engine rebuilds from: prove the checkpoint loads
         // and decodes boxes back into source pixels.
-        var valImage = Directory.GetFiles(Path.Combine(dataset, "val", "images"), "*.png").First();
+        var valImage = Directory.GetFiles(Path.Combine(dataset, "val", "images"), "*.png")
+            .OrderBy(path => path, StringComparer.Ordinal)
+            .First();
         using var engine = new TorchSharpDetectEngine();
         var inference = engine.Infer(result.BestModelPath, "cpu", valImage, 0.1, 0.5, 20);
         Assert.Equal(96, inference.ImageWidth);
@@ -98,9 +103,9 @@ public sealed class GeneratedDetectionTrainerTests : IDisposable
             Directory.CreateDirectory(Path.Combine(destination, split, "images"));
             Directory.CreateDirectory(Path.Combine(destination, split, "labels"));
             var index = 0;
-            foreach (var classDirectory in Directory.GetDirectories(Path.Combine(generatedRoot, split)))
+            foreach (var classDirectory in Directory.GetDirectories(Path.Combine(generatedRoot, split)).OrderBy(path => path, StringComparer.Ordinal))
             {
-                foreach (var image in Directory.GetFiles(classDirectory, "*.png"))
+                foreach (var image in Directory.GetFiles(classDirectory, "*.png").OrderBy(path => path, StringComparer.Ordinal))
                 {
                     var name = $"{index++:D5}";
                     File.Copy(image, Path.Combine(destination, split, "images", name + ".png"));

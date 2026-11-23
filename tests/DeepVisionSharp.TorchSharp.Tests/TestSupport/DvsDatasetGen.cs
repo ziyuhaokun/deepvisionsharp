@@ -64,8 +64,24 @@ public static class DatasetGenerator
             Encoding.UTF8);
     }
 
+    /// <summary>
+    /// Process-stable mix. <see cref="HashCode.Combine"/> is salted per process, so the same seed
+    /// used to draw different pictures on every test host and the slow detection run could not repeat.
+    /// </summary>
+    internal static int Variant(int seed, int classIndex, int sample)
+    {
+        unchecked
+        {
+            uint hash = 2166136261;
+            hash = (hash ^ (uint)seed) * 16777619;
+            hash = (hash ^ (uint)classIndex) * 16777619;
+            hash = (hash ^ (uint)sample) * 16777619;
+            return (int)hash;
+        }
+    }
+
     private static int OptionsSeed(int seed, int classIndex, int sample) =>
-        HashCode.Combine(seed, classIndex, sample);
+        Variant(seed, classIndex, sample);
 
     /// <summary>三类使用三种高对比几何，既便于真实训练超过随机水平，也保持完全确定。</summary>
     private static byte[] CreatePng(int size, int classIndex, int variant)

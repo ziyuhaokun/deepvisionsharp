@@ -1,3 +1,4 @@
+using TorchSharp;
 using Xunit;
 using DeepVisionSharp.TorchSharp.Training;
 using DvsDatasetGen;
@@ -13,6 +14,7 @@ namespace DeepVisionSharp.TorchSharp.Tests;
 /// <c>dotnet test --filter "Category=Slow"</c>.
 /// </remarks>
 [Trait("Category", "Slow")]
+[Collection(TorchSharpSlowCollection.Name)]
 public sealed class GeneratedDatasetTrainingTests : IDisposable
 {
     private readonly string _root;
@@ -46,6 +48,7 @@ public sealed class GeneratedDatasetTrainingTests : IDisposable
         // 64px shrinks the scratch to a couple of pixels, which 8 epochs do not learn reliably.
         DatasetGenerator.Generate(new Options(datasetRoot, Seed: 42, Size: 160, TrainPerClass: 24, ValPerClass: 8));
 
+        torch.manual_seed(42);
         var result = TorchSharpClsTrainer.Run(new TorchSharpClsTrainer.Options(
             DatasetRoot: datasetRoot,
             OutputRoot: outputRoot,
