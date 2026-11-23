@@ -11,6 +11,7 @@ public static class LabelingWriteBackDependencyInjection
     public static IServiceCollection AddLabelingInferenceWriteBack(this IServiceCollection services)
     {
         services.AddSingleton<ILabelingInferenceWriteBackStrategy, ImageClassTop1WriteBackStrategy>();
+        services.AddSingleton<ILabelingInferenceWriteBackStrategy, BoundingBoxesWriteBackStrategy>();
         services.AddSingleton<LabelingInferenceWriteBackRegistry>();
         return services;
     }

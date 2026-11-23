@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -115,6 +115,28 @@ public sealed partial class LabelingViewModel : ObservableObject
             inferenceLogger);
 
         Workspace.PropertyChanged += OnWorkspacePropertyChanged;
+        _workspaceSession.Changed += OnWorkspaceSessionChanged;
+    }
+
+    /// <summary>
+    /// 项目在别处被改名或删除时，标注页不会重新进入，这里补上响应。
+    /// 改名只更新显示；项目被清空则走一次加载，让页面回到「未选择项目」而不是留着已删除项目的数据。
+    /// </summary>
+    private void OnWorkspaceSessionChanged(object? sender, WorkspaceSessionChangedEventArgs e)
+    {
+        if (e.Reason == WorkspaceSessionChangeReason.ProjectUpdated
+            && e.Current.Project is not null
+            && Workspace.Project?.Id == e.Current.Project.Id)
+        {
+            Workspace.Project = e.Current.Project;
+            Workspace.ProjectName = e.Current.Project.Name;
+            return;
+        }
+
+        if (e.Reason == WorkspaceSessionChangeReason.ProjectCleared && Workspace.Project is not null)
+        {
+            _ = LoadCommand.ExecuteAsync(null);
+        }
     }
 
     public LabelingWorkspaceContext Workspace { get; }
@@ -248,6 +270,7 @@ public sealed partial class LabelingViewModel : ObservableObject
     public async Task DeactivateAsync()
     {
         LoadCommand.Cancel();
+        Inference.CancelPendingInference();
         Samples.CancelBackgroundWork();
         Editor.CancelPendingOpen();
         try
@@ -264,25 +287,40 @@ public sealed partial class LabelingViewModel : ObservableObject
 
     public async Task<bool> TryHandleKeyboardShortcutAsync(UiKey key, UiModifierKeys modifiers)
     {
-        if (_textInputFocus.IsTextInputFocused())
+        if (_textInputFocus.IsTextInputFocused() || Workspace.IsInferring)
         {
             return false;
         }
 
         if (modifiers == UiModifierKeys.Control && key == UiKey.S)
         {
+            if (!Editor.SaveCommand.CanExecute(null))
+            {
+                return false;
+            }
+
             await Editor.SaveCommand.ExecuteAsync(null);
             return true;
         }
 
         if (key == UiKey.Left)
         {
+            if (!Samples.NavigatePreviousSampleCommand.CanExecute(null))
+            {
+                return false;
+            }
+
             await Samples.NavigatePreviousSampleCommand.ExecuteAsync(null);
             return true;
         }
 
         if (key == UiKey.Right)
         {
+            if (!Samples.NavigateNextSampleCommand.CanExecute(null))
+            {
+                return false;
+            }
+
             await Samples.NavigateNextSampleCommand.ExecuteAsync(null);
             return true;
         }
@@ -290,6 +328,11 @@ public sealed partial class LabelingViewModel : ObservableObject
         var labelIndex = LabelingKeyboardNavigation.GetLabelHotkeyIndex(key);
         if (labelIndex >= 0)
         {
+            if (!Workspace.IsNotBusy)
+            {
+                return false;
+            }
+
             await SelectLabelByIndexAsync(labelIndex);
             return true;
         }

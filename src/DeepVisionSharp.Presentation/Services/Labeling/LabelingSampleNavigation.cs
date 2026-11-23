@@ -343,7 +343,7 @@ public sealed class LabelingSampleNavigation
             return;
         }
 
-        var isAnnotated = !string.IsNullOrWhiteSpace(_host.ImageClass);
+        var isAnnotated = _host.IsActiveSampleAnnotated;
         if (row.IsAnnotated == isAnnotated)
         {
             return;
@@ -441,6 +441,8 @@ public interface ILabelingSampleNavigationHost
     LabelingWorkspaceContext Context { get; }
 
     string? ImageClass { get; }
+
+    bool IsActiveSampleAnnotated { get; }
 
     ObservableCollection<LabelingSampleRow> Samples { get; }
 

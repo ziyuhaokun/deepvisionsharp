@@ -122,9 +122,9 @@ public sealed record InferenceModelOption(
     public bool IsClassificationModel => ModelTypeNames.IsClassificationModelType(ModelType);
 
     public string SpatialPolicySummary =>
-        InputSize is > 0
-            ? $"整图分类 · 输入 {InputSize}"
-            : "整图分类（输入尺寸来自模型 sidecar）";
+        IsClassificationModel
+            ? (InputSize is > 0 ? $"整图分类 · 输入 {InputSize}" : "整图分类（输入尺寸来自模型 sidecar）")
+            : (InputSize is > 0 ? $"目标检测 · 输入 {InputSize}" : "目标检测（输入尺寸来自模型 sidecar）");
 
     public override string ToString() => DisplayText;
 }

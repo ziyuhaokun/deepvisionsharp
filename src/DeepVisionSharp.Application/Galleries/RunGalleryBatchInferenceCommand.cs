@@ -175,6 +175,8 @@ public sealed class RunGalleryBatchInferenceCommandHandler
         {
             ModelId = request.ModelId,
             ConfidenceThreshold = request.ConfidenceThreshold,
+            // Batch inference has no IoU control; use the value each model was trained with.
+            NmsIouThreshold = InferenceConfig.UseModelNmsIou,
             MaxDetections = request.MaxDetections,
             BatchSize = 8,
             Device = device,

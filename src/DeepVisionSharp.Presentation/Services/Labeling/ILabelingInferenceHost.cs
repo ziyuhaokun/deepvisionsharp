@@ -29,6 +29,8 @@ public interface ILabelingInferenceHost
 
     double InferenceConfidence { get; }
 
+    double InferenceNmsIou { get; }
+
     int InferenceMaxDetections { get; }
 
     int InferenceBatchSize { get; }

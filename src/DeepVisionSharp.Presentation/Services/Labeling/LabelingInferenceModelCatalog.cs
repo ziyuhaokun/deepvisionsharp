@@ -144,7 +144,7 @@ public sealed class LabelingInferenceModelCatalog
         model.InputSize is > 0;
 
     public static string GetSpatialPolicyErrorMessage(ResolvedTaskProfile profile) =>
-        "所选分类模型元数据无效，不能用于分类推理。";
+        "所选模型元数据无效，不能用于自动推理。";
 
     /// <summary>
     /// Ready and Published models may run auto-inference; draft/pending/archived are excluded.

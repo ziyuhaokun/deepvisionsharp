@@ -87,6 +87,11 @@ public sealed partial class LabelingSampleListViewModel : ObservableObject,
 
     string? ILabelingSampleNavigationHost.ImageClass => _editor.ImageClass;
 
+    bool ILabelingSampleNavigationHost.IsActiveSampleAnnotated =>
+        !string.IsNullOrWhiteSpace(_editor.ImageClass)
+        || _editor.Boxes.Count > 0
+        || _editor.IsReviewed;
+
     LabelingWorkspaceContext ILabelingSampleImportHost.Context => _context;
 
     LabelingWorkspaceContext ILabelingSampleMigrateHost.Context => _context;

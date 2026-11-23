@@ -48,6 +48,7 @@ internal abstract class InferenceDialogSessionBase : IInferenceDialogSession
         {
             ModelId = context.SelectedModel?.Id,
             ConfidenceThreshold = context.Confidence,
+            NmsIouThreshold = context.NmsIou,
             MaxDetections = maxDetections,
             BatchSize = batchSize,
             Device = context.Device
@@ -89,4 +90,41 @@ internal sealed class ClassificationInferenceDialogSession : InferenceDialogSess
 
     public override string FormatButtonToolTip(InferenceDialogBuildContext context) =>
         $"整图分类（{FormatConfigSummary(context)}）";
+}
+
+/// <summary>Object detection · YOLO26-det bounding box pre-labeling.</summary>
+internal sealed class DetectionInferenceDialogSession : InferenceDialogSessionBase
+{
+    public static DetectionInferenceDialogSession Instance { get; } = new();
+
+    public override AppDialogKind DialogKind => AppDialogKind.AutoInferenceDetection;
+
+    public override string Description =>
+        "使用训练好的目标检测模型对当前图像执行矩形框推理，并将匹配项目标签的预测框追加去重写回当前样本。";
+
+    public override string NoModelsHint => "未找到可用的目标检测模型，请先训练模型";
+
+    public override string ConfidenceHint => "低于此值的检测框将被过滤（推荐 0.25–0.50）";
+
+    public override string FooterHint =>
+        "检测结果按追加模式写回：保留已有标注框，过滤同类高重叠框（IoU > 0.7）与未登记类别。";
+
+    public override string PolicySectionTitle => "网络输入（只读）";
+
+    public override bool ShowsMaxDetections(InferenceModelOption? selected) => true;
+
+    public override bool ShowsBatchSize(InferenceModelOption? selected) => false;
+
+    public override string? FixedBatchHint(InferenceModelOption? selected) => "检测模型固定单图推理";
+
+    public override InferenceConfig BuildConfig(InferenceDialogBuildContext context) =>
+        CreateConfig(context, maxDetections: context.MaxDetections, batchSize: 1);
+
+    public override string FormatConfigSummary(InferenceDialogBuildContext context) =>
+        context.SelectedModel is null
+            ? "未配置模型"
+            : $"{context.SelectedModel.Name} · 检测 · {context.DeviceDisplayName} · conf {context.Confidence:F2} · iou {context.NmsIou:F2}";
+
+    public override string FormatButtonToolTip(InferenceDialogBuildContext context) =>
+        $"目标检测自动标注（{FormatConfigSummary(context)}）";
 }

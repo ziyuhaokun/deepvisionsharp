@@ -260,14 +260,37 @@ internal sealed class AnnotationWorkflowService : IAnnotationWorkflowService
             ?? throw new InvalidOperationException("图库不存在。");
 
         var imagesDir = _fileStore.GetGalleryImagesDirectory(gallery.ProjectId, gallery.Id, ensureExists: true);
-        var preparedFiles = new List<(string TempPath, string FinalPath, string BackupPath, bool HadCanonical)>();
+
+        // One sidecar per file name; the last item wins, like sequential single saves.
+        var uniqueItems = items
+            .GroupBy(item => Path.GetFileName(item.FileName), StringComparer.OrdinalIgnoreCase)
+            .Select(group => group.Last())
+            .ToList();
+
+        // Share per-sample gates with SaveAsync; sorted order prevents deadlock between batches.
+        var gates = uniqueItems
+            .Select(item => $"{galleryId:N}:{Path.GetFileName(item.FileName)}")
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(key => key, StringComparer.OrdinalIgnoreCase)
+            .Select(key => _sampleSaveGates.GetOrAdd(key, static _ => new SemaphoreSlim(1, 1)))
+            .ToList();
+        var acquiredGates = new List<SemaphoreSlim>(gates.Count);
+
+        var preparedFiles = new List<(string TempPath, string FinalPath, string BackupPath)>();
         var annotationsToInsert = new List<SqlAnnotation>();
         var fileNames = new List<string>();
         var newAnnotationsState = new Dictionary<string, (bool HasAnnotations, IReadOnlyList<string> Labels)>(StringComparer.OrdinalIgnoreCase);
+        var committed = false;
 
         try
         {
-            foreach (var item in items)
+            foreach (var gate in gates)
+            {
+                await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+                acquiredGates.Add(gate);
+            }
+
+            foreach (var item in uniqueItems)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var safeFileName = Path.GetFileName(item.FileName);
@@ -300,7 +323,7 @@ internal sealed class AnnotationWorkflowService : IAnnotationWorkflowService
                 var backupPath = annotationPath + "." + operationId + ".bak";
 
                 await File.WriteAllTextAsync(tempPath, documentJson, cancellationToken).ConfigureAwait(false);
-                preparedFiles.Add((tempPath, annotationPath, backupPath, File.Exists(annotationPath)));
+                preparedFiles.Add((tempPath, annotationPath, backupPath));
 
                 annotationsToInsert.Add(new SqlAnnotation
                 {
@@ -321,6 +344,7 @@ internal sealed class AnnotationWorkflowService : IAnnotationWorkflowService
             }
 
             await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+            var rollbackHandled = false;
             try
             {
                 await _db.Delete<SqlAnnotation>()
@@ -374,39 +398,132 @@ internal sealed class AnnotationWorkflowService : IAnnotationWorkflowService
                         transaction).ConfigureAwait(false);
                 }
 
-                foreach (var (tempPath, finalPath, backupPath, hadCanonical) in preparedFiles)
+                // Decide Replace vs Move at promotion time, under the gates, not before the transaction.
+                var promotedFiles = new List<(string FinalPath, string BackupPath, bool HadCanonical)>();
+                (string FinalPath, string BackupPath, bool HadCanonical)? currentPromotion = null;
+                try
                 {
-                    if (hadCanonical)
+                    cancellationToken.ThrowIfCancellationRequested();
+                    foreach (var (tempPath, finalPath, backupPath) in preparedFiles)
                     {
-                        File.Replace(tempPath, finalPath, backupPath, ignoreMetadataErrors: true);
-                    }
-                    else
-                    {
-                        File.Move(tempPath, finalPath, overwrite: false);
-                    }
-                }
+                        var hadCanonical = File.Exists(finalPath);
+                        currentPromotion = (finalPath, backupPath, hadCanonical);
+                        if (hadCanonical)
+                        {
+                            File.Replace(tempPath, finalPath, backupPath, ignoreMetadataErrors: true);
+                        }
+                        else
+                        {
+                            File.Move(tempPath, finalPath, overwrite: false);
+                        }
 
-                await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+                        promotedFiles.Add(currentPromotion.Value);
+                        currentPromotion = null;
+                    }
+
+                    await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+                    committed = true;
+                }
+                catch (Exception failure)
+                {
+                    rollbackHandled = true;
+                    var recoveryFailures = new List<Exception>();
+                    try
+                    {
+                        // A rejected SQLite COMMIT may already have rolled the transaction back.
+                        if (connection is not System.Data.SQLite.SQLiteConnection { AutoCommit: true })
+                        {
+                            await transaction.RollbackAsync(CancellationToken.None).ConfigureAwait(false);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        recoveryFailures.Add(ex);
+                    }
+
+                    // File.Replace can fail after it already produced the backup; restore that one too.
+                    if (currentPromotion is { HadCanonical: true } halfDone && File.Exists(halfDone.BackupPath))
+                    {
+                        promotedFiles.Add(halfDone);
+                    }
+
+                    for (var i = promotedFiles.Count - 1; i >= 0; i--)
+                    {
+                        var (finalPath, backupPath, hadCanonical) = promotedFiles[i];
+                        try
+                        {
+                            if (hadCanonical)
+                            {
+                                if (File.Exists(backupPath))
+                                {
+                                    File.Move(backupPath, finalPath, overwrite: true);
+                                }
+                            }
+                            else if (File.Exists(finalPath))
+                            {
+                                File.Delete(finalPath);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Failed to restore sidecar {FinalPath} from {BackupPath}", finalPath, backupPath);
+                            recoveryFailures.Add(ex);
+                        }
+                    }
+
+                    if (recoveryFailures.Count > 0)
+                    {
+                        throw new AggregateException(
+                            "批量保存标注失败，部分磁盘恢复未完成；请保留并检查标注文件与 .bak 备份。",
+                            new[] { failure }.Concat(recoveryFailures));
+                    }
+
+                    if (cancellationToken.IsCancellationRequested && failure is not OperationCanceledException)
+                    {
+                        throw new OperationCanceledException("批量保存标注已取消。", failure, cancellationToken);
+                    }
+
+                    throw;
+                }
             }
-            catch
+            catch when (!rollbackHandled)
             {
+                // SQL failed before any sidecar was promoted: only the transaction needs undoing.
                 if (connection is not System.Data.SQLite.SQLiteConnection { AutoCommit: true })
                 {
                     await transaction.RollbackAsync(CancellationToken.None).ConfigureAwait(false);
                 }
+
                 throw;
             }
         }
         finally
         {
-            foreach (var (tempPath, _, backupPath, _) in preparedFiles)
+            // Backups are deleted only after a successful commit (below); a failed restore keeps them.
+            foreach (var (tempPath, _, _) in preparedFiles)
             {
-                try { if (File.Exists(tempPath)) File.Delete(tempPath); } catch { }
-                try { if (File.Exists(backupPath)) File.Delete(backupPath); } catch { }
+                TryDeleteFile(tempPath);
+            }
+
+            foreach (var gate in acquiredGates)
+            {
+                gate.Release();
             }
         }
 
-        _logger.LogDebug("Batch saved annotations for {Count} samples in gallery {GalleryId}", items.Count, galleryId);
+        if (committed)
+        {
+            foreach (var (_, _, backupPath) in preparedFiles)
+            {
+                try { if (File.Exists(backupPath)) File.Delete(backupPath); }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Batch saved annotations but could not remove backup {BackupPath}", backupPath);
+                }
+            }
+        }
+
+        _logger.LogDebug("Batch saved annotations for {Count} samples in gallery {GalleryId}", uniqueItems.Count, galleryId);
     }
 
     private async Task SaveCoreAsync(

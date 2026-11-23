@@ -71,7 +71,15 @@ public sealed class InferenceConfig
 
     public double ConfidenceThreshold { get; set; } = 0.5;
 
-    /// <summary>NMS IoU threshold for detection models; ignored by classification.</summary>
+    /// <summary>
+    /// Sentinel for <see cref="NmsIouThreshold"/>: let the engine use the model sidecar's nms_iou.
+    /// </summary>
+    public const double UseModelNmsIou = 0;
+
+    /// <summary>
+    /// NMS IoU threshold for detection models; ignored by classification.
+    /// <see cref="UseModelNmsIou"/> (0) defers to the value saved with the model at training time.
+    /// </summary>
     public double NmsIouThreshold { get; set; } = 0.45;
 
     public int MaxDetections { get; set; } = InferenceMaxDetectionsLimits.Default;
@@ -91,7 +99,7 @@ public sealed class InferenceConfig
     public bool IsValid =>
         ModelId.HasValue
         && ConfidenceThreshold is > 0 and <= 1
-        && NmsIouThreshold is >= 0.05 and <= 0.95
+        && (NmsIouThreshold == UseModelNmsIou || NmsIouThreshold is >= 0.05 and <= 0.95)
         && MaxDetections is >= InferenceMaxDetectionsLimits.Min and <= InferenceMaxDetectionsLimits.Max
         && BatchSize > 0
         && InferenceMaxDetectionsLimits.NormalizeDevice(Device).IsSuccess;

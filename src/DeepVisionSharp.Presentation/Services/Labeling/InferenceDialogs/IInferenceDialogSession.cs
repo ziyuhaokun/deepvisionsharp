@@ -44,4 +44,5 @@ public sealed record InferenceDialogBuildContext(
     int MaxDetections,
     int BatchSize,
     string Device,
-    string DeviceDisplayName);
+    string DeviceDisplayName,
+    double NmsIou = 0.45);

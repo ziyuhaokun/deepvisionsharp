@@ -255,6 +255,55 @@ public sealed partial class LabelingEditorViewModel : ObservableObject,
         return await _persistence.SaveCurrentSampleAsync(refreshGallery: false, notifyUser: false);
     }
 
+    /// <summary>
+    /// Detection: replaces current boxes with auto-inference merged boxes, records undo history, and flushes save.
+    /// </summary>
+    public async Task<bool> ApplyDetectedBoxesAndSaveAsync(IReadOnlyList<AnnotationShape> mergedBoxes)
+    {
+        if (_context.ActiveSampleId is null || string.IsNullOrWhiteSpace(_context.ActiveFileName))
+        {
+            return false;
+        }
+
+        var currentBoxes = Boxes.Select(box => box.ToShape()).ToArray();
+        var boxesUnchanged = currentBoxes.Length == mergedBoxes.Count
+            && currentBoxes.SequenceEqual(mergedBoxes);
+        if (boxesUnchanged && IsReviewed)
+        {
+            return true;
+        }
+
+        if (!boxesUnchanged)
+        {
+            BeginBoxEdit();
+            _restoringHistory = true;
+            try
+            {
+                Boxes.Clear();
+                foreach (var shape in mergedBoxes)
+                {
+                    Boxes.Add(BoxShapeViewModel.FromShape(shape));
+                }
+            }
+            finally
+            {
+                _restoringHistory = false;
+            }
+        }
+
+        SelectedBox = null;
+        IsReviewed = true;
+        NotifyBoxState();
+        _persistence.CancelPendingSave();
+        var saved = await _persistence.SaveCurrentSampleAsync(refreshGallery: false, notifyUser: false);
+        if (saved)
+        {
+            DebouncedSaveCompleted?.Invoke(this, EventArgs.Empty);
+        }
+
+        return saved;
+    }
+
     /// <summary>Detection: label click chooses the class for new boxes and relabels the selected box.</summary>
     public void SetActiveBoxLabel(string label)
     {

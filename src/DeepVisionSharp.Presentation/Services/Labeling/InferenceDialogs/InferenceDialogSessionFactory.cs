@@ -12,6 +12,7 @@ public static class InferenceDialogSessionFactory
         workflow switch
         {
             ProjectWorkflowKind.Classification => ClassificationInferenceDialogSession.Instance,
+            ProjectWorkflowKind.Detection => DetectionInferenceDialogSession.Instance,
             _ => null
         };
 }

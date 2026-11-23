@@ -6,6 +6,8 @@ public enum AppDialogKind
     EditLabelColor,
     /// <summary>General image classification dialog.</summary>
     AutoInferenceClassification,
+    /// <summary>Object detection auto-inference dialog.</summary>
+    AutoInferenceDetection,
     InferenceDebug,
     ProjectLabelStatistics,
     GalleryBatchInference,

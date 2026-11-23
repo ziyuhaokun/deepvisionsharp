@@ -39,6 +39,7 @@ public sealed partial class LabelingInferenceViewModel : ObservableObject, ILabe
     private readonly LabelingInferenceRunner _runner;
     private readonly LabelingInferenceDebug _debug;
     private InferenceSettingsSnapshot? _inferenceSettingsBackup;
+    private bool? _lastIsClassificationProject;
 
     public LabelingInferenceViewModel(
         LabelingWorkspaceContext context,
@@ -64,8 +65,11 @@ public sealed partial class LabelingInferenceViewModel : ObservableObject, ILabe
         _debug = new LabelingInferenceDebug(this, mediator, appDialogService, snackbar, clipboard, logger, _catalog);
 
         _context.PropertyChanged += OnContextPropertyChanged;
+        ApplyWorkflowDefaultThresholdsIfChanged();
         RefreshInferenceDevices();
     }
+
+    public void CancelPendingInference() => _runner.Cancel();
 
     private IInferenceDialogSession ActiveSession =>
         InferenceDialogSessionFactory.Resolve(_context.WorkflowKind)
@@ -107,6 +111,9 @@ public sealed partial class LabelingInferenceViewModel : ObservableObject, ILabe
 
     [ObservableProperty]
     private double _inferenceConfidence = 0.5;
+
+    [ObservableProperty]
+    private double _inferenceNmsIou = 0.45;
 
     [ObservableProperty]
     private int _inferenceMaxDetections = 100;
@@ -200,7 +207,7 @@ public sealed partial class LabelingInferenceViewModel : ObservableObject, ILabe
         && _context.Gallery is not null
         && InferenceDialogSessionFactory.Resolve(_context.WorkflowKind) is not null;
 
-    public bool IsVisible => _context.IsClassificationProject;
+    public bool IsVisible => InferenceDialogSessionFactory.Resolve(_context.WorkflowKind) is not null;
 
     [RelayCommand(CanExecute = nameof(CanOpenInferenceDialog))]
     private async Task ShowAutoInferenceDialogAsync()
@@ -250,6 +257,7 @@ public sealed partial class LabelingInferenceViewModel : ObservableObject, ILabe
         _inferenceSettingsBackup = new InferenceSettingsSnapshot(
             SelectedInferenceModel,
             InferenceConfidence,
+            InferenceNmsIou,
             InferenceMaxDetections,
             InferenceBatchSize,
             SelectedInferenceDevice);
@@ -267,6 +275,7 @@ public sealed partial class LabelingInferenceViewModel : ObservableObject, ILabe
 
         SelectedInferenceModel = _inferenceSettingsBackup.SelectedModel;
         InferenceConfidence = _inferenceSettingsBackup.Confidence;
+        InferenceNmsIou = _inferenceSettingsBackup.NmsIou;
         InferenceMaxDetections = _inferenceSettingsBackup.MaxDetections;
         InferenceBatchSize = _inferenceSettingsBackup.BatchSize;
         SelectedInferenceDevice = _inferenceSettingsBackup.Device
@@ -352,7 +361,8 @@ public sealed partial class LabelingInferenceViewModel : ObservableObject, ILabe
             InferenceMaxDetections,
             InferenceBatchSize,
             normalizedDevice,
-            InferenceDeviceSummary);
+            InferenceDeviceSummary,
+            InferenceNmsIou);
     }
 
     private void RefreshInferenceDevices()
@@ -467,10 +477,23 @@ public sealed partial class LabelingInferenceViewModel : ObservableObject, ILabe
 
     public void NotifyProjectWorkflowChanged()
     {
+        ApplyWorkflowDefaultThresholdsIfChanged();
         OnPropertyChanged(nameof(IsVisible));
         NotifyInferenceConfigState();
         OnPropertyChanged(nameof(CanOpenInferenceDialog));
         NotifyInferenceCommandsCanExecute();
+    }
+
+    private void ApplyWorkflowDefaultThresholdsIfChanged()
+    {
+        var isClassification = _context.IsClassificationProject;
+        if (_lastIsClassificationProject == isClassification)
+        {
+            return;
+        }
+
+        _lastIsClassificationProject = isClassification;
+        InferenceConfidence = isClassification ? 0.5 : 0.25;
     }
 
     private Result<ResolvedTaskProfile> TryResolveSelectedProfile()
@@ -497,6 +520,8 @@ public sealed partial class LabelingInferenceViewModel : ObservableObject, ILabe
 
     partial void OnInferenceConfidenceChanged(double value) => NotifyInferenceConfigState();
 
+    partial void OnInferenceNmsIouChanged(double value) => NotifyInferenceConfigState();
+
     partial void OnInferenceMaxDetectionsChanged(int value) => NotifyInferenceConfigState();
 
     partial void OnInferenceBatchSizeChanged(int value) => NotifyInferenceConfigState();
@@ -513,6 +538,7 @@ public sealed partial class LabelingInferenceViewModel : ObservableObject, ILabe
     private sealed record InferenceSettingsSnapshot(
         InferenceModelOption? SelectedModel,
         double Confidence,
+        double NmsIou,
         int MaxDetections,
         int BatchSize,
         InferenceDeviceOption? Device);
