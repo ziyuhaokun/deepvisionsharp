@@ -1,5 +1,4 @@
-using System.Text.Json;
-using System.Text.Json.Nodes;
+using DeepVisionSharp.Domain.Datasets;
 
 namespace DeepVisionSharp.TorchSharp.Training;
 
@@ -32,27 +31,21 @@ public sealed class ClassificationFolderDataset
             throw new DirectoryNotFoundException($"分类数据集目录不存在：{datasetRoot}");
         }
 
-        var manifestPath = Path.Combine(datasetRoot, "dataset-manifest.json");
+        var manifestPath = Path.Combine(datasetRoot, DatasetManifest.FileName);
         if (!File.Exists(manifestPath))
         {
             throw new FileNotFoundException("缺少 dataset-manifest.json", manifestPath);
         }
 
-        var root = JsonNode.Parse(File.ReadAllText(manifestPath)) as JsonObject
-            ?? throw new InvalidOperationException("dataset-manifest.json 格式错误");
-
-        var classesNode = root["classes"] as JsonArray
-            ?? throw new InvalidOperationException("dataset-manifest.json 缺少 classes");
-        var classes = classesNode
-            .Select(node => node?.GetValue<string>()?.Trim() ?? string.Empty)
+        var manifest = DatasetManifest.Read(manifestPath, DatasetManifest.Classification);
+        var classes = (manifest.Classes ?? [])
+            .Select(name => name?.Trim() ?? string.Empty)
             .Where(name => !string.IsNullOrWhiteSpace(name))
             .ToList();
         if (classes.Count < 2)
         {
             throw new InvalidOperationException("分类数据集至少需要 2 个类别");
         }
-
-        var fingerprint = root["dataset_fingerprint"]?.GetValue<string>() ?? string.Empty;
 
         // 导出布局：train/0000, train/0001 … 与 classes 顺序一一对应
         var train = LoadSplit(datasetRoot, "train", classes.Count);
@@ -66,7 +59,7 @@ public sealed class ClassificationFolderDataset
         {
             Root = Path.GetFullPath(datasetRoot),
             Classes = classes,
-            Fingerprint = fingerprint,
+            Fingerprint = manifest.DatasetFingerprint ?? string.Empty,
             TrainSamples = train,
             ValSamples = val
         };

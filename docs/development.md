@@ -29,6 +29,12 @@ Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/ultralytics/ultralytic
 
 验证覆盖官方权重的下载与转换、检测和分类的张量映射、分类骨干迁移，以及真实图片的分类和检测输出。可用 `DV_PRETRAINED_ROOT` 指定已有权重的根目录，例如 `<root>/yolo26n/index.json`。离线准备时，可给 `fetch_pretrained.ps1` 传入 `-SourcePath` 指向本地官方权重文件。
 
+## 训练数据集清单
+
+新导出的分类和检测数据集使用 `dataset-manifest.json` v2。清单按训练时的类别索引顺序保存类别，并记录每张图片的拆分归属、相对路径和图片 SHA-256。分类记录实际类别索引，检测记录实际导出的 YOLO 标签文本 SHA-256。`split_overlap_count` 统计同时出现在 train 和 val 的图库样本数，按图库 ID 和完整原文件名识别样本。自动拆分记录算法和 seed，手动指定图库角色记录 `purpose-assignment`。
+
+v2 指纹根据类别与导出样本内容计算。旧数据集继续按 v1 清单读取，旧指纹的计算口径与 v2 不同。摘要反映导出当时读取的文件，训练加载时沿用已有目录布局。硬链接仍共享图片内容，导出后原位修改源图片可能改变训练看到的内容。
+
 ## 本地产物
 
 - `temp/` 存放一次性探针、日志、测试样图和其他调试数据。

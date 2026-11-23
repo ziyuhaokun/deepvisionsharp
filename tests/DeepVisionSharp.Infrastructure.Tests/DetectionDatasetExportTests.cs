@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -66,13 +67,29 @@ public sealed class DetectionDatasetExportTests
                     [new AnnotationShape(label, AnnotationShapeKind.Rectangle, x, 10, 10, 10)], isReviewed: true);
             }
 
+            var roles = new Dictionary<Guid, GalleryDatasetRole> { [galleryId] = GalleryDatasetRole.TrainingAndValidation };
+            async Task<DatasetManifest> ExportAsync(string output, TrainingDatasetSplitMode splitMode)
+            {
+                var result = await exporter.ExportAsync(projectId, [galleryId], roles,
+                    splitMode, 0.2, ["scratch", "dent"], output);
+                Assert.True(result.IsSuccess, result.Error);
+                var manifest = DatasetManifest.Read(Path.Combine(output, DatasetManifest.FileName), DatasetManifest.Detection);
+                Assert.Equal(result.Value!.DatasetFingerprint, manifest.DatasetFingerprint);
+                return manifest;
+            }
+
             var output = Path.Combine(directory.FullName, "dataset");
-            var result = await exporter.ExportAsync(projectId, [galleryId],
-                new Dictionary<Guid, GalleryDatasetRole> { [galleryId] = GalleryDatasetRole.TrainingAndValidation },
-                TrainingDatasetSplitMode.PurposeAssignment, 0.2, ["scratch", "dent"], output);
-            Assert.True(result.IsSuccess, result.Error);
+            var first = await ExportAsync(output, TrainingDatasetSplitMode.PurposeAssignment);
+            Assert.Equal(2, first.SchemaVersion);
+            Assert.Equal(2, first.SplitOverlapCount);
+            Assert.Equal("purpose-assignment", first.SplitMethod);
+            Assert.Null(first.SplitSeed);
+            Assert.Equal(new[] { "scratch", "dent" }, first.Classes);
+            Assert.Equal(2, first.TrainingBoxes);
+            Assert.Equal(2, first.ValidationBoxes);
 
             var dataset = DetectionFolderDataset.Load(output);
+            Assert.Equal(first.DatasetFingerprint, dataset.Fingerprint);
             foreach (var split in new[] { dataset.Train, dataset.Val })
             {
                 Assert.Equal(2, split.Count);
@@ -84,8 +101,27 @@ public sealed class DetectionDatasetExportTests
                     var isJpeg = Path.GetExtension(sample.ImagePath) == ".jpg";
                     Assert.Equal(isJpeg ? 0 : 1, box.ClassIndex);
                     Assert.Equal(isJpeg ? 0.15 : 0.65, box.CenterX, precision: 5);
+                    var relative = Path.GetRelativePath(output, sample.ImagePath).Replace(Path.DirectorySeparatorChar, '/');
+                    var entry = Assert.Single(first.Samples!, entry => entry.ImagePath == relative);
+                    Assert.Equal(Convert.ToHexStringLower(SHA256.HashData(await File.ReadAllBytesAsync(sample.LabelPath))),
+                        entry.LabelSha256);
                 }
             }
+
+            var repeat = await ExportAsync(Path.Combine(directory.FullName, "same"), TrainingDatasetSplitMode.PurposeAssignment);
+            Assert.Equal(first.DatasetFingerprint, repeat.DatasetFingerprint);
+            Assert.Equal(first.Samples, repeat.Samples);
+
+            await workflow.SaveAsync(galleryId, "part.jpg", 100, 100, null,
+                [new AnnotationShape("scratch", AnnotationShapeKind.Rectangle, 20, 10, 10, 10)], isReviewed: true);
+            var changed = await ExportAsync(Path.Combine(directory.FullName, "changed"), TrainingDatasetSplitMode.PurposeAssignment);
+            Assert.NotEqual(first.DatasetFingerprint, changed.DatasetFingerprint);
+            Assert.Equal(first.Samples!.Select(item => item.ImageSha256), changed.Samples!.Select(item => item.ImageSha256));
+
+            var automatic = await ExportAsync(Path.Combine(directory.FullName, "auto"), TrainingDatasetSplitMode.AutoSplit);
+            Assert.Equal("global-hash-rank-v1", automatic.SplitMethod);
+            Assert.Equal(ClassificationSplitPlanner.Seed, automatic.SplitSeed);
+            Assert.Equal(0, automatic.SplitOverlapCount);
         }
         finally
         {

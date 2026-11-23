@@ -1,10 +1,8 @@
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using DeepVisionSharp.Application.Galleries;
 using DeepVisionSharp.Application.Ports;
 using DeepVisionSharp.Domain.Common;
+using DeepVisionSharp.Domain.Datasets;
 using DeepVisionSharp.Domain.Repositories;
 using DeepVisionSharp.Domain.ValueObjects;
 
@@ -136,11 +134,12 @@ internal sealed class ClassificationDatasetExportService : IClassificationDatase
                     $"图像分类训练至少需要 2 个不同类别（当前样本仅包含 {effectiveClasses.Length} 个类别：{string.Join("、", effectiveClasses)}）。");
             }
 
-            var classDirectories = effectiveClasses
-                .Select((value, index) => (value, directory: index.ToString("D4")))
-                .ToDictionary(item => item.value, item => item.directory, StringComparer.OrdinalIgnoreCase);
+            var classIndexes = effectiveClasses
+                .Select((name, index) => (name, index))
+                .ToDictionary(item => item.name, item => item.index, StringComparer.OrdinalIgnoreCase);
 
-            var assignments = splitMode == TrainingDatasetSplitMode.PurposeAssignment
+            var byPurpose = splitMode == TrainingDatasetSplitMode.PurposeAssignment;
+            var assignments = byPurpose
                 ? AssignByPurpose(samples, galleryRoles, effectiveClasses)
                 : AssignAutomatically(samples, validationRatio, effectiveClasses);
             if (assignments.IsFailure || assignments.Value is null)
@@ -152,41 +151,29 @@ internal sealed class ClassificationDatasetExportService : IClassificationDatase
 
             foreach (var split in new[] { "train", "val" })
             {
-                foreach (var imageClass in effectiveClasses)
+                for (var index = 0; index < effectiveClasses.Length; index++)
                 {
-                    Directory.CreateDirectory(Path.Combine(outputRoot, split, classDirectories[imageClass]));
+                    Directory.CreateDirectory(Path.Combine(outputRoot, split, index.ToString("D4")));
                 }
             }
 
+            var manifestWriter = new DatasetManifestWriter(outputRoot);
             foreach (var assignment in assignments.Value)
             {
-                var extension = Path.GetExtension(assignment.Sample.FileName);
-                var safeName = $"{assignment.Sample.GalleryId:N}_{Path.GetFileNameWithoutExtension(assignment.Sample.FileName)}{extension}";
-                var target = Path.Combine(
-                    outputRoot,
-                    assignment.Split,
-                    classDirectories[assignment.Sample.ImageClass],
-                    safeName);
-                FastFileLinker.TryLinkOrCopy(assignment.Sample.SourcePath, target, overwrite: true);
+                var sample = assignment.Sample;
+                var classIndex = classIndexes[sample.ImageClass];
+                var safeName = $"{sample.GalleryId:N}_{sample.FileName}";
+                var target = Path.Combine(outputRoot, assignment.Split, classIndex.ToString("D4"), safeName);
+                await manifestWriter.ExportImageAsync(sample.GalleryId, sample.FileName, assignment.Split,
+                    sample.SourcePath, target, cancellationToken, classIndex: classIndex).ConfigureAwait(false);
             }
 
-            var trainCount = assignments.Value.Count(item => item.Split == "train");
-            var valCount = assignments.Value.Count(item => item.Split == "val");
-            var fingerprint = ComputeFingerprint(assignments.Value);
-            await File.WriteAllTextAsync(
-                Path.Combine(outputRoot, "dataset-manifest.json"),
-                JsonSerializer.Serialize(new
-                {
-                    schema_version = 1,
-                    classes = effectiveClasses,
-                    dataset_fingerprint = fingerprint,
-                    training_count = trainCount,
-                    validation_count = valCount,
-                    // Recorded so a split can be reproduced or audited; purpose-based splits ignore it.
-                    split_method = ClassificationSplitPlanner.Method,
-                    split_seed = ClassificationSplitPlanner.Seed
-                }, new JsonSerializerOptions { WriteIndented = true }),
-                cancellationToken);
+            var manifest = await manifestWriter.WriteAsync(DatasetManifest.Classification, effectiveClasses,
+                byPurpose ? "purpose-assignment" : ClassificationSplitPlanner.Method,
+                byPurpose ? null : ClassificationSplitPlanner.Seed, cancellationToken).ConfigureAwait(false);
+            var trainCount = manifest.TrainingCount!.Value;
+            var valCount = manifest.ValidationCount!.Value;
+            var fingerprint = manifest.DatasetFingerprint!;
             var result = new ClassificationDatasetExportResult(
                 outputRoot,
                 total,
@@ -283,17 +270,6 @@ internal sealed class ClassificationDatasetExportService : IClassificationDatase
             }
         }
         return Result<List<SplitAssignment>>.Success(assignments);
-    }
-
-    private static string ComputeFingerprint(IEnumerable<SplitAssignment> assignments)
-    {
-        var text = string.Join("\n", assignments
-            .OrderBy(item => item.Split, StringComparer.Ordinal)
-            .ThenBy(item => item.Sample.ImageClass, StringComparer.Ordinal)
-            .ThenBy(item => item.Sample.GalleryId)
-            .ThenBy(item => item.Sample.FileName, StringComparer.Ordinal)
-            .Select(item => $"{item.Split}|{item.Sample.ImageClass}|{item.Sample.GalleryId:N}|{item.Sample.FileName}"));
-        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
     }
 
     private static string? NormalizeClass(string? value, IReadOnlyList<string> classes)

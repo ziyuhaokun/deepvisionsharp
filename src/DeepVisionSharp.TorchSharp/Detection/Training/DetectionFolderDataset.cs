@@ -1,5 +1,4 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
+using DeepVisionSharp.Domain.Datasets;
 
 namespace DeepVisionSharp.TorchSharp.Detection.Training;
 
@@ -24,15 +23,14 @@ public static class DetectionFolderDataset
     public static DetectionDataset Load(string root)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(root);
-        var manifestPath = Path.Combine(root, "dataset-manifest.json");
+        var manifestPath = Path.Combine(root, DatasetManifest.FileName);
         if (!File.Exists(manifestPath))
         {
             throw new InvalidDataException($"检测数据集缺少 dataset-manifest.json：{root}");
         }
 
-        var manifest = JsonSerializer.Deserialize<Manifest>(File.ReadAllText(manifestPath), Options)
-            ?? throw new InvalidDataException($"dataset-manifest.json 无法解析：{manifestPath}");
-        if (manifest.Classes is not { Count: > 0 })
+        var manifest = DatasetManifest.Read(manifestPath, DatasetManifest.Detection);
+        if (manifest.Classes is not { Length: > 0 })
         {
             throw new InvalidDataException("检测数据集清单缺少类别（classes）。");
         }
@@ -75,20 +73,5 @@ public static class DetectionFolderDataset
 
         samples.Sort((left, right) => string.CompareOrdinal(left.ImagePath, right.ImagePath));
         return samples;
-    }
-
-    private static readonly JsonSerializerOptions Options = new()
-    {
-        PropertyNameCaseInsensitive = true,
-        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
-    };
-
-    private sealed class Manifest
-    {
-        [JsonPropertyName("classes")]
-        public List<string>? Classes { get; set; }
-
-        [JsonPropertyName("dataset_fingerprint")]
-        public string? DatasetFingerprint { get; set; }
     }
 }

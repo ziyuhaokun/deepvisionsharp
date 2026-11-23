@@ -9,6 +9,8 @@ namespace DeepVisionSharp.Infrastructure.Services;
 /// </summary>
 internal static class DetectionSplitPlanner
 {
+    internal const string Method = "global-hash-rank-v1";
+
     public static Result<bool[]> AssignValidationByRank(
         IReadOnlyList<(Guid GalleryId, string FileName)> samples,
         double validationRatio)

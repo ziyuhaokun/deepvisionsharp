@@ -1,6 +1,5 @@
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using OpenCvSharp;
 using DeepVisionSharp.Application.Galleries;
@@ -148,7 +147,8 @@ internal sealed class DetectionDatasetExportService : IDetectionDatasetExportSer
                 return Result<DetectionDatasetExportResult>.Failure("没有可用的检测样本（需要已标注或已标记无目标的图像）。");
             }
 
-            var assignments = splitMode == TrainingDatasetSplitMode.PurposeAssignment
+            var byPurpose = splitMode == TrainingDatasetSplitMode.PurposeAssignment;
+            var assignments = byPurpose
                 ? AssignByPurpose(samples, galleryRoles)
                 : AssignAutomatically(samples, validationRatio);
             if (assignments.IsFailure || assignments.Value is null)
@@ -163,6 +163,7 @@ internal sealed class DetectionDatasetExportService : IDetectionDatasetExportSer
                 Directory.CreateDirectory(Path.Combine(outputRoot, split, "labels"));
             }
 
+            var manifestWriter = new DatasetManifestWriter(outputRoot);
             var trainingBoxes = 0;
             var validationBoxes = 0;
             foreach (var assignment in assignments.Value)
@@ -176,11 +177,10 @@ internal sealed class DetectionDatasetExportService : IDetectionDatasetExportSer
                 var stem = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(identity)));
                 var targetImage = Path.Combine(outputRoot, assignment.Split, "images", stem + extension);
                 var targetLabel = Path.Combine(outputRoot, assignment.Split, "labels", stem + ".txt");
-                FastFileLinker.TryLinkOrCopy(sample.SourcePath, targetImage, overwrite: true);
-                await File.WriteAllTextAsync(
-                    targetLabel,
-                    YoloDatasetFormat.FormatLabels(sample.Boxes, sample.ImageWidth, sample.ImageHeight),
-                    cancellationToken).ConfigureAwait(false);
+                var labelText = YoloDatasetFormat.FormatLabels(sample.Boxes, sample.ImageWidth, sample.ImageHeight);
+                await File.WriteAllTextAsync(targetLabel, labelText, cancellationToken).ConfigureAwait(false);
+                await manifestWriter.ExportImageAsync(sample.GalleryId, sample.FileName, assignment.Split,
+                    sample.SourcePath, targetImage, cancellationToken, labelText: labelText).ConfigureAwait(false);
 
                 if (assignment.Split == "train")
                 {
@@ -192,27 +192,13 @@ internal sealed class DetectionDatasetExportService : IDetectionDatasetExportSer
                 }
             }
 
-            var trainCount = assignments.Value.Count(item => item.Split == "train");
-            var valCount = assignments.Value.Count(item => item.Split == "val");
-            var fingerprint = ComputeFingerprint(assignments.Value);
-            await File.WriteAllTextAsync(
-                Path.Combine(outputRoot, "dataset-manifest.json"),
-                JsonSerializer.Serialize(new
-                {
-                    schema_version = 1,
-                    task = "detect",
-                    classes = effectiveClasses,
-                    dataset_fingerprint = fingerprint,
-                    training_count = trainCount,
-                    validation_count = valCount,
-                    training_boxes = trainingBoxes,
-                    validation_boxes = validationBoxes,
-                    split_method = assignments.Value.All(item => item.SplitSource == "purpose")
-                        ? "purpose-assignment"
-                        : ClassificationSplitPlanner.Method,
-                    split_seed = ClassificationSplitPlanner.Seed
-                }, new JsonSerializerOptions { WriteIndented = true }),
-                cancellationToken).ConfigureAwait(false);
+            var manifest = await manifestWriter.WriteAsync(DatasetManifest.Detection, effectiveClasses,
+                byPurpose ? "purpose-assignment" : DetectionSplitPlanner.Method,
+                byPurpose ? null : ClassificationSplitPlanner.Seed, cancellationToken,
+                trainingBoxes, validationBoxes).ConfigureAwait(false);
+            var trainCount = manifest.TrainingCount!.Value;
+            var valCount = manifest.ValidationCount!.Value;
+            var fingerprint = manifest.DatasetFingerprint!;
 
             var result = new DetectionDatasetExportResult(
                 outputRoot,
@@ -257,8 +243,7 @@ internal sealed class DetectionDatasetExportService : IDetectionDatasetExportSer
         var assignments = samples
             .Select((sample, index) => new SplitAssignment(
                 sample,
-                split.Value[index] ? "val" : "train",
-                "rank"))
+                split.Value[index] ? "val" : "train"))
             .ToList();
         return ValidateAssignments(assignments);
     }
@@ -277,12 +262,12 @@ internal sealed class DetectionDatasetExportService : IDetectionDatasetExportSer
 
             if (role is GalleryDatasetRole.Training or GalleryDatasetRole.TrainingAndValidation)
             {
-                assignments.Add(new SplitAssignment(sample, "train", "purpose"));
+                assignments.Add(new SplitAssignment(sample, "train"));
             }
 
             if (role is GalleryDatasetRole.Validation or GalleryDatasetRole.TrainingAndValidation)
             {
-                assignments.Add(new SplitAssignment(sample, "val", "purpose"));
+                assignments.Add(new SplitAssignment(sample, "val"));
             }
         }
 
@@ -302,18 +287,6 @@ internal sealed class DetectionDatasetExportService : IDetectionDatasetExportSer
         }
 
         return Result<List<SplitAssignment>>.Success(assignments);
-    }
-
-    private static string ComputeFingerprint(IEnumerable<SplitAssignment> assignments)
-    {
-        var text = string.Join("\n", assignments
-            .OrderBy(item => item.Split, StringComparer.Ordinal)
-            .ThenBy(item => item.Sample.GalleryId)
-            .ThenBy(item => item.Sample.FileName, StringComparer.Ordinal)
-            .Select(item =>
-                $"{item.Split}|{item.Sample.GalleryId:N}|{item.Sample.FileName}|" +
-                string.Join(",", item.Sample.Boxes.Select(box => $"{box.ClassIndex}:{box.Shape.X:0.###}:{box.Shape.Y:0.###}:{box.Shape.Width:0.###}:{box.Shape.Height:0.###}"))));
-        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
     }
 
     private static (double Width, double Height) ReadImageSize(string imagePath)
@@ -337,8 +310,5 @@ internal sealed class DetectionDatasetExportService : IDetectionDatasetExportSer
         double ImageHeight,
         IReadOnlyList<(int ClassIndex, AnnotationShape Shape)> Boxes);
 
-    private sealed record SplitAssignment(
-        DetectionSample Sample,
-        string Split,
-        string SplitSource);
+    private sealed record SplitAssignment(DetectionSample Sample, string Split);
 }
