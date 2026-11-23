@@ -6,11 +6,11 @@ using static TorchSharp.torch;
 namespace DeepVisionSharp.TorchSharp.Classification.Pretrained;
 
 /// <summary>
-/// Reads the flat tensor bundle produced by <c>scripts/convert_torchvision_weights.py</c>.
+/// Reads the flat tensor bundle produced by <see cref="PretrainedBundleWriter"/>.
 /// </summary>
 /// <remarks>
 /// TorchSharp 0.107 cannot read a PyTorch state dict (<c>torch.load</c> returns a single tensor and
-/// <c>Module.load</c> expects TorchSharp's own format), so the conversion happens offline and the
+/// <c>Module.load</c> expects TorchSharp's own format), so the downloader converts the checkpoint and the
 /// product only reads raw little-endian blobs plus an index.
 /// </remarks>
 public sealed class PretrainedWeightsBundle : IDisposable

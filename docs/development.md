@@ -1,6 +1,6 @@
 # 开发与验证
 
-在仓库根目录使用 Windows x64、.NET 10 SDK 和 PowerShell 7。真实权重验证还需要 Python 3 和 NumPy 来转换权重。普通推理与训练使用应用自带的 TorchSharp 运行时，GPU 训练需要 NVIDIA 驱动。
+在仓库根目录使用 Windows x64、.NET 10 SDK 和 PowerShell 7。官方权重由 C# 下载和转换。普通推理与训练使用应用自带的 TorchSharp 运行时，GPU 训练需要 NVIDIA 驱动。
 
 ## 验证命令
 
@@ -17,7 +17,7 @@
 
 ## 准备真实权重测试
 
-转换脚本下载 Ultralytics v8.4.0 的权重。下面的样图也固定到 v8.4.0。
+以下命令用 C# 准备 YOLO26-N 的检测与分类权重。权重和样图均来自 Ultralytics v8.4.0。
 
 ```powershell
 .\scripts\fetch_pretrained.ps1 -Arch yolo26n
@@ -27,7 +27,7 @@ Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/ultralytics/ultralytic
 .\scripts\verify.ps1 -Mode Pretrained
 ```
 
-验证覆盖检测和分类的张量映射、分类骨干迁移，以及真实图片的分类和检测输出。已有转换产物也可用 `DV_PRETRAINED_ROOT` 指定根目录。单个权重的目录和脚本参数保持一致，例如 `<root>/yolo26n/index.json`。
+验证覆盖官方权重的下载与转换、检测和分类的张量映射、分类骨干迁移，以及真实图片的分类和检测输出。可用 `DV_PRETRAINED_ROOT` 指定已有权重的根目录，例如 `<root>/yolo26n/index.json`。离线准备时，可给 `fetch_pretrained.ps1` 传入 `-SourcePath` 指向本地官方权重文件。
 
 ## 本地产物
 

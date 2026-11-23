@@ -4,9 +4,9 @@ namespace DeepVisionSharp.TorchSharp.Models;
 /// Finds the converted pretrained bundle for an architecture.
 /// </summary>
 /// <remarks>
-/// Weights are not shipped with the installer: <c>scripts/fetch_pretrained.ps1</c> writes them under
+/// Downloaded weights are stored under
 /// <c>%LOCALAPPDATA%\DeepVisionSharp\Models\pretrained\&lt;arch&gt;</c> (or <c>DV_PRETRAINED_ROOT</c>).
-/// The script uses the torchvision names (<c>resnet18</c>, <c>resnet34</c>) and the Ultralytics ones
+/// The downloader uses the torchvision names (<c>resnet18</c>, <c>resnet34</c>) and the Ultralytics ones
 /// (<c>yolo26n</c>, <c>yolo26n-cls</c>). Training asks with the internal v2 names, and ResNet-Tiny is
 /// sliced from the ResNet-18 bundle, so both names are tried. A missing bundle is normal and means
 /// "train from scratch".
@@ -53,13 +53,13 @@ public static class PretrainedWeightsLocator
     }
 
     /// <summary>
-    /// Internal architecture name first, then the directory name written by the fetch script.
+    /// Internal architecture name first, then the directory name written by the downloader.
     /// Tiny has no bundle of its own; its narrower stages are sliced from ResNet-18.
     /// </summary>
     private static IEnumerable<string> CandidateNames(string archName)
     {
         var normalized = archName.Trim().ToLowerInvariant();
-        var candidates = TryResolveYolo26(normalized, out var scale, out var classifier)
+        var candidates = TryParseYolo26(normalized, out var scale, out var classifier)
             ? classifier
                 ? new[] { $"yolo26{scale}-cls" }
                 // A detection model can also start from the classification bundle, which carries the
@@ -85,9 +85,9 @@ public static class PretrainedWeightsLocator
 
     /// <summary>
     /// Recognises the YOLO26 names the trainers pass (<c>yolo26n-cls</c>, <c>yolo26-n-det</c>) and the
-    /// bundle directories the fetch script writes (<c>yolo26n</c>, <c>yolo26n-cls</c>).
+    /// bundle directories the downloader writes (<c>yolo26n</c>, <c>yolo26n-cls</c>).
     /// </summary>
-    private static bool TryResolveYolo26(string normalized, out char scale, out bool classifier)
+    internal static bool TryParseYolo26(string normalized, out char scale, out bool classifier)
     {
         scale = default;
         classifier = false;

@@ -49,8 +49,8 @@ public sealed class PretrainedWeightsDownloadTests : IDisposable
         // Same storage seen through transposed strides: must come out as [[1,3],[2,4]].
         Assert.Equal(new[] { 1f, 3f, 2f, 4f }, ToFloats(tensors["layer.transposed"].Data));
 
-        // Scalar int64 (BatchNorm's num_batches_tracked).
-        Assert.Empty(tensors["bn.num_batches_tracked"].Shape);
+        // Scalar int64 (BatchNorm's num_batches_tracked) is stored as shape [1], like the Python converter did.
+        Assert.Equal(new long[] { 1 }, tensors["bn.num_batches_tracked"].Shape);
         Assert.Equal("int64", tensors["bn.num_batches_tracked"].Dtype);
         Assert.Equal(7L, BitConverter.ToInt64(tensors["bn.num_batches_tracked"].Data));
     }
@@ -91,13 +91,31 @@ public sealed class PretrainedWeightsDownloadTests : IDisposable
         var downloader = new PretrainedWeightsDownloader(FakeClient(bytes), () => root);
         var progress = new List<double>();
 
-        var target = await downloader.DownloadAsync(source, new Progress<double>(progress.Add));
-        await Task.Delay(100); // Progress<T> posts to the thread pool.
+        var target = await downloader.DownloadAsync(source, new InlineProgress(progress.Add));
 
         Assert.Equal(Path.Combine(root, "resnet18"), target);
         Assert.True(File.Exists(Path.Combine(target, "index.json")));
         Assert.Equal(new[] { "resnet18" }, Directory.GetDirectories(root).Select(Path.GetFileName));
         Assert.Contains(1.0, progress);
+    }
+
+    [Fact]
+    public async Task Local_conversion_preserves_the_checkpoint_and_an_existing_bundle()
+    {
+        var checkpoint = WriteCheckpoint();
+        var source = SourceFor("00000000");
+        var root = Path.Combine(_root, "pretrained");
+        using var client = FakeClient([]);
+        var downloader = new PretrainedWeightsDownloader(client, () => root);
+
+        var target = await downloader.DownloadAsync(source, sourcePath: checkpoint);
+        var existingFile = Path.Combine(target, "existing.txt");
+        File.WriteAllText(existingFile, "keep");
+        await downloader.DownloadAsync(source, sourcePath: checkpoint);
+
+        Assert.True(File.Exists(checkpoint));
+        Assert.Equal("keep", File.ReadAllText(existingFile));
+        Assert.Equal(new[] { "resnet18" }, Directory.GetDirectories(root).Select(Path.GetFileName));
     }
 
     [Fact]
@@ -114,12 +132,12 @@ public sealed class PretrainedWeightsDownloadTests : IDisposable
     }
 
     [Fact]
-    public void Catalog_maps_internal_arch_names_and_leaves_yolo_to_the_python_converter()
+    public void Catalog_maps_internal_arch_names()
     {
         Assert.Equal("resnet18", PretrainedWeightsCatalog.ForArch("resnet18_v2")!.Arch);
         Assert.Equal("resnet18", PretrainedWeightsCatalog.ForArch("resnet_tiny_v2")!.Arch);
         Assert.Equal("resnet34", PretrainedWeightsCatalog.ForArch("resnet34_v2")!.Arch);
-        Assert.Null(PretrainedWeightsCatalog.ForArch("yolo26n-cls"));
+        Assert.Null(PretrainedWeightsCatalog.ForArch("unknown-net"));
         Assert.Null(PretrainedWeightsCatalog.ForArch(null));
     }
 
@@ -131,6 +149,11 @@ public sealed class PretrainedWeightsDownloadTests : IDisposable
     private static string Hash(byte[] bytes) => Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
 
     private static HttpClient FakeClient(byte[] payload) => new(new StubHandler(payload));
+
+    private sealed class InlineProgress(Action<double> action) : IProgress<double>
+    {
+        public void Report(double value) => action(value);
+    }
 
     private sealed class StubHandler(byte[] payload) : HttpMessageHandler
     {

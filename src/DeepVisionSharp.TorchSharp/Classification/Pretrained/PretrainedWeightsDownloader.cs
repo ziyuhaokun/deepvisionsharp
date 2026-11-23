@@ -4,43 +4,107 @@ using DeepVisionSharp.TorchSharp.Models;
 
 namespace DeepVisionSharp.TorchSharp.Classification.Pretrained;
 
-/// <summary>One downloadable ImageNet checkpoint.</summary>
-/// <param name="Arch">Bundle directory name, as <see cref="PretrainedWeightsLocator"/> looks it up.</param>
-/// <param name="Url">Official torchvision download address.</param>
-/// <param name="Sha256Prefix">torchvision names files <c>name-&lt;first 8 hex of sha256&gt;.pth</c>.</param>
-/// <param name="ApproxMegabytes">Download size, for the UI only.</param>
-public sealed record PretrainedWeightsSource(string Arch, string DisplayName, string Url, string Sha256Prefix, int ApproxMegabytes);
+/// <summary>How a downloaded checkpoint is laid out.</summary>
+public enum PretrainedCheckpointFormat
+{
+    /// <summary>A plain state dict (torchvision <c>.pth</c>).</summary>
+    StateDict,
 
-/// <summary>Which classification architectures can fetch ImageNet weights, and from where.</summary>
+    /// <summary>An Ultralytics training result (<c>.pt</c>) holding a pickled module tree.</summary>
+    UltralyticsCheckpoint,
+}
+
+/// <summary>One downloadable pretrained checkpoint.</summary>
+/// <param name="Arch">Bundle directory name, as <see cref="PretrainedWeightsLocator"/> looks it up.</param>
+/// <param name="Url">Official download address.</param>
+/// <param name="Sha256Prefix">Expected SHA-256, in full or as a prefix (torchvision only publishes the first 8 hex).</param>
+/// <param name="ApproxMegabytes">Download size, for the UI only.</param>
+public sealed record PretrainedWeightsSource(
+    string Arch,
+    string DisplayName,
+    string Url,
+    string Sha256Prefix,
+    int ApproxMegabytes,
+    PretrainedCheckpointFormat Format = PretrainedCheckpointFormat.StateDict);
+
+/// <summary>Which architectures can fetch pretrained weights, and from where.</summary>
 public static class PretrainedWeightsCatalog
 {
+    private const string UltralyticsRelease = "https://github.com/ultralytics/assets/releases/download/v8.4.0";
+
     private static readonly PretrainedWeightsSource ResNet18 = new(
         "resnet18", "ResNet-18", "https://download.pytorch.org/models/resnet18-f37072fd.pth", "f37072fd", 45);
 
     private static readonly PretrainedWeightsSource ResNet34 = new(
         "resnet34", "ResNet-34", "https://download.pytorch.org/models/resnet34-b627a593.pth", "b627a593", 84);
 
-    public static IReadOnlyList<PretrainedWeightsSource> All { get; } = [ResNet18, ResNet34];
+    // Pinned to the v8.4.0 release assets; the hashes were taken from those exact files, so a changed
+    // upload fails the check instead of silently installing different weights.
+    private static readonly Dictionary<string, PretrainedWeightsSource> Yolo = BuildYolo();
+
+    public static IReadOnlyList<PretrainedWeightsSource> All { get; } = [ResNet18, ResNet34, .. Yolo.Values];
 
     /// <summary>
-    /// Source for an internal architecture name (<c>resnet34_v2</c> and friends). ResNet-Tiny is sliced
-    /// from the ResNet-18 bundle. YOLO26 is not downloadable here (its checkpoints need the Python converter).
+    /// Source for an internal architecture name (<c>resnet34_v2</c>, <c>yolo26n-cls</c>, <c>yolo26-n-det</c> and friends).
+    /// ResNet-Tiny is sliced from the ResNet-18 bundle. A YOLO26 detector starts from the COCO detection
+    /// checkpoint (bundle <c>yolo26n</c>), a YOLO26 classifier from the ImageNet one (<c>yolo26n-cls</c>).
     /// </summary>
     public static PretrainedWeightsSource? ForArch(string? archName)
     {
         var normalized = archName?.Trim().ToLowerInvariant();
-        return normalized switch
+        switch (normalized)
         {
-            "resnet18_v2" or "resnet18" or "resnet_tiny_v2" or "resnet-tiny" or "resnettiny" => ResNet18,
-            "resnet34_v2" or "resnet34" => ResNet34,
-            _ => null,
-        };
+            case "resnet18_v2" or "resnet18" or "resnet_tiny_v2" or "resnet-tiny" or "resnettiny":
+                return ResNet18;
+            case "resnet34_v2" or "resnet34":
+                return ResNet34;
+        }
+
+        if (normalized is not null
+            && PretrainedWeightsLocator.TryParseYolo26(normalized, out var scale, out var classifier)
+            && Yolo.TryGetValue(BundleName(scale, classifier), out var source))
+        {
+            return source;
+        }
+
+        return null;
+    }
+
+    private static string BundleName(char scale, bool classifier) => $"yolo26{scale}{(classifier ? "-cls" : string.Empty)}";
+
+    private static Dictionary<string, PretrainedWeightsSource> BuildYolo()
+    {
+        // scale, detection (hash, MB), classification (hash, MB)
+        (char Scale, string DetSha, int DetMb, string ClsSha, int ClsMb)[] table =
+        [
+            ('n', "9b09cc8bf347f0fc8a5f7657480587f25db09b34bf33b0652110fb03a8ad4fef", 6, "0dd6f8dbc448870ac98a3cbb7156f923f7ce21fed3755d4019169ffffd279e81", 6),
+            ('s', "646f8bc3fe0a656803d95c294f7852321748cb29d13466a1af8862e2db384a1b", 20, "816790029d5df3fef358f03c8144b96339d8824ee25577aeda8be0963e5c5f09", 14),
+            ('m', "401cea9ab23ad19246ff7744859816bc599f350e93c9dd30367b6f0a0745d0b7", 44, "9f6546f33a70d910e2cd6dcca5265c4617b5670b19a1f287c39e99258bade01a", 24),
+            ('l', "9fe3c544f2b19bebad7ea41e76d7ad3d88b7c2f10d11d24430c5311f6b32db26", 53, "7a3aebb7de6f5d79f0153da627a5f68bd3d7df30e648c0fdb7f9217986ee129e", 29),
+            ('x', "9fdd44a31c504547ffb81d2c6d9e6dac3493c8eaa8b0398d3f43bae6c7003e92", 119, "ee88a0c71e9596cdfdbb71892725929cb4489b874d24fb581d20bffe79724386", 60),
+        ];
+
+        var result = new Dictionary<string, PretrainedWeightsSource>(StringComparer.Ordinal);
+        foreach (var row in table)
+        {
+            var det = BundleName(row.Scale, classifier: false);
+            result[det] = new PretrainedWeightsSource(
+                det, $"YOLO26-{char.ToUpperInvariant(row.Scale)} 检测", $"{UltralyticsRelease}/{det}.pt", row.DetSha, row.DetMb,
+                PretrainedCheckpointFormat.UltralyticsCheckpoint);
+
+            var cls = BundleName(row.Scale, classifier: true);
+            result[cls] = new PretrainedWeightsSource(
+                cls, $"YOLO26-{char.ToUpperInvariant(row.Scale)}", $"{UltralyticsRelease}/{cls}.pt", row.ClsSha, row.ClsMb,
+                PretrainedCheckpointFormat.UltralyticsCheckpoint);
+        }
+
+        return result;
     }
 }
 
 /// <summary>
-/// Downloads an official ImageNet checkpoint, checks it against the hash torchvision puts in the file
-/// name, converts it to a bundle in pure C#, and moves it into place. No Python involved.
+/// Downloads an official checkpoint, verifies its SHA-256, converts it to a bundle in pure C#, and
+/// moves it into place. No Python involved.
 /// </summary>
 public sealed class PretrainedWeightsDownloader
 {
@@ -54,6 +118,11 @@ public sealed class PretrainedWeightsDownloader
     {
     }
 
+    public PretrainedWeightsDownloader(string root)
+        : this(SharedClient, () => root)
+    {
+    }
+
     public PretrainedWeightsDownloader(HttpClient http, Func<string> root)
     {
         _http = http;
@@ -64,7 +133,9 @@ public sealed class PretrainedWeightsDownloader
     public async Task<string> DownloadAsync(
         PretrainedWeightsSource source,
         IProgress<double>? progress = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        string? sourcePath = null,
+        bool keepSource = false)
     {
         ArgumentNullException.ThrowIfNull(source);
 
@@ -75,26 +146,41 @@ public sealed class PretrainedWeightsDownloader
         Directory.CreateDirectory(work);
         try
         {
-            var checkpoint = Path.Combine(work, "source.pth");
-            await DownloadFileAsync(source, checkpoint, progress, cancellationToken).ConfigureAwait(false);
+            var extension = source.Format == PretrainedCheckpointFormat.UltralyticsCheckpoint ? ".pt" : ".pth";
+            var checkpoint = sourcePath ?? Path.Combine(work, "source" + extension);
+            if (sourcePath is null)
+            {
+                await DownloadFileAsync(source, checkpoint, progress, cancellationToken).ConfigureAwait(false);
+            }
 
             progress?.Report(0.9);
             var bundleDirectory = Path.Combine(work, "bundle");
             await Task.Run(
                 () =>
                 {
-                    var tensors = TorchCheckpointReader.ReadStateDict(checkpoint);
+                    var tensors = source.Format == PretrainedCheckpointFormat.UltralyticsCheckpoint
+                        ? TorchCheckpointReader.ReadModuleStateDict(checkpoint)
+                        : TorchCheckpointReader.ReadStateDict(checkpoint);
                     PretrainedBundleWriter.Write(tensors, bundleDirectory, source.Arch);
                 },
                 cancellationToken).ConfigureAwait(false);
 
+            cancellationToken.ThrowIfCancellationRequested();
             var target = Path.Combine(root, source.Arch);
-            if (Directory.Exists(target))
+            try
             {
-                Directory.Delete(target, recursive: true);
+                Directory.Move(bundleDirectory, target);
+            }
+            catch (IOException) when (File.Exists(Path.Combine(target, "index.json")))
+            {
+                // A simultaneous install or an existing bundle wins. Leave its contents intact.
             }
 
-            Directory.Move(bundleDirectory, target);
+            if (keepSource && sourcePath is null)
+            {
+                File.Move(checkpoint, Path.Combine(root, $"{source.Arch}-{Guid.NewGuid():N}{extension}"));
+            }
+
             progress?.Report(1);
             return target;
         }
@@ -129,6 +215,7 @@ public sealed class PretrainedWeightsDownloader
         {
             var buffer = new byte[81920];
             long received = 0;
+            var lastPercent = 0;
             int read;
             while ((read = await input.ReadAsync(buffer, cancellationToken).ConfigureAwait(false)) > 0)
             {
@@ -137,7 +224,12 @@ public sealed class PretrainedWeightsDownloader
                 received += read;
                 if (total is > 0)
                 {
-                    progress?.Report(0.9 * received / total.Value);
+                    var percent = Math.Min(89, (int)(90d * received / total.Value));
+                    if (percent > lastPercent)
+                    {
+                        lastPercent = percent;
+                        progress?.Report(percent / 100d);
+                    }
                 }
             }
         }

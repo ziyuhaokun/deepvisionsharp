@@ -5,7 +5,7 @@ namespace DeepVisionSharp.TorchSharp.Classification.Pretrained;
 /// <summary>
 /// Writes the flat bundle <see cref="PretrainedWeightsBundle"/> reads:
 /// <c>index.json</c> plus one raw little-endian blob per tensor, in ordinal name order.
-/// Same layout as <c>scripts/torch_pickle_bundle.py</c> so either writer's output loads.
+/// Keeps the same layout as earlier converted bundles.
 /// </summary>
 public static class PretrainedBundleWriter
 {

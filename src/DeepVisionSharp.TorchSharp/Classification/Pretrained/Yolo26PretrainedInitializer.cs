@@ -6,7 +6,7 @@ using DeepVisionSharp.TorchSharp.Detection.Yolo26;
 namespace DeepVisionSharp.TorchSharp.Classification.Pretrained;
 
 /// <summary>
-/// Applies an Ultralytics YOLO26 weight bundle (converted by <c>scripts/convert_ultralytics_weights.py</c>)
+/// Applies an Ultralytics YOLO26 weight bundle (converted from the upstream checkpoint)
 /// to the hand-written TorchSharp YOLO26 models.
 /// </summary>
 /// <remarks>

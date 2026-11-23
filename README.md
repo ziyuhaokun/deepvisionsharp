@@ -60,9 +60,9 @@ cd deepvisionsharp
 dotnet run --project src/DeepVisionSharp.Shell.Avalonia/DeepVisionSharp.Shell.Avalonia.csproj
 ```
 
-ResNet-18 / 34 的预训练权重可以直接在软件里下载：训练页「基本配置」里的「预训练权重」一行，点「下载预训练权重」即可，不需要 Python。
+ResNet 和 YOLO26 分类、检测模型的预训练权重都可在训练页的「基本配置」中下载。选择模型后，点「下载预训练权重」。下载和转换由 C# 完成，用户电脑无需安装 Python。
 
-YOLO26 的预训练权重还要用脚本准备，转换脚本需要 Python 3 和 NumPy（ResNet 也可以用同一个脚本）。
+开发人员也可用 PowerShell 入口调用同一个 C# 下载器。
 
 ```powershell
 .\scripts\fetch_pretrained.ps1 -Arch resnet18
@@ -122,6 +122,6 @@ flowchart LR
 
 ## 许可
 
-[MIT](LICENSE)。TorchSharp、LibTorch、OpenCvSharp 遵循各自许可证。`scripts/fetch_pretrained.ps1` 下载的 torchvision 权重遵循上游条款。
+[MIT](LICENSE)。TorchSharp、LibTorch、OpenCvSharp 遵循各自许可证。下载的 torchvision 和 Ultralytics 权重遵循各自的上游条款。
 
 **0.0.1** · 2026-10-16 · [用户版变更](CHANGELOG.md) · [开发者变更](CHANGELOG.Developer.md)

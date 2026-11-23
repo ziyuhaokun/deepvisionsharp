@@ -16,6 +16,7 @@ public sealed partial class TrainingPretrainedWeightsViewModel : ObservableObjec
     private string _modelType = string.Empty;
     private PretrainedWeightsStatus _status = new(false, false, string.Empty, 0);
     private CancellationTokenSource? _downloadCts;
+    private string _downloadingDisplayName = string.Empty;
 
     public TrainingPretrainedWeightsViewModel(IPretrainedWeightsService service, ShellSnackbarNotifier snackbar)
     {
@@ -45,7 +46,7 @@ public sealed partial class TrainingPretrainedWeightsViewModel : ObservableObjec
     /// <summary>支持下载但本机没有：用警告样式提示。</summary>
     public bool IsMissing => IsSupported && !IsAvailable;
 
-    public bool ShowDownloadButton => IsSupported && !IsAvailable && !IsDownloading;
+    public bool ShowDownloadButton => IsSupported && (!IsAvailable || _status.UsesFallback) && !IsDownloading;
 
     public void SetModelType(string modelType)
     {
@@ -59,6 +60,7 @@ public sealed partial class TrainingPretrainedWeightsViewModel : ObservableObjec
         IsSupported = _status.Supported;
         IsAvailable = _status.Available;
         OnPropertyChanged(nameof(IsMissing));
+        OnPropertyChanged(nameof(ShowDownloadButton));
         StatusText = BuildStatusText(_status);
     }
 
@@ -71,11 +73,16 @@ public sealed partial class TrainingPretrainedWeightsViewModel : ObservableObjec
 
         if (IsDownloading)
         {
-            return $"正在下载 {status.DisplayName} 预训练权重… {ProgressPercent:0}%";
+            return $"正在准备 {_downloadingDisplayName} 预训练权重… {ProgressPercent:0}%";
+        }
+
+        if (status.UsesFallback)
+        {
+            return $"已就绪：可使用同系列分类权重初始化骨干。可下载 {status.DisplayName} 专用权重（约 {status.ApproxMegabytes} MB）。";
         }
 
         return status.Available
-            ? $"已就绪：{status.DisplayName} 的 ImageNet 预训练权重，训练会自动使用。"
+            ? $"已就绪：{status.DisplayName} 的预训练权重，训练会自动使用。"
             : $"未找到 {status.DisplayName} 的预训练权重，将从随机初始化开始训练；样本不多时效果通常很差。"
               + $"建议先下载（约 {status.ApproxMegabytes} MB）。";
     }
@@ -83,13 +90,15 @@ public sealed partial class TrainingPretrainedWeightsViewModel : ObservableObjec
     [RelayCommand]
     private async Task DownloadAsync()
     {
-        if (IsDownloading || !IsSupported)
+        if (!ShowDownloadButton)
         {
             return;
         }
 
         var modelType = _modelType;
-        _downloadCts = new CancellationTokenSource();
+        using var cancellation = new CancellationTokenSource();
+        _downloadCts = cancellation;
+        _downloadingDisplayName = _status.DisplayName;
         IsDownloading = true;
         ProgressPercent = 0;
         Refresh();
@@ -97,9 +106,8 @@ public sealed partial class TrainingPretrainedWeightsViewModel : ObservableObjec
         // Progress<T> captures the UI synchronization context created here.
         var progress = new Progress<double>(value =>
         {
-            // The stream reports on every read (thousands of times); the UI only needs whole percents.
             var percent = Math.Clamp(value, 0, 1) * 100;
-            if (Math.Floor(percent) == Math.Floor(ProgressPercent) && percent < 100)
+            if (!ReferenceEquals(_downloadCts, cancellation) || percent <= ProgressPercent)
             {
                 return;
             }
@@ -110,7 +118,7 @@ public sealed partial class TrainingPretrainedWeightsViewModel : ObservableObjec
 
         try
         {
-            await _service.DownloadAsync(modelType, progress, _downloadCts.Token);
+            await _service.DownloadAsync(modelType, progress, cancellation.Token);
             _snackbar.ShowSuccess("预训练权重已下载，开始训练时会自动使用。", "训练");
         }
         catch (OperationCanceledException)
@@ -123,7 +131,6 @@ public sealed partial class TrainingPretrainedWeightsViewModel : ObservableObjec
         }
         finally
         {
-            _downloadCts.Dispose();
             _downloadCts = null;
             IsDownloading = false;
             Refresh();

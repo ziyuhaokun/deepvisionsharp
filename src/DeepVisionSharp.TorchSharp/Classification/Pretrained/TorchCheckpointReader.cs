@@ -8,16 +8,18 @@ namespace DeepVisionSharp.TorchSharp.Classification.Pretrained;
 public sealed record RawTensor(string Name, long[] Shape, string Dtype, byte[] Data);
 
 /// <summary>
-/// Reads a plain PyTorch state dict (<c>.pth</c>, zip + pickle) without PyTorch or Python.
+/// Reads PyTorch checkpoints (<c>.pth</c> state dicts and Ultralytics <c>.pt</c> training results,
+/// zip + pickle) without PyTorch or Python.
 /// </summary>
 /// <remarks>
 /// TorchSharp 0.107 cannot read a PyTorch state dict, so this unpacks the archive itself. It is a
 /// deliberately small pickle interpreter: only the opcodes <c>torch.save</c> emits for a state dict,
 /// and only the callables a state dict needs (<c>OrderedDict</c>, <c>_rebuild_tensor_v2</c>,
 /// <c>_rebuild_parameter</c>). Anything else is kept as an opaque value, never executed, so reading
-/// an untrusted file cannot run code. Whole training checkpoints (Ultralytics <c>.pt</c>) are not
-/// supported; those still go through <c>scripts/convert_ultralytics_weights.py</c>.
-/// Mirrors <c>scripts/torch_pickle_bundle.py</c>, which stays as the cross-check.
+/// an untrusted file cannot run code. An Ultralytics checkpoint pickles a whole module tree; every
+/// class in it becomes an inert <see cref="PickleObject"/> that only keeps its attribute dict, and the
+/// weights are collected by walking <c>_parameters</c> / <c>_buffers</c> / <c>_modules</c> like
+/// <c>nn.Module.state_dict()</c> does.
 /// </remarks>
 public static class TorchCheckpointReader
 {
@@ -30,23 +32,7 @@ public static class TorchCheckpointReader
 
     public static IReadOnlyList<RawTensor> ReadStateDict(ZipArchive archive)
     {
-        var pickleEntry = archive.Entries.FirstOrDefault(entry =>
-            entry.FullName == "data.pkl" || entry.FullName.EndsWith("/data.pkl", StringComparison.Ordinal))
-            ?? throw new InvalidDataException("不是 PyTorch zip 检查点（没有 data.pkl）");
-
-        var prefix = pickleEntry.FullName.Length > "data.pkl".Length
-            ? pickleEntry.FullName[..^"/data.pkl".Length]
-            : string.Empty;
-
-        byte[] pickleBytes;
-        using (var stream = pickleEntry.Open())
-        using (var buffer = new MemoryStream())
-        {
-            stream.CopyTo(buffer);
-            pickleBytes = buffer.ToArray();
-        }
-
-        var root = new PickleMachine(pickleBytes).Run();
+        var root = LoadRoot(archive, out var prefix);
         var state = FindStateDict(root)
             ?? throw new InvalidDataException("检查点里没有找到权重字典");
 
@@ -68,6 +54,122 @@ public static class TorchCheckpointReader
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Reads an Ultralytics training result (<c>yolo26n.pt</c>): prefers the EMA copy, which is what
+    /// Ultralytics validates and exports, and falls back to <c>model</c>.
+    /// </summary>
+    public static IReadOnlyList<RawTensor> ReadModuleStateDict(string path)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        using var archive = ZipFile.OpenRead(path);
+        return ReadModuleStateDict(archive);
+    }
+
+    public static IReadOnlyList<RawTensor> ReadModuleStateDict(ZipArchive archive)
+    {
+        var root = LoadRoot(archive, out var prefix);
+        if (root is not PickleDict payload)
+        {
+            throw new InvalidDataException("检查点不是字典");
+        }
+
+        PickleObject? module = null;
+        foreach (var key in new[] { "ema", "model" })
+        {
+            var candidate = payload.Items.FirstOrDefault(item => item.Key as string == key).Value;
+            if (candidate is PickleObject { } found && found.Attributes.Contains("_modules"))
+            {
+                module = found;
+                break;
+            }
+        }
+
+        if (module is null)
+        {
+            throw new InvalidDataException("检查点里既没有 ema 也没有 model");
+        }
+
+        var entries = new List<KeyValuePair<string, TensorValue>>();
+        CollectModule(module, string.Empty, entries, depth: 0);
+
+        var storages = new Dictionary<string, byte[]>(StringComparer.Ordinal);
+        var result = entries
+            .Select(entry => Materialize(entry.Key, entry.Value, archive, prefix, storages))
+            .ToList();
+        if (result.Count == 0)
+        {
+            throw new InvalidDataException("没有解出任何张量");
+        }
+
+        if (!result.Any(tensor => tensor.Name.StartsWith("model.", StringComparison.Ordinal)))
+        {
+            throw new InvalidDataException("权重键名不是 model.*，无法对应到 YOLO26 模块");
+        }
+
+        return result;
+    }
+
+    private static object? LoadRoot(ZipArchive archive, out string prefix)
+    {
+        var pickleEntry = archive.Entries.FirstOrDefault(entry =>
+            entry.FullName == "data.pkl" || entry.FullName.EndsWith("/data.pkl", StringComparison.Ordinal))
+            ?? throw new InvalidDataException("不是 PyTorch zip 检查点（没有 data.pkl）");
+
+        prefix = pickleEntry.FullName.Length > "data.pkl".Length
+            ? pickleEntry.FullName[..^"/data.pkl".Length]
+            : string.Empty;
+
+        byte[] pickleBytes;
+        using (var stream = pickleEntry.Open())
+        using (var buffer = new MemoryStream())
+        {
+            stream.CopyTo(buffer);
+            pickleBytes = buffer.ToArray();
+        }
+
+        return new PickleMachine(pickleBytes).Run();
+    }
+
+    /// <summary>Flattens <c>_parameters</c>, <c>_buffers</c> and children exactly like <c>state_dict()</c>.</summary>
+    private static void CollectModule(
+        PickleObject module,
+        string prefix,
+        List<KeyValuePair<string, TensorValue>> destination,
+        int depth)
+    {
+        if (depth > 64)
+        {
+            throw new InvalidDataException("模块嵌套过深");
+        }
+
+        foreach (var section in new[] { "_parameters", "_buffers" })
+        {
+            if (module.Attributes.Get(section) is not PickleDict items)
+            {
+                continue;
+            }
+
+            foreach (var (key, value) in items.Items)
+            {
+                if (key is string name && value is TensorValue tensor)
+                {
+                    destination.Add(new($"{prefix}{name}", tensor));
+                }
+            }
+        }
+
+        if (module.Attributes.Get("_modules") is PickleDict children)
+        {
+            foreach (var (key, value) in children.Items)
+            {
+                if (key is string name && value is PickleObject child)
+                {
+                    CollectModule(child, $"{prefix}{name}.", destination, depth + 1);
+                }
+            }
+        }
     }
 
     private static PickleDict? FindStateDict(object? root)
@@ -122,12 +224,16 @@ public static class TorchCheckpointReader
         var source = new byte[checked(count * element.Size)];
         CopyStrided(raw, element.Size, tensor, source);
 
+        // A 0-d scalar (BatchNorm's num_batches_tracked) is written with shape [1], the way the Python
+        // converter always has (numpy's ascontiguousarray promotes 0-d to 1-d). The bundle reader and the
+        // pretrained initializers were built against that layout, so keep it identical.
+        var shape = tensor.Shape.Length == 0 ? new long[] { 1 } : tensor.Shape;
         return element.Kind switch
         {
-            ElementKind.Float32 => new RawTensor(name, tensor.Shape, "float32", source),
-            ElementKind.Float16 => new RawTensor(name, tensor.Shape, "float32", ToFloat32(source, count, ElementKind.Float16)),
-            ElementKind.Float64 => new RawTensor(name, tensor.Shape, "float32", ToFloat32(source, count, ElementKind.Float64)),
-            _ => new RawTensor(name, tensor.Shape, "int64", ToInt64(source, count, element)),
+            ElementKind.Float32 => new RawTensor(name, shape, "float32", source),
+            ElementKind.Float16 => new RawTensor(name, shape, "float32", ToFloat32(source, count, ElementKind.Float16)),
+            ElementKind.Float64 => new RawTensor(name, shape, "float32", ToFloat32(source, count, ElementKind.Float64)),
+            _ => new RawTensor(name, shape, "int64", ToInt64(source, count, element)),
         };
     }
 
@@ -271,11 +377,37 @@ public static class TorchCheckpointReader
 
     private sealed record TensorValue(StorageRef Storage, long Offset, long[] Shape, long[] Stride);
 
-    private sealed record OpaqueValue(object? Source);
-
     private sealed class PickleDict
     {
         public List<KeyValuePair<object?, object?>> Items { get; } = [];
+
+        public bool Contains(string key) => Items.Any(item => item.Key as string == key);
+
+        public object? Get(string key) => Items.FirstOrDefault(item => item.Key as string == key).Value;
+
+        public void Set(object? key, object? value)
+        {
+            for (var i = 0; i < Items.Count; i++)
+            {
+                if (Equals(Items[i].Key, key))
+                {
+                    Items[i] = new(key, value);
+                    return;
+                }
+            }
+
+            Items.Add(new(key, value));
+        }
+    }
+
+    /// <summary>Any class instance in the pickle. Never constructed for real: only its attributes are kept.</summary>
+    private sealed class PickleObject
+    {
+        public PickleObject(GlobalRef? type) => Type = type;
+
+        public GlobalRef? Type { get; }
+
+        public PickleDict Attributes { get; } = new();
     }
 
     private sealed class PickleMachine
@@ -335,21 +467,77 @@ public static class TorchCheckpointReader
                     case (byte)'j': _stack.Add(_memo[(int)BinaryPrimitives.ReadUInt32LittleEndian(Take(4))]); break;
                     case (byte)'s': SetItem(); break;
                     case (byte)'u': SetItems(); break;
-                    case (byte)'a': ((List<object?>)Peek()!).Add(Pop()); break;
+                    case (byte)'a':
+                        {
+                            var value = Pop(); // the item is on top; the list is underneath
+                            (Peek() as List<object?>)?.Add(value);
+                            break;
+                        }
                     case (byte)'e':
                         {
                             var items = PopToMark();
-                            ((List<object?>)Peek()!).AddRange(items);
+                            (Peek() as List<object?>)?.AddRange(items);
                             break;
                         }
                     case (byte)'R': Reduce(); break;
-                    case 0x81:
+                    case 0x81: // NEWOBJ
                         {
                             Pop(); // args
-                            _stack.Add(new OpaqueValue(Pop()));
+                            _stack.Add(new PickleObject(Pop() as GlobalRef));
                             break;
                         }
-                    case (byte)'b': Pop(); break; // BUILD: state is irrelevant for tensors
+                    case 0x92: // NEWOBJ_EX
+                        {
+                            Pop(); // kwargs
+                            Pop(); // args
+                            _stack.Add(new PickleObject(Pop() as GlobalRef));
+                            break;
+                        }
+                    case (byte)'b': Build(); break;
+                    case (byte)'B': _stack.Add(ReadBytes((int)BinaryPrimitives.ReadUInt32LittleEndian(Take(4)))); break;
+                    case (byte)'C': _stack.Add(ReadBytes(_data[_position++])); break;
+                    case 0x8e: _stack.Add(ReadBytes(checked((int)BinaryPrimitives.ReadUInt64LittleEndian(Take(8))))); break;
+                    case 0x96: _stack.Add(ReadBytes(checked((int)BinaryPrimitives.ReadUInt64LittleEndian(Take(8))))); break;
+                    case 0x8d: _stack.Add(ReadString(checked((int)BinaryPrimitives.ReadUInt64LittleEndian(Take(8))), Encoding.UTF8)); break;
+                    case (byte)'F': _stack.Add(double.Parse(ReadLine(), System.Globalization.CultureInfo.InvariantCulture)); break;
+                    case (byte)'I':
+                        {
+                            var text = ReadLine();
+                            _stack.Add(text switch { "00" => false, "01" => true, _ => long.Parse(text, System.Globalization.CultureInfo.InvariantCulture) });
+                            break;
+                        }
+                    case (byte)'L': _stack.Add(long.Parse(ReadLine().TrimEnd('L'), System.Globalization.CultureInfo.InvariantCulture)); break;
+                    case (byte)'S': _stack.Add(ReadLine().Trim('\'', '"')); break;
+                    case (byte)'V': _stack.Add(ReadLine()); break;
+                    case (byte)'p': _memo[int.Parse(ReadLine(), System.Globalization.CultureInfo.InvariantCulture)] = Peek(); break;
+                    case (byte)'g': _stack.Add(_memo[int.Parse(ReadLine(), System.Globalization.CultureInfo.InvariantCulture)]); break;
+                    case (byte)'d':
+                        {
+                            var items = PopToMark();
+                            var dict = new PickleDict();
+                            for (var i = 0; i + 1 < items.Length; i += 2)
+                            {
+                                dict.Items.Add(new(items[i], items[i + 1]));
+                            }
+
+                            _stack.Add(dict);
+                            break;
+                        }
+                    case (byte)'l': _stack.Add(new List<object?>(PopToMark())); break;
+                    case (byte)'1': PopToMark(); break;
+                    case (byte)'2': _stack.Add(Peek()); break;
+                    case 0x8f: _stack.Add(new List<object?>()); break; // EMPTY_SET
+                    case 0x90: // ADDITEMS
+                        {
+                            var items = PopToMark();
+                            if (Peek() is List<object?> set)
+                            {
+                                set.AddRange(items);
+                            }
+
+                            break;
+                        }
+                    case 0x91: _stack.Add(new List<object?>(PopToMark())); break; // FROZENSET
                     case (byte)'Q': _stack.Add(ResolvePersistent(Pop())); break;
                     default:
                         throw new InvalidDataException($"不支持的 pickle 指令 0x{op:X2}（位置 {_position - 1}）");
@@ -449,6 +637,39 @@ public static class TorchCheckpointReader
             return items;
         }
 
+        private byte[] ReadBytes(int length)
+        {
+            if (length < 0)
+            {
+                throw new InvalidDataException("pickle 字节串长度无效");
+            }
+
+            return Take(length).ToArray();
+        }
+
+        /// <summary>BUILD: copy the state's attribute dict onto an inert object. Nothing is ever called.</summary>
+        private void Build()
+        {
+            var state = Pop();
+            if (Peek() is not PickleObject target)
+            {
+                return;
+            }
+
+            // Either {attrs} or ({attrs}, {slots}) as written by __reduce_ex__.
+            IEnumerable<object?> parts = state is object?[] tuple ? tuple : [state];
+            foreach (var part in parts)
+            {
+                if (part is PickleDict attributes)
+                {
+                    foreach (var (key, value) in attributes.Items)
+                    {
+                        target.Attributes.Set(key, value);
+                    }
+                }
+            }
+        }
+
         private object?[] PopTuple(int count)
         {
             var items = _stack.GetRange(_stack.Count - count, count).ToArray();
@@ -484,7 +705,7 @@ public static class TorchCheckpointReader
             var callable = Pop();
             if (callable is not GlobalRef global)
             {
-                _stack.Add(new OpaqueValue(callable));
+                _stack.Add(new PickleObject(null));
                 return;
             }
 
@@ -512,8 +733,8 @@ public static class TorchCheckpointReader
                     return;
 
                 default:
-                    // Never import or call anything else: keep it as an inert value.
-                    _stack.Add(new OpaqueValue(global));
+                    // Never import or call anything else: keep it as an inert object.
+                    _stack.Add(new PickleObject(global));
                     return;
             }
         }

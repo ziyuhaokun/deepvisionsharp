@@ -2,14 +2,14 @@ using DeepVisionSharp.Application.Models;
 using DeepVisionSharp.Application.Ports;
 using DeepVisionSharp.TorchSharp.Classification;
 using DeepVisionSharp.TorchSharp.Classification.Pretrained;
+using DeepVisionSharp.TorchSharp.Detection.Yolo26;
 using DeepVisionSharp.TorchSharp.Models;
 using Microsoft.Extensions.Logging;
 
 namespace DeepVisionSharp.Infrastructure.Services;
 
 /// <summary>
-/// Reports and fetches ImageNet weights for the ResNet classifiers. Detection and YOLO26 models are
-/// "unsupported" here: their checkpoints still need <c>scripts/fetch_pretrained.ps1</c>.
+/// Reports and fetches pretrained weights for the ResNet and YOLO26 models, entirely in C#.
 /// </summary>
 internal sealed class PretrainedWeightsService : IPretrainedWeightsService
 {
@@ -30,8 +30,11 @@ internal sealed class PretrainedWeightsService : IPretrainedWeightsService
             return new PretrainedWeightsStatus(false, false, string.Empty, 0);
         }
 
-        var available = PretrainedWeightsLocator.Resolve(archName) is not null;
-        return new PretrainedWeightsStatus(true, available, source.DisplayName, source.ApproxMegabytes);
+        var directory = PretrainedWeightsLocator.Resolve(archName);
+        var usesFallback = ModelTypeNames.IsDetectionModelType(modelType)
+            && directory is not null
+            && !string.Equals(Path.GetFileName(directory), source.Arch, StringComparison.OrdinalIgnoreCase);
+        return new PretrainedWeightsStatus(true, directory is not null, source.DisplayName, source.ApproxMegabytes, usesFallback);
     }
 
     public async Task DownloadAsync(string modelType, IProgress<double>? progress, CancellationToken cancellationToken)
@@ -47,13 +50,20 @@ internal sealed class PretrainedWeightsService : IPretrainedWeightsService
     private static PretrainedWeightsSource? ResolveSource(string modelType, out string archName)
     {
         archName = string.Empty;
-        // ResolveArch falls back to ResNet-18 for unknown keys, so gate on the family first.
-        if (!ModelTypeNames.IsClassificationModelType(modelType))
+        // The two factories fall back to a default for unknown keys, so gate on the family first.
+        if (ModelTypeNames.IsClassificationModelType(modelType))
+        {
+            archName = TorchSharpClassifierFactory.ResolveArch(modelType);
+        }
+        else if (ModelTypeNames.IsDetectionModelType(modelType))
+        {
+            archName = Yolo26DetectFactory.ResolveArch(modelType);
+        }
+        else
         {
             return null;
         }
 
-        archName = TorchSharpClassifierFactory.ResolveArch(modelType);
         return PretrainedWeightsCatalog.ForArch(archName);
     }
 }
