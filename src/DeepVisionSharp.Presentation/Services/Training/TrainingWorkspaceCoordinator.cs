@@ -43,7 +43,8 @@ public sealed class TrainingWorkspaceCoordinator : IDisposable
         ILoggerFactory loggerFactory,
         TrainingMetricsPoller metricsPoller,
         TrainingPreviewPoller previewPoller,
-        TrainingResourcePoller resourcePoller)
+        TrainingResourcePoller resourcePoller,
+        IPretrainedWeightsService pretrainedWeights)
     {
         _lifecycle = lifecycle;
         _processHost = processHost;
@@ -59,7 +60,7 @@ public sealed class TrainingWorkspaceCoordinator : IDisposable
         Monitor = new TrainingMonitorViewModel(JobList, processHost, processLauncher, snackbar, Log,
             metricsPoller, previewPoller, resourcePoller, clipboard, uiDispatcher);
         Config = new TrainingConfigViewModel(mediator, JobList, Monitor, snackbar,
-            dialogs, loggerFactory.CreateLogger<TrainingConfigViewModel>());
+            dialogs, pretrainedWeights, loggerFactory.CreateLogger<TrainingConfigViewModel>());
 
         Monitor.PropertyChanged += OnChildPropertyChanged;
         JobList.PropertyChanged += OnChildPropertyChanged;

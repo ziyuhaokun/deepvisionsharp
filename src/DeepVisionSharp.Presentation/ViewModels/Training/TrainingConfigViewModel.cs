@@ -37,6 +37,7 @@ public sealed partial class TrainingConfigViewModel : ObservableObject,
         TrainingMonitorViewModel monitor,
         ShellSnackbarNotifier snackbar,
         IAppDialogService appDialogService,
+        IPretrainedWeightsService pretrainedWeights,
         ILogger<TrainingConfigViewModel> logger)
     {
         _jobs = jobs;
@@ -46,6 +47,7 @@ public sealed partial class TrainingConfigViewModel : ObservableObject,
         Dataset = new TrainingDatasetViewModel(jobs, snackbar, appDialogService);
         Cls = new TrainingClassificationAugmentationViewModel();
         Spatial = new TrainingSpatialSettingsViewModel();
+        Pretrained = new TrainingPretrainedWeightsViewModel(pretrainedWeights, snackbar);
 
         // Draft saver must exist before any child PropertyChanged can call ScheduleDraftFormSave.
         // Spatial.SetModelType raises many policy-derived PropertyChanged notifications.
@@ -61,6 +63,7 @@ public sealed partial class TrainingConfigViewModel : ObservableObject,
         try
         {
             Spatial.SetModelType(SelectedModelType);
+            Pretrained.SetModelType(SelectedModelType);
             RebuildAvailableModelTypes();
         }
         finally
@@ -141,6 +144,9 @@ public sealed partial class TrainingConfigViewModel : ObservableObject,
     public TrainingClassificationAugmentationViewModel Cls { get; }
 
     public TrainingSpatialSettingsViewModel Spatial { get; }
+
+    /// <summary>当前模型有没有预训练权重，以及一键下载。</summary>
+    public TrainingPretrainedWeightsViewModel Pretrained { get; }
 
     public ObservableCollection<string> OptimizerOptions { get; } = new(["sgd", "adam", "adamw"]);
 
@@ -422,6 +428,7 @@ public sealed partial class TrainingConfigViewModel : ObservableObject,
         OnPropertyChanged(nameof(InferredModelTypeDisplay));
         // Re-normalize size when switching family so the value stays inside the new range.
         Spatial.SetModelType(value);
+        Pretrained.SetModelType(value);
         OnPropertyChanged(nameof(UsesNetworkInputSize));
 
         ScheduleDraftFormSave();

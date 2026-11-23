@@ -276,6 +276,29 @@
                                         </ComboBox>
                                     </Grid>
                                 </Border>
+                                <Border Classes="paramRow" IsVisible="{Binding Config.Pretrained.IsSupported}">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="24">
+                                        <StackPanel>
+                                            <TextBlock Classes="paramLabel" Text="预训练权重" />
+                                            <TextBlock Classes="paramHint"
+                                                       Foreground="{DynamicResource IvText2Brush}"
+                                                       Text="{Binding Config.Pretrained.StatusText}"
+                                                       TextWrapping="Wrap" />
+                                            <ProgressBar Margin="0,8,0,0"
+                                                         Maximum="100"
+                                                         Value="{Binding Config.Pretrained.ProgressPercent, Mode=OneWay}"
+                                                         IsVisible="{Binding Config.Pretrained.IsDownloading}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <Button Content="下载预训练权重"
+                                                    Command="{Binding Config.Pretrained.DownloadCommand}"
+                                                    IsVisible="{Binding Config.Pretrained.ShowDownloadButton}" />
+                                            <Button Content="取消"
+                                                    Command="{Binding Config.Pretrained.CancelDownloadCommand}"
+                                                    IsVisible="{Binding Config.Pretrained.IsDownloading}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
                             </StackPanel>
                         </Border>
                     </StackPanel>

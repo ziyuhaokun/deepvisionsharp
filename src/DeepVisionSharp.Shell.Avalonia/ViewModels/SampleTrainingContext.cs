@@ -179,6 +179,30 @@ public sealed class SampleTrainingJob : ObservableObject
     }
 }
 
+/// <summary>「预训练权重」行的 stub（对应 TrainingPretrainedWeightsViewModel）：样例默认显示「未找到」这一态。</summary>
+public sealed class SampleTrainingPretrained
+{
+    public SampleTrainingPretrained()
+    {
+        DownloadCommand = new RelayCommand(() => { });
+        CancelDownloadCommand = new RelayCommand(() => { });
+    }
+
+    public bool IsSupported => true;
+
+    public bool ShowDownloadButton => true;
+
+    public bool IsDownloading => false;
+
+    public double ProgressPercent => 0;
+
+    public string StatusText => "未找到 ResNet-34 的预训练权重，将从随机初始化开始训练；样本不多时效果通常很差。建议先下载（约 84 MB）。";
+
+    public ICommand DownloadCommand { get; }
+
+    public ICommand CancelDownloadCommand { get; }
+}
+
 /// <summary>训练配置 stub（对应 TrainingConfigViewModel）：只填检测任务的可见字段，其余按默认值留白。</summary>
 public sealed class SampleTrainingConfig
 {
@@ -195,6 +219,8 @@ public sealed class SampleTrainingConfig
     public SampleTrainingAugmentConfig Cls { get; } = new();
 
     public SampleTrainingSpatialConfig Spatial { get; } = new();
+
+    public SampleTrainingPretrained Pretrained { get; } = new();
 
     public string ModelName => "冷轧线划伤检测 · yolo11n";
 

@@ -60,7 +60,9 @@ cd deepvisionsharp
 dotnet run --project src/DeepVisionSharp.Shell.Avalonia/DeepVisionSharp.Shell.Avalonia.csproj
 ```
 
-可选，准备 ResNet 或 YOLO26 预训练权重。转换脚本需要 Python 3 和 NumPy。
+ResNet-18 / 34 的预训练权重可以直接在软件里下载：训练页「基本配置」里的「预训练权重」一行，点「下载预训练权重」即可，不需要 Python。
+
+YOLO26 的预训练权重还要用脚本准备，转换脚本需要 Python 3 和 NumPy（ResNet 也可以用同一个脚本）。
 
 ```powershell
 .\scripts\fetch_pretrained.ps1 -Arch resnet18

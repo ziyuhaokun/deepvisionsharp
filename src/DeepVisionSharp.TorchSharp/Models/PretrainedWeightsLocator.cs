@@ -15,6 +15,22 @@ public static class PretrainedWeightsLocator
 {
     public const string EnvironmentVariable = "DV_PRETRAINED_ROOT";
 
+    /// <summary>Where bundles live: <c>DV_PRETRAINED_ROOT</c> when set, else the per-user models folder.</summary>
+    public static string RootDirectory
+    {
+        get
+        {
+            var root = Environment.GetEnvironmentVariable(EnvironmentVariable);
+            return string.IsNullOrWhiteSpace(root)
+                ? Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "DeepVisionSharp",
+                    "Models",
+                    "pretrained")
+                : root;
+        }
+    }
+
     public static string? Resolve(string archName)
     {
         if (string.IsNullOrWhiteSpace(archName))
@@ -22,15 +38,7 @@ public static class PretrainedWeightsLocator
             return null;
         }
 
-        var root = Environment.GetEnvironmentVariable(EnvironmentVariable);
-        if (string.IsNullOrWhiteSpace(root))
-        {
-            root = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "DeepVisionSharp",
-                "Models",
-                "pretrained");
-        }
+        var root = RootDirectory;
 
         foreach (var candidate in CandidateNames(archName))
         {

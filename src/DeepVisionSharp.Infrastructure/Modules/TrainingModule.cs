@@ -26,6 +26,7 @@ internal static class TrainingModule
         services.AddHostedService<TrainingJobReconcileHostedService>();
         services.AddHostedService<TrainingRunWorkerHostedService>();
         services.AddSingleton<ITrainingRunCleanupService, TrainingRunCleanupService>();
+        services.AddSingleton<IPretrainedWeightsService, PretrainedWeightsService>();
         return services;
     }
 }
