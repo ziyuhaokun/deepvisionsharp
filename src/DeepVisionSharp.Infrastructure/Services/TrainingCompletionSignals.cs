@@ -50,7 +50,7 @@ internal static class TrainingCompletionSignals
             };
             return true;
         }
-        catch (JsonException)
+        catch (Exception ex) when (ex is JsonException or ArgumentException or NotSupportedException)
         {
             return false;
         }
@@ -77,5 +77,4 @@ internal sealed record TrainingCompletedPayload(
     string BestModelPath,
     string MetadataPath,
     string? LastModelPath,
-    string? DatasetFingerprint,
-    string SpatialMode);
+    string? Task);

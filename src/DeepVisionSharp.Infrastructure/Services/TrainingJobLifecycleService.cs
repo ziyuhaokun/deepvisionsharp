@@ -128,6 +128,11 @@ internal sealed class TrainingJobLifecycleService : ITrainingJobLifecycleService
                 return Result.Failure("任务已结束");
         }
 
+        if (TrainingJobRecoveryEvaluator.ShouldDeferTerminalWrite(job))
+        {
+            return Result.Failure("训练产物已保存，正在更新任务状态。");
+        }
+
         // The queue owns the run token, so one cancel covers queued, exporting and training phases.
         _runQueue.TryCancel(jobId);
 

@@ -68,6 +68,7 @@ public sealed record ClassificationTrainingRun(
         ["schema_version"] = 2,
         ["artifact_kind"] = "trained_model",
         ["task"] = "classify",
+        ["training_job_id"] = TrainingJobId,
         ["model_type"] = ModelType,
         ["classes"] = Classes,
         ["num_classes"] = Classes.Length,

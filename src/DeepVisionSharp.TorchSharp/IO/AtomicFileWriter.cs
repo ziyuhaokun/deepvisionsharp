@@ -37,9 +37,13 @@ public static class AtomicFileWriter
         }
     }
 
-    public static void WriteAllText(string path, string contents)
+    public static void WriteAllText(string path, string contents) =>
+        WriteAllText(path, contents, CancellationToken.None);
+
+    public static void WriteAllText(string path, string contents, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var tempPath = CreateTempPath(path);
         try
@@ -51,6 +55,7 @@ public static class AtomicFileWriter
                 stream.Flush(flushToDisk: true);
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
             File.Move(tempPath, path, overwrite: true);
         }
         finally

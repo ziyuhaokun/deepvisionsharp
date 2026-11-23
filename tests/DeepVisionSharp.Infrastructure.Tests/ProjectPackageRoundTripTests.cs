@@ -45,7 +45,25 @@ public sealed class ProjectPackageRoundTripTests : IDisposable
 
     public ProjectPackageRoundTripTests() => Directory.CreateDirectory(_directory);
 
-    public void Dispose() => Directory.Delete(_directory, recursive: true);
+    public void Dispose()
+    {
+        // Pooled SQLite connections can still hold deepvision.db; release them before deleting.
+        for (var attempt = 0; attempt < 20; attempt++)
+        {
+            try
+            {
+                System.Data.SQLite.SQLiteConnection.ClearAllPools();
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                Directory.Delete(_directory, recursive: true);
+                return;
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                Thread.Sleep(100);
+            }
+        }
+    }
 
     [Fact]
     public async Task Package_carries_detection_boxes_models_and_training_jobs()

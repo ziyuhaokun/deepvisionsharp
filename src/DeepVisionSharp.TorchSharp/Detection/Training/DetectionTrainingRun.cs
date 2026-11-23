@@ -80,6 +80,7 @@ public sealed record DetectionTrainingRun(
         ["schema_version"] = 2,
         ["artifact_kind"] = "trained_model",
         ["task"] = "detect",
+        ["training_job_id"] = TrainingJobId,
         ["model_type"] = ModelType,
         ["arch"] = Arch,
         ["classes"] = Classes,

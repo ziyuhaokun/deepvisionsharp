@@ -32,6 +32,7 @@ internal sealed class TorchSharpDetectionTrainingBackend : ITrainingBackend, IDi
     private readonly ITrainingJobRepository _repository;
     private readonly ITrainingProcessHost _processHost;
     private readonly IInferenceRuntime _inferenceRuntime;
+    private readonly TrainingRunQueue _runQueue;
     private readonly ILogger<TorchSharpDetectionTrainingBackend> _logger;
     private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _runningTokens = new();
     private readonly SemaphoreSlim _singleFlight = new(1, 1);
@@ -43,6 +44,7 @@ internal sealed class TorchSharpDetectionTrainingBackend : ITrainingBackend, IDi
         ITrainingJobRepository repository,
         ITrainingProcessHost processHost,
         IInferenceRuntime inferenceRuntime,
+        TrainingRunQueue runQueue,
         ILogger<TorchSharpDetectionTrainingBackend> logger)
     {
         _datasetExporter = datasetExporter;
@@ -51,6 +53,7 @@ internal sealed class TorchSharpDetectionTrainingBackend : ITrainingBackend, IDi
         _repository = repository;
         _processHost = processHost;
         _inferenceRuntime = inferenceRuntime;
+        _runQueue = runQueue;
         _logger = logger;
     }
 
@@ -304,25 +307,17 @@ internal sealed class TorchSharpDetectionTrainingBackend : ITrainingBackend, IDi
                 return Result<TrainingBackendStartResult>.Failure(CancelledMessage);
             }
 
-            Log($"DV_COMPLETED {{\"best_model_path\":{System.Text.Json.JsonSerializer.Serialize(trainResult.BestModelPath)},\"metadata_path\":{System.Text.Json.JsonSerializer.Serialize(trainResult.MetadataPath)},\"task\":\"detect\"}}");
             heartbeat.SetStage(TrainingRunMarkerStore.StageSaving);
+            var completion = _runQueue.PublishCompletion(job, trainResult.BestModelPath,
+                trainResult.MetadataPath, lastPathOnDisk, runToken);
+            Log($"DV_COMPLETED {{\"best_model_path\":{System.Text.Json.JsonSerializer.Serialize(trainResult.BestModelPath)},\"metadata_path\":{System.Text.Json.JsonSerializer.Serialize(trainResult.MetadataPath)},\"task\":\"detect\"}}");
 
-            var latestForComplete = await _repository.GetByIdAsync(job.Id, CancellationToken.None).ConfigureAwait(false)
-                ?? job;
-            var completed = await _statusWriter
-                .CompleteAsync(
-                    latestForComplete,
-                    TrainingJobStatus.Succeeded,
-                    trainResult.BestModelPath,
-                    lastModelPath: File.Exists(lastPathOnDisk) ? lastPathOnDisk : null,
-                    cancellationToken: CancellationToken.None)
+            var completed = await _statusWriter.CompletePublishedAsync(job,
+                trainResult.BestModelPath, lastPathOnDisk, completion.CompletedUtc, CancellationToken.None)
                 .ConfigureAwait(false);
             if (completed.IsFailure || completed.Value is null)
             {
-                await _statusWriter
-                    .MarkFailedAsync(job, CancellationToken.None, completed.Error)
-                    .ConfigureAwait(false);
-                return Result<TrainingBackendStartResult>.Failure(completed.Error ?? "无法完成任务状态更新");
+                return Result<TrainingBackendStartResult>.Failure(completed.Error ?? "训练已完成，等待恢复任务状态");
             }
 
             informationalMessages.Add(
@@ -394,20 +389,8 @@ internal sealed class TorchSharpDetectionTrainingBackend : ITrainingBackend, IDi
             return Task.FromResult(new TrainingRecoveryDecision(TrainingRecoveryAction.KeepRunning));
         }
 
-        var marker = TrainingRunMarkerStore.TryRead(job.OutputRoot, _logger);
-        if (TrainingJobRecoveryEvaluator.CanRecoverAsSucceeded(job, out var bestModelPath, out var lastModelPath))
-        {
-            TrainingRunMarkerStore.Delete(job.OutputRoot, _logger);
-            return Task.FromResult(new TrainingRecoveryDecision(
-                TrainingRecoveryAction.MarkSucceeded,
-                BestModelPath: bestModelPath,
-                LastModelPath: lastModelPath));
-        }
-
-        TrainingRunMarkerStore.Delete(job.OutputRoot, _logger);
-        return Task.FromResult(new TrainingRecoveryDecision(
-            TrainingRecoveryAction.MarkFailed,
-            Reason: TrainingRunMarkerStore.BuildInterruptionMessage(marker, job.Id, RecoveryFailureMessage)));
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.FromResult(TrainingJobRecoveryEvaluator.Evaluate(job, RecoveryFailureMessage, _logger));
     }
 
     public void Dispose()

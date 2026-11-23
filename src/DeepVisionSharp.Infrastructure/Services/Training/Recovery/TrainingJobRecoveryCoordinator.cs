@@ -15,6 +15,7 @@ internal sealed class TrainingJobRecoveryCoordinator
     private readonly ITaskCapabilityResolver _capabilities;
     private readonly TrainingBackendRegistry _backendRegistry;
     private readonly TrainingJobStatusWriter _statusWriter;
+    private readonly SemaphoreSlim _reconcileGate = new(1, 1);
 
     private readonly ILogger<TrainingJobRecoveryCoordinator> _logger;
 
@@ -38,6 +39,19 @@ internal sealed class TrainingJobRecoveryCoordinator
         CancellationToken cancellationToken = default,
         Func<Guid, bool>? isStartInFlight = null)
     {
+        await _reconcileGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            return await ReconcileAsync(cancellationToken, isStartInFlight).ConfigureAwait(false);
+        }
+        finally
+        {
+            _reconcileGate.Release();
+        }
+    }
+
+    private async Task<Result<int>> ReconcileAsync(CancellationToken cancellationToken, Func<Guid, bool>? isStartInFlight)
+    {
         var jobs = await _repository
             .GetByStatusesAsync([TrainingJobStatus.Preparing, TrainingJobStatus.Running], cancellationToken)
             .ConfigureAwait(false);
@@ -45,6 +59,13 @@ internal sealed class TrainingJobRecoveryCoordinator
         var fixedCount = 0;
         foreach (var job in jobs)
         {
+            // The worker or start preparation owns active in-process jobs.
+            if (isStartInFlight?.Invoke(job.Id) == true)
+            {
+                _logger.LogDebug("Skipping reconcile for training job {JobId}: run still in flight", job.Id);
+                continue;
+            }
+
             // A job whose project or model is no longer supported can never be resumed, and no
             // process can be running it (this coordinator only sees jobs left active by a previous
             // process). Leaving it active would strand it in Preparing/Running forever: the UI
@@ -73,16 +94,6 @@ internal sealed class TrainingJobRecoveryCoordinator
                 continue;
             }
 
-            // Preparing has no process yet; EvaluateRecovery would MarkFailed while StartAsync
-            // is still exporting / spawning. In-memory MarkRunning then overwrites Failed → UI flash.
-            if (isStartInFlight?.Invoke(job.Id) == true)
-            {
-                _logger.LogDebug(
-                    "Skipping reconcile for training job {JobId}: start still in flight",
-                    job.Id);
-                continue;
-            }
-
             var backendResult = ResolveTrainingBackend(job);
             if (backendResult.IsFailure || backendResult.Value is null)
             {
@@ -103,38 +114,41 @@ internal sealed class TrainingJobRecoveryCoordinator
                 case TrainingRecoveryAction.KeepRunning:
                     continue;
                 case TrainingRecoveryAction.MarkSucceeded:
-                    var completeResult = await _statusWriter
-                        .CompleteAsync(
-                            job,
-                            TrainingJobStatus.Succeeded,
-                            decision.BestModelPath,
-                            decision.LastModelPath,
-                            cancellationToken)
-                        .ConfigureAwait(false);
+                    var completeResult = decision.CompletedUtc is DateTime completedUtc
+                        ? await _statusWriter.CompletePublishedAsync(job, decision.BestModelPath!, decision.LastModelPath!,
+                            completedUtc, cancellationToken).ConfigureAwait(false)
+                        : await _statusWriter.CompleteAsync(job, TrainingJobStatus.Succeeded,
+                            decision.BestModelPath, decision.LastModelPath, cancellationToken).ConfigureAwait(false);
                     if (completeResult.IsFailure)
                     {
                         _logger.LogWarning(
                             "Unable to recover orphaned training job {JobId} as succeeded: {Error}",
                             job.Id,
                             completeResult.Error);
-                        await _statusWriter
-                            .MarkFailedAsync(job, cancellationToken, decision.Reason)
-                            .ConfigureAwait(false);
+                        if (decision.CompletedUtc is not null)
+                        {
+                            continue;
+                        }
+
+                        await _statusWriter.MarkFailedAsync(job, cancellationToken, decision.Reason).ConfigureAwait(false);
                     }
                     else
                     {
                         _logger.LogInformation("Recovered orphaned training job {JobId} as succeeded", job.Id);
                     }
 
+                    TrainingRunMarkerStore.Delete(job.OutputRoot, _logger);
                     fixedCount++;
                     break;
                 case TrainingRecoveryAction.MarkCancelled:
                     await _statusWriter.MarkCancelledAsync(job, cancellationToken).ConfigureAwait(false);
+                    TrainingRunMarkerStore.Delete(job.OutputRoot, _logger);
                     fixedCount++;
                     break;
                 case TrainingRecoveryAction.MarkFailed:
                     TryTerminateRecoveredOrphanProcess(job);
                     await _statusWriter.MarkFailedAsync(job, cancellationToken, decision.Reason).ConfigureAwait(false);
+                    TrainingRunMarkerStore.Delete(job.OutputRoot, _logger);
                     fixedCount++;
                     break;
             }

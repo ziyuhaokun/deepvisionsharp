@@ -71,7 +71,7 @@ internal sealed class TrainingRunWorkerHostedService : BackgroundService
             var result = await request.Backend
                 .StartAsync(request.Context, cancellationToken)
                 .ConfigureAwait(false);
-            if (result.IsFailure)
+            if (result.IsFailure && !ShouldDeferTerminalWrite(request))
             {
                 // The backend usually marks the terminal state itself; this only covers a failure
                 // that left the job Preparing/Running (for example a cancelled queue item).
@@ -87,14 +87,23 @@ internal sealed class TrainingRunWorkerHostedService : BackgroundService
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            await EnsureCancelledAsync(request.JobId).ConfigureAwait(false);
+            if (!ShouldDeferTerminalWrite(request))
+            {
+                await EnsureCancelledAsync(request.JobId).ConfigureAwait(false);
+            }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Background training run failed for job {JobId}", request.JobId);
-            await EnsureFailedAsync(request.JobId, ex.Message).ConfigureAwait(false);
+            if (!ShouldDeferTerminalWrite(request))
+            {
+                await EnsureFailedAsync(request.JobId, ex.Message).ConfigureAwait(false);
+            }
         }
     }
+
+    private static bool ShouldDeferTerminalWrite(TrainingRunRequest request) =>
+        request.Context is { Job: var job } && TrainingJobRecoveryEvaluator.ShouldDeferTerminalWrite(job);
 
     private async Task EnsureFailedAsync(Guid jobId, string failureMessage)
     {

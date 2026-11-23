@@ -1,4 +1,7 @@
 using System.Text;
+using System.Text.Json;
+using DeepVisionSharp.Application.Models;
+using Microsoft.Extensions.Logging;
 using DeepVisionSharp.Domain.Entities;
 
 namespace DeepVisionSharp.Infrastructure.Services;
@@ -7,25 +10,57 @@ internal static class TrainingJobRecoveryEvaluator
 {
     private const int LogTailBytes = 256 * 1024;
 
-    public static bool CanRecoverAsSucceeded(TrainingJob job, out string? bestModelPath, out string? lastModelPath)
+    public static TrainingRecoveryDecision Evaluate(TrainingJob job, string interruptionMessage, ILogger logger)
     {
-        bestModelPath = null;
-        lastModelPath = null;
-        if (!LogFileIndicatesCompleted(job.LogFile, job.OutputRoot))
+        try
+        {
+            var record = TrainingCompletionRecord.Read(job);
+            if (record is not null)
+            {
+                return new(TrainingRecoveryAction.MarkSucceeded,
+                    record.BestPath(job.OutputRoot!), record.LastPath(job.OutputRoot!), CompletedUtc: record.CompletedUtc);
+            }
+        }
+        catch (Exception ex) when (ex is JsonException or InvalidDataException or ArgumentException or NotSupportedException)
+        {
+            return new(TrainingRecoveryAction.MarkFailed, Reason: $"训练完成记录无效：{ex.Message}");
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            logger.LogWarning(ex, "Cannot read training completion record for {JobId}; will retry", job.Id);
+            return new(TrainingRecoveryAction.KeepRunning);
+        }
+
+        var expectedTask = ModelTypeNames.IsDetectionModelType(job.ModelType) ? "detect" : "classify";
+        var legacy = ReadLegacyCompletion(job.LogFile, job.OutputRoot, expectedTask);
+        if (legacy is not null)
+        {
+            // Keep the historical optional last checkpoint, but use the exact best from the log.
+            var last = legacy.LastModelPath is null ? TryResolveLastModelPath(job)
+                : File.Exists(legacy.LastModelPath) ? legacy.LastModelPath : null;
+            return new(TrainingRecoveryAction.MarkSucceeded, legacy.BestModelPath, last);
+        }
+
+        var marker = TrainingRunMarkerStore.TryRead(job.OutputRoot, logger);
+        return new(TrainingRecoveryAction.MarkFailed,
+            Reason: TrainingRunMarkerStore.BuildInterruptionMessage(marker, job.Id, interruptionMessage));
+    }
+
+    public static bool ShouldDeferTerminalWrite(TrainingJob job)
+    {
+        try
+        {
+            return TrainingCompletionRecord.Read(job) is not null;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            // An unreadable record may still describe a completed run. Leave it for reconciliation.
+            return true;
+        }
+        catch (Exception ex) when (ex is JsonException or InvalidDataException or ArgumentException or NotSupportedException)
         {
             return false;
         }
-
-        bestModelPath = TryResolveBestModelPath(job);
-        lastModelPath = TryResolveLastModelPath(job);
-        return !string.IsNullOrWhiteSpace(bestModelPath)
-               && File.Exists(bestModelPath + ".info");
-    }
-
-    public static bool CanRecoverAsSucceeded(TrainingJob job, out string? bestModelPath)
-    {
-        var recovered = CanRecoverAsSucceeded(job, out bestModelPath, out _);
-        return recovered;
     }
 
     public static string? TryResolveBestModelPath(TrainingJob job)
@@ -48,34 +83,41 @@ internal static class TrainingJobRecoveryEvaluator
         return TrainingCheckpointResolver.ResolveLastFromOutputDirectory(job.OutputRoot);
     }
 
-    public static bool LogFileIndicatesCompleted(string? logFile, string? outputRoot)
+    private static TrainingCompletedPayload? ReadLegacyCompletion(string? logFile, string? outputRoot, string expectedTask)
     {
         if (string.IsNullOrWhiteSpace(logFile) || !File.Exists(logFile))
         {
-            return false;
+            return null;
         }
 
-        var text = ReadLogTail(logFile);
-        if (string.IsNullOrWhiteSpace(text))
+        var workingDirectory = string.IsNullOrWhiteSpace(outputRoot) ? AppContext.BaseDirectory : Path.GetFullPath(outputRoot);
+        var lines = ReadLogTail(logFile).Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
+        foreach (var line in lines.Reverse())
         {
-            return false;
-        }
-
-        foreach (var line in text.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries))
-        {
-            if (TrainingCompletionSignals.TryParseCompleted(
-                    line,
-                    string.IsNullOrWhiteSpace(outputRoot) ? AppContext.BaseDirectory : outputRoot,
-                    out var payload)
+            if (TrainingCompletionSignals.TryParseCompleted(line, workingDirectory, out var payload)
                 && payload is not null
-                && File.Exists(payload.BestModelPath)
-                && File.Exists(payload.MetadataPath))
+                && (string.IsNullOrWhiteSpace(payload.Task) || string.Equals(payload.Task, expectedTask, StringComparison.OrdinalIgnoreCase))
+                && IsWithinOutputRoot(payload.BestModelPath, outputRoot)
+                && string.Equals(payload.MetadataPath, payload.BestModelPath + ".info", StringComparison.OrdinalIgnoreCase)
+                && File.Exists(payload.BestModelPath) && File.Exists(payload.MetadataPath))
             {
-                return true;
+                return IsWithinOutputRoot(payload.LastModelPath, outputRoot) ? payload : payload with { LastModelPath = null };
             }
         }
 
-        return false;
+        return null;
+    }
+
+    private static bool IsWithinOutputRoot(string? path, string? outputRoot)
+    {
+        if (path is null || string.IsNullOrWhiteSpace(outputRoot))
+        {
+            return true;
+        }
+
+        var relative = Path.GetRelativePath(outputRoot, path);
+        return !Path.IsPathRooted(relative) && relative != ".."
+            && !relative.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal);
     }
 
     private static string ReadLogTail(string logFile)

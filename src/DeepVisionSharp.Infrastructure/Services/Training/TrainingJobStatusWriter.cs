@@ -106,12 +106,58 @@ internal sealed class TrainingJobStatusWriter
         return Result<TrainingJob>.Success(result.Value);
     }
 
+    public async Task<Result<TrainingJob>> CompletePublishedAsync(
+        TrainingJob job,
+        string bestModelPath,
+        string lastModelPath,
+        DateTime completedUtc,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var latest = await _repository.GetByIdAsync(job.Id, cancellationToken).ConfigureAwait(false);
+            if (latest is null || latest.OutputRoot != job.OutputRoot)
+            {
+                return Result<TrainingJob>.Failure("训练完成记录对应的任务已变更或不存在。");
+            }
+
+            if (latest.Status == TrainingJobStatus.Succeeded)
+            {
+                return Result<TrainingJob>.Success(latest);
+            }
+
+            var completed = latest.Complete(TrainingJobStatus.Succeeded, completedUtc,
+                bestModelPath, lastModelPath, captureCheckpointPaths: true);
+            if (completed.IsFailure || completed.Value is null)
+            {
+                return completed;
+            }
+
+            await SaveWithRetryAsync(completed.Value, cancellationToken: cancellationToken).ConfigureAwait(false);
+            RaiseStatusChanged(job.Id, TrainingJobStatus.Succeeded, bestModelPath);
+            return completed;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Training job {JobId} has completed, but its status could not be saved; recovery will retry", job.Id);
+            return Result<TrainingJob>.Failure("训练产物已保存，任务状态暂未写入，等待恢复。");
+        }
+    }
+
     public async Task MarkFailedAsync(
         TrainingJob job,
         CancellationToken cancellationToken = default,
         string? failureMessage = null,
         bool notifyStatusChanged = true)
     {
+        if (TrainingJobRecoveryEvaluator.ShouldDeferTerminalWrite(job))
+        {
+            return;
+        }
         if (!string.IsNullOrWhiteSpace(failureMessage))
         {
             _logger.LogWarning("Training job {JobId} failed: {Reason}", job.Id, failureMessage);
@@ -148,6 +194,11 @@ internal sealed class TrainingJobStatusWriter
         TrainingJob job,
         CancellationToken cancellationToken = default)
     {
+        if (TrainingJobRecoveryEvaluator.ShouldDeferTerminalWrite(job))
+        {
+            return;
+        }
+
         var best = TrainingJobRecoveryEvaluator.TryResolveBestModelPath(job);
         var last = TrainingJobRecoveryEvaluator.TryResolveLastModelPath(job);
         var result = best is not null || last is not null

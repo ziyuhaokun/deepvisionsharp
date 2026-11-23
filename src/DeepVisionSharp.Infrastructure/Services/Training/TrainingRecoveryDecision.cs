@@ -12,4 +12,5 @@ internal sealed record TrainingRecoveryDecision(
     TrainingRecoveryAction Action,
     string? BestModelPath = null,
     string? LastModelPath = null,
-    string? Reason = null);
+    string? Reason = null,
+    DateTime? CompletedUtc = null);

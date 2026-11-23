@@ -1,6 +1,7 @@
 using System.Threading.Channels;
 
 using DeepVisionSharp.Application.Ports;
+using DeepVisionSharp.Domain.Entities;
 
 namespace DeepVisionSharp.Infrastructure.Services;
 
@@ -138,6 +139,22 @@ internal sealed class TrainingRunQueue
         }
 
         return pending;
+    }
+
+    public TrainingCompletionRecord PublishCompletion(
+        TrainingJob job, string bestCheckpoint, string bestMetadata, string lastCheckpoint, CancellationToken cancellationToken)
+    {
+        // Use the same gate as Stop and Shutdown so they cannot cancel between checking
+        // the token and committing the completion record.
+        lock (_sync)
+        {
+            if (_shuttingDown && _cancellations.TryGetValue(job.Id, out var cancellation))
+            {
+                cancellation.Cancel();
+            }
+
+            return TrainingCompletionRecord.Publish(job, bestCheckpoint, bestMetadata, lastCheckpoint, cancellationToken);
+        }
     }
 
     /// <summary>Cancels a queued or executing job. Returns false when the job is not tracked.</summary>
