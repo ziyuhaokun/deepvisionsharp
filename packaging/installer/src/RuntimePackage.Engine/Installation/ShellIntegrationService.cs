@@ -50,7 +50,7 @@ public class ShellIntegrationService
             if (createStartMenuShortcut)
             {
                 Directory.CreateDirectory(_startMenuProgramsDirectory);
-                startMenuShortcutPath = Path.Combine(_startMenuProgramsDirectory, productName + ".lnk");
+                startMenuShortcutPath = StartMenuPath(productName);
                 CreateShortcut(
                     startMenuShortcutPath,
                     targetPath,
@@ -63,7 +63,7 @@ public class ShellIntegrationService
             if (createDesktopShortcut)
             {
                 Directory.CreateDirectory(_desktopDirectory);
-                desktopShortcutPath = Path.Combine(_desktopDirectory, productName + ".lnk");
+                desktopShortcutPath = DesktopPath(productName);
                 CreateShortcut(
                     desktopShortcutPath,
                     targetPath,
@@ -81,6 +81,36 @@ public class ShellIntegrationService
             throw;
         }
     }
+
+    internal Action CaptureRollback(string productName, bool createStartMenuShortcut, bool createDesktopShortcut)
+    {
+        var paths = new[]
+        {
+            createStartMenuShortcut ? StartMenuPath(productName) : null,
+            createDesktopShortcut ? DesktopPath(productName) : null
+        };
+        var snapshots = paths.OfType<string>().Select(path =>
+            (Path: path, Content: File.Exists(path) ? File.ReadAllBytes(path) : null)).ToArray();
+
+        return () =>
+        {
+            foreach (var (path, content) in snapshots)
+            {
+                if (content is null)
+                {
+                    DeleteIfExists(path);
+                }
+                else
+                {
+                    File.WriteAllBytes(path, content);
+                }
+            }
+        };
+    }
+
+    private string StartMenuPath(string productName) => Path.Combine(_startMenuProgramsDirectory, productName + ".lnk");
+
+    private string DesktopPath(string productName) => Path.Combine(_desktopDirectory, productName + ".lnk");
 
     public virtual void RemoveShortcuts(string? startMenuShortcutPath, string? desktopShortcutPath)
     {

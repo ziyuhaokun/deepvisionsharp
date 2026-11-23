@@ -148,6 +148,71 @@ public sealed class InstallUninstallSafetyTests : IDisposable
         }
     }
 
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task Failed_upgrade_restores_the_previous_program_and_installation_integrations(bool sharedRoot, bool cancel)
+    {
+        var (packagePath, installerExePath) = await BuildTestPackageAsync();
+        var installDir = Directory.CreateDirectory(Path.Combine(_root, "upgrade")).FullName;
+        if (sharedRoot)
+        {
+            SeedProtectedUserData(installDir, markDataReadOnly: true);
+        }
+
+        var oldRecord = Path.Combine(installDir, "installation.json");
+        var oldProgram = Path.Combine(installDir, "DeepVisionSharp.exe");
+        var oldUninstaller = Path.Combine(installDir, "Uninstall.exe");
+        var oldInstallLog = Path.Combine(installDir, "install.log");
+        await File.WriteAllTextAsync(oldRecord, "old installation record");
+        await File.WriteAllTextAsync(oldProgram, "old program");
+        await File.WriteAllTextAsync(oldUninstaller, "old uninstaller");
+        await File.WriteAllTextAsync(oldInstallLog, "old install log");
+        var shortcutDirectory = Directory.CreateDirectory(Path.Combine(_root, "shortcuts")).FullName;
+        var package = await new PackageReader().OpenAsync(packagePath, CancellationToken.None);
+        try
+        {
+            var shortcut = Path.Combine(shortcutDirectory, package.Manifest.ProductName + ".lnk");
+            await File.WriteAllTextAsync(shortcut, "old shortcut");
+            using var cancellation = new CancellationTokenSource();
+            var registration = new ThrowingUninstallRegistrationService(cancel ? cancellation : null);
+            var plan = new InstallPlanner().CreatePlan(
+                package, installDir, createStartMenuShortcut: true, installerExecutablePath: installerExePath,
+                allowOverwriteExistingContents: true, registerEnvironmentVariables: false);
+            var executor = new InstallExecutor(
+                new StagedShortcutService(shortcutDirectory), registration, new EnvironmentVariableIntegrationService(),
+                sharedUserDataRoot: sharedRoot ? installDir : Path.Combine(_root, "other-shared-root"),
+                failureLogDirectory: Path.Combine(_root, "failure-logs"));
+
+            if (cancel)
+            {
+                await Assert.ThrowsAnyAsync<OperationCanceledException>(() => executor.InstallAsync(plan, cancellation.Token));
+            }
+            else
+            {
+                await Assert.ThrowsAsync<InvalidOperationException>(() => executor.InstallAsync(plan, cancellation.Token));
+            }
+
+            Assert.Equal("old installation record", await File.ReadAllTextAsync(oldRecord));
+            Assert.Equal("old program", await File.ReadAllTextAsync(oldProgram));
+            Assert.Equal("old uninstaller", await File.ReadAllTextAsync(oldUninstaller));
+            Assert.Equal("old install log", await File.ReadAllTextAsync(oldInstallLog));
+            Assert.Equal("old shortcut", await File.ReadAllTextAsync(shortcut));
+            Assert.Equal("previous", registration.RegisteredVersion);
+            Assert.Empty(Directory.GetDirectories(_root, ".runtimepackage-install-*"));
+            if (sharedRoot)
+            {
+                AssertProtectedUserDataIntact(installDir, expectDataReadOnly: true);
+            }
+        }
+        finally
+        {
+            ClearReadOnlyOnUserData(installDir);
+            TempDirectoryCleanup.TryDeleteDirectory(package.ExtractedRoot);
+        }
+    }
+
     [Fact]
     public async Task Failed_install_on_new_directory_deletes_newly_created_directory_on_rollback()
     {
@@ -401,13 +466,39 @@ public sealed class InstallUninstallSafetyTests : IDisposable
             LastEstimatedSizeBytes = estimatedSizeBytes;
         }
 
+        internal override Action CaptureRollback(string keyName) => static () => { };
+
         public override void RemoveCurrentUserRegistration(string? keyName)
         {
         }
     }
 
-    private sealed class ThrowingUninstallRegistrationService : UninstallRegistrationService
+    private sealed class StagedShortcutService : ShellIntegrationService
     {
+        private readonly string _directory;
+
+        public StagedShortcutService(string directory) : base(directory) => _directory = directory;
+
+        public override ShortcutIntegrationResult CreateShortcuts(
+            string productName, string installDirectory, string entryPointRelativePath,
+            bool createStartMenuShortcut, bool createDesktopShortcut, string? arguments = null, string? iconPath = null)
+        {
+            var path = Path.Combine(_directory, productName + ".lnk");
+            File.WriteAllText(path, "new shortcut");
+            return new ShortcutIntegrationResult(path, null);
+        }
+    }
+
+    private sealed class ThrowingUninstallRegistrationService(CancellationTokenSource? cancellation = null) : UninstallRegistrationService
+    {
+        public string RegisteredVersion { get; private set; } = "previous";
+
+        internal override Action CaptureRollback(string keyName)
+        {
+            var version = RegisteredVersion;
+            return () => RegisteredVersion = version;
+        }
+
         public override void WriteCurrentUserRegistration(
             string keyName,
             string displayName,
@@ -417,8 +508,16 @@ public sealed class InstallUninstallSafetyTests : IDisposable
             string displayIconPath,
             string uninstallCommand,
             string quietUninstallCommand,
-            long estimatedSizeBytes) =>
-            throw new IOException("Simulated registry/registration failure after payload extraction.");
+            long estimatedSizeBytes)
+        {
+            RegisteredVersion = displayVersion;
+            if (cancellation is null)
+            {
+                throw new IOException("Simulated registry/registration failure after payload extraction.");
+            }
+
+            cancellation.Cancel();
+        }
 
         public override void RemoveCurrentUserRegistration(string? keyName)
         {

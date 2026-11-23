@@ -52,47 +52,46 @@ public sealed class InstallExecutor
         ArgumentNullException.ThrowIfNull(plan);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var installDirectoryExistedBefore = Directory.Exists(plan.ResolvedInstallDirectory);
-        var installLogExistedBefore = File.Exists(plan.InstallLogPath);
-        var hadExistingContentsBeforeLog = installDirectoryExistedBefore
-            && Directory.EnumerateFileSystemEntries(plan.ResolvedInstallDirectory)
-                .Any(entry => !ProtectedUserDataPaths.IsProtectedTopLevelEntry(
-                    plan.ResolvedInstallDirectory,
-                    entry,
-                    _sharedUserDataRoot));
-        var rollbackState = new RollbackState(installDirectoryExistedBefore, installLogExistedBefore);
+        var directories = new InstallDirectorySwap(plan.ResolvedInstallDirectory, _sharedUserDataRoot);
+        var rollbackState = new RollbackState();
+        var keepBackup = false;
 
-        using var log = InstallLog.Open(plan.InstallLogPath);
+        using var log = InstallLog.Open(Path.Combine(directories.WorkDirectory, "install.log"));
         log.Info($"Starting install for {plan.Package.Manifest.ProductName} {plan.Package.Manifest.Version}.");
         log.Info($"Package: {plan.Package.PackagePath}");
         log.Info($"Install directory: {plan.ResolvedInstallDirectory}");
 
         try
         {
-            PrepareInstallDirectory(plan, rollbackState, hadExistingContentsBeforeLog, _sharedUserDataRoot);
+            log.Info("Extracting payload to staging directory.");
+            var stagingDirectory = directories.StagingDirectory;
+            await PackageArchiveService.ExtractToDirectoryAsync(plan.PayloadArchivePath, stagingDirectory, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
 
-            log.Info("Extracting payload.");
-            await PackageArchiveService.ExtractToDirectoryAsync(plan.PayloadArchivePath, plan.ResolvedInstallDirectory, cancellationToken);
-
-            var entryPointPath = Path.Combine(plan.ResolvedInstallDirectory, plan.PrimaryEntryPointRelativePath);
+            var entryPointPath = Path.Combine(stagingDirectory, plan.PrimaryEntryPointRelativePath);
             if (!File.Exists(entryPointPath))
             {
                 throw new InvalidOperationException($"已安装的入口程序不存在：{entryPointPath}");
             }
 
             log.Info("Copying uninstaller.");
-            CopyUninstaller(plan);
+            CopyUninstaller(plan.InstallerExecutablePath, Path.Combine(stagingDirectory, Path.GetFileName(plan.UninstallExecutablePath)));
 
             log.Info("Copying branding assets.");
-            CopyBrandingAssets(plan);
+            CopyBrandingAssets(plan.Package.ExtractedRoot, stagingDirectory);
 
-            var brandingIconPath = Path.Combine(plan.ResolvedInstallDirectory, "metadata", "logo.ico");
-            if (!File.Exists(brandingIconPath))
+            var stagedIconPath = Path.Combine(stagingDirectory, "metadata", "logo.ico");
+            if (!File.Exists(stagedIconPath))
             {
-                throw new FileNotFoundException("品牌图标不存在，无法创建快捷方式。", brandingIconPath);
+                throw new FileNotFoundException("品牌图标不存在，无法创建快捷方式。", stagedIconPath);
             }
 
-                        var environmentVariableRecords = new List<InstalledEnvironmentVariableRecord>();
+            log.Info("Switching staged program files into the install directory.");
+            directories.Promote(plan.AllowOverwriteExistingContents, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var brandingIconPath = Path.Combine(plan.ResolvedInstallDirectory, "metadata", "logo.ico");
+            var environmentVariableRecords = new List<InstalledEnvironmentVariableRecord>();
             if (plan.RegisterEnvironmentVariables)
             {
                 log.Info("Writing environment variables.");
@@ -106,7 +105,10 @@ public sealed class InstallExecutor
                 log.Info("Skipping environment variable registration per install plan.");
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
             log.Info("Creating shortcuts.");
+            rollbackState.RestoreShortcuts = _shellIntegration.CaptureRollback(
+                plan.Package.Manifest.ProductName, plan.CreateStartMenuShortcut, plan.CreateDesktopShortcut);
             var shortcuts = _shellIntegration.CreateShortcuts(
                 plan.Package.Manifest.ProductName,
                 plan.ResolvedInstallDirectory,
@@ -115,10 +117,9 @@ public sealed class InstallExecutor
                 plan.CreateDesktopShortcut,
                 plan.PrimaryEntryPointArguments,
                 brandingIconPath);
-            rollbackState.StartMenuShortcutPath = shortcuts.StartMenuShortcutPath;
-            rollbackState.DesktopShortcutPath = shortcuts.DesktopShortcutPath;
-
+            cancellationToken.ThrowIfCancellationRequested();
             log.Info("Writing uninstall registration.");
+            rollbackState.RestoreUninstallRegistration = _uninstallRegistration.CaptureRollback(plan.UninstallRegistryKeyName);
             _uninstallRegistration.WriteCurrentUserRegistration(
                 plan.UninstallRegistryKeyName,
                 plan.Package.Manifest.Install.UninstallDisplayName,
@@ -129,7 +130,6 @@ public sealed class InstallExecutor
                 plan.UninstallCommand,
                 plan.QuietUninstallCommand,
                 GetDirectorySize(plan.ResolvedInstallDirectory, _sharedUserDataRoot));
-            rollbackState.UninstallRegistryKeyName = plan.UninstallRegistryKeyName;
 
             var record = new InstallationRecord
             {
@@ -154,9 +154,9 @@ public sealed class InstallExecutor
 
             log.Info("Writing installation record.");
             await WriteInstallationRecordAsync(plan, record, cancellationToken);
-            rollbackState.InstallationRecordPath = plan.InstallationRecordPath;
 
             log.Info("Install completed successfully.");
+            log.SaveTo(plan.InstallLogPath);
 
             return new InstallResult(
                 plan.ResolvedInstallDirectory,
@@ -170,68 +170,33 @@ public sealed class InstallExecutor
         catch (Exception ex)
         {
             log.Error("Install failed.", ex);
+            RestoreIntegrations(rollbackState, log);
+            keepBackup = !TryRollbackStep(log, "Restoring previous program files.", directories.Rollback);
             var preservedLogPath = PreserveFailureLog(plan, log, _failureLogDirectory);
-            log.UsePreservedPathOnly(preservedLogPath);
-            Rollback(plan, rollbackState, log, preservedLogPath);
-
-            if (!string.IsNullOrWhiteSpace(preservedLogPath))
+            if (keepBackup)
             {
                 throw new InvalidOperationException(
-                    $"安装失败：{ex.Message}。已尝试回滚。失败日志：{preservedLogPath}",
-                    ex);
+                    $"安装失败：{ex.Message}。部分程序文件未能恢复，备份目录：{directories.WorkDirectory}。失败日志：{preservedLogPath}", ex);
+            }
+
+            if (ex is OperationCanceledException && cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+
+            if (preservedLogPath is not null)
+            {
+                throw new InvalidOperationException(
+                    $"安装失败：{ex.Message}。已尝试回滚。失败日志：{preservedLogPath}", ex);
             }
 
             throw;
         }
-    }
-
-    private static void PrepareInstallDirectory(
-        InstallPlan plan,
-        RollbackState rollbackState,
-        bool hadExistingContentsBeforeLog,
-        string? sharedUserDataRoot)
-    {
-        if (hadExistingContentsBeforeLog)
+        finally
         {
-            if (!plan.AllowOverwriteExistingContents)
+            if (!keepBackup)
             {
-                throw new InvalidOperationException("安装目录不是空目录。");
-            }
-
-            ClearDirectoryContents(plan.ResolvedInstallDirectory, plan.InstallLogPath, sharedUserDataRoot);
-        }
-
-        Directory.CreateDirectory(plan.ResolvedInstallDirectory);
-        rollbackState.CanCleanInstallDirectoryOnRollback = true;
-    }
-
-    private static void ClearDirectoryContents(
-        string directory,
-        string installLogPath,
-        string? sharedUserDataRoot)
-    {
-        var normalizedInstallLogPath = Path.GetFullPath(installLogPath);
-        foreach (var path in Directory.EnumerateFileSystemEntries(directory))
-        {
-            var normalizedPath = Path.GetFullPath(path);
-            if (string.Equals(normalizedPath, normalizedInstallLogPath, StringComparison.OrdinalIgnoreCase)
-                || ProtectedUserDataPaths.IsProtectedTopLevelEntry(directory, path, sharedUserDataRoot))
-            {
-                continue;
-            }
-
-            ClearReadOnlyAttributes(path);
-
-            if (Directory.Exists(path))
-            {
-                Directory.Delete(path, true);
-                continue;
-            }
-
-            if (File.Exists(path))
-            {
-                ClearReadOnlyAttribute(path);
-                File.Delete(path);
+                TempDirectoryCleanup.TryDeleteDirectory(directories.WorkDirectory);
             }
         }
     }
@@ -260,21 +225,21 @@ public sealed class InstallExecutor
         }
     }
 
-    private static void CopyUninstaller(InstallPlan plan)
+    private static void CopyUninstaller(string installerPath, string uninstallerPath)
     {
-        if (!File.Exists(plan.InstallerExecutablePath))
+        if (!File.Exists(installerPath))
         {
-            throw new FileNotFoundException("安装器可执行文件不存在，无法写入卸载程序。", plan.InstallerExecutablePath);
+            throw new FileNotFoundException("安装器可执行文件不存在，无法写入卸载程序。", installerPath);
         }
 
         // Single-file setup embeds .vrp after the host; Uninstall.exe only needs the host.
-        if (TryGetEmbeddedHostLength(plan.InstallerExecutablePath, out var hostLength))
+        if (TryGetEmbeddedHostLength(installerPath, out var hostLength))
         {
-            CopyFilePrefix(plan.InstallerExecutablePath, plan.UninstallExecutablePath, hostLength);
+            CopyFilePrefix(installerPath, uninstallerPath, hostLength);
             return;
         }
 
-        File.Copy(plan.InstallerExecutablePath, plan.UninstallExecutablePath, overwrite: true);
+        File.Copy(installerPath, uninstallerPath, overwrite: true);
     }
 
     private static bool TryGetEmbeddedHostLength(string setupExecutablePath, out long hostLength)
@@ -328,115 +293,52 @@ public sealed class InstallExecutor
         }
     }
 
-    private static void CopyBrandingAssets(InstallPlan plan)
+    private static void CopyBrandingAssets(string extractedRoot, string stagingDirectory)
     {
-        var metadataDirectory = Path.Combine(plan.ResolvedInstallDirectory, "metadata");
+        var metadataDirectory = Path.Combine(stagingDirectory, "metadata");
         Directory.CreateDirectory(metadataDirectory);
 
-        var sourceIcoPath = Path.Combine(plan.Package.ExtractedRoot, "assets", "logo.ico");
+        var sourceIcoPath = Path.Combine(extractedRoot, "assets", "logo.ico");
         if (File.Exists(sourceIcoPath))
         {
             File.Copy(sourceIcoPath, Path.Combine(metadataDirectory, "logo.ico"), overwrite: true);
         }
 
-        var sourceLogoPath = Path.Combine(plan.Package.ExtractedRoot, "assets", "logo.png");
+        var sourceLogoPath = Path.Combine(extractedRoot, "assets", "logo.png");
         if (File.Exists(sourceLogoPath))
         {
             File.Copy(sourceLogoPath, Path.Combine(metadataDirectory, "logo.png"), overwrite: true);
         }
     }
 
-    private void Rollback(InstallPlan plan, RollbackState rollbackState, InstallLog log, string? preservedLogPath)
+    private void RestoreIntegrations(RollbackState state, InstallLog log)
     {
-        log.Info("Starting rollback.");
+        if (state.RestoreUninstallRegistration is { } restoreRegistration)
+        {
+            TryRollbackStep(log, "Restoring uninstall registration.", restoreRegistration);
+        }
 
-        TryRollbackStep(log, "Removing shortcuts.", () =>
-            _shellIntegration.RemoveShortcuts(rollbackState.StartMenuShortcutPath, rollbackState.DesktopShortcutPath));
-
-        TryRollbackStep(log, "Removing uninstall registration.", () =>
-            _uninstallRegistration.RemoveCurrentUserRegistration(rollbackState.UninstallRegistryKeyName));
+        if (state.RestoreShortcuts is { } restoreShortcuts)
+        {
+            TryRollbackStep(log, "Restoring shortcuts.", restoreShortcuts);
+        }
 
         TryRollbackStep(log, "Restoring environment variables.", () =>
-            _environmentVariables.RestoreEnvironmentVariables(rollbackState.EnvironmentVariables));
-
-        TryRollbackStep(log, "Removing installation files.", () =>
-        {
-            if (!Directory.Exists(plan.ResolvedInstallDirectory))
-            {
-                return;
-            }
-
-            if (!rollbackState.CanCleanInstallDirectoryOnRollback)
-            {
-                if (!rollbackState.InstallLogExistedBefore && File.Exists(plan.InstallLogPath))
-                {
-                    ClearReadOnlyAttribute(plan.InstallLogPath);
-                    File.Delete(plan.InstallLogPath);
-                }
-
-                return;
-            }
-
-            CleanInstallDirectoryOnRollback(
-                plan.ResolvedInstallDirectory,
-                rollbackState.InstallDirectoryExistedBefore,
-                preservedLogPath,
-                _sharedUserDataRoot);
-        });
-
-        log.Info("Rollback finished.");
+            _environmentVariables.RestoreEnvironmentVariables(state.EnvironmentVariables));
     }
 
-    private static void CleanInstallDirectoryOnRollback(
-        string installDirectory,
-        bool installDirectoryExistedBefore,
-        string? preservedLogPath,
-        string? sharedUserDataRoot)
-    {
-        var normalizedPreservedLogPath = string.IsNullOrWhiteSpace(preservedLogPath)
-            ? null
-            : Path.GetFullPath(preservedLogPath);
-
-        foreach (var entry in Directory.EnumerateFileSystemEntries(installDirectory))
-        {
-            var normalizedEntry = Path.GetFullPath(entry);
-            if (ProtectedUserDataPaths.IsProtectedTopLevelEntry(installDirectory, normalizedEntry, sharedUserDataRoot)
-                || (normalizedPreservedLogPath is not null
-                    && string.Equals(normalizedEntry, normalizedPreservedLogPath, StringComparison.OrdinalIgnoreCase)))
-            {
-                continue;
-            }
-
-            ClearReadOnlyAttributes(entry);
-            if (Directory.Exists(entry))
-            {
-                Directory.Delete(entry, true);
-                continue;
-            }
-
-            if (File.Exists(entry))
-            {
-                ClearReadOnlyAttribute(entry);
-                File.Delete(entry);
-            }
-        }
-
-        if (!installDirectoryExistedBefore && !Directory.EnumerateFileSystemEntries(installDirectory).Any())
-        {
-            Directory.Delete(installDirectory);
-        }
-    }
-
-    private static void TryRollbackStep(InstallLog log, string message, Action action)
+    private static bool TryRollbackStep(InstallLog log, string message, Action action)
     {
         try
         {
             log.Info(message);
             action();
+            return true;
         }
         catch (Exception ex)
         {
             log.Error("Rollback step failed.", ex);
+            return false;
         }
     }
 
@@ -447,7 +349,6 @@ public sealed class InstallExecutor
     {
         try
         {
-            log.Flush();
             var logDirectory = string.IsNullOrWhiteSpace(failureLogDirectory)
                 ? Path.Combine(ProtectedUserDataPaths.DefaultSharedUserDataRoot, "Logs")
                 : failureLogDirectory;
@@ -458,20 +359,8 @@ public sealed class InstallExecutor
                 logDirectory,
                 $"{packageId}-{DateTime.Now:yyyyMMdd-HHmmssfff}.install-failed.log");
 
-            var snapshot = log.GetSnapshot();
-            if (!string.IsNullOrWhiteSpace(snapshot))
-            {
-                File.WriteAllText(preservedPath, snapshot);
-                return preservedPath;
-            }
-
-            if (File.Exists(plan.InstallLogPath))
-            {
-                File.Copy(plan.InstallLogPath, preservedPath, overwrite: true);
-                return preservedPath;
-            }
-
-            return null;
+            File.WriteAllText(preservedPath, log.GetSnapshot());
+            return preservedPath;
         }
         catch
         {
@@ -544,47 +433,10 @@ public sealed class InstallExecutor
         }
     }
 
-    private static void ClearReadOnlyAttributes(string root)
+    private sealed class RollbackState
     {
-        try
-        {
-            foreach (var path in Directory.EnumerateFileSystemEntries(root, "*", SearchOption.AllDirectories)
-                         .OrderByDescending(value => value.Length))
-            {
-                ClearReadOnlyAttribute(path);
-            }
-
-            ClearReadOnlyAttribute(root);
-        }
-        catch
-        {
-        }
-    }
-
-    private static void ClearReadOnlyAttribute(string path)
-    {
-        try
-        {
-            var attributes = File.GetAttributes(path);
-            if ((attributes & FileAttributes.ReadOnly) != 0)
-            {
-                File.SetAttributes(path, attributes & ~FileAttributes.ReadOnly);
-            }
-        }
-        catch
-        {
-        }
-    }
-
-    private sealed class RollbackState(bool installDirectoryExistedBefore, bool installLogExistedBefore)
-    {
-        public bool InstallDirectoryExistedBefore { get; } = installDirectoryExistedBefore;
-        public bool InstallLogExistedBefore { get; } = installLogExistedBefore;
-        public bool CanCleanInstallDirectoryOnRollback { get; set; }
-        public string? StartMenuShortcutPath { get; set; }
-        public string? DesktopShortcutPath { get; set; }
-        public string? UninstallRegistryKeyName { get; set; }
-        public string? InstallationRecordPath { get; set; }
+        public Action? RestoreShortcuts { get; set; }
+        public Action? RestoreUninstallRegistration { get; set; }
         public List<InstalledEnvironmentVariableRecord> EnvironmentVariables { get; set; } = [];
     }
 
@@ -593,8 +445,6 @@ public sealed class InstallExecutor
         private readonly string _path;
         private readonly List<string> _lines = [];
         private readonly object _sync = new();
-        private string? _preservedPath;
-        private bool _writePrimary = true;
 
         private InstallLog(string path)
         {
@@ -613,12 +463,6 @@ public sealed class InstallExecutor
         public void Error(string message, Exception exception) =>
             Write("ERR", $"{message} {exception.GetType().Name}: {exception.Message}");
 
-        public void UsePreservedPathOnly(string? preservedPath)
-        {
-            _preservedPath = preservedPath;
-            _writePrimary = false;
-        }
-
         public string GetSnapshot()
         {
             lock (_sync)
@@ -627,12 +471,14 @@ public sealed class InstallExecutor
             }
         }
 
-        public void Flush() =>
-            _ = true;
+        public void SaveTo(string path)
+        {
+            try { File.WriteAllText(path, GetSnapshot()); }
+            catch (IOException) { }
+            catch (UnauthorizedAccessException) { }
+        }
 
-        public void Dispose() =>
-            _ = true;
-
+        public void Dispose() { }
 
         private void Write(string level, string message)
         {
@@ -643,15 +489,7 @@ public sealed class InstallExecutor
                 _lines.Add(line);
             }
 
-            if (_writePrimary)
-            {
-                AppendLine(_path, line);
-            }
-
-            if (!string.IsNullOrWhiteSpace(_preservedPath))
-            {
-                AppendLine(_preservedPath, line);
-            }
+            AppendLine(_path, line);
         }
 
         private static void AppendLine(string path, string line)

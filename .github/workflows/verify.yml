@@ -17,3 +17,16 @@ jobs:
       - name: Build and run fast tests
         shell: pwsh
         run: ./scripts/verify.ps1
+
+  installer:
+    runs-on: windows-2022
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build installer tools
+        run: dotnet build packaging/installer/Installer.slnx -c Release
+      - name: Run installer tests
+        run: dotnet test packaging/installer/Installer.slnx -c Release --no-build

@@ -25,8 +25,12 @@ public static class TempDirectoryCleanup
     {
         try
         {
-            foreach (var entry in Directory.EnumerateFileSystemEntries(root, "*", SearchOption.AllDirectories)
-                         .OrderByDescending(value => value.Length))
+            var options = new EnumerationOptions
+            {
+                RecurseSubdirectories = true,
+                AttributesToSkip = FileAttributes.ReparsePoint
+            };
+            foreach (var entry in Directory.EnumerateFileSystemEntries(root, "*", options))
             {
                 ClearReadOnlyAttribute(entry);
             }
