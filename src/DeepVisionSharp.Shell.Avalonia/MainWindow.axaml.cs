@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using DeepVisionSharp.Presentation.Services.Navigation;
 using DeepVisionSharp.Presentation.ViewModels;
 using DeepVisionSharp.Shell.Avalonia.Composition;
+using DeepVisionSharp.Shell.Avalonia.Controls;
 using DeepVisionSharp.Shell.Avalonia.Services;
 using DeepVisionSharp.Shell.Avalonia.Services.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,6 +30,8 @@ public partial class MainWindow : ThemedWindow, IPageHost
 {
     private const double ExpandedNavWidth = 208;
     private const double CollapsedNavWidth = 64;
+    private static readonly TimeSpan PageEnterDuration = TimeSpan.FromMilliseconds(220);
+    private const double PageEnterOffsetY = 10;
     private static readonly TimeSpan DefaultSnackbarDuration = TimeSpan.FromSeconds(3);
 
     /// <summary>导航项文案 → 路由；文案就是 XAML 里的 <c>Content</c>，也是占位页的标题。</summary>
@@ -195,7 +198,17 @@ public partial class MainWindow : ThemedWindow, IPageHost
     bool IPageHost.IsAttached => ContentHost is not null;
 
     void IPageHost.Show(Control? page, AppRoute route)
-        => ContentHost.Content = page ?? CreatePlaceholderPage(route);
+    {
+        var next = page ?? CreatePlaceholderPage(route);
+        var previous = ContentHost.Content;
+        ContentHost.Content = next;
+
+        // 首次进入（启动时进仪表盘）和重复进同一页不播；真正换页才淡入上移。
+        if (previous is not null && !ReferenceEquals(previous, next))
+        {
+            EnterMotion.Play(next, PageEnterDuration, PageEnterOffsetY);
+        }
+    }
 
     private T? Resolve<T>()
         where T : class

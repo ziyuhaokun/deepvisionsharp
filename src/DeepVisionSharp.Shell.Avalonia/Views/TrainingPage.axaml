@@ -293,7 +293,7 @@
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="2" Classes="card" IsVisible="{Binding JobList.ShowYoloJobDetail}">
+                <Border x:Name="JobDetailCard" Grid.Column="2" Classes="card" IsVisible="{Binding JobList.ShowYoloJobDetail}">
                     <Grid RowDefinitions="Auto,Auto,*,Auto">
                         <Border Grid.Row="0"
                                 Padding="16,14,16,10"

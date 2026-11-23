@@ -55,7 +55,6 @@ public sealed class AnnotationCanvas : Control
     private double _panX;
     private double _panY;
     private bool _viewportInitialized;
-    private IBrush? _backgroundBrush;
     private INotifyCollectionChanged? _watchedAnnotations;
 
     static AnnotationCanvas()
@@ -76,6 +75,9 @@ public sealed class AnnotationCanvas : Control
         Focusable = true;
         ClipToBounds = true;
         RenderOptions.SetBitmapInterpolationMode(this, BitmapInterpolationMode.None);
+
+        // 背景和占位文字是在 Render 里按资源查的，切深浅色后必须重画，否则一直是旧主题的颜色。
+        ActualThemeVariantChanged += (_, _) => InvalidateVisual();
     }
 
     public event EventHandler? ViewportChanged;
@@ -149,8 +151,11 @@ public sealed class AnnotationCanvas : Control
     {
         base.Render(context);
 
-        _backgroundBrush ??= FindBrush("IvSurface3Brush", new SolidColorBrush(Color.FromRgb(246, 247, 250)));
-        context.DrawRectangle(_backgroundBrush, null, new Rect(Bounds.Size));
+        // 不缓存：每帧按当前主题查，深浅色切换立即生效。
+        context.DrawRectangle(
+            FindBrush("IvSurface3Brush", new SolidColorBrush(Color.FromRgb(246, 247, 250))),
+            null,
+            new Rect(Bounds.Size));
 
         if (ImageSource is not IImage image)
         {
@@ -246,7 +251,6 @@ public sealed class AnnotationCanvas : Control
     private void OnImageChanged()
     {
         _viewportInitialized = false;
-        _backgroundBrush = null;
         InvalidateVisual();
     }
 
@@ -298,7 +302,7 @@ public sealed class AnnotationCanvas : Control
 
     private IBrush FindBrush(string resourceKey, IBrush fallback)
     {
-        if (global::Avalonia.Application.Current?.TryFindResource(resourceKey, out var resource) == true
+        if (this.TryFindResource(resourceKey, ActualThemeVariant, out var resource)
             && resource is IBrush brush)
         {
             return brush;

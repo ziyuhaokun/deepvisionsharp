@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using DeepVisionSharp.Presentation.ViewModels.Training;
+using DeepVisionSharp.Shell.Avalonia.Controls;
 using DeepVisionSharp.Shell.Avalonia.ViewModels;
 
 namespace DeepVisionSharp.Shell.Avalonia.Views;
@@ -17,6 +18,8 @@ public partial class TrainingPage : UserControl
     private const double TitleBarHeight = 44;
     private const double PageVerticalMargin = 56;
 
+    private static readonly TimeSpan DetailEnterDuration = TimeSpan.FromMilliseconds(200);
+
     private readonly TrainingViewModel? _viewModel;
 
     public TrainingPage()
@@ -30,6 +33,32 @@ public partial class TrainingPage : UserControl
 
         _viewModel = viewModel;
         DataContext = (object?)viewModel ?? new SampleTrainingContext();
+
+        // 详情卡每次重新出现（切任务时会先隐藏再显示）都淡入上移一次。
+        if (this.FindControl<Border>("JobDetailCard") is { } detailCard)
+        {
+            detailCard.PropertyChanged += (_, e) =>
+            {
+                if (e.Property == IsVisibleProperty && e.NewValue is true)
+                {
+                    EnterMotion.Play(detailCard, DetailEnterDuration, 10);
+                }
+            };
+        }
+
+        if (viewModel is not null)
+        {
+            // 详情卡一直显示着、只是换了任务时也要有动画。
+            viewModel.JobList.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(viewModel.JobList.SelectedJob)
+                    && viewModel.JobList.SelectedJob is not null
+                    && this.FindControl<Border>("JobDetailCard") is { IsVisible: true } card)
+                {
+                    EnterMotion.Play(card, DetailEnterDuration, 10);
+                }
+            };
+        }
 
         SizeChanged += OnPageSizeChanged;
         AttachedToVisualTree += OnPageAttached;

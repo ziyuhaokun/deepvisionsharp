@@ -67,6 +67,10 @@ public partial class CanvasViewToolbar : UserControl
     public CanvasViewToolbar()
     {
         InitializeComponent();
+
+        // 面板背景是代码里按资源查的，切深浅色后要重新取，否则保持旧主题的颜色。
+        ActualThemeVariantChanged += (_, _) => ApplyPanelBackground();
+
         _hitZone = this.FindControl<Border>("HitZone");
         _floatPanel = this.FindControl<Border>("FloatPanel");
         _floatHost = this.FindControl<StackPanel>("FloatHost");
@@ -201,7 +205,7 @@ public partial class CanvasViewToolbar : UserControl
     }
 
     private IBrush? LookupBrush(string resourceKey)
-        => this.TryFindResource(resourceKey, out var value) ? value as IBrush : null;
+        => this.TryFindResource(resourceKey, ActualThemeVariant, out var value) ? value as IBrush : null;
 
     private void ApplyPlacement()
     {

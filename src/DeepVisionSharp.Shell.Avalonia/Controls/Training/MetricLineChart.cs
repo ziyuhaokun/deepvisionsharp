@@ -79,6 +79,9 @@ public sealed class MetricLineChart : Control
     {
         UseLayoutRounding = true;
         ClipToBounds = true;
+
+        // 颜色是在 Render 里按资源查的，切深浅色后要重画。
+        ActualThemeVariantChanged += (_, _) => InvalidateVisual();
     }
 
     protected override void OnPointerMoved(PointerEventArgs e)

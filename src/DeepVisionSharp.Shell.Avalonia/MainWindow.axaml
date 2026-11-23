@@ -24,16 +24,28 @@
             <Setter Property="Template">
                 <ControlTemplate>
                     <Border Name="Bd" Background="Transparent" CornerRadius="6">
+                        <Border.Transitions>
+                            <Transitions>
+                                <BrushTransition Property="Background" Duration="0:0:0.15" />
+                            </Transitions>
+                        </Border.Transitions>
                         <Grid>
                             <Rectangle Name="ActiveBar"
                                        Width="2"
-                                       Height="16"
+                                       Height="6"
                                        HorizontalAlignment="Left"
                                        VerticalAlignment="Center"
                                        Fill="{DynamicResource IvAccentBrush}"
                                        Opacity="0"
                                        RadiusX="1"
-                                       RadiusY="1" />
+                                       RadiusY="1">
+                                <Rectangle.Transitions>
+                                    <Transitions>
+                                        <DoubleTransition Property="Opacity" Duration="0:0:0.18" Easing="{DynamicResource IvMotionEase}" />
+                                        <DoubleTransition Property="Height" Duration="0:0:0.18" Easing="{DynamicResource IvMotionEase}" />
+                                    </Transitions>
+                                </Rectangle.Transitions>
+                            </Rectangle>
                             <StackPanel Name="NavContent"
                                         Margin="14,0,10,0"
                                         Orientation="Horizontal"
@@ -45,12 +57,24 @@
                                          VerticalAlignment="Center"
                                          Data="{TemplateBinding Tag}"
                                          FontSize="16"
-                                         Foreground="{DynamicResource IvText3Brush}" />
+                                         Foreground="{DynamicResource IvText3Brush}">
+                                    <iv:Icon.Transitions>
+                                        <Transitions>
+                                            <BrushTransition Property="Foreground" Duration="0:0:0.15" />
+                                        </Transitions>
+                                    </iv:Icon.Transitions>
+                                </iv:Icon>
                                 <TextBlock Name="Label"
                                            VerticalAlignment="Center"
                                            FontSize="13"
                                            Foreground="{DynamicResource IvText2Brush}"
-                                           Text="{TemplateBinding Content}" />
+                                           Text="{TemplateBinding Content}">
+                                    <TextBlock.Transitions>
+                                        <Transitions>
+                                            <BrushTransition Property="Foreground" Duration="0:0:0.15" />
+                                        </Transitions>
+                                    </TextBlock.Transitions>
+                                </TextBlock>
                             </StackPanel>
                         </Grid>
                     </Border>
@@ -70,6 +94,7 @@
             </Style>
             <Style Selector="^:checked /template/ Rectangle#ActiveBar">
                 <Setter Property="Opacity" Value="1" />
+                <Setter Property="Height" Value="16" />
             </Style>
             <Style Selector="^:checked /template/ iv|Icon#NavIcon">
                 <Setter Property="Foreground" Value="{DynamicResource IvAccentTextBrush}" />
