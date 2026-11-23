@@ -18,14 +18,13 @@ public sealed partial class ProjectRow : ObservableObject
         Guid id,
         string name,
         string description,
+        string rawDescription,
         string typeKey,
         string typeLabel,
         string sampleCountText,
         int sampleCount,
         string labelCountText,
         int labelCount,
-        double progress,
-        string progressText,
         string lastUpdatedText,
         string createdAt,
         DateTimeOffset lastUpdatedSortKey,
@@ -34,6 +33,7 @@ public sealed partial class ProjectRow : ObservableObject
     {
         Id = id;
         Name = name;
+        RawDescription = rawDescription;
         Description = description;
         TypeKey = typeKey;
         TypeLabel = typeLabel;
@@ -41,8 +41,6 @@ public sealed partial class ProjectRow : ObservableObject
         SampleCount = sampleCount;
         LabelCountText = labelCountText;
         LabelCount = labelCount;
-        Progress = progress;
-        ProgressText = progressText;
         LastUpdatedText = lastUpdatedText;
         CreatedAt = createdAt;
         LastUpdatedSortKey = lastUpdatedSortKey;
@@ -57,6 +55,9 @@ public sealed partial class ProjectRow : ObservableObject
 
     [ObservableProperty]
     private string _description = string.Empty;
+
+    /// <summary>未替换成「暂无描述」的原始描述，搜索按它匹配。</summary>
+    public string RawDescription { get; private set; } = string.Empty;
 
     [ObservableProperty]
     private string _typeKey = string.Empty;
@@ -75,13 +76,6 @@ public sealed partial class ProjectRow : ObservableObject
 
     [ObservableProperty]
     private int _labelCount;
-
-    [ObservableProperty]
-    private double _progress;
-
-    [ObservableProperty]
-    private string _progressText = string.Empty;
-
     [ObservableProperty]
     private string _lastUpdatedText = string.Empty;
 
@@ -111,14 +105,13 @@ public sealed partial class ProjectRow : ObservableObject
             dto.Id,
             dto.Name,
             string.IsNullOrWhiteSpace(dto.Description) ? "暂无描述" : dto.Description,
+            dto.Description ?? string.Empty,
             string.IsNullOrWhiteSpace(dto.Type) ? ProjectTypes.Default : dto.Type,
             ProjectTypes.GetDisplayLabel(dto.Type),
             $"{dto.SampleCount} 样本",
             dto.SampleCount,
             $"{dto.LabelCount} 标签",
             dto.LabelCount,
-            dto.Progress,
-            dto.Progress.ToString("P0"),
             FormatRelativeTime(dto.LastUpdatedAt),
             dto.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm"),
             dto.LastUpdatedAt,
@@ -133,14 +126,13 @@ public sealed partial class ProjectRow : ObservableObject
     {
         Name = dto.Name;
         Description = string.IsNullOrWhiteSpace(dto.Description) ? "暂无描述" : dto.Description;
+        RawDescription = dto.Description ?? string.Empty;
         TypeKey = string.IsNullOrWhiteSpace(dto.Type) ? ProjectTypes.Default : dto.Type;
         TypeLabel = ProjectTypes.GetDisplayLabel(dto.Type);
         SampleCount = dto.SampleCount;
         SampleCountText = $"{dto.SampleCount} 样本";
         LabelCount = dto.LabelCount;
         LabelCountText = $"{dto.LabelCount} 标签";
-        Progress = dto.Progress;
-        ProgressText = dto.Progress.ToString("P0");
         LastUpdatedSortKey = dto.LastUpdatedAt;
         LastUpdatedText = FormatRelativeTime(dto.LastUpdatedAt);
 
@@ -159,14 +151,13 @@ public sealed partial class ProjectRow : ObservableObject
             project.Id,
             project.Name,
             string.IsNullOrWhiteSpace(project.Description) ? "暂无描述" : project.Description,
+            project.Description ?? string.Empty,
             string.IsNullOrWhiteSpace(project.Type) ? ProjectTypes.Default : project.Type,
             ProjectTypes.GetDisplayLabel(project.Type),
             $"{sampleCount} 样本",
             sampleCount,
             $"{labelCount} 标签",
             labelCount,
-            progress,
-            progress.ToString("P0"),
             FormatRelativeTime(project.LastUpdatedAt),
             project.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm"),
             project.LastUpdatedAt,
@@ -177,14 +168,13 @@ public sealed partial class ProjectRow : ObservableObject
     {
         Name = project.Name;
         Description = string.IsNullOrWhiteSpace(project.Description) ? "暂无描述" : project.Description;
+        RawDescription = project.Description ?? string.Empty;
         TypeKey = string.IsNullOrWhiteSpace(project.Type) ? ProjectTypes.Default : project.Type;
         TypeLabel = ProjectTypes.GetDisplayLabel(project.Type);
         SampleCount = sampleCount;
         SampleCountText = $"{sampleCount} 样本";
         LabelCount = labelCount;
         LabelCountText = $"{labelCount} 标签";
-        Progress = progress;
-        ProgressText = progress.ToString("P0");
         LastUpdatedSortKey = project.LastUpdatedAt;
         LastUpdatedText = FormatRelativeTime(project.LastUpdatedAt);
     }

@@ -20,6 +20,14 @@ public sealed class SampleTrainingContext : ObservableObject
     {
         Monitor = new SampleTrainingMonitor();
         ConfirmDeleteJobCommand = new RelayCommand(() => { });
+        RenameJobByIdCommand = new RelayCommand<object?>(_ => { });
+        DuplicateJobByIdCommand = new RelayCommand<object?>(_ => { });
+        SaveAsModelByIdCommand = new RelayCommand<object?>(_ => { });
+        StopJobByIdCommand = new RelayCommand<object?>(_ => { });
+        ShowLogsByIdCommand = new RelayCommand<object?>(_ => { });
+        OpenOutputFolderByIdCommand = new RelayCommand<object?>(_ => { });
+        OpenLogFolderByIdCommand = new RelayCommand<object?>(_ => { });
+        ConfirmDeleteJobByIdCommand = new RelayCommand<object?>(_ => { });
     }
 
     public SampleTrainingJobList JobList { get; } = new();
@@ -31,6 +39,22 @@ public sealed class SampleTrainingContext : ObservableObject
     public SampleTrainingLog Log { get; } = new();
 
     public ICommand ConfirmDeleteJobCommand { get; }
+
+    public ICommand RenameJobByIdCommand { get; }
+
+    public ICommand DuplicateJobByIdCommand { get; }
+
+    public ICommand SaveAsModelByIdCommand { get; }
+
+    public ICommand StopJobByIdCommand { get; }
+
+    public ICommand ShowLogsByIdCommand { get; }
+
+    public ICommand OpenOutputFolderByIdCommand { get; }
+
+    public ICommand OpenLogFolderByIdCommand { get; }
+
+    public ICommand ConfirmDeleteJobByIdCommand { get; }
 }
 
 /// <summary>训练任务列表 stub（对应 TrainingJobListViewModel）。</summary>

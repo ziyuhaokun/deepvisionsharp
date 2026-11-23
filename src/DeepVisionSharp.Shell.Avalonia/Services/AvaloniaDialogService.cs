@@ -19,6 +19,8 @@ public sealed class AvaloniaDialogService : IAppDialogService
             [AppDialogKind.EditLabelColor] = new(typeof(AddLabelDialogContent), "修改类别颜色", "保存"),
             [AppDialogKind.AutoInferenceClassification] = new(
                 typeof(ClassificationAutoInferenceDialogContent), "图像分类 · 自动推理", "开始推理"),
+            [AppDialogKind.AutoInferenceDetection] = new(
+                typeof(DetectionAutoInferenceDialogContent), "目标检测 · 自动推理", "开始推理"),
             [AppDialogKind.InferenceDebug] = new(typeof(InferenceDebugDialogContent), "推理调试报告", "复制报告", "关闭"),
             [AppDialogKind.ProjectLabelStatistics] = new(
                 typeof(ProjectLabelStatisticsDialogContent), "标签统计", "关闭", string.Empty),

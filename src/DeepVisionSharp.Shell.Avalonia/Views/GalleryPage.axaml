@@ -460,14 +460,6 @@
                                                             <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.List}" />
                                                         </MenuItem.Icon>
                                                     </MenuItem>
-                                                    <MenuItem Header="清空标注" Classes="danger"
-                                                              Command="{Binding #GalleryActionsButton.Tag.Editor.ConfirmClearAnnotationsCommand}"
-                                                              CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}"
-                                                              IsVisible="{Binding #GalleryActionsButton.Tag.List.ShowsGalleryLabelStatistics}">
-                                                        <MenuItem.Icon>
-                                                            <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Delete}" />
-                                                        </MenuItem.Icon>
-                                                    </MenuItem>
                                                     <MenuItem Header="拆分图库"
                                                               Command="{Binding #GalleryActionsButton.Tag.Reorganize.ShowSplitGalleryDialogCommand}"
                                                               CommandParameter="{Binding #GalleryActionsButton.DataContext.Id}"

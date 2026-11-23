@@ -55,20 +55,16 @@ public sealed class AvaloniaNavigationService : IAppNavigationService
         var pageHost = _pageHost
             ?? throw new InvalidOperationException("导航宿主未挂载");
 
-        if (CreatePage(route) is { } page)
+        if (!_pages.TryGetValue(route, out var cached))
         {
-            if (!_pages.TryGetValue(route, out var cached))
+            cached = CreatePage(route);
+            if (cached is not null)
             {
-                cached = page;
                 _pages.Add(route, cached);
             }
+        }
 
-            pageHost.Show(cached, route);
-        }
-        else
-        {
-            pageHost.Show(null, route);
-        }
+        pageHost.Show(cached, route);
 
         Navigated?.Invoke(this, route);
     }

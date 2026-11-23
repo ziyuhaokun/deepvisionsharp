@@ -83,7 +83,7 @@
                 </Button>
                 <Button Height="34"
                         Padding="14,0"
-                        Command="{Binding Editor.ShowCreateProjectDialogCommand}"
+                        Command="{Binding Editor.ShowCreateProjectDialogCommand}" IsEnabled="{Binding Editor.CanStartCreate}"
                         Theme="{StaticResource IvPrimaryButtonStyle}">
                     <StackPanel Orientation="Horizontal">
                         <iv:Icon Margin="0,0,6,0"
@@ -178,7 +178,7 @@
                             </Button>
                             <Button Height="34"
                                     Padding="14,0"
-                                    Command="{Binding Editor.ShowCreateProjectDialogCommand}"
+                                    Command="{Binding Editor.ShowCreateProjectDialogCommand}" IsEnabled="{Binding Editor.CanStartCreate}"
                                     Theme="{StaticResource IvPrimaryButtonStyle}"
                                     IsVisible="{Binding !List.HasProjects}">
                                 <StackPanel Orientation="Horizontal">

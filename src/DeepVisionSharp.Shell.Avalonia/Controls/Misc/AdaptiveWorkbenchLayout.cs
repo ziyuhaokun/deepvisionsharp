@@ -5,12 +5,12 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.VisualTree;
 
-namespace DeepVisionSharp.Shell.Avalonia.Controls.Labeling;
+namespace DeepVisionSharp.Shell.Avalonia.Controls;
 
 /// <summary>
 /// 工作区三栏（工具 | 主体 | 详情）的窄窗口自适应：宽度不够时收起工具/详情栏，
 /// 顶部出现「工具」「详情」按钮，收起后以浮层形式覆盖在主体上。
-/// 对应 WPF 版 Services/AdaptiveWorkbenchLayout；推理页与标注页共用。
+/// 推理页与标注页共用。
 /// </summary>
 internal sealed class AdaptiveWorkbenchLayout
 {

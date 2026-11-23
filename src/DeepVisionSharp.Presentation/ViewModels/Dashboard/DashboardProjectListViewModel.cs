@@ -230,7 +230,12 @@ public sealed partial class DashboardProjectListViewModel : ObservableObject
             var result = await _mediator.Send(new DeleteProjectCommand(projectId), cancellationToken);
             if (result.IsSuccess)
             {
-                _workspaceSession.ClearProjectIfCurrent(projectId);
+                // 删的是当前正在查看的项目时，缓存的页面还停在它的数据上，
+                // 标注页甚至会把未保存的草稿写回已删除的图库。回到首页。
+                if (_workspaceSession.ClearProjectIfCurrent(projectId))
+                {
+                    _navigation.Navigate(AppRoute.Dashboard);
+                }
                 RemoveProject(projectId);
                 _snackbar.ShowSuccess($"已删除项目「{row?.Name ?? projectId.ToString()}」。", "项目");
             }
@@ -441,7 +446,7 @@ public sealed partial class DashboardProjectListViewModel : ObservableObject
         var matching = Projects
             .Where(project => string.IsNullOrWhiteSpace(keyword)
                 || project.Name.Contains(keyword, StringComparison.OrdinalIgnoreCase)
-                || project.Description.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+                || project.RawDescription.Contains(keyword, StringComparison.OrdinalIgnoreCase))
             .Where(project => string.IsNullOrWhiteSpace(selectedType)
                 || string.Equals(project.TypeKey, selectedType, StringComparison.OrdinalIgnoreCase))
             .ToArray();

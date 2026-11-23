@@ -29,19 +29,35 @@ public sealed class TrainingJobLifecycleActions
         _snackbar = snackbar;
     }
 
-    public async Task SaveAsModelAsync()
+    public Task SaveAsModelAsync()
     {
         if (_host.Jobs.CurrentProjectId is null || _host.Jobs.SelectedJob is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        return SaveAsModelForJobAsync(
+            _host.Jobs.SelectedJob.Id,
+            _host.ModelName,
+            _host.Monitor.SelectedCheckpointForSave);
+    }
+
+    public async Task SaveAsModelForJobAsync(
+        Guid jobId,
+        string? modelName,
+        TrainingCheckpointSelection checkpointSelection)
+    {
+        if (_host.Jobs.CurrentProjectId is null)
         {
             return;
         }
 
         var result = await _mediator.Send(new SaveTrainedModelCommand(
             _host.Jobs.CurrentProjectId.Value,
-            _host.Jobs.SelectedJob.Id,
-            _host.ModelName,
+            jobId,
+            modelName,
             TargetModelId: null,
-            _host.Monitor.SelectedCheckpointForSave));
+            checkpointSelection));
 
         if (result.IsFailure || result.Value == Guid.Empty)
         {
@@ -64,7 +80,7 @@ public sealed class TrainingJobLifecycleActions
         {
             if (!TrainingJobActionRules.CanResume(_host.Jobs.SelectedJob))
             {
-                _snackbar.ShowWarning("当前任务不能续训：分类训练暂不支持续训。", "训练");
+                _snackbar.ShowWarning("当前任务不支持续训。", "训练");
                 return;
             }
         }
@@ -229,7 +245,7 @@ public sealed class TrainingJobLifecycleActions
 
     public string GetDatasetBlockReason()
     {
-        if (_host.SelectedModelCapabilities?.Family != ModelFamily.Classification)
+        if (_host.SelectedModelCapabilities?.Family is not (ModelFamily.Classification or ModelFamily.Detection))
         {
             return $"模型类型 {ModelTypeNames.GetDisplayLabel(_host.SelectedModelType)} 尚未接入数据集配置";
         }

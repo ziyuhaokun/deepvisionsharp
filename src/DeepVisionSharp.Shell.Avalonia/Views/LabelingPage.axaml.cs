@@ -5,6 +5,7 @@ using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using DeepVisionSharp.Presentation.Input;
 using DeepVisionSharp.Presentation.ViewModels.Labeling;
+using DeepVisionSharp.Shell.Avalonia.Controls;
 using DeepVisionSharp.Shell.Avalonia.Controls.Labeling;
 using DeepVisionSharp.Shell.Avalonia.Services;
 using DeepVisionSharp.Shell.Avalonia.ViewModels;

@@ -56,6 +56,7 @@ public sealed partial class GalleryListViewModel : ObservableObject
         _sampleThumbnails = sampleThumbnails;
         _imageSources = imageSources;
         _workspaceSession = workspaceSession;
+        _workspaceSession.Changed += OnWorkspaceSessionChanged;
         _navigation = navigation;
         _snackbar = snackbar;
         _appDialogService = appDialogService;
@@ -788,5 +789,22 @@ public sealed partial class GalleryListViewModel : ObservableObject
         });
 
         await Task.WhenAll(tasks);
+    }
+
+    /// <summary>项目被改名时更新标题；项目被删除时重新加载，回到「未选择项目」。</summary>
+    private void OnWorkspaceSessionChanged(object? sender, WorkspaceSessionChangedEventArgs e)
+    {
+        if (e.Reason == WorkspaceSessionChangeReason.ProjectUpdated
+            && e.Current.Project is not null
+            && CurrentProjectId == e.Current.Project.Id)
+        {
+            ProjectName = e.Current.Project.Name;
+            return;
+        }
+
+        if (e.Reason == WorkspaceSessionChangeReason.ProjectCleared && CurrentProjectId is not null)
+        {
+            _ = LoadCommand.ExecuteAsync(null);
+        }
     }
 }

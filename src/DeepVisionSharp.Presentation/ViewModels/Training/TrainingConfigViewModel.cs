@@ -122,8 +122,17 @@ public sealed partial class TrainingConfigViewModel : ObservableObject,
             && NetworkInputSizePolicy.ForModelType(SelectedModelType) is { } policy
             && (Spatial.NetworkInputWidth <= 320 || Spatial.NetworkInputHeight <= 320))
         {
-            Spatial.SetNetworkInputSizeFromUser(policy.Default);
-            OnPropertyChanged(nameof(UsesNetworkInputSize));
+            var wasSuppressed = _suppressDraftFormSave;
+            _suppressDraftFormSave = true;
+            try
+            {
+                Spatial.SetNetworkInputSizeFromUser(policy.Default);
+                OnPropertyChanged(nameof(UsesNetworkInputSize));
+            }
+            finally
+            {
+                _suppressDraftFormSave = wasSuppressed;
+            }
         }
     }
 
@@ -422,12 +431,28 @@ public sealed partial class TrainingConfigViewModel : ObservableObject,
 
     partial void OnBatchSizeChanged(int value) => ScheduleDraftFormSave();
 
+    partial void OnEarlyStoppingPatienceChanged(int value) => ScheduleDraftFormSave();
+
     partial void OnLearningRateChanged(double value) => ScheduleDraftFormSave();
 
     partial void OnOptimizerChanged(string value) => ScheduleDraftFormSave();
 
+    partial void OnDetectionNmsIouChanged(double value) => ScheduleDraftFormSave();
+
+    partial void OnDetectionConfidenceChanged(double value) => ScheduleDraftFormSave();
+
+    partial void OnDetectionMaxDetectionsChanged(int value) => ScheduleDraftFormSave();
+
+    partial void OnDetectionHorizontalFlipChanged(bool value) => ScheduleDraftFormSave();
+
     [RelayCommand(CanExecute = nameof(CanSaveAsModel))]
     private Task SaveAsModelAsync() => _lifecycle.SaveAsModelAsync();
+
+    public Task SaveAsModelForJobAsync(
+        Guid jobId,
+        string? modelName,
+        TrainingCheckpointSelection checkpointSelection) =>
+        _lifecycle.SaveAsModelForJobAsync(jobId, modelName, checkpointSelection);
 
     [RelayCommand(CanExecute = nameof(CanStartTraining))]
     private Task StartTrainingAsync() => _lifecycle.StartTrainingAsync(resume: false);

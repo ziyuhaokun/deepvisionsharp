@@ -14,12 +14,13 @@ using DeepVisionSharp.Application.Ports;
 using DeepVisionSharp.Application.Projects;
 using DeepVisionSharp.Application.Training;
 using DeepVisionSharp.Domain.Entities;
+using DeepVisionSharp.Domain.ValueObjects;
 using DeepVisionSharp.Presentation.Services;
 using DeepVisionSharp.Presentation.Ports;
 
 namespace DeepVisionSharp.Presentation.ViewModels.Training;
 
-public sealed partial class TrainingJobsViewModel : ObservableObject
+public sealed partial class TrainingJobsViewModel : ObservableObject, IDisposable
 {
     private readonly IMediator _mediator;
     private readonly WorkspaceSessionService _workspaceSession;
@@ -60,6 +61,7 @@ public sealed partial class TrainingJobsViewModel : ObservableObject
     {
         _mediator = mediator;
         _workspaceSession = workspaceSession;
+        _workspaceSession.Changed += OnWorkspaceSessionChanged;
         _snackbar = snackbar;
         _uiDispatcher = uiDispatcher;
         _launchOptions = launchOptions;
@@ -358,9 +360,15 @@ public sealed partial class TrainingJobsViewModel : ObservableObject
         try
         {
             var name = BuildUniqueJobName();
+            var defaultModelType = string.Equals(
+                CurrentProjectType,
+                ProjectTypes.Detection,
+                StringComparison.OrdinalIgnoreCase)
+                ? ModelTypeNames.DefaultDetection
+                : ModelTypeNames.Default;
             var result = await _mediator.Send(new CreateTrainingJobCommand(
                 name,
-                ModelTypeNames.Default,
+                defaultModelType,
                 CurrentProjectId));
             if (result.IsFailure || result.Value == Guid.Empty)
             {
@@ -867,4 +875,20 @@ public sealed partial class TrainingJobsViewModel : ObservableObject
 
     private Task WaitForUiIdleAsync()
         => _uiDispatcher.InvokeAsync(() => { }, UiDispatchPriority.ApplicationIdle);
+
+    /// <summary>项目被删除时重新加载，避免训练列表继续显示已删除项目的任务。</summary>
+    private void OnWorkspaceSessionChanged(object? sender, WorkspaceSessionChangedEventArgs e)
+    {
+        if (e.Reason == WorkspaceSessionChangeReason.ProjectCleared)
+        {
+            _ = LoadCommand.ExecuteAsync(null);
+        }
+    }
+
+    public void Dispose()
+    {
+        _workspaceSession.Changed -= OnWorkspaceSessionChanged;
+        _elapsedTimer.Tick -= OnElapsedTimerTick;
+        _elapsedTimer.Stop();
+    }
 }

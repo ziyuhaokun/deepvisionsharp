@@ -34,6 +34,7 @@ public sealed partial class DashboardProjectEditorViewModel : ObservableObject
         _logger = logger;
 
         _list.ProjectSnapshotChanged += OnListProjectsChanged;
+        _list.PropertyChanged += OnListPropertyChanged;
     }
 
     [ObservableProperty]
@@ -61,8 +62,16 @@ public sealed partial class DashboardProjectEditorViewModel : ObservableObject
 
     public bool HasDraftNameFormatError => !string.IsNullOrWhiteSpace(DraftNameFormatError);
 
+    /// <summary>描述超长时的即时提示。上限与 CreateProjectCommandValidator 的 500 字一致。</summary>
+    [ObservableProperty]
+    private string _draftDescriptionError = string.Empty;
+
+    public bool HasDraftDescriptionError => !string.IsNullOrWhiteSpace(DraftDescriptionError);
+
     /// <summary>当前选中项目类型的一句话用途说明（创建后不可改类型，故创建时即展示）。</summary>
     public string SelectedTypeDescription => ProjectTypes.GetDescription(DraftType);
+
+    private const int MaxDescriptionLength = 500;
 
     private static readonly System.Text.RegularExpressions.Regex ProjectNameRegex = new(
         @"^[\u4e00-\u9fa5a-zA-Z0-9_\-\s]+$",
@@ -75,14 +84,21 @@ public sealed partial class DashboardProjectEditorViewModel : ObservableObject
 
     public bool CanEditProjectType => EditingProjectId is null;
 
+    /// <summary>工具栏「新建项目」是否可用：页面忙碌时禁用，避免叠开对话框。</summary>
+    public bool CanStartCreate => IsNotSavingProject && !_list.IsProjectOperationInProgress && !_list.IsLoading;
+
     public bool CanSubmitCreate =>
         IsNotSavingProject
+        && !HasDraftNameFormatError
+        && !HasDraftDescriptionError
         && !string.IsNullOrWhiteSpace(DraftName)
         && !_list.HasDuplicateProjectName(DraftName, null);
 
     public bool CanSubmitEdit =>
         EditingProjectId is not null
         && IsNotSavingProject
+        && !HasDraftNameFormatError
+        && !HasDraftDescriptionError
         && !string.IsNullOrWhiteSpace(DraftName)
         && !_list.HasDuplicateProjectName(DraftName, EditingProjectId);
 
@@ -109,7 +125,10 @@ public sealed partial class DashboardProjectEditorViewModel : ObservableObject
 
         while (true)
         {
-            var result = await _appDialogService.ShowAsync(AppDialogKind.CreateProject, this);
+            var result = await _appDialogService.ShowAsync(
+                AppDialogKind.CreateProject,
+                this,
+                new DialogOptions(PrimaryButtonIsEnabledBindingPath: nameof(CanSubmitCreate)));
             if (result != AppDialogResult.Primary)
             {
                 CancelCreate();
@@ -205,7 +224,10 @@ public sealed partial class DashboardProjectEditorViewModel : ObservableObject
 
         while (true)
         {
-            var result = await _appDialogService.ShowAsync(AppDialogKind.EditProject, this);
+            var result = await _appDialogService.ShowAsync(
+                AppDialogKind.EditProject,
+                this,
+                new DialogOptions(PrimaryButtonIsEnabledBindingPath: nameof(CanSubmitEdit)));
             if (result != AppDialogResult.Primary)
             {
                 CancelEdit();
@@ -295,6 +317,15 @@ public sealed partial class DashboardProjectEditorViewModel : ObservableObject
         }
     }
 
+    partial void OnDraftDescriptionChanged(string value)
+    {
+        DraftDescriptionError = value.Trim().Length > MaxDescriptionLength
+            ? $"项目描述不能超过{MaxDescriptionLength}个字符"
+            : string.Empty;
+        OnPropertyChanged(nameof(CanSubmitCreate));
+        OnPropertyChanged(nameof(CanSubmitEdit));
+    }
+
     partial void OnDraftNameChanged(string value)
     {
         ValidateDraftNameFormat(value);
@@ -305,6 +336,8 @@ public sealed partial class DashboardProjectEditorViewModel : ObservableObject
     partial void OnDraftTypeChanged(string value) => OnPropertyChanged(nameof(SelectedTypeDescription));
 
     partial void OnDraftNameFormatErrorChanged(string value) => OnPropertyChanged(nameof(HasDraftNameFormatError));
+
+    partial void OnDraftDescriptionErrorChanged(string value) => OnPropertyChanged(nameof(HasDraftDescriptionError));
 
     /// <summary>
     /// 名称格式即时校验（长度 / 字符集，与 CreateProjectCommandValidator 口径一致）。
@@ -335,6 +368,21 @@ public sealed partial class DashboardProjectEditorViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(CanSubmitCreate));
         OnPropertyChanged(nameof(CanSubmitEdit));
+        OnPropertyChanged(nameof(CanStartCreate));
+    }
+
+    /// <summary>列表忙碌状态变化时刷新「新建项目」按钮。</summary>
+    private void OnListPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(DashboardProjectListViewModel.IsLoading)
+            or nameof(DashboardProjectListViewModel.IsProjectOperationInProgress))
+        {
+            OnListBusyChanged();
+        }
+    }
+    private void OnListBusyChanged()
+    {
+        OnPropertyChanged(nameof(CanStartCreate));
     }
 
     partial void OnIsSavingProjectChanged(bool value)

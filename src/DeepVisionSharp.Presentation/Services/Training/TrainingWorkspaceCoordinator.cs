@@ -139,6 +139,7 @@ public sealed class TrainingWorkspaceCoordinator : IDisposable
         JobList.GalleriesReloaded -= OnGalleriesReloaded;
         Monitor.Dispose();
         Log.Dispose();
+        JobList.Dispose();
     }
 
     private void OnJobCreated(Guid _) => Monitor.EnterSettingsMode(TrainingSettingsSection.Basic);

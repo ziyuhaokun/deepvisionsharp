@@ -3,6 +3,7 @@
              xmlns:iv="clr-namespace:DeepVisionSharp.UI.Avalonia.Controls;assembly=DeepVisionSharp.UI.Avalonia"
              xmlns:ui="clr-namespace:DeepVisionSharp.UI.Avalonia;assembly=DeepVisionSharp.UI.Avalonia"
              xmlns:dv="clr-namespace:DeepVisionSharp.Shell.Avalonia.Controls.Training"
+             xmlns:controls="clr-namespace:DeepVisionSharp.Shell.Avalonia.Controls"
              xmlns:training="clr-namespace:DeepVisionSharp.Shell.Avalonia.Controls.Training"
              xmlns:conv="using:Avalonia.Data.Converters"
              xmlns:domain="using:DeepVisionSharp.Domain.Entities"
@@ -168,29 +169,95 @@
                                  IsVisible="{Binding !JobList.HasEmptyJobList}">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <StackPanel Spacing="6">
-                                        <TextBlock FontSize="13" FontWeight="SemiBold"
-                                                   Foreground="{DynamicResource IvText1Brush}"
-                                                   Text="{Binding Name}"
-                                                   TextTrimming="CharacterEllipsis"
-                                                   ToolTip.Tip="{Binding Name}" />
-                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                                            <TextBlock VerticalAlignment="Center"
-                                                       FontSize="11.5"
-                                                       Foreground="{DynamicResource IvText2Brush}"
-                                                       Text="{Binding MetaText}"
+                                    <Border x:Name="JobRowContainer"
+                                            Background="Transparent"
+                                            Tag="{Binding $parent[UserControl].DataContext}">
+                                        <Border.ContextMenu>
+                                            <ContextMenu>
+                                                <MenuItem Header="重命名…"
+                                                          Command="{Binding #JobRowContainer.Tag.RenameJobByIdCommand}"
+                                                          CommandParameter="{Binding #JobRowContainer.DataContext.Id}">
+                                                    <MenuItem.Icon>
+                                                        <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Edit}" />
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                                <MenuItem Header="复制任务"
+                                                          Command="{Binding #JobRowContainer.Tag.DuplicateJobByIdCommand}"
+                                                          CommandParameter="{Binding #JobRowContainer.DataContext.Id}">
+                                                    <MenuItem.Icon>
+                                                        <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Copy}" />
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                                <MenuItem Header="保存为模型"
+                                                          Command="{Binding #JobRowContainer.Tag.SaveAsModelByIdCommand}"
+                                                          CommandParameter="{Binding #JobRowContainer.DataContext.Id}">
+                                                    <MenuItem.Icon>
+                                                        <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Save}" />
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                                <MenuItem Header="停止训练"
+                                                          Command="{Binding #JobRowContainer.Tag.StopJobByIdCommand}"
+                                                          CommandParameter="{Binding #JobRowContainer.DataContext.Id}">
+                                                    <MenuItem.Icon>
+                                                        <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Close}" />
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                                <Separator />
+                                                <MenuItem Header="查看日志"
+                                                          Command="{Binding #JobRowContainer.Tag.ShowLogsByIdCommand}"
+                                                          CommandParameter="{Binding #JobRowContainer.DataContext.Id}">
+                                                    <MenuItem.Icon>
+                                                        <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Document}" />
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                                <MenuItem Header="打开输出目录"
+                                                          Command="{Binding #JobRowContainer.Tag.OpenOutputFolderByIdCommand}"
+                                                          CommandParameter="{Binding #JobRowContainer.DataContext.Id}">
+                                                    <MenuItem.Icon>
+                                                        <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.FolderOpen}" />
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                                <MenuItem Header="打开日志目录"
+                                                          Command="{Binding #JobRowContainer.Tag.OpenLogFolderByIdCommand}"
+                                                          CommandParameter="{Binding #JobRowContainer.DataContext.Id}">
+                                                    <MenuItem.Icon>
+                                                        <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Folder}" />
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                                <Separator />
+                                                <MenuItem Header="删除任务" Classes="danger"
+                                                          Command="{Binding #JobRowContainer.Tag.ConfirmDeleteJobByIdCommand}"
+                                                          CommandParameter="{Binding #JobRowContainer.DataContext.Id}">
+                                                    <MenuItem.Icon>
+                                                        <iv:Icon FontSize="15" Data="{x:Static ui:IvIcons.Delete}" />
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                            </ContextMenu>
+                                        </Border.ContextMenu>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock FontSize="13" FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource IvText1Brush}"
+                                                       Text="{Binding Name}"
                                                        TextTrimming="CharacterEllipsis"
-                                                       ToolTip.Tip="{Binding MetaText}" />
-                                            <Border Grid.Column="1" Classes="trainingJobStatus"
-                                                    Classes.preparing="{Binding Status, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter={x:Static domain:TrainingJobStatus.Preparing}}"
-                                                    Classes.running="{Binding Status, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter={x:Static domain:TrainingJobStatus.Running}}"
-                                                    Classes.succeeded="{Binding Status, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter={x:Static domain:TrainingJobStatus.Succeeded}}"
-                                                    Classes.failed="{Binding Status, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter={x:Static domain:TrainingJobStatus.Failed}}">
-                                                <TextBlock FontSize="11" FontWeight="SemiBold"
-                                                           Text="{Binding StatusDisplay}" />
-                                            </Border>
-                                        </Grid>
-                                    </StackPanel>
+                                                       ToolTip.Tip="{Binding Name}" />
+                                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                                <TextBlock VerticalAlignment="Center"
+                                                           FontSize="11.5"
+                                                           Foreground="{DynamicResource IvText2Brush}"
+                                                           Text="{Binding MetaText}"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           ToolTip.Tip="{Binding MetaText}" />
+                                                <Border Grid.Column="1" Classes="trainingJobStatus"
+                                                        Classes.preparing="{Binding Status, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter={x:Static domain:TrainingJobStatus.Preparing}}"
+                                                        Classes.running="{Binding Status, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter={x:Static domain:TrainingJobStatus.Running}}"
+                                                        Classes.succeeded="{Binding Status, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter={x:Static domain:TrainingJobStatus.Succeeded}}"
+                                                        Classes.failed="{Binding Status, Converter={x:Static conv:ObjectConverters.Equal}, ConverterParameter={x:Static domain:TrainingJobStatus.Failed}}">
+                                                    <TextBlock FontSize="11" FontWeight="SemiBold"
+                                                               Text="{Binding StatusDisplay}" />
+                                                </Border>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
@@ -221,7 +288,7 @@
 
                 <Border Grid.Column="2" Classes="card" IsVisible="{Binding JobList.ShowDetailPreparing}">
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <dv:BusyRing Width="36" Height="36" HorizontalAlignment="Center" />
+                        <controls:BusyRing Width="36" Height="36" HorizontalAlignment="Center" />
                         <TextBlock Margin="0,10,0,0" HorizontalAlignment="Center" FontSize="14" FontWeight="SemiBold" Text="正在加载任务配置…" />
                     </StackPanel>
                 </Border>
@@ -294,7 +361,7 @@
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal">
-                                    <dv:BusyRing Width="16" Height="16" Margin="0,0,6,0" IsVisible="{Binding Monitor.IsRunning}" />
+                                    <controls:BusyRing Width="16" Height="16" Margin="0,0,6,0" IsVisible="{Binding Monitor.IsRunning}" />
                                 </StackPanel>
                             </Grid>
                         </Border>
@@ -371,7 +438,7 @@
             </Grid>
 
             <Border ZIndex="10" Background="{DynamicResource IvOverlayBrush}" IsVisible="{Binding JobList.IsLoading}">
-                <dv:BusyRing Width="42" Height="42" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                <controls:BusyRing Width="42" Height="42" HorizontalAlignment="Center" VerticalAlignment="Center" />
             </Border>
         </Grid>
     </DockPanel>

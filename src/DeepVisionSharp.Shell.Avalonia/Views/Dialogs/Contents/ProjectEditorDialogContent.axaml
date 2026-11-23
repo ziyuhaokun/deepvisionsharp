@@ -29,7 +29,7 @@
                  AcceptsReturn="True"
                  AutomationProperties.AutomationId="dv.dialog.project-description"
                  PlaceholderText="简要描述项目用途（可选）"
-                 Text="{Binding DraftDescription, Mode=TwoWay}"
+                 Text="{Binding DraftDescription, Mode=TwoWay}" MaxLength="500"
                  TextWrapping="Wrap" />
 
         <TextBlock Theme="{StaticResource DialogFieldLabelStyle}" Text="项目类型" />

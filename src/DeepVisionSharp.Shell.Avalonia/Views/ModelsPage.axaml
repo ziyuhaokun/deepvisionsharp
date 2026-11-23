@@ -93,8 +93,7 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Orientation="Horizontal">
-                        <Button Margin="0,0,8,0"
-                                Command="{Binding LoadCommand}"
+                        <Button Command="{Binding LoadCommand}"
                                 Theme="{StaticResource ModelToolbarButtonStyle}">
                             <StackPanel Orientation="Horizontal">
                                 <iv:Icon Margin="0,0,6,0"
@@ -102,20 +101,6 @@
                                          FontSize="15"
                                          Data="{x:Static ui:IvIcons.Refresh}" />
                                 <TextBlock VerticalAlignment="Center" Text="刷新" />
-                            </StackPanel>
-                        </Button>
-                        <Button Height="34"
-                                Padding="14,0"
-                                Command="{Binding Editor.ShowCreateModelDialogCommand}"
-                                IsEnabled="{Binding List.CanCreateModels}"
-                                Theme="{StaticResource IvPrimaryButtonStyle}"
-                                ToolTip.Tip="为当前项目创建兼容模型">
-                            <StackPanel Orientation="Horizontal">
-                                <iv:Icon Margin="0,0,6,0"
-                                         VerticalAlignment="Center"
-                                         FontSize="16"
-                                         Data="{x:Static ui:IvIcons.Add}" />
-                                <TextBlock VerticalAlignment="Center" Text="新建模型" />
                             </StackPanel>
                         </Button>
                     </StackPanel>
@@ -196,21 +181,6 @@
                                    Text="{Binding List.EmptyStateDescription}"
                                    TextAlignment="Center"
                                    TextWrapping="Wrap" />
-                        <Button Height="34"
-                                Padding="14,0"
-                                Margin="0,18,0,0"
-                                HorizontalAlignment="Center"
-                                Command="{Binding Editor.ShowCreateModelDialogCommand}"
-                                Theme="{StaticResource IvPrimaryButtonStyle}"
-                                IsVisible="{Binding Editor.ShowEmptyCreateAction}">
-                            <StackPanel Orientation="Horizontal">
-                                <iv:Icon Margin="0,0,6,0"
-                                         VerticalAlignment="Center"
-                                         FontSize="16"
-                                         Data="{x:Static ui:IvIcons.Add}" />
-                                <TextBlock VerticalAlignment="Center" Text="创建模型" />
-                            </StackPanel>
-                        </Button>
                         <Button Height="34"
                                 Padding="14,0"
                                 Margin="0,18,0,0"

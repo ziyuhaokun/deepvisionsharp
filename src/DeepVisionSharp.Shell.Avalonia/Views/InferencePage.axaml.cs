@@ -6,6 +6,7 @@ using Avalonia.Data.Converters;
 using Avalonia.Interactivity;
 
 using DeepVisionSharp.Presentation.ViewModels.Inference;
+using DeepVisionSharp.Shell.Avalonia.Controls;
 using DeepVisionSharp.Shell.Avalonia.Controls.Inference;
 using DeepVisionSharp.Shell.Avalonia.ViewModels;
 

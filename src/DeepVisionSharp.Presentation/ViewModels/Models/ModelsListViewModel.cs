@@ -47,6 +47,7 @@ public sealed partial class ModelsListViewModel : ObservableObject
         _mediator = mediator;
         _fileDialog = fileDialog;
         _workspaceSession = workspaceSession;
+        _workspaceSession.Changed += OnWorkspaceSessionChanged;
         _checkpointFiles = checkpointFiles;
         _processLauncher = processLauncher;
         _snackbar = snackbar;
@@ -158,6 +159,7 @@ public sealed partial class ModelsListViewModel : ObservableObject
 
     public void Dispose()
     {
+        _workspaceSession.Changed -= OnWorkspaceSessionChanged;
         Models.CollectionChanged -= OnModelsChanged;
     }
 
@@ -587,5 +589,22 @@ public sealed partial class ModelsListViewModel : ObservableObject
         }
 
         return timestamp.ToLocalTime().ToString("yyyy-MM-dd");
+    }
+
+    /// <summary>项目被改名时更新标题；项目被删除时重新加载，回到「未选择项目」。</summary>
+    private void OnWorkspaceSessionChanged(object? sender, WorkspaceSessionChangedEventArgs e)
+    {
+        if (e.Reason == WorkspaceSessionChangeReason.ProjectUpdated
+            && e.Current.Project is not null
+            && CurrentProjectId == e.Current.Project.Id)
+        {
+            ProjectName = e.Current.Project.Name;
+            return;
+        }
+
+        if (e.Reason == WorkspaceSessionChangeReason.ProjectCleared && CurrentProjectId is not null)
+        {
+            _ = LoadCommand.ExecuteAsync(null);
+        }
     }
 }

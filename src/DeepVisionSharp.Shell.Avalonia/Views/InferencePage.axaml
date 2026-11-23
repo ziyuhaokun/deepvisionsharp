@@ -7,6 +7,7 @@
              xmlns:iv="clr-namespace:DeepVisionSharp.UI.Avalonia.Controls;assembly=DeepVisionSharp.UI.Avalonia"
              xmlns:ui="clr-namespace:DeepVisionSharp.UI.Avalonia;assembly=DeepVisionSharp.UI.Avalonia"
              xmlns:dv="clr-namespace:DeepVisionSharp.Shell.Avalonia.Controls.Inference"
+             xmlns:controls="clr-namespace:DeepVisionSharp.Shell.Avalonia.Controls"
              xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base"
              xmlns:local="clr-namespace:DeepVisionSharp.Shell.Avalonia.Views"
              x:Class="DeepVisionSharp.Shell.Avalonia.Views.InferencePage"
@@ -1051,7 +1052,7 @@
                             VerticalAlignment="Center"
                             BoxShadow="0 3 18 0 #38000000">
                         <StackPanel Orientation="Horizontal">
-                            <dv:BusyRing Width="30" Height="30" VerticalAlignment="Center" />
+                            <controls:BusyRing Width="30" Height="30" VerticalAlignment="Center" />
                             <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
                                 <TextBlock FontSize="12.5"
                                            FontWeight="SemiBold"

@@ -203,8 +203,16 @@ public sealed partial class TrainingViewModel : ObservableObject, IDisposable
             return;
         }
 
+        // SelectJobById defers form population to ApplicationIdle; only read the right-panel form
+        // when this job was already active and its form ready, otherwise use the job's own defaults.
+        var useActiveForm = _jobs.SelectedJob?.Id == job.Id && _jobs.IsDetailFormReady;
+        var modelName = useActiveForm ? _config.ModelName : job.Name;
+        var checkpoint = useActiveForm
+            ? _monitor.SelectedCheckpointForSave
+            : TrainingJobActionRules.ResolveDefaultSelection(job);
+
         _jobs.SelectJobById(jobId);
-        await _config.SaveAsModelCommand.ExecuteAsync(null);
+        await _config.SaveAsModelForJobAsync(job.Id, modelName, checkpoint);
     }
 
     [RelayCommand]
@@ -218,6 +226,7 @@ public sealed partial class TrainingViewModel : ObservableObject, IDisposable
 
         if (!TrainingJobActionRules.CanShowLogs(job))
         {
+            _snackbar.ShowInfo("该任务尚未启动，暂无训练日志。", "训练");
             return;
         }
 

@@ -166,9 +166,12 @@ public sealed partial class ModelsEditorViewModel : ObservableObject, IDisposabl
             return false;
         }
 
-        var classes = _list.ProjectClassNames.Count > 0
-            ? _list.ProjectClassNames.ToList()
-            : _list.Models.FirstOrDefault(item => item.Id == EditingModelId)?.Classes.ToList() ?? [];
+        var existingClasses = _list.Models.FirstOrDefault(item => item.Id == EditingModelId)?.Classes.ToList();
+        var classes = EditingClasses.Count > 0
+            ? EditingClasses.ToList()
+            : existingClasses is { Count: > 0 }
+                ? existingClasses
+                : _list.ProjectClassNames.ToList();
 
         // 模型类型在创建后不可修改，编辑仅更新名称/备注等元数据。
         var result = await _mediator.Send(new UpdateModelCommand(
