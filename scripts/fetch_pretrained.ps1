@@ -1,3 +1,4 @@
+#requires -Version 7.0
 [CmdletBinding()]
 param(
     # Product architecture to fetch:
@@ -10,13 +11,20 @@ param(
         'yolo26n-cls', 'yolo26s-cls', 'yolo26m-cls', 'yolo26l-cls', 'yolo26x-cls')]
     [string]$Arch = 'resnet18',
     # Where the converted bundle is written. The loader reads <Destination>/<Arch>/index.json.
-    [string]$Destination = (Join-Path $env:LOCALAPPDATA 'DeepVisionSharp/Models/pretrained'),
+    [string]$Destination = $(if (-not [string]::IsNullOrWhiteSpace($env:DV_PRETRAINED_ROOT)) { $env:DV_PRETRAINED_ROOT } else { Join-Path $env:LOCALAPPDATA 'DeepVisionSharp/Models/pretrained' }),
     # Optional already-downloaded .pth/.pt; skips the download.
     [string]$SourcePath,
     # Keep the downloaded checkpoint after conversion.
     [switch]$KeepSource
 )
 $ErrorActionPreference = 'Stop'
+if ([string]::IsNullOrWhiteSpace($Destination)) {
+    $Destination = if (-not [string]::IsNullOrWhiteSpace($env:DV_PRETRAINED_ROOT)) {
+        $env:DV_PRETRAINED_ROOT
+    } else {
+        Join-Path $env:LOCALAPPDATA 'DeepVisionSharp/Models/pretrained'
+    }
+}
 
 $urls = @{
     resnet18 = 'https://download.pytorch.org/models/resnet18-f37072fd.pth'

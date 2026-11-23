@@ -15,7 +15,7 @@ public sealed class PackagerOptions
     public string Architecture { get; set; } = "x64";
     public string RuntimeType { get; set; } = "app";
     public bool RequiresAdmin { get; set; }
-    public string DefaultInstallDirectory { get; set; } = "%LocalAppData%\\DeepVisionSharp";
+    public string DefaultInstallDirectory { get; set; } = "%LocalAppData%\\Programs\\DeepVisionSharp";
     public string OutputPackagePath { get; set; } = string.Empty;
     public List<EntryPointDescriptor>? EntryPoints { get; set; }
     public List<EnvironmentVariableDescriptor>? EnvironmentVariables { get; set; }

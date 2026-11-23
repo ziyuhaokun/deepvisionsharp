@@ -18,6 +18,8 @@ public sealed class InstallExecutor
     private readonly ShellIntegrationService _shellIntegration;
     private readonly UninstallRegistrationService _uninstallRegistration;
     private readonly EnvironmentVariableIntegrationService _environmentVariables;
+    private readonly string? _sharedUserDataRoot;
+    private readonly string? _failureLogDirectory;
 
     public InstallExecutor()
         : this(new ShellIntegrationService(), new UninstallRegistrationService(), new EnvironmentVariableIntegrationService())
@@ -34,11 +36,15 @@ public sealed class InstallExecutor
     internal InstallExecutor(
         ShellIntegrationService shellIntegration,
         UninstallRegistrationService uninstallRegistration,
-        EnvironmentVariableIntegrationService environmentVariables)
+        EnvironmentVariableIntegrationService environmentVariables,
+        string? sharedUserDataRoot = null,
+        string? failureLogDirectory = null)
     {
         _shellIntegration = shellIntegration;
         _uninstallRegistration = uninstallRegistration;
         _environmentVariables = environmentVariables;
+        _sharedUserDataRoot = sharedUserDataRoot;
+        _failureLogDirectory = failureLogDirectory;
     }
 
     public async Task<InstallResult> InstallAsync(InstallPlan plan, CancellationToken cancellationToken)
@@ -46,7 +52,15 @@ public sealed class InstallExecutor
         ArgumentNullException.ThrowIfNull(plan);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var rollbackState = new RollbackState(Directory.Exists(plan.ResolvedInstallDirectory));
+        var installDirectoryExistedBefore = Directory.Exists(plan.ResolvedInstallDirectory);
+        var installLogExistedBefore = File.Exists(plan.InstallLogPath);
+        var hadExistingContentsBeforeLog = installDirectoryExistedBefore
+            && Directory.EnumerateFileSystemEntries(plan.ResolvedInstallDirectory)
+                .Any(entry => !ProtectedUserDataPaths.IsProtectedTopLevelEntry(
+                    plan.ResolvedInstallDirectory,
+                    entry,
+                    _sharedUserDataRoot));
+        var rollbackState = new RollbackState(installDirectoryExistedBefore, installLogExistedBefore);
 
         using var log = InstallLog.Open(plan.InstallLogPath);
         log.Info($"Starting install for {plan.Package.Manifest.ProductName} {plan.Package.Manifest.Version}.");
@@ -55,7 +69,7 @@ public sealed class InstallExecutor
 
         try
         {
-            PrepareInstallDirectory(plan, rollbackState);
+            PrepareInstallDirectory(plan, rollbackState, hadExistingContentsBeforeLog, _sharedUserDataRoot);
 
             log.Info("Extracting payload.");
             await PackageArchiveService.ExtractToDirectoryAsync(plan.PayloadArchivePath, plan.ResolvedInstallDirectory, cancellationToken);
@@ -114,7 +128,7 @@ public sealed class InstallExecutor
                 brandingIconPath,
                 plan.UninstallCommand,
                 plan.QuietUninstallCommand,
-                GetDirectorySize(plan.ResolvedInstallDirectory));
+                GetDirectorySize(plan.ResolvedInstallDirectory, _sharedUserDataRoot));
             rollbackState.UninstallRegistryKeyName = plan.UninstallRegistryKeyName;
 
             var record = new InstallationRecord
@@ -156,9 +170,9 @@ public sealed class InstallExecutor
         catch (Exception ex)
         {
             log.Error("Install failed.", ex);
-            var preservedLogPath = PreserveFailureLog(plan, log);
+            var preservedLogPath = PreserveFailureLog(plan, log, _failureLogDirectory);
             log.UsePreservedPathOnly(preservedLogPath);
-            Rollback(plan, rollbackState, log);
+            Rollback(plan, rollbackState, log, preservedLogPath);
 
             if (!string.IsNullOrWhiteSpace(preservedLogPath))
             {
@@ -171,26 +185,41 @@ public sealed class InstallExecutor
         }
     }
 
-    private static void PrepareInstallDirectory(InstallPlan plan, RollbackState rollbackState)
+    private static void PrepareInstallDirectory(
+        InstallPlan plan,
+        RollbackState rollbackState,
+        bool hadExistingContentsBeforeLog,
+        string? sharedUserDataRoot)
     {
-        if (rollbackState.InstallDirectoryExistedBefore &&
-            Directory.EnumerateFileSystemEntries(plan.ResolvedInstallDirectory).Any())
+        if (hadExistingContentsBeforeLog)
         {
             if (!plan.AllowOverwriteExistingContents)
             {
                 throw new InvalidOperationException("安装目录不是空目录。");
             }
 
-            ClearDirectoryContents(plan.ResolvedInstallDirectory);
+            ClearDirectoryContents(plan.ResolvedInstallDirectory, plan.InstallLogPath, sharedUserDataRoot);
         }
 
         Directory.CreateDirectory(plan.ResolvedInstallDirectory);
+        rollbackState.CanCleanInstallDirectoryOnRollback = true;
     }
 
-    private static void ClearDirectoryContents(string directory)
+    private static void ClearDirectoryContents(
+        string directory,
+        string installLogPath,
+        string? sharedUserDataRoot)
     {
+        var normalizedInstallLogPath = Path.GetFullPath(installLogPath);
         foreach (var path in Directory.EnumerateFileSystemEntries(directory))
         {
+            var normalizedPath = Path.GetFullPath(path);
+            if (string.Equals(normalizedPath, normalizedInstallLogPath, StringComparison.OrdinalIgnoreCase)
+                || ProtectedUserDataPaths.IsProtectedTopLevelEntry(directory, path, sharedUserDataRoot))
+            {
+                continue;
+            }
+
             ClearReadOnlyAttributes(path);
 
             if (Directory.Exists(path))
@@ -317,7 +346,7 @@ public sealed class InstallExecutor
         }
     }
 
-    private void Rollback(InstallPlan plan, RollbackState rollbackState, InstallLog log)
+    private void Rollback(InstallPlan plan, RollbackState rollbackState, InstallLog log, string? preservedLogPath)
     {
         log.Info("Starting rollback.");
 
@@ -337,16 +366,65 @@ public sealed class InstallExecutor
                 return;
             }
 
-            ClearReadOnlyAttributes(plan.ResolvedInstallDirectory);
-            Directory.Delete(plan.ResolvedInstallDirectory, true);
-
-            if (rollbackState.InstallDirectoryExistedBefore)
+            if (!rollbackState.CanCleanInstallDirectoryOnRollback)
             {
-                Directory.CreateDirectory(plan.ResolvedInstallDirectory);
+                if (!rollbackState.InstallLogExistedBefore && File.Exists(plan.InstallLogPath))
+                {
+                    ClearReadOnlyAttribute(plan.InstallLogPath);
+                    File.Delete(plan.InstallLogPath);
+                }
+
+                return;
             }
+
+            CleanInstallDirectoryOnRollback(
+                plan.ResolvedInstallDirectory,
+                rollbackState.InstallDirectoryExistedBefore,
+                preservedLogPath,
+                _sharedUserDataRoot);
         });
 
         log.Info("Rollback finished.");
+    }
+
+    private static void CleanInstallDirectoryOnRollback(
+        string installDirectory,
+        bool installDirectoryExistedBefore,
+        string? preservedLogPath,
+        string? sharedUserDataRoot)
+    {
+        var normalizedPreservedLogPath = string.IsNullOrWhiteSpace(preservedLogPath)
+            ? null
+            : Path.GetFullPath(preservedLogPath);
+
+        foreach (var entry in Directory.EnumerateFileSystemEntries(installDirectory))
+        {
+            var normalizedEntry = Path.GetFullPath(entry);
+            if (ProtectedUserDataPaths.IsProtectedTopLevelEntry(installDirectory, normalizedEntry, sharedUserDataRoot)
+                || (normalizedPreservedLogPath is not null
+                    && string.Equals(normalizedEntry, normalizedPreservedLogPath, StringComparison.OrdinalIgnoreCase)))
+            {
+                continue;
+            }
+
+            ClearReadOnlyAttributes(entry);
+            if (Directory.Exists(entry))
+            {
+                Directory.Delete(entry, true);
+                continue;
+            }
+
+            if (File.Exists(entry))
+            {
+                ClearReadOnlyAttribute(entry);
+                File.Delete(entry);
+            }
+        }
+
+        if (!installDirectoryExistedBefore && !Directory.EnumerateFileSystemEntries(installDirectory).Any())
+        {
+            Directory.Delete(installDirectory);
+        }
     }
 
     private static void TryRollbackStep(InstallLog log, string message, Action action)
@@ -362,15 +440,17 @@ public sealed class InstallExecutor
         }
     }
 
-    private static string? PreserveFailureLog(InstallPlan plan, InstallLog log)
+    private static string? PreserveFailureLog(
+        InstallPlan plan,
+        InstallLog log,
+        string? failureLogDirectory)
     {
         try
         {
             log.Flush();
-            var logDirectory = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "DeepVisionSharp",
-                "Logs");
+            var logDirectory = string.IsNullOrWhiteSpace(failureLogDirectory)
+                ? Path.Combine(ProtectedUserDataPaths.DefaultSharedUserDataRoot, "Logs")
+                : failureLogDirectory;
             Directory.CreateDirectory(logDirectory);
 
             var packageId = SanitizeFileName(plan.Package.Manifest.PackageId);
@@ -418,12 +498,45 @@ public sealed class InstallExecutor
             : [];
     }
 
-    private static long GetDirectorySize(string directory)
+    internal static long GetDirectorySize(string directory, string? sharedUserDataRoot = null)
     {
         try
         {
-            return Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories)
-                .Sum(path => new FileInfo(path).Length);
+            if (!Directory.Exists(directory))
+            {
+                return 0;
+            }
+
+            long total = 0;
+            var recurseOptions = new EnumerationOptions
+            {
+                RecurseSubdirectories = true,
+                IgnoreInaccessible = true
+            };
+
+            foreach (var entry in Directory.EnumerateFileSystemEntries(directory))
+            {
+                if (ProtectedUserDataPaths.IsProtectedTopLevelEntry(directory, entry, sharedUserDataRoot))
+                {
+                    continue;
+                }
+
+                if (File.Exists(entry))
+                {
+                    try { total += new FileInfo(entry).Length; } catch { }
+                    continue;
+                }
+
+                if (Directory.Exists(entry))
+                {
+                    foreach (var file in Directory.EnumerateFiles(entry, "*", recurseOptions))
+                    {
+                        try { total += new FileInfo(file).Length; } catch { }
+                    }
+                }
+            }
+
+            return total;
         }
         catch
         {
@@ -463,9 +576,11 @@ public sealed class InstallExecutor
         }
     }
 
-    private sealed class RollbackState(bool installDirectoryExistedBefore)
+    private sealed class RollbackState(bool installDirectoryExistedBefore, bool installLogExistedBefore)
     {
         public bool InstallDirectoryExistedBefore { get; } = installDirectoryExistedBefore;
+        public bool InstallLogExistedBefore { get; } = installLogExistedBefore;
+        public bool CanCleanInstallDirectoryOnRollback { get; set; }
         public string? StartMenuShortcutPath { get; set; }
         public string? DesktopShortcutPath { get; set; }
         public string? UninstallRegistryKeyName { get; set; }
@@ -541,8 +656,15 @@ public sealed class InstallExecutor
 
         private static void AppendLine(string path, string line)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-            File.AppendAllText(path, line);
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+                File.AppendAllText(path, line);
+            }
+            catch
+            {
+                // Best-effort file logging: never abort rollback when disk is full or log is locked.
+            }
         }
     }
 }

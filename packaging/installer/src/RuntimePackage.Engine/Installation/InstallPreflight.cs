@@ -2,6 +2,18 @@ namespace RuntimePackage.Engine.Installation;
 
 public sealed class InstallPreflight
 {
+    private readonly string? _sharedUserDataRoot;
+
+    public InstallPreflight()
+        : this(sharedUserDataRoot: null)
+    {
+    }
+
+    internal InstallPreflight(string? sharedUserDataRoot)
+    {
+        _sharedUserDataRoot = sharedUserDataRoot;
+    }
+
     public Task<InstallPreflightResult> ValidateAsync(InstallPlan plan, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(plan);
@@ -30,16 +42,27 @@ public sealed class InstallPreflight
 
         if (Directory.Exists(plan.ResolvedInstallDirectory))
         {
+            var isSharedDataRoot = ProtectedUserDataPaths.IsSharedUserDataDirectory(
+                plan.ResolvedInstallDirectory,
+                _sharedUserDataRoot);
             var installationRecord = Path.Combine(plan.ResolvedInstallDirectory, "installation.json");
             if (File.Exists(installationRecord))
             {
                 requiresOverwriteConfirmation = true;
-                notes.Add("该目录中已存在安装记录，继续安装将覆盖原有安装。");
+                notes.Add(isSharedDataRoot
+                    ? "该目录中已存在安装记录，继续安装将覆盖原有程序文件（保留 Data / Models / Logs / CrashDumps 用户数据目录）。"
+                    : "该目录中已存在安装记录，继续安装将覆盖原有安装。");
             }
-            else if (Directory.EnumerateFileSystemEntries(plan.ResolvedInstallDirectory).Any())
+            else if (Directory.EnumerateFileSystemEntries(plan.ResolvedInstallDirectory)
+                         .Any(entry => !ProtectedUserDataPaths.IsProtectedTopLevelEntry(
+                             plan.ResolvedInstallDirectory,
+                             entry,
+                             _sharedUserDataRoot)))
             {
                 requiresOverwriteConfirmation = true;
-                notes.Add("安装目录包含已有内容，继续安装将先清空该目录。");
+                notes.Add(isSharedDataRoot
+                    ? "安装目录包含已有程序内容，继续安装将先清理非用户数据内容（保留 Data / Models / Logs / CrashDumps 用户数据目录）。"
+                    : "安装目录包含已有内容，继续安装将先清空该目录。");
             }
         }
 

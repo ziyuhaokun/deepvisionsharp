@@ -15,6 +15,7 @@ public sealed class UninstallExecutor
     private readonly ShellIntegrationService _shellIntegration;
     private readonly UninstallRegistrationService _uninstallRegistration;
     private readonly EnvironmentVariableIntegrationService _environmentVariables;
+    private readonly string? _sharedUserDataRoot;
 
     public UninstallExecutor()
         : this(new ShellIntegrationService(), new UninstallRegistrationService(), new EnvironmentVariableIntegrationService())
@@ -31,11 +32,13 @@ public sealed class UninstallExecutor
     internal UninstallExecutor(
         ShellIntegrationService shellIntegration,
         UninstallRegistrationService uninstallRegistration,
-        EnvironmentVariableIntegrationService environmentVariables)
+        EnvironmentVariableIntegrationService environmentVariables,
+        string? sharedUserDataRoot = null)
     {
         _shellIntegration = shellIntegration;
         _uninstallRegistration = uninstallRegistration;
         _environmentVariables = environmentVariables;
+        _sharedUserDataRoot = sharedUserDataRoot;
     }
 
     public async Task UninstallAsync(string installationRecordPath, CancellationToken cancellationToken)
@@ -71,8 +74,7 @@ public sealed class UninstallExecutor
         {
             if (Directory.Exists(canonicalInstallDirectory))
             {
-                ClearReadOnlyAttributes(canonicalInstallDirectory);
-                DeleteInstallDirectory(canonicalInstallDirectory);
+                DeleteInstallDirectory(canonicalInstallDirectory, _sharedUserDataRoot);
             }
         });
 
@@ -99,14 +101,47 @@ public sealed class UninstallExecutor
     private static string NormalizePath(string path) =>
         Path.GetFullPath(path);
 
-    private static void DeleteInstallDirectory(string installDirectory)
+    private static void DeleteInstallDirectory(string installDirectory, string? sharedUserDataRoot)
     {
         var currentProcessPath = Environment.ProcessPath;
         var protectedPaths = string.IsNullOrWhiteSpace(currentProcessPath)
             ? []
             : new HashSet<string>([NormalizePath(currentProcessPath)], StringComparer.OrdinalIgnoreCase);
 
-        foreach (var file in Directory.EnumerateFiles(installDirectory, "*", SearchOption.AllDirectories)
+        foreach (var entry in Directory.EnumerateFileSystemEntries(installDirectory))
+        {
+            var normalizedEntry = NormalizePath(entry);
+            // Skip protected top-level user-data directories BEFORE recursing so uninstall never
+            // traverses Data/ or Models/ or trips on restricted subdirectories inside them.
+            if (ProtectedUserDataPaths.IsProtectedTopLevelEntry(installDirectory, normalizedEntry, sharedUserDataRoot)
+                || protectedPaths.Contains(normalizedEntry))
+            {
+                continue;
+            }
+
+            if (File.Exists(normalizedEntry))
+            {
+                ClearReadOnlyAttribute(normalizedEntry);
+                File.Delete(normalizedEntry);
+                continue;
+            }
+
+            if (Directory.Exists(normalizedEntry))
+            {
+                DeleteSubtreeExceptProtectedFiles(normalizedEntry, protectedPaths);
+            }
+        }
+
+        if (!Directory.EnumerateFileSystemEntries(installDirectory).Any())
+        {
+            ClearReadOnlyAttribute(installDirectory);
+            Directory.Delete(installDirectory);
+        }
+    }
+
+    private static void DeleteSubtreeExceptProtectedFiles(string subtreeRoot, HashSet<string> protectedPaths)
+    {
+        foreach (var file in Directory.EnumerateFiles(subtreeRoot, "*", SearchOption.AllDirectories)
                      .OrderByDescending(path => path.Length))
         {
             var normalizedFile = NormalizePath(file);
@@ -115,39 +150,24 @@ public sealed class UninstallExecutor
                 continue;
             }
 
-            ClearReadOnlyAttribute(file);
-            File.Delete(file);
+            ClearReadOnlyAttribute(normalizedFile);
+            File.Delete(normalizedFile);
         }
 
-        foreach (var directory in Directory.EnumerateDirectories(installDirectory, "*", SearchOption.AllDirectories)
+        foreach (var directory in Directory.EnumerateDirectories(subtreeRoot, "*", SearchOption.AllDirectories)
                      .OrderByDescending(path => path.Length))
         {
             if (!Directory.EnumerateFileSystemEntries(directory).Any())
             {
+                ClearReadOnlyAttribute(directory);
                 Directory.Delete(directory);
             }
         }
 
-        if (!Directory.EnumerateFileSystemEntries(installDirectory).Any())
+        if (!Directory.EnumerateFileSystemEntries(subtreeRoot).Any())
         {
-            Directory.Delete(installDirectory);
-        }
-    }
-
-    private static void ClearReadOnlyAttributes(string root)
-    {
-        try
-        {
-            foreach (var path in Directory.EnumerateFileSystemEntries(root, "*", SearchOption.AllDirectories)
-                         .OrderByDescending(value => value.Length))
-            {
-                ClearReadOnlyAttribute(path);
-            }
-
-            ClearReadOnlyAttribute(root);
-        }
-        catch
-        {
+            ClearReadOnlyAttribute(subtreeRoot);
+            Directory.Delete(subtreeRoot);
         }
     }
 

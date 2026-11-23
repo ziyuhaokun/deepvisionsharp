@@ -160,7 +160,7 @@ Write-Host "--------------------------------------------------"
     --package-id vision.deepvisionsharp `
     --product-name "DeepVisionSharp" `
     --publisher ziyuhaokun `
-    --default-install-dir "%LocalAppData%\DeepVisionSharp" `
+    --default-install-dir "%LocalAppData%\Programs\DeepVisionSharp" `
     --entry-point "DeepVisionSharp.exe" `
     --setup-host $setupHostPath `
     --output $setupPath
@@ -172,6 +172,6 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "--------------------------------------------------"
 Write-Host "Installer created successfully!"
 Write-Host "Output: $setupPath"
-Write-Host "Default install: %LocalAppData%\DeepVisionSharp"
+Write-Host "Default install: %LocalAppData%\Programs\DeepVisionSharp"
 Write-Host "--------------------------------------------------"
 

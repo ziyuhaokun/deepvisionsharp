@@ -68,7 +68,7 @@ dotnet run --project src/DeepVisionSharp.Shell.Avalonia/DeepVisionSharp.Shell.Av
 .\scripts\fetch_pretrained.ps1 -Arch yolo26n-cls
 ```
 
-权重写到 `%LOCALAPPDATA%\\DeepVisionSharp\\Models\\pretrained`，也可用 `DV_PRETRAINED_ROOT` 指定目录。
+权重写到 `%LOCALAPPDATA%\DeepVisionSharp\Models\pretrained`，也可用 `DV_PRETRAINED_ROOT` 指定目录。
 
 自包含安装包：
 
@@ -76,7 +76,7 @@ dotnet run --project src/DeepVisionSharp.Shell.Avalonia/DeepVisionSharp.Shell.Av
 .\scripts\build_installer.ps1
 ```
 
-产物 `scripts/Output/DeepVisionSharp-{version}-x64.exe`，默认装到 `%LocalAppData%\\DeepVisionSharp`。细节见 [packaging/README.md](packaging/README.md)。
+产物 `scripts/Output/DeepVisionSharp-{version}-x64.exe`，默认装到 `%LocalAppData%\Programs\DeepVisionSharp`（用户数据仍留在 `%LOCALAPPDATA%\DeepVisionSharp`）。细节见 [packaging/README.md](packaging/README.md)。
 
 项目开发与回归测试命令见 [开发与验证](docs/development.md)。
 

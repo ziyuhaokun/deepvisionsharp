@@ -69,7 +69,7 @@ def storage_dtype(storage_type_name_value, numel, byte_count):
 def read_storage(archive, prefix, storage_id):
     """Materialise one persistent storage id as (type name, element count, raw bytes)."""
     storage_type, key, _location, numel = storage_id[1], storage_id[2], storage_id[3], storage_id[4]
-    raw = archive.read(f"{prefix}/data/{key}")
+    raw = archive.read(f"{prefix}/data/{key}" if prefix else f"data/{key}")
     return (storage_type_name(storage_type), int(numel), raw)
 
 

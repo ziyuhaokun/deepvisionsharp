@@ -45,7 +45,7 @@ The installer tool source lives in this repository. The existing `.vrp` format a
 - Product name: `DeepVisionSharp`.
 - Package ID: `vision.deepvisionsharp`.
 - Entry point: `DeepVisionSharp.exe`.
-- Default install directory: `%LocalAppData%\DeepVisionSharp` (per-user, no administrator required).
+- Default install directory: `%LocalAppData%\Programs\DeepVisionSharp` (per-user, no administrator required; user data remains under `%LocalAppData%\DeepVisionSharp`).
 - Version: read from the Shell project; written to `packaging/version/version.txt` during packaging.
 - `packaging/assets/license.txt`: installer license text.
 - `packaging/assets/logo.ico`: installer executable icon.

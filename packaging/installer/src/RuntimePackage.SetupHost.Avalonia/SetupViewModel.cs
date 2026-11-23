@@ -131,6 +131,7 @@ internal sealed class SetupViewModel : INotifyPropertyChanged
                 OnPropertyChanged(nameof(IsFirstStep));
                 OnPropertyChanged(nameof(IsActionStep));
                 OnPropertyChanged(nameof(BackButtonText));
+                OnPropertyChanged(nameof(NextButtonText));
                 OnPropertyChanged(nameof(WindowTitle));
                 OnPropertyChanged(nameof(CloseButtonText));
                 OnPropertyChanged(nameof(CompleteTitle));
@@ -719,7 +720,9 @@ internal sealed class SetupViewModel : INotifyPropertyChanged
             Publisher = record.Publisher;
             InstallDirectory = record.InstallDirectory;
             LogoPath = ResolveInstalledLogoPath(record.InstallDirectory);
-            UninstallSummary = $"即将从此计算机移除 {ProductTitle}。\n\n卸载后，安装目录和相关快捷方式将被删除。";
+            UninstallSummary = ProtectedUserDataPaths.IsSharedUserDataDirectory(record.InstallDirectory)
+                ? $"即将从此计算机移除 {ProductTitle}。\n\n卸载后，程序文件和相关快捷方式将被删除（Data / Models / Logs / CrashDumps 用户数据目录将保留）。"
+                : $"即将从此计算机移除 {ProductTitle}。\n\n卸载后，安装目录和相关快捷方式将被删除。";
 
             AddLog("卸载向导准备就绪。");
             CurrentPage = SetupPage.UninstallConfirm;
@@ -1011,9 +1014,10 @@ internal sealed class SetupViewModel : INotifyPropertyChanged
     {
         if (ConfirmOverwriteAsync is not null)
         {
-            return await ConfirmOverwriteAsync(
-                "覆盖安装",
-                $"安装目录中已经存在文件或安装记录：\n{installDirectory}\n\n继续安装将先清空该目录中的现有内容，然后重新安装。是否继续？");
+            var prompt = ProtectedUserDataPaths.IsSharedUserDataDirectory(installDirectory)
+                ? $"安装目录中已经存在程序文件或安装记录：\n{installDirectory}\n\n继续安装将先清理非用户数据内容（保留 Data / Models / Logs / CrashDumps 用户数据目录），然后重新安装。是否继续？"
+                : $"安装目录中已经存在文件或安装记录：\n{installDirectory}\n\n继续安装将先清空该目录中的现有内容，然后重新安装。是否继续？";
+            return await ConfirmOverwriteAsync("覆盖安装", prompt);
         }
 
         return false;
