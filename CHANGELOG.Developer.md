@@ -20,6 +20,7 @@ tags: detection / classification / refactor / ui
 - 指标页布局：四张等宽卡片和三列等高曲线收成一条数值带、一条全宽主曲线，损失与学习率并排且学习率更窄。历史数字右对齐并使用等宽字体。
 - `MetricLineChart` 重绘：去掉网格，Catmull-Rom 转三次贝塞尔（控制点 Y 夹在相邻点之间，不会冲出 0–100%），渐变填充，虚线基线，图例内联最新值；第 1 条曲线取 `IvText1Brush`、第 2 条取 `IvText3Brush`，更多条用强调色。比例类图（MaximumY≤1）轴和图例按百分比显示。
 - `MetricLineChart` 悬停：`OnPointerMoved` 按 `_plotRect` 吸附到最近的已有轮次，`_hoverEpoch` 变化才 `InvalidateVisual`；`Render` 先画透明矩形保证能收到指针事件；`DrawHover` 画虚线、空心点和圆角数值卡（靠右放不下时翻到左侧）。
+- `MainWindow.OnClosing`：用户关闭一律走 `IAppDialogService` 的 Confirm 弹窗，`_closeConfirmed` 通过后再 `Close()`；系统关机、应用主动退出（`ApplicationShutdown` / `OSShutdown`）、`IsUiTest`、无弹窗服务时直接放行；`RootDialog` 已开时不替换（`Dialog.ShowAsync` 会把前一个弹窗当取消），改为提示后拦住关闭；弹窗自身异常时放行，避免把用户锁在软件里。
 - 慢测夹具改为进程间稳定：合成图不再用每次进程都变盐的 `HashCode.Combine`，目录按序读，三条 Slow 训练测试进入同一个不并行的 collection，并在建模型前 `torch.manual_seed(42)`。先前检出数在 0/40～25/40 间摆动，不能拿单次慢测当回归结论。
 - 标注画布框先画 2px 深色描边再画类别色，填充不透明度从 72 提到 96；鸟瞰图同样加粗。样本条的 8px 状态点改成「已标 / 未标 / 异常」底，当前样本边框加到 2px；画布左上角补上当前图的标注状态。
 

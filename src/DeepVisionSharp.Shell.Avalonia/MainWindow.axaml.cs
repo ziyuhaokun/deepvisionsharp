@@ -8,6 +8,8 @@ using Avalonia.Styling;
 using Avalonia.Threading;
 using DeepVisionSharp.Presentation.Ports;
 using DeepVisionSharp.Presentation.Services;
+using DeepVisionSharp.Presentation.Services.Dialogs;
+using Microsoft.Extensions.Logging;
 using DeepVisionSharp.Presentation.Services.Navigation;
 using DeepVisionSharp.Presentation.ViewModels;
 using DeepVisionSharp.Shell.Avalonia.Composition;
@@ -53,6 +55,8 @@ public partial class MainWindow : ThemedWindow, IPageHost
 
     private bool _isSyncingNavSelection;
     private int _snackbarGeneration;
+    private bool _closeConfirmed;
+    private bool _isConfirmingClose;
 
     public static readonly StyledProperty<bool> IsNavCollapsedProperty =
         AvaloniaProperty.Register<MainWindow, bool>(nameof(IsNavCollapsed));
@@ -368,6 +372,73 @@ public partial class MainWindow : ThemedWindow, IPageHost
         SnackbarKind.Error => "IvDangerBrush",
         _ => "IvInfoBrush"
     };
+
+    /// <summary>
+    /// 用户点关闭（叉、Alt+F4）一律先确认。系统关机 / 应用主动退出拦不住也不该拦，直接放行；
+    /// UI 测试、没有对话框服务时同样放行，避免无人值守的进程被挂住。
+    /// </summary>
+    protected override void OnClosing(WindowClosingEventArgs e)
+    {
+        base.OnClosing(e);
+
+        if (e.Cancel
+            || _closeConfirmed
+            || e.CloseReason is WindowCloseReason.ApplicationShutdown or WindowCloseReason.OSShutdown
+            || Resolve<DeepVisionLaunchOptions>() is { IsUiTest: true }
+            || Resolve<IAppDialogService>() is not { } dialogs)
+        {
+            return;
+        }
+
+        e.Cancel = true;
+        if (_isConfirmingClose)
+        {
+            return;
+        }
+
+        // RootDialog 只有一个槽位：再弹会把当前对话框顶成「取消」，用户填到一半的内容就没了。
+        // 所以已有对话框时不动它，只拦住关闭并提示先处理它。
+        if (this.FindControl<Dialog>("RootDialog") is { IsOpen: true })
+        {
+            Resolve<ShellSnackbarNotifier>()?.ShowWarning("请先处理当前弹窗，再退出软件。", "退出");
+            return;
+        }
+
+        _ = ConfirmCloseAsync(dialogs);
+    }
+
+    private async Task ConfirmCloseAsync(IAppDialogService dialogs)
+    {
+        _isConfirmingClose = true;
+        try
+        {
+            var result = await dialogs.ShowAsync(
+                AppDialogKind.Confirm,
+                new ConfirmDialogRequest("关闭后会停止推理，正在进行的训练会被取消。"),
+                new DialogOptions(
+                    Title: "确认退出 DeepVisionSharp",
+                    PrimaryButtonText: "退出",
+                    CloseButtonText: "取消",
+                    DefaultButton: AppDialogDefaultButton.Close));
+
+            if (result == AppDialogResult.Primary)
+            {
+                _closeConfirmed = true;
+                Close();
+            }
+        }
+        catch (Exception ex)
+        {
+            // 对话框自己出问题时不能把用户锁在软件里：记录后放行关闭。
+            Resolve<Microsoft.Extensions.Logging.ILogger<MainWindow>>()?.LogWarning(ex, "Close confirmation failed; closing anyway");
+            _closeConfirmed = true;
+            Close();
+        }
+        finally
+        {
+            _isConfirmingClose = false;
+        }
+    }
 
     private void OnClosed(object? sender, EventArgs e)
     {
