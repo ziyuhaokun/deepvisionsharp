@@ -49,6 +49,32 @@
         <Style Selector="Border.metricCard">
             <Setter Property="Padding" Value="14" />
         </Style>
+        <Style Selector="Border.metricStrip">
+            <Setter Property="Margin" Value="0,12,0,0" />
+            <Setter Property="Padding" Value="4,2" />
+        </Style>
+        <Style Selector="Border.chartPanel">
+            <Setter Property="Padding" Value="20,16,20,10" />
+            <Setter Property="CornerRadius" Value="16" />
+        </Style>
+        <Style Selector="TextBlock.metricValue">
+            <Setter Property="Margin" Value="0,2,0,0" />
+            <Setter Property="FontFamily" Value="{DynamicResource IvMonoFontFamily}" />
+            <Setter Property="FontSize" Value="22" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style Selector="TextBlock.metricDelta">
+            <Setter Property="Margin" Value="0,6,0,0" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <Style Selector="TextBlock.metricNote">
+            <Setter Property="Margin" Value="0,2,0,0" />
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="Foreground" Value="{DynamicResource IvText3Brush}" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
         <Style Selector="StackPanel.emptyState">
             <Setter Property="HorizontalAlignment" Value="Center" />
             <Setter Property="VerticalAlignment" Value="Center" />
@@ -62,30 +88,37 @@
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="CornerRadius" Value="8" />
             <Setter Property="ClipToBounds" Value="True" />
         </Style>
         <Style Selector="Border.historyHeaderRow">
-            <Setter Property="Padding" Value="0,6" />
+            <Setter Property="Padding" Value="4,8" />
             <Setter Property="Background" Value="{DynamicResource IvControlFillBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
             <Setter Property="BorderThickness" Value="0,0,0,1" />
         </Style>
         <Style Selector="TextBlock.historyHeader">
-            <Setter Property="Margin" Value="8,0" />
+            <Setter Property="Margin" Value="12,0" />
             <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="FontSize" Value="12" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Foreground" Value="{DynamicResource IvText2Brush}" />
         </Style>
         <Style Selector="TextBlock.historyCell">
-            <Setter Property="Margin" Value="8,0" />
+            <Setter Property="Margin" Value="12,0" />
             <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="FontSize" Value="12.5" />
             <Setter Property="Foreground" Value="{DynamicResource IvText1Brush}" />
         </Style>
+        <Style Selector="TextBlock.historyHeader.numeric, TextBlock.historyCell.numeric">
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="TextAlignment" Value="Right" />
+        </Style>
+        <Style Selector="TextBlock.historyCell.numeric">
+            <Setter Property="FontFamily" Value="{DynamicResource IvMonoFontFamily}" />
+        </Style>
         <Style Selector="Border.historyRow">
-            <Setter Property="MinHeight" Value="24" />
+            <Setter Property="MinHeight" Value="32" />
             <Setter Property="BorderBrush" Value="{DynamicResource IvStrokeSubtleBrush}" />
             <Setter Property="BorderThickness" Value="0,0,0,1" />
         </Style>
@@ -717,163 +750,91 @@
 
                 <Grid>
                     <StackPanel VerticalAlignment="Top" IsVisible="{Binding Monitor.Metrics.ShowProfileMetricsCards}">
-                        <TextBlock Margin="0,0,0,10"
+                        <TextBlock FontSize="15"
+                                   FontWeight="SemiBold"
+                                   Text="{Binding Monitor.Metrics.CurrentMetricEpochText}" />
+                        <TextBlock Margin="0,4,0,0"
                                    FontSize="12.5"
                                    Foreground="{DynamicResource IvText2Brush}"
-                                   Text="{Binding Monitor.Metrics.CurrentMetricEpochText}" />
+                                   Text="{Binding Monitor.Metrics.MetricsFooterHint}"
+                                   TextWrapping="Wrap"
+                                   IsVisible="{Binding Monitor.Metrics.ShowMetricsFooterHint}" />
 
-                        <ItemsControl Margin="0,0,0,10"
-                                      ItemsSource="{Binding Monitor.Metrics.MetricCards}"
-                                      IsVisible="{Binding Monitor.Metrics.ShowMetricCards}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <UniformGrid Columns="{Binding Monitor.Metrics.MetricCards.Count}" />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Margin="0,0,8,0" Classes="card metricCard">
-                                        <StackPanel>
-                                            <TextBlock Classes="fieldLabel" Text="{Binding Title}" />
-                                            <TextBlock Margin="0,2,0,0"
-                                                       FontFamily="{DynamicResource IvMonoFontFamily}"
-                                                       FontSize="23"
-                                                       FontWeight="SemiBold"
-                                                       Text="{Binding ValueText}" />
-                                            <TextBlock Margin="0,6,0,0"
-                                                       FontSize="10.5"
-                                                       Foreground="{DynamicResource IvText2Brush}"
-                                                       Text="{Binding DeltaText}"
-                                                       TextWrapping="Wrap" />
-                                            <TextBlock Margin="0,2,0,0"
-                                                       FontSize="10.5"
-                                                       Foreground="{DynamicResource IvText3Brush}"
-                                                       Text="{Binding BestEpochText}"
-                                                       TextWrapping="Wrap" />
-                                            <TextBlock Margin="0,4,0,0"
-                                                       FontSize="10"
-                                                       Foreground="{DynamicResource IvText3Brush}"
-                                                       Text="{Binding Footnote}"
-                                                       TextWrapping="Wrap"
-                                                       IsVisible="{Binding HasFootnote}" />
-                                        </StackPanel>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-
-                        <Border Margin="0,0,0,12" Classes="card metricCard">
-                            <Grid ColumnDefinitions="*,16,*">
-                                <StackPanel Grid.Column="0"
-                                            IsVisible="{Binding Monitor.Metrics.ShowSecondaryTrainLossRow}">
-                                    <TextBlock FontSize="11.5"
-                                               Foreground="{DynamicResource IvText2Brush}"
-                                               Text="训练损失" />
-                                    <TextBlock Margin="0,4,0,0"
-                                               FontFamily="{DynamicResource IvMonoFontFamily}"
-                                               FontSize="15"
-                                               FontWeight="SemiBold"
-                                               Text="{Binding Monitor.Metrics.CurrentTrainLossText}" />
-                                    <TextBlock Margin="0,2,0,0"
-                                               FontSize="10.5"
-                                               Foreground="{DynamicResource IvText3Brush}"
-                                               Text="{Binding Monitor.Metrics.TrainLossDeltaText}" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="0"
-                                            IsVisible="{Binding Monitor.Metrics.ShowMetricsFooterHint}">
-                                    <TextBlock FontSize="11.5"
-                                               Foreground="{DynamicResource IvText2Brush}"
-                                               Text="主指标说明" />
-                                    <TextBlock Margin="0,4,0,0"
-                                               FontSize="13"
-                                               TextWrapping="Wrap"
-                                               Text="{Binding Monitor.Metrics.MetricsFooterHint}" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="2">
-                                    <TextBlock FontSize="11.5"
-                                               Foreground="{DynamicResource IvText2Brush}"
-                                               Text="学习率" />
-                                    <TextBlock Margin="0,4,0,0"
-                                               FontFamily="{DynamicResource IvMonoFontFamily}"
-                                               FontSize="15"
-                                               FontWeight="SemiBold"
-                                               Text="{Binding Monitor.Metrics.CurrentLrText}" />
-                                </StackPanel>
+                        <Border Classes="card metricStrip">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <ItemsControl ItemsSource="{Binding Monitor.Metrics.MetricCards}"
+                                              IsVisible="{Binding Monitor.Metrics.ShowMetricCards}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <UniformGrid Columns="{Binding Monitor.Metrics.MetricCards.Count}" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Margin="14,12">
+                                                <TextBlock Classes="fieldLabel" Text="{Binding Title}" />
+                                                <TextBlock Classes="metricValue" Text="{Binding ValueText}" />
+                                                <TextBlock Classes="metricDelta" Text="{Binding DeltaText}" />
+                                                <TextBlock Classes="metricNote" Text="{Binding BestEpochText}" />
+                                                <TextBlock Classes="metricNote"
+                                                           Text="{Binding Footnote}"
+                                                           IsVisible="{Binding HasFootnote}" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <Border Grid.Column="1"
+                                        MinWidth="132"
+                                        Padding="16,12,16,12"
+                                        BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
+                                        BorderThickness="1,0,0,0"
+                                        IsVisible="{Binding Monitor.Metrics.ShowLearningRateChartColumn}">
+                                    <StackPanel>
+                                        <TextBlock Classes="fieldLabel" Text="学习率" />
+                                        <TextBlock Classes="metricValue" Text="{Binding Monitor.Metrics.CurrentLrText}" />
+                                    </StackPanel>
+                                </Border>
                             </Grid>
                         </Border>
 
-                        <Grid Margin="0,0,0,16"
-                              ColumnDefinitions="*,*"
-                              IsVisible="{Binding Monitor.Metrics.ShowDetectionMetricsCards}">
-                            <Border Grid.Column="0" Margin="0,0,6,0" Classes="card metricCard">
-                                <StackPanel>
-                                    <TextBlock Classes="sectionTitle" Text="{Binding Monitor.Metrics.QualityChartTitle}" />
-                                    <Border Height="280"
-                                            Background="{DynamicResource IvSurface1Brush}"
-                                            BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
-                                            BorderThickness="1"
-                                            CornerRadius="4">
-                                        <dv:MetricLineChart Height="280" EmptyText="{Binding Monitor.Metrics.QualityChartEmptyText}" MaximumY="1" MinimumY="0" SeriesSource="{Binding Monitor.Metrics.QualityChartSeries, Mode=OneWay}" />
-                                    </Border>
-                                </StackPanel>
-                            </Border>
-                            <Border Grid.Column="1" Margin="6,0,0,0" Classes="card metricCard">
-                                <StackPanel>
-                                    <TextBlock Classes="sectionTitle" Text="损失变化" />
-                                    <Border Height="280"
-                                            Background="{DynamicResource IvSurface1Brush}"
-                                            BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
-                                            BorderThickness="1"
-                                            CornerRadius="4">
-                                        <dv:MetricLineChart Height="280" EmptyText="等待损失指标" YScale="Logarithmic" SeriesSource="{Binding Monitor.Metrics.LossChartSeries, Mode=OneWay}" />
-                                    </Border>
-                                </StackPanel>
-                            </Border>
-                        </Grid>
+                        <Border Margin="0,16,0,0" Classes="card chartPanel">
+                            <StackPanel>
+                                <TextBlock Classes="sectionTitle" Text="{Binding Monitor.Metrics.QualityChartTitle}" />
+                                <dv:MetricLineChart Height="200"
+                                                    EmptyText="{Binding Monitor.Metrics.QualityChartEmptyText}"
+                                                    MaximumY="1"
+                                                    MinimumY="0"
+                                                    SeriesSource="{Binding Monitor.Metrics.QualityChartSeries, Mode=OneWay}" />
+                            </StackPanel>
+                        </Border>
 
-                        <Grid Margin="0,0,0,16"
-                              ColumnDefinitions="*,*,*"
-                              IsVisible="{Binding Monitor.Metrics.ShowClassificationMetricsCards}">
-                            <Border Grid.Column="0" Margin="0,0,6,0" Classes="card metricCard">
-                                <StackPanel>
-                                    <TextBlock Classes="sectionTitle" Text="{Binding Monitor.Metrics.QualityChartTitle}" />
-                                    <Border Height="280"
-                                            Background="{DynamicResource IvSurface1Brush}"
-                                            BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
-                                            BorderThickness="1"
-                                            CornerRadius="4">
-                                        <dv:MetricLineChart Height="280" EmptyText="{Binding Monitor.Metrics.QualityChartEmptyText}" MaximumY="1" MinimumY="0" SeriesSource="{Binding Monitor.Metrics.QualityChartSeries, Mode=OneWay}" />
-                                    </Border>
-                                </StackPanel>
-                            </Border>
-                            <Border Grid.Column="1" Margin="6,0,6,0" Classes="card metricCard">
+                        <Grid Margin="0,12,0,0" ColumnDefinitions="*,Auto">
+                            <Border Classes="card chartPanel">
                                 <StackPanel>
                                     <TextBlock Classes="sectionTitle" Text="损失变化" />
-                                    <Border Height="280"
-                                            Background="{DynamicResource IvSurface1Brush}"
-                                            BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
-                                            BorderThickness="1"
-                                            CornerRadius="4">
-                                        <dv:MetricLineChart Height="280" EmptyText="等待损失指标" YScale="Logarithmic" SeriesSource="{Binding Monitor.Metrics.LossChartSeries, Mode=OneWay}" />
-                                    </Border>
+                                    <dv:MetricLineChart Height="160"
+                                                        EmptyText="等待损失指标"
+                                                        YScale="Logarithmic"
+                                                        SeriesSource="{Binding Monitor.Metrics.LossChartSeries, Mode=OneWay}" />
                                 </StackPanel>
                             </Border>
-                            <Border Grid.Column="2" Margin="6,0,0,0" Classes="card metricCard">
+                            <Border Grid.Column="1"
+                                    Width="300"
+                                    Margin="12,0,0,0"
+                                    Classes="card chartPanel"
+                                    IsVisible="{Binding Monitor.Metrics.ShowLearningRateChartColumn}">
                                 <StackPanel>
                                     <TextBlock Classes="sectionTitle" Text="学习率" />
-                                    <Border Height="280"
-                                            Background="{DynamicResource IvSurface1Brush}"
-                                            BorderBrush="{DynamicResource IvStrokeSubtleBrush}"
-                                            BorderThickness="1"
-                                            CornerRadius="4">
-                                        <dv:MetricLineChart Height="280" EmptyText="等待学习率" YScale="Logarithmic" SeriesSource="{Binding Monitor.Metrics.LrChartSeries, Mode=OneWay}" />
-                                    </Border>
+                                    <dv:MetricLineChart Height="160"
+                                                        EmptyText="等待学习率"
+                                                        YScale="Logarithmic"
+                                                        SeriesSource="{Binding Monitor.Metrics.LrChartSeries, Mode=OneWay}" />
                                 </StackPanel>
                             </Border>
                         </Grid>
 
-                        <TextBlock Margin="0,2,0,8"
-                                   FontSize="13"
+                        <TextBlock Margin="0,24,0,8"
+                                   FontSize="15"
                                    FontWeight="SemiBold"
                                    Text="历史记录" />
 
@@ -885,16 +846,16 @@
                                 <Border Classes="historyTable"
                                         MinWidth="686"
                                         IsVisible="{Binding Monitor.Metrics.ShowDetectionMetricsCards}">
-                                    <Grid RowDefinitions="Auto,*">
+                                    <Grid RowDefinitions="Auto,Auto">
                                         <Border Classes="historyHeaderRow">
-                                            <Grid ColumnDefinitions="64,100,100,100,100,100,100">
+                                            <Grid ColumnDefinitions="72,*,*,*,*,*,*">
                                                 <TextBlock Classes="historyHeader" Text="轮次" />
-                                                <TextBlock Grid.Column="1" Classes="historyHeader" Text="训练损失" />
-                                                <TextBlock Grid.Column="2" Classes="historyHeader" Text="验证集 mAP" />
-                                                <TextBlock Grid.Column="3" Classes="historyHeader" Text="验证集 mAP50" />
-                                                <TextBlock Grid.Column="4" Classes="historyHeader" Text="Precision" />
-                                                <TextBlock Grid.Column="5" Classes="historyHeader" Text="Recall" />
-                                                <TextBlock Grid.Column="6" Classes="historyHeader" Text="学习率" />
+                                                <TextBlock Grid.Column="1" Classes="historyHeader numeric" Text="训练损失" />
+                                                <TextBlock Grid.Column="2" Classes="historyHeader numeric" Text="验证集 mAP" />
+                                                <TextBlock Grid.Column="3" Classes="historyHeader numeric" Text="验证集 mAP50" />
+                                                <TextBlock Grid.Column="4" Classes="historyHeader numeric" Text="Precision" />
+                                                <TextBlock Grid.Column="5" Classes="historyHeader numeric" Text="Recall" />
+                                                <TextBlock Grid.Column="6" Classes="historyHeader numeric" Text="学习率" />
                                             </Grid>
                                         </Border>
                                         <ScrollViewer Grid.Row="1"
@@ -905,14 +866,14 @@
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
                                                         <Border Classes="historyRow">
-                                                            <Grid ColumnDefinitions="64,100,100,100,100,100,100">
+                                                            <Grid ColumnDefinitions="72,*,*,*,*,*,*">
                                                                 <TextBlock Classes="historyCell" Text="{Binding Epoch}" />
-                                                                <TextBlock Grid.Column="1" Classes="historyCell" Text="{Binding TrainLossText}" />
-                                                                <TextBlock Grid.Column="2" Classes="historyCell" Text="{Binding ValMapText}" />
-                                                                <TextBlock Grid.Column="3" Classes="historyCell" Text="{Binding ValMap50Text}" />
-                                                                <TextBlock Grid.Column="4" Classes="historyCell" Text="{Binding PrecisionText}" />
-                                                                <TextBlock Grid.Column="5" Classes="historyCell" Text="{Binding RecallText}" />
-                                                                <TextBlock Grid.Column="6" Classes="historyCell" Text="{Binding LrText}" />
+                                                                <TextBlock Grid.Column="1" Classes="historyCell numeric" Text="{Binding TrainLossText}" />
+                                                                <TextBlock Grid.Column="2" Classes="historyCell numeric" Text="{Binding ValMapText}" />
+                                                                <TextBlock Grid.Column="3" Classes="historyCell numeric" Text="{Binding ValMap50Text}" />
+                                                                <TextBlock Grid.Column="4" Classes="historyCell numeric" Text="{Binding PrecisionText}" />
+                                                                <TextBlock Grid.Column="5" Classes="historyCell numeric" Text="{Binding RecallText}" />
+                                                                <TextBlock Grid.Column="6" Classes="historyCell numeric" Text="{Binding LrText}" />
                                                             </Grid>
                                                         </Border>
                                                     </DataTemplate>
@@ -926,15 +887,15 @@
                                 <Border Classes="historyTable"
                                         MinWidth="586"
                                         IsVisible="{Binding Monitor.Metrics.ShowClassificationMetricsCards}">
-                                    <Grid RowDefinitions="Auto,*">
+                                    <Grid RowDefinitions="Auto,Auto">
                                         <Border Classes="historyHeaderRow">
-                                            <Grid ColumnDefinitions="64,100,100,100,100,100">
+                                            <Grid ColumnDefinitions="72,*,*,*,*,*">
                                                 <TextBlock Classes="historyHeader" Text="轮次" />
-                                                <TextBlock Grid.Column="1" Classes="historyHeader" Text="Top-1" />
-                                                <TextBlock Grid.Column="2" Classes="historyHeader" Text="Top-5" />
-                                                <TextBlock Grid.Column="3" Classes="historyHeader" Text="训练损失" />
-                                                <TextBlock Grid.Column="4" Classes="historyHeader" Text="验证损失" />
-                                                <TextBlock Grid.Column="5" Classes="historyHeader" Text="学习率" />
+                                                <TextBlock Grid.Column="1" Classes="historyHeader numeric" Text="Top-1" />
+                                                <TextBlock Grid.Column="2" Classes="historyHeader numeric" Text="Top-5" />
+                                                <TextBlock Grid.Column="3" Classes="historyHeader numeric" Text="训练损失" />
+                                                <TextBlock Grid.Column="4" Classes="historyHeader numeric" Text="验证损失" />
+                                                <TextBlock Grid.Column="5" Classes="historyHeader numeric" Text="学习率" />
                                             </Grid>
                                         </Border>
                                         <ScrollViewer Grid.Row="1"
@@ -945,13 +906,13 @@
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
                                                         <Border Classes="historyRow">
-                                                            <Grid ColumnDefinitions="64,100,100,100,100,100">
+                                                            <Grid ColumnDefinitions="72,*,*,*,*,*">
                                                                 <TextBlock Classes="historyCell" Text="{Binding Epoch}" />
-                                                                <TextBlock Grid.Column="1" Classes="historyCell" Text="{Binding AccuracyTop1Text}" />
-                                                                <TextBlock Grid.Column="2" Classes="historyCell" Text="{Binding AccuracyTop5Text}" />
-                                                                <TextBlock Grid.Column="3" Classes="historyCell" Text="{Binding TrainLossText}" />
-                                                                <TextBlock Grid.Column="4" Classes="historyCell" Text="{Binding ValLossText}" />
-                                                                <TextBlock Grid.Column="5" Classes="historyCell" Text="{Binding LrText}" />
+                                                                <TextBlock Grid.Column="1" Classes="historyCell numeric" Text="{Binding AccuracyTop1Text}" />
+                                                                <TextBlock Grid.Column="2" Classes="historyCell numeric" Text="{Binding AccuracyTop5Text}" />
+                                                                <TextBlock Grid.Column="3" Classes="historyCell numeric" Text="{Binding TrainLossText}" />
+                                                                <TextBlock Grid.Column="4" Classes="historyCell numeric" Text="{Binding ValLossText}" />
+                                                                <TextBlock Grid.Column="5" Classes="historyCell numeric" Text="{Binding LrText}" />
                                                             </Grid>
                                                         </Border>
                                                     </DataTemplate>
@@ -963,19 +924,19 @@
 
                                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
                                     <StackPanel Margin="0,16,0,0" IsVisible="{Binding Monitor.Metrics.HasPerClassRows}">
-                                        <TextBlock Margin="0,0,0,8"
-                                                   FontSize="13"
+                                        <TextBlock Margin="0,8,0,8"
+                                                   FontSize="15"
                                                    FontWeight="SemiBold"
                                                    Text="{Binding Monitor.Metrics.PerClassPanelTitle}" />
                                         <Border Classes="historyTable" MinWidth="520">
-                                            <Grid RowDefinitions="Auto,*">
+                                            <Grid RowDefinitions="Auto,Auto">
                                                 <Border Classes="historyHeaderRow">
-                                                    <Grid ColumnDefinitions="*,100,100,100,80">
+                                                    <Grid ColumnDefinitions="2*,*,*,*,*">
                                                         <TextBlock Classes="historyHeader" Text="类别" />
-                                                        <TextBlock Grid.Column="1" Classes="historyHeader" Text="Precision" />
-                                                        <TextBlock Grid.Column="2" Classes="historyHeader" Text="Recall" />
-                                                        <TextBlock Grid.Column="3" Classes="historyHeader" Text="F1" />
-                                                        <TextBlock Grid.Column="4" Classes="historyHeader" Text="样本数" />
+                                                        <TextBlock Grid.Column="1" Classes="historyHeader numeric" Text="Precision" />
+                                                        <TextBlock Grid.Column="2" Classes="historyHeader numeric" Text="Recall" />
+                                                        <TextBlock Grid.Column="3" Classes="historyHeader numeric" Text="F1" />
+                                                        <TextBlock Grid.Column="4" Classes="historyHeader numeric" Text="样本数" />
                                                     </Grid>
                                                 </Border>
                                                 <ScrollViewer Grid.Row="1"
@@ -986,12 +947,12 @@
                                                         <ItemsControl.ItemTemplate>
                                                             <DataTemplate>
                                                                 <Border Classes="historyRow">
-                                                                    <Grid ColumnDefinitions="*,100,100,100,80">
+                                                                    <Grid ColumnDefinitions="2*,*,*,*,*">
                                                                         <TextBlock Classes="historyCell" Text="{Binding ClassName}" />
-                                                                        <TextBlock Grid.Column="1" Classes="historyCell" Text="{Binding PrecisionText}" />
-                                                                        <TextBlock Grid.Column="2" Classes="historyCell" Text="{Binding RecallText}" />
-                                                                        <TextBlock Grid.Column="3" Classes="historyCell" Text="{Binding F1Text}" />
-                                                                        <TextBlock Grid.Column="4" Classes="historyCell" Text="{Binding SupportText}" />
+                                                                        <TextBlock Grid.Column="1" Classes="historyCell numeric" Text="{Binding PrecisionText}" />
+                                                                        <TextBlock Grid.Column="2" Classes="historyCell numeric" Text="{Binding RecallText}" />
+                                                                        <TextBlock Grid.Column="3" Classes="historyCell numeric" Text="{Binding F1Text}" />
+                                                                        <TextBlock Grid.Column="4" Classes="historyCell numeric" Text="{Binding SupportText}" />
                                                                     </Grid>
                                                                 </Border>
                                                             </DataTemplate>
@@ -1006,7 +967,7 @@
                         </ScrollViewer>
                     </StackPanel>
 
-                    <StackPanel Classes="emptyState" IsVisible="{Binding Monitor.Metrics.ShowMetricsEmptyState}">
+                    <StackPanel MaxWidth="420" Margin="0,48,0,24" Classes="emptyState" IsVisible="{Binding Monitor.Metrics.ShowMetricsEmptyState}">
                         <iv:Icon HorizontalAlignment="Center"
                                  FontSize="30"
                                  Foreground="{DynamicResource IvText3Brush}"
@@ -1020,7 +981,7 @@
                                    HorizontalAlignment="Center"
                                    FontSize="12.5"
                                    Foreground="{DynamicResource IvText2Brush}"
-                                   Text="训练开始后将显示实时指标"
+                                   Text="每轮验证结束后显示 Top-1、损失和曲线"
                                    TextAlignment="Center"
                                    TextWrapping="Wrap" />
                     </StackPanel>

@@ -16,6 +16,10 @@ tags: detection / classification / refactor / ui
 - 检测训练修复：任务对齐分配中无效的 top-k 槽位不再把计数投给锚点 0（小目标靠近原点时原逻辑会清掉唯一正样本）；解码改为整块 CPU 拷贝，不再逐候选 `.item()` 触发 GPU 同步；验证改成一次 batch forward + 每样本独立 NMS/反 letterbox，并给解码和验证补上 `DisposeScope`。
 - mAP 评估与预览阈值解耦：验证解码用 `EvaluationScoreFloor = 0.001`（NMS / MaxDetections 仍限制候选数），预览和推理仍用 `evaluation_confidence`；检测 `.info` 新增 `evaluation_score_floor`，避免低分真阳性被提前丢弃导致 mAP 偏低、best checkpoint 选错。
 - 澄清取消链路：MediatR 11 的 `RequestHandlerDelegate` 没有 token 参数，`Mediator.Send` 直接把 token 闭包传给 handler，pipeline behavior 不会吞掉取消；补回归测试锁住该契约。
+- 训练指标页留白：`ShowProfileMetricsCards` / `ShowDetectionMetricsCards` 没有在 `HasTrainingMetrics` 和任务切换时发 `PropertyChanged`。有 `DV_METRICS` 后空状态被隐藏，曲线区仍停在首次绑定的 `false`。历史表的 `Auto,*` 行放在 `StackPanel` 里会被挤成 0 高，改成 `Auto,Auto`。
+- 指标页布局：四张等宽卡片和三列等高曲线收成一条数值带、一条全宽主曲线，损失与学习率并排且学习率更窄。历史数字右对齐并使用等宽字体。
+- `MetricLineChart` 重绘：去掉网格，Catmull-Rom 转三次贝塞尔（控制点 Y 夹在相邻点之间，不会冲出 0–100%），渐变填充，虚线基线，图例内联最新值；第 1 条曲线取 `IvText1Brush`、第 2 条取 `IvText3Brush`，更多条用强调色。比例类图（MaximumY≤1）轴和图例按百分比显示。
+- `MetricLineChart` 悬停：`OnPointerMoved` 按 `_plotRect` 吸附到最近的已有轮次，`_hoverEpoch` 变化才 `InvalidateVisual`；`Render` 先画透明矩形保证能收到指针事件；`DrawHover` 画虚线、空心点和圆角数值卡（靠右放不下时翻到左侧）。
 - 慢测夹具改为进程间稳定：合成图不再用每次进程都变盐的 `HashCode.Combine`，目录按序读，三条 Slow 训练测试进入同一个不并行的 collection，并在建模型前 `torch.manual_seed(42)`。先前检出数在 0/40～25/40 间摆动，不能拿单次慢测当回归结论。
 - 标注画布框先画 2px 深色描边再画类别色，填充不透明度从 72 提到 96；鸟瞰图同样加粗。样本条的 8px 状态点改成「已标 / 未标 / 异常」底，当前样本边框加到 2px；画布左上角补上当前图的标注状态。
 

@@ -323,12 +323,15 @@ public sealed partial class TrainingMetricsDisplayViewModel : ObservableObject
         OnPropertyChanged(nameof(CurrentMetricProfile));
         OnPropertyChanged(nameof(ShowMetricsContent));
         OnPropertyChanged(nameof(ShowMetricCards));
+        OnPropertyChanged(nameof(ShowProfileMetricsCards));
         OnPropertyChanged(nameof(ShowClassificationMetricsCards));
+        OnPropertyChanged(nameof(ShowDetectionMetricsCards));
         OnPropertyChanged(nameof(ShowSecondaryTrainLossRow));
         OnPropertyChanged(nameof(ShowLearningRateChartColumn));
         OnPropertyChanged(nameof(ShowMetricsFooterHint));
         OnPropertyChanged(nameof(MetricsFooterHint));
         OnPropertyChanged(nameof(ShowMetricsEmptyState));
+        OnPropertyChanged(nameof(PerClassPanelTitle));
         OnPropertyChanged(nameof(QualityChartTitle));
         OnPropertyChanged(nameof(QualityChartEmptyText));
     }
@@ -340,7 +343,9 @@ public sealed partial class TrainingMetricsDisplayViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(ShowMetricsContent));
         OnPropertyChanged(nameof(ShowMetricCards));
+        OnPropertyChanged(nameof(ShowProfileMetricsCards));
         OnPropertyChanged(nameof(ShowClassificationMetricsCards));
+        OnPropertyChanged(nameof(ShowDetectionMetricsCards));
         OnPropertyChanged(nameof(ShowSecondaryTrainLossRow));
         OnPropertyChanged(nameof(ShowLearningRateChartColumn));
         OnPropertyChanged(nameof(ShowMetricsFooterHint));

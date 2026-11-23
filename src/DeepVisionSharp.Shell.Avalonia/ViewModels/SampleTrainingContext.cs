@@ -647,6 +647,8 @@ public sealed class SampleTrainingMetricsSummary
 
     public bool ShowMetricsFooterHint => true;
 
+    public bool ShowLearningRateChartColumn => true;
+
     public bool HasMetricsPollingError => false;
 
     public string MetricsPollingError => string.Empty;
